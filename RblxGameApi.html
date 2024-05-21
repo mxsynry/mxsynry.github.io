@@ -29,7 +29,7 @@
 <script>
     async function fetchData() {
         const gameId = document.getElementById('gameId').value;
-        const proxyUrl = 'https://corsproxy.io/';
+        const proxyUrl = 'https://corsproxy.io/?';
         const apiUrl = `https://games.roblox.com/v1/games/${gameId}/servers/Public`;
         try {
             const response = await fetch(proxyUrl + apiUrl);
