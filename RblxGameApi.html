@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API Data Fetch and Display</title>
+    <title>Roblox Games Api</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -14,18 +14,25 @@
             border: 1px solid #ddd;
             padding: 10px;
             background-color: #f9f9f9;
+            margin-bottom: 20px;
         }
     </style>
 </head>
 <body>
 
-<h1>API Data Fetch and Display</h1>
-<div id="output">Fetching data...</div>
+<h1>Roblox Games Api</h1>
+<label for="gameId">Enter Game ID:</label>
+<input type="text" id="gameId" value="4483381587">
+<button onclick="fetchData()">Fetch Data</button>
+<div id="output">Enter a game ID and click "Fetch Data"...</div>
 
 <script>
     async function fetchData() {
+        const gameId = document.getElementById('gameId').value;
+        const proxyUrl = 'https://corsproxy.io/';
+        const apiUrl = `https://games.roblox.com/v1/games/${gameId}/servers/Public`;
         try {
-            const response = await fetch('https://games.roblox.com/v1/games/4483381587/servers/Public'); // Replace with your API URL
+            const response = await fetch(proxyUrl + apiUrl);
             if (!response.ok) {
                 throw new Error('Network response was not ok ' + response.statusText);
             }
@@ -40,8 +47,6 @@
         const output = document.getElementById('output');
         output.textContent = JSON.stringify(data, null, 2); // Pretty-print JSON with indentation of 2 spaces
     }
-
-    fetchData();
 </script>
 
 </body>
