@@ -2,18 +2,31 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="description" content="Ready to 𝙬𝙞𝙣?">
-    <link rel="icon" href="https://raw.githubusercontent.com/RyXeleron/ryxeleron.github.io/main/globe.ico" type="image/x-icon"> 
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta name="description" content="Ready to 𝙬𝙞𝙣?">
+    <meta name="author" content="RyXeleron">
+    
+    <meta property="og:title" content="RobloxHackers.lol">
+    <meta property="og:description" content="Ready to 𝙬𝙞𝙣?">
+    <meta property="og:image" content="https://github.com/RyXeleron/ryxeleron.github.io/raw/main/TP.png">
+    <meta property="og:url" content="https://RyXeleron.Github.Io/">
+    <meta property="og:type" content="website">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="RobloxHackers.lol">
+    <meta name="twitter:description" content="Ready to 𝙬𝙞𝙣?">
+    <meta name="twitter:image" content="https://github.com/RyXeleron/ryxeleron.github.io/raw/main/TP.png">
+    <meta property="og:url" content="https://RyXeleron.Github.Io/">
+    
     <title>RobloxHackers.lol</title>
     <style>
         body {
             margin: 0;
             overflow: hidden;
             font-family: 'Arial', sans-serif;
+            color: #fff;
+            text-align: center;
         }
 
         .background-video {
@@ -22,9 +35,9 @@
             left: 0;
             width: 100%;
             height: 100%;
-            object-fit: cover;
-            z-index: -1;
-            filter: blur(5px);
+            object-fit: cover; /* Make sure the video covers the whole background */
+            z-index: -1; /* Send video behind content */
+            filter: blur(5px); /* Apply blur effect */
         }
 
         .container {
@@ -33,12 +46,10 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
-            text-align: center;
-            color: #fff;
         }
 
         .header-text {
-            margin-bottom: 0.1rem;
+            margin-bottom: 0.1rem; /* Reduced space between header and main text */
         }
 
         .header-text a {
@@ -46,7 +57,7 @@
             font-weight: bold;
             color: #fff;
             text-decoration: none;
-            display: inline-block;
+            display: inline-block; /* Required for animation */
             transition: all 0.2s ease;
         }
 
