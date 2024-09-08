@@ -11,7 +11,7 @@
       align-items: center;
       height: 100vh;
       margin: 0;
-      background-color: #111; /* background */
+      background-color: #111; /* Dark background */
       color: #fff;
       font-family: 'Arial', sans-serif;
     }
@@ -20,23 +20,26 @@
       text-align: center;
     }
 
-    .header-text {
+    .header-text a {
       font-size: 3rem;
       font-weight: bold;
-      margin-bottom: 1rem;
+      color: #fff;
+      text-decoration: none;
+      display: inline-block; /* Required for animation */
+      transition: all 0.2s ease;
     }
 
-    .main-text {
-      font-size: 2rem;
-    }
-
-    /* effects */
     .glow-red {
       color: red;
       text-shadow: 0 0 8px rgba(255, 0, 0, 0.8), 
                    0 0 12px rgba(255, 0, 0, 0.6), 
                    0 0 16px rgba(255, 0, 0, 0.4);
-      animation: glow-animation 2s infinite;
+      animation: glow-animation 0.01s infinite;
+    }
+
+    .shake-animation {
+      display: inline-block;
+      animation: shake-animation 0.01s infinite;
     }
 
     @keyframes glow-animation {
@@ -45,23 +48,28 @@
       100% { text-shadow: 0 0 8px rgba(255, 0, 0, 0.8); }
     }
 
-    /* shake anims */
-    .shake-animation {
-      display: inline-block;
-      animation: shake-animation 0.01s infinite;
-    }
-
     @keyframes shake-animation {
       0%, 100% { transform: translateX(0); }
       25% { transform: translateX(-1px); }
       50% { transform: translateX(1px); }
       75% { transform: translateX(-1px); }
     }
+
+    .header-text a:hover {
+      color: red;
+      animation: glow-animation 1s infinite, shake-animation 0.01s infinite;
+    }
+
+    .main-text {
+      font-size: 2rem;
+    }
   </style>
 </head>
 <body>
   <div class="container">
-    <p class="header-text"><span class="glow-red shake-animation">R/RobloxHackers.lol</span></p>
+    <p class="header-text">
+      <a href="https://github.com/ryxeleron/execstats" target="_blank" class="glow-red">RobloxHackers.lol</a>
+    </p>
     <p class="main-text">Ready to <span class="glow-red shake-animation">win</span>?</p>
   </div>
 </body>
