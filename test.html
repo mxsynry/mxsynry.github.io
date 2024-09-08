@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RobloxHackers.lol</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #111; /* background */
+      color: #fff;
+      font-family: 'Arial', sans-serif;
+    }
+
+    .container {
+      text-align: center;
+    }
+
+    .header-text {
+      font-size: 3rem;
+      font-weight: bold;
+      margin-bottom: 1rem;
+    }
+
+    .main-text {
+      font-size: 2rem;
+    }
+
+    /* effects */
+    .glow-red {
+      color: red;
+      text-shadow: 0 0 8px rgba(255, 0, 0, 0.8), 
+                   0 0 12px rgba(255, 0, 0, 0.6), 
+                   0 0 16px rgba(255, 0, 0, 0.4);
+      animation: glow-animation 2s infinite;
+    }
+
+    @keyframes glow-animation {
+      0% { text-shadow: 0 0 8px rgba(255, 0, 0, 0.8); }
+      50% { text-shadow: 0 0 24px rgba(255, 0, 0, 1); }
+      100% { text-shadow: 0 0 8px rgba(255, 0, 0, 0.8); }
+    }
+
+    /* shake anims */
+    .shake-animation {
+      display: inline-block;
+      animation: shake-animation 0.01s infinite;
+    }
+
+    @keyframes shake-animation {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-1px); }
+      50% { transform: translateX(1px); }
+      75% { transform: translateX(-1px); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <p class="header-text"><span class="glow-red shake-animation">R/RobloxHackers.lol</span></p>
+    <p class="main-text">Ready to <span class="glow-red shake-animation">win</span>?</p>
+  </div>
+</body>
+</html>
