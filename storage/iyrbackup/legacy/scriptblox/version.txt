@@ -1,0 +1,4 @@
+{
+	"Version": "6.3.5",
+	"Announcement": "IYR ScriptBlox version, updated by Ry."
+}
