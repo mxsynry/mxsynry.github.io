@@ -17,7 +17,17 @@
 	local randomNumber = Random.new():NextInteger(100000000, 999999999)
 	local token = string.format("%s-%d-%s-%d", username, userId, randomString, randomNumber)
 	local queueteleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
-	
+	local everyClipboard = setclipboard or toclipboard or set_clipboard or (Clipboard and Clipboard.set)
+        local everyWebSocket = (syn and syn.websocket and syn.websocket.connect) or (WebSocket and WebSocket.connect)
+        function toClipboard(txt)
+	if everyClipboard then
+		everyClipboard(tostring(txt))
+		notify("Clipboard", "Copied to clipboard")
+	   else
+		notify("Clipboard", "Your exploit doesn't have the ability to use the clipboard")
+	   end
+        end
+
 	if not everyClipboard then
 		notify("Missing UNC(s)", "No clipboard functions found.")
 		return
