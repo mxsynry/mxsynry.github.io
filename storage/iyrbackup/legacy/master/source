@@ -8453,16 +8453,20 @@ addcmd('disable',{},function(args, speaker)
 	end
 end)
 
-addcmd("report", {},function(args, speaker)
-	local players = getPlayer(args[1], speaker)
-	for _, rplayer in pairs(players) do
-		local rreason = args[2] or "Bullying"
-		local adinfo = args[3] or "He is breaking Roblox TOS."
-
-		Players:ReportAbuse(game.Players[rplayer], rreason, adinfo)
-
-		notify("Report Abuse", "Reported "..rplayer.." for "..rreason..". ["..adinfo.."]")
-	end
+addcmd("report", {}, function(args, speaker)
+    local players = getPlayer(args[1], speaker)
+    for _, rplayer in pairs(players) do
+        local rreason = args[2] or "Bullying"
+        local adinfo = args[3] or "He is breaking Roblox TOS."
+        
+        local success, err = pcall(function()
+            Players:ReportAbuse(game.Players[rplayer], rreason, adinfo)
+        end)
+        
+        if not success then
+            notify("Report Abuse Failed", "Failed to report " .. tostring(rplayer) .. ". Error: " .. tostring(err))
+        end
+    end
 end)
 
 local invisGUIS = {}
@@ -9724,25 +9728,24 @@ end
 addcmd("r6", {"r6anim", "r6reanim", "faker6", 'r31'}, function(args, speaker)
 if r15(speaker) then
 local plr = game:GetService("Players").LocalPlayer
-
 function RunCustomAnimation(Char)
-	if Char:WaitForChild("Animate") ~= nil then
-		Char.Animate.Disabled = true
-	end
-	
+    if Char:WaitForChild("Animate") ~= nil then
+        Char.Animate.Disabled = true
+        for _, child in ipairs(Char.Animate:GetChildren()) do
+            if child:IsA("Animation") then
+                child.AnimationId = "0"
+            end
+        end
+    end
 	Char:WaitForChild("Humanoid")
 
 	for i,v in next, Char.Humanoid:GetPlayingAnimationTracks() do
 		v:Stop()
 	end
-
-	--fake script
 	local script = Char.Animate
-
 	local Character = Char
 	local Humanoid = Character:WaitForChild("Humanoid")
 	local pose = "Standing"
-
 	local UserGameSettings = UserSettings():GetService("UserGameSettings")
 
 	local userNoUpdateOnLoopSuccess, userNoUpdateOnLoopValue = pcall(function() return UserSettings():IsUserFeatureEnabled("UserNoUpdateOnLoop") end)
@@ -9867,9 +9870,6 @@ function RunCustomAnimation(Char)
 		animTable[name].totalWeight = 0
 		animTable[name].connections = {}
 
-		-- uncomment this section to allow players to load with their
-		-- own (non-classic) animations
-        --[[
         local config = script:FindFirstChild(name)
         if (config ~= nil) then
             table.insert(animTable[name].connections, config.ChildAdded:connect(function(child) configureAnimationSet(name, fileList) end))
@@ -9913,7 +9913,6 @@ function RunCustomAnimation(Char)
                 end
             end
         end
-        ]]
 
 		-- if you uncomment the above section, comment out this "if"-block
 		if name == "run" or name == "walk" then
@@ -10659,11 +10658,21 @@ end)
 end)
 
 addcmd("promptr6", {}, function(args, speaker)
-    promptNewRig(speaker, "R6")
+    local success, err = pcall(function()
+        promptNewRig(speaker, "R6")
+    end)
+    if not success then
+        notify("Prompt", "Failed to prompt: " .. tostring(err))
+    end
 end)
 
 addcmd("promptr15", {}, function(args, speaker)
-    promptNewRig(speaker, "R15")
+    local success, err = pcall(function()
+        promptNewRig(speaker, "R15")
+    end)
+    if not success then
+        notify("Prompt", "Failed to prompt: " .. tostring(err))
+    end
 end)
 
 addcmd('age',{},function(args, speaker)
@@ -11793,8 +11802,10 @@ addcmd('animspeedloop', {'loopanimspeed'}, function(args, speaker)
                 end
             end
         end)
+    --[[
     else
         notify('Error', 'Humanoid not found, try respawning?')
+	]]
     end
 end)
 
