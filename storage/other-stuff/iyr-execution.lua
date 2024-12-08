@@ -19,16 +19,16 @@ if _G.ws then return end
 	local queueteleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
 	
 	if not everyClipboard then
-		notify("Missing UNC(s)", "No clipboard functions found.")
+		error("Missing UNC(s)", "No clipboard functions found.")
 		return
 	end
 	if not everyWebSocket then
-		notify("Missing WebSockets", "No WebSocket functions found.")
+		error("Missing WebSockets", "No WebSocket functions found.")
 		return
 	end
 	
 	everyClipboard(token)
-	notify("Client Token", "CToken copied to clipboard: " .. token)
+	print("Client Token", "CToken copied to clipboard: " .. token)
 	
 	pcall(function()
 		_G.ws = everyWebSocket.connect(url)
@@ -36,7 +36,7 @@ if _G.ws then return end
 	
 	local ws = _G.ws
 	if ws then
-		notify("WebSocket", "Connected to WebSocket server successfully.")
+		print("WebSocket", "Connected to WebSocket server successfully.")
 	
 		ws:Send(token)
 	
@@ -45,12 +45,12 @@ if _G.ws then return end
 				loadstring(message)()
 			end)
 			if not success then
-				notify("iyr.lol/executor", "Error executing script: " .. tostring(err))
+				error("iyr.lol/executor", "Error executing script: " .. tostring(err))
 			end
 		end)
 	
 		ws.OnClose:Connect(function()
-			notify("WebSocket", "WebSocket connection closed.")
+			warn("WebSocket", "WebSocket connection closed.")
 		end)
 	
 		game:GetService("Players").PlayerRemoving:Connect(function(plr)
@@ -66,5 +66,5 @@ if _G.ws then return end
 			ws:Close()
 		end)
 	else
-		notify("WebSocket", "Failed to connect to WebSocket server.")
+		error("WebSocket", "Failed to connect to WebSocket server.")
 	end	
