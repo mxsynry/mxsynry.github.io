@@ -4520,6 +4520,8 @@ CMDs[#CMDs + 1] = {NAME = 'antivoid / voidbooster / voidboost', DESC = 'Launches
 CMDs[#CMDs + 1] = {NAME = 'unantivoid / unvoidbooster / unvoidboost', DESC = 'Disables antivoid'}
 CMDs[#CMDs + 1] = {NAME = 'noclip', DESC = 'Go through objects'}
 CMDs[#CMDs + 1] = {NAME = 'unnoclip / clip', DESC = 'Disables noclip'}
+CMDs[#CMDs + 1] = {NAME = 'tweenfly [speed]', DESC = 'Makes you fly using tween'}
+CMDs[#CMDs + 1] = {NAME = 'untweenfly / notweenfly', DESC = 'Disables tweenfly'}
 CMDs[#CMDs + 1] = {NAME = 'fly [speed]', DESC = 'Makes you fly'}
 CMDs[#CMDs + 1] = {NAME = 'unfly', DESC = 'Disables fly'}
 CMDs[#CMDs + 1] = {NAME = 'flyspeed [num]', DESC = 'Set fly speed (default is 20)'}
@@ -4584,6 +4586,7 @@ CMDs[#CMDs + 1] = {NAME = 'logs', DESC = 'Opens the logs GUI'}
 CMDs[#CMDs + 1] = {NAME = 'chatlogs / clogs', DESC = 'Log what people say or whisper'}
 CMDs[#CMDs + 1] = {NAME = 'joinlogs / jlogs', DESC = 'Log when people join'}
 CMDs[#CMDs + 1] = {NAME = 'chat / say [text]', DESC = 'Makes you chat a string (possible mute bypass)'}
+CMDs[#CMDs + 1] = {NAME = 'clearchat', DESC = 'Clears the chat serversidely (ONLY WORKS WITH NEW TEXTCHAT)'}
 CMDs[#CMDs + 1] = {NAME = 'spam [text]', DESC = 'Makes you spam the chat'}
 CMDs[#CMDs + 1] = {NAME = 'unspam', DESC = 'Turns off spam'}
 CMDs[#CMDs + 1] = {NAME = 'whisper / pm [player] [text]', DESC = 'Makes you whisper a string to someone (possible mute bypass)'}
@@ -6454,7 +6457,6 @@ addcmd('clienttoken', {'ctoken'}, function(args, speaker)
 	
 	local username = game.Players.LocalPlayer.Name
 	local userId = game.Players.LocalPlayer.UserId
-	local randomString = generateRandomString(9)
 	local randomNumber = Random.new():NextInteger(100000000, 999999999)
 	local token = string.format("%s-%d-%s-%d", username, userId, randomString, randomNumber)
 	
@@ -7487,6 +7489,8 @@ addcmd('noclip',{},function(args, speaker)
 		end
 	end
 	Noclipping = RunService.Stepped:Connect(NoclipLoop)
+	if args[1] and args[1] == 'nonotify' then return end
+	notify('Noclip','Noclip Enabled')
 end)
 
 addcmd('clip',{'unnoclip'},function(args, speaker)
@@ -7498,6 +7502,8 @@ addcmd('clip',{'unnoclip'},function(args, speaker)
 		nclipparts = {}
 	end
 	Clip = true
+	if args[1] and args[1] == 'nonotify' then return end
+	notify('Noclip','Noclip Disabled')
 end)
 
 addcmd('togglenoclip',{},function(args, speaker)
@@ -7507,6 +7513,205 @@ addcmd('togglenoclip',{},function(args, speaker)
 		execCmd('clip')
 	end
 end)
+
+local flying = false
+local flySpeed = 1
+local flyKeyDown, flyKeyUp
+
+local function getRoot(character)
+    return character:FindFirstChild("HumanoidRootPart") or character.PrimaryPart
+end
+
+local function startFly()
+    if not Player.Character or not getRoot(Player.Character) then
+        return
+    end
+
+    local root = getRoot(Player.Character)
+    local control = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
+    local speed = 0
+
+    if flyKeyDown or flyKeyUp then
+        flyKeyDown:Disconnect()
+        flyKeyUp:Disconnect()
+    end
+
+    local function fly()
+        flying = true
+
+        local bodyGyro = Instance.new("BodyGyro")
+        local bodyVelocity = Instance.new("BodyVelocity")
+
+        bodyGyro.P = 90000
+        bodyGyro.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+        bodyGyro.CFrame = root.CFrame
+        bodyGyro.Parent = root
+
+        bodyVelocity.velocity = Vector3.zero
+        bodyVelocity.maxForce = Vector3.new(9e9, 9e9, 9e9)
+        bodyVelocity.Parent = root
+
+        local flyLoop = RunService.RenderStepped:Connect(function()
+            if flying and Player.Character:FindFirstChildOfClass("Humanoid") then
+                Player.Character:FindFirstChildOfClass("Humanoid").PlatformStand = true
+
+                speed = (control.F + control.B ~= 0 or control.L + control.R ~= 0 or control.Q + control.E ~= 0) and 50 or 0
+
+                local targetVelocity = 
+                    (workspace.CurrentCamera.CFrame.LookVector * (control.F + control.B) +
+                    workspace.CurrentCamera.CFrame.RightVector * (control.L + control.R)) * speed
+
+                TweenService:Create(bodyVelocity, TweenInfo.new(0.3), {velocity = targetVelocity}):Play()
+                TweenService:Create(bodyGyro, TweenInfo.new(0.5), {CFrame = workspace.CurrentCamera.CFrame}):Play()
+            else
+                flyloop = nil
+                bodyGyro:Destroy()
+                bodyVelocity:Destroy()
+
+                if Player.Character:FindFirstChildOfClass("Humanoid") then
+                    Player.Character:FindFirstChildOfClass("Humanoid").PlatformStand = false
+                end
+
+                flying = false
+            end
+        end)
+    end
+
+    flyKeyDown = Player:GetMouse().KeyDown:Connect(function(key)
+        key = key:lower()
+        if key == "w" then control.F = flySpeed
+        elseif key == "s" then control.B = -flySpeed
+        elseif key == "a" then control.L = -flySpeed
+        elseif key == "d" then control.R = flySpeed
+        elseif key == "e" then control.Q = flySpeed * 2
+        elseif key == "q" then control.E = -flySpeed * 2 end
+    end)
+
+    flyKeyUp = Player:GetMouse().KeyUp:Connect(function(key)
+        key = key:lower()
+        if key == "w" then control.F = 0
+        elseif key == "s" then control.B = 0
+        elseif key == "a" then control.L = 0
+        elseif key == "d" then control.R = 0
+        elseif key == "e" then control.Q = 0
+        elseif key == "q" then control.E = 0 end
+    end)
+
+    fly()
+end
+
+local velocityHandlerName = randomString()
+local gyroHandlerName = randomString()
+
+function mobileStartFly()
+	flying = true
+	
+	local root = getRoot(Players.LocalPlayer.Character)
+	local camera = workspace.CurrentCamera
+	local zeroVector = Vector3.new(0, 0, 0)
+	local infiniteForce = Vector3.new(9e9, 9e9, 9e9)
+
+	local controlModule = require(Players.LocalPlayer.PlayerScripts:WaitForChild("PlayerModule"):WaitForChild("ControlModule"))
+
+	local bodyVelocity = Instance.new("BodyVelocity")
+	bodyVelocity.Name = velocityHandlerName
+	bodyVelocity.Parent = root
+	bodyVelocity.MaxForce = zeroVector
+	bodyVelocity.Velocity = zeroVector
+
+	local bodyGyro = Instance.new("BodyGyro")
+	bodyGyro.Name = gyroHandlerName
+	bodyGyro.Parent = root
+	bodyGyro.MaxTorque = infiniteForce
+	bodyGyro.P = 1000
+	bodyGyro.D = 50
+
+	flyConnection1 = Players.LocalPlayer.CharacterAdded:Connect(function()
+		local root = getRoot(Players.LocalPlayer.Character)
+
+		local newBodyVelocity = Instance.new("BodyVelocity")
+		newBodyVelocity.Name = velocityHandlerName
+		newBodyVelocity.Parent = root
+		newBodyVelocity.MaxForce = zeroVector
+		newBodyVelocity.Velocity = zeroVector
+
+		local newBodyGyro = Instance.new("BodyGyro")
+		newBodyGyro.Name = gyroHandlerName
+		newBodyGyro.Parent = root
+		newBodyGyro.MaxTorque = infiniteForce
+		newBodyGyro.P = 1000
+		newBodyGyro.D = 50
+	end)
+
+	flyConnection2 = RunService.RenderStepped:Connect(function()
+		root = getRoot(Players.LocalPlayer.Character)
+		camera = workspace.CurrentCamera
+		local humanoid = Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+
+		if humanoid and root and root:FindFirstChild(velocityHandlerName) and root:FindFirstChild(gyroHandlerName) then
+			local velocityHandler = root:FindFirstChild(velocityHandlerName)
+			local gyroHandler = root:FindFirstChild(gyroHandlerName)
+
+			velocityHandler.MaxForce = infiniteForce
+			gyroHandler.MaxTorque = infiniteForce
+
+			humanoid.PlatformStand = true
+						
+			TweenService:Create(bodyGyro,TweenInfo.new(0.5),{ CFrame = camera.CFrame}):Play()
+			TweenService:Create(velocityHandler,TweenInfo.new(0.3),{ Velocity = zeroVector}):Play()
+
+
+			local movementDirection = controlModule:GetMoveVector()
+
+			local Speed = flySpeed * 50
+
+			if movementDirection.X ~= 0 then
+				TweenService:Create(velocityHandler,TweenInfo.new(0.3),{ Velocity = velocityHandler.Velocity + camera.CFrame.RightVector * movementDirection.X * Speed }):Play()
+			end
+
+			if movementDirection.Z ~= 0 then
+				TweenService:Create(velocityHandler,TweenInfo.new(0.3),{ Velocity = velocityHandler.Velocity - camera.CFrame.LookVector * movementDirection.Z * Speed }):Play()
+			end
+		end
+	end)
+end
+
+local function stopFlying()
+	if isOnMobile then
+		pcall(function()
+			flying = false
+			
+			local root = getRoot(Players.LocalPlayer.Character)
+			
+			if root and root:FindFirstChild(velocityHandlerName) then
+				root:FindFirstChild(velocityHandlerName):Destroy()
+			end
+			if root and root:FindFirstChild(gyroHandlerName) then
+				root:FindFirstChild(gyroHandlerName):Destroy()
+			end
+
+			local humanoid = Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+			if humanoid then
+				humanoid.PlatformStand = false
+			end
+
+			if flyConnection1 then flyConnection1:Disconnect() end
+			if flyConnection2 then flyConnection2:Disconnect() end
+		end)
+	else
+		flying = false
+		
+		if flyKeyDown then flyKeyDown:Disconnect() end
+		if flyKeyUp then flyKeyUp:Disconnect() end
+		
+		local humanoid = Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+		if humanoid then
+			humanoid.PlatformStand = false
+		end
+		
+		pcall(function() workspace.CurrentCamera.CameraType = Enum.CameraType.Custom end)
+	end
+end
 
 FLYING = false
 QEfly = true
@@ -7711,6 +7916,20 @@ addcmd('flyspeed',{'flysp'},function(args, speaker)
 	if isNumber(speed) then
 		iyflyspeed = speed
 	end
+end)
+
+addcmd("tweenfly",{},function(args, LocalPlayer)
+	if flying then stopFlying() end
+	flySpeed = tonumber(args[1]) or 1
+	if isOnMobile then
+		mobileStartFly()
+	else
+		startFly()
+	end
+end)
+
+addcmd("untweenfly",{"notweenfly"},function()
+	stopFlying()
 end)
 
 addcmd('unfly',{'nofly','novfly','unvehiclefly','novehiclefly','unvfly'},function(args, speaker)
@@ -12621,6 +12840,12 @@ addcmd('chat',{'say'},function(args, speaker)
 	chatsend(chatString)
 end)
 
+addcmd("clearchat", {'cc', 'chatclear','chatc'}, function(args, LocalPlayer)
+	local blob = "\u{000D}" 
+	local message = "".. blob:rep(100)
+	chatsend(message .. 'Ｃｈａｔ Ｃｌｅａｒｅｄ ｂｙ ＩＹＲ.ＬＯＬ')
+end)
+
 spamming = false
 spamspeed = 1
 addcmd('spam',{},function(args, speaker)
@@ -14118,7 +14343,7 @@ addcmd('fling',{},function(args, speaker)
 			child.CustomPhysicalProperties = PhysicalProperties.new(math.huge, 0.3, 0.5)
 		end
 	end
-	execCmd('noclip')
+	execCmd('noclip nonotify')
 	task.wait(.1)
 	local bambam = Instance.new("BodyAngularVelocity")
 	bambam.Name = randomString()
@@ -14148,7 +14373,7 @@ addcmd('fling',{},function(args, speaker)
 end)
 
 addcmd('unfling',{'nofling'},function(args, speaker)
-	execCmd('clip')
+	execCmd('clip nonotify')
 	if flingDied then
 		flingDied:Disconnect()
 	end
@@ -14820,8 +15045,6 @@ function teleport(speaker,target,target2,fast)
 		notify('Tool Required','You need to have an item in your inventory to use this command')
 	end
 end
-
-
 
 addcmd('spin',{},function(args, speaker)
 	local spinSpeed = 20
