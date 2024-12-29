@@ -1,5 +1,5 @@
-# [changeexecutoridentityfr.lua](https://ryxeleron.github.io/storage/other-stuff/changeexecutoridentityfr.lua)
-# [identities.md](https://ryxeleron.github.io/storage/other-stuff/identities.md)
+# [changeexecutoridentiyfr.lua](https://ryxeleron.github.io/storage/other-stuff/changeexecutoridentiyfr.lua)
+# [identities.md](https://raw.githubusercontent.com/RyXeleron/ryxeleron.github.io/refs/heads/main/storage/other-stuff/identities.md)
 # [iyr-execution.lua](https://ryxeleron.github.io/storage/other-stuff/iyr-execution.lua)
 # [is-this-what-IY-kids-riding-for.mp4](https://ryxeleron.github.io/storage/other-stuff/is-this-what-IY-kids-riding-for.mp4)
 # [vulntestsource.lua](https://ryxeleron.github.io/storage/other-stuff/vulntestsource.lua)
