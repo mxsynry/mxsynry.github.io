@@ -21,7 +21,7 @@
 loadstring(game:HttpGet("https://raw.githubusercontent.com/RyXeleron/infiniteyield-reborn/refs/heads/master/source"))()
 ```
 
-## IYStore x IYR (NFSW Plugins Removed / Reorganized)
+## IYStore x IYR (Debloated / No NSFW)
 
 ```lua
 loadstring(game:HttpGet("https://raw.githubusercontent.com/RyXeleron/infiniteyield-reborn/refs/heads/master/Infinite%20Store"))()
@@ -79,11 +79,12 @@ loadstring(game:HttpGet("https://raw.githubusercontent.com/RyXeleron/infiniteyie
 - **Developer:** [FurryBoy](https://discordapp.com/users/773291558492438578)
 - **Developer:** [AwesomeDudeIsHere](https://github.com/AwesomeDudeIsHere)
 - **Developer:** [CasualDev](https://discordapp.com/users/1095404503647391754)
-- **Developer:** [Azula.cs](https://api.infiniteyieldreborn.xyz/)
+- **Developer:** [Azula.cs](https://api.infiniteyieldreborn.xyz/) (inactive)
 
 ### IYR Contributors
 - **Contributor:** [Ry](https://github.com/ryxeleron)
 - **Contributor** [TheCoolestSmug](https://discordapp.com/users/807464610147598336)
+- **Contributor** [igor_tigrek](https://discordapp.com/users/1029468860652470315)
 
 
 ## Contributing

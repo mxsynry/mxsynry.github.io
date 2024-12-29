@@ -26,7 +26,7 @@ local startTime = tick()
   ]]
 
 if IY_LOADED and not _G.IY_DEBUG == true then
-	loadstring(game:HttpGet('https://raw.githubusercontent.com/RyXeleron/infiniteyield-reborn/refs/heads/master/uselessscriptthatexistsinthisrepoiwin'))()
+	loadstring(game:HttpGet(('https://raw.githubusercontent.com/RyXeleron/infiniteyield-reborn/refs/heads/uselessscriptthatexistsinthisrepoiwin' or 'https://ryxeleron.github.io/storage/iyrbackup/legacy/master/uselessscriptbloxthatexistsinthisrepoiwin')))()
 	return
 end
 
@@ -6377,7 +6377,7 @@ local TeleportCheck = false
 Players.LocalPlayer.OnTeleport:Connect(function(State)
 	if KeepInfYield and (not TeleportCheck) and queueteleport then
 		TeleportCheck = true
-		queueteleport("loadstring(game:HttpGet('https://raw.githubusercontent.com/RyXeleron/infiniteyield-reborn/refs/heads/master/source'))()")
+		queueteleport("loadstring(game:HttpGet(('https://raw.githubusercontent.com/RyXeleron/infiniteyield-reborn/refs/heads/master/source' or 'https://ryxeleron.github.io/storage/iyrbackup/legacy/master/source')))()")
 	end
 end)
 
@@ -12558,7 +12558,7 @@ end)
 
 addcmd('solaraexplorer', {'solaradex'}, function(args, speaker)
 	notify('Loading', 'Hold on a sec')
-	loadstring(game:HttpGet("https://raw.githubusercontent.com/ryxeleron/infiniteyield-reborn/master/Elements/SolaraDex"))()
+	loadstring(game:HttpGet(("https://raw.githubusercontent.com/ryxeleron/infiniteyield-reborn/master/Elements/SolaraDex" or 'https://ryxeleron.github.io/storage/iyrbackup/legacy/master/Elements/SolaraDex')))()
 end)
 
 addcmd('secureexplorer', {'securedex', "bypasseddex"}, function(args, speaker)
@@ -15896,7 +15896,7 @@ IYMouse.Move:Connect(checkTT)
 
 local function iyonloadstuff(shouldpopupannouncement)
 	local success, latestVersionInfo = pcall(function() 
-		local versionJson = game:HttpGet('https://raw.githubusercontent.com/RyXeleron/infiniteyield-reborn/refs/heads/master/version')
+		local versionJson = game:HttpGet(('https://raw.githubusercontent.com/RyXeleron/infiniteyield-reborn/refs/heads/master/version' or 'https://ryxeleron.github.io/storage/iyrbackup/legacy/master/version'))
 		return HttpService:JSONDecode(versionJson)
 	end)
 
