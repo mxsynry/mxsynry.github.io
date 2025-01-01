@@ -1,0 +1,247 @@
+if __IYRLOADERRANONLOCAL__ == nil then __IYRLOADERRANONLOCAL__ = false end; __IYRLOADERVERSION__ = 'a1'; if __IYRLOADERLOADED__ or IYR_LOADED then return end
+__IYRLOADERLOADED__ = true
+
+function randomString()
+	local length = math.random(10,20)
+	local array = {}
+	for i = 1, length do
+		array[i] = string.char(math.random(32, 126))
+	end
+	return table.concat(array)
+end
+
+PARENT = nil
+if get_hidden_gui or gethui then
+	local hiddenUI = get_hidden_gui or gethui
+	local Main = Instance.new("ScreenGui")
+	Main.Name = randomString()
+	Main.Parent = hiddenUI()
+	Main.IgnoreGuiInset = true
+	PARENT = Main
+elseif syn and syn.protect_gui then
+	local Main = Instance.new("ScreenGui")
+	Main.Name = randomString()
+	syn.protect_gui(Main)
+	Main.Parent = game.CoreGui
+	Main.IgnoreGuiInset = true
+	PARENT = Main
+elseif game.CoreGui:FindFirstChild('RobloxGui') then
+	PARENT = game.CoreGui.RobloxGui
+else
+	local Main = Instance.new("ScreenGui")
+	Main.Name = randomString()
+	Main.Parent = game.CoreGui
+	Main.IgnoreGuiInset = true
+	PARENT = Main
+end
+
+TweenService = game:GetService("TweenService")
+MainFrame = Instance.new("Frame")
+Corner = Instance.new("UICorner")
+Title = Instance.new('TextLabel')
+CloseButton = Instance.new('TextButton')
+RunButton = Instance.new('TextButton')
+RunButtonStroke = Instance.new('UIStroke')
+DownloadButton = Instance.new('TextButton')
+DownloadButtonStroke = Instance.new('UIStroke')
+BottomText = Instance.new('TextLabel')
+DropdownFrame = Instance.new('Frame')
+DropdownText = Instance.new('TextLabel')
+DropdownButton = Instance.new('TextButton')
+DropdownFrame2 = Instance.new('Frame')
+DropdownContainer = Instance.new('Frame')
+DPB1 = Instance.new('TextButton')
+DPB2 = Instance.new('TextButton')
+UIList = Instance.new('UIGridLayout')
+BuildMode = 'Release'
+DropdownEnabled = false
+
+BuildVerRelease = 'a1'
+BuildVerNightly = ''
+
+Tweens = {
+	TweenService:Create(MainFrame, TweenInfo.new(0.15, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, false, 0), { Size = UDim2.new(0, 350, 0, 5) }),
+	TweenService:Create(MainFrame, TweenInfo.new(0.15, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, false, 0), { Size = UDim2.new(0, 0, 0, 5) }),
+	TweenService:Create(RunButton, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, false, 0), { BackgroundTransparency = 0 }),
+	TweenService:Create(RunButton, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, false, 0), { BackgroundTransparency = 1 }),
+	TweenService:Create(DownloadButton, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, false, 0), { BackgroundTransparency = 0 }),
+	TweenService:Create(DownloadButton, TweenInfo.new(0.3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, false, 0), { BackgroundTransparency = 1 }),
+	TweenService:Create(DropdownFrame2, TweenInfo.new(0.15, Enum.EasingStyle.Sine, Enum.EasingDirection.Out, 0, false, 0), { Position = UDim2.new(0, 0, 0, 0) }),
+	TweenService:Create(DropdownFrame2, TweenInfo.new(0.15, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, false, 0), { Position = UDim2.new(0, 0, -1, 0) }),
+	TweenService:Create(DropdownButton, TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, false, 0), { Size = UDim2.new(1, 0, 1, 0), Position = UDim2.new(0, 0, 0, 0), AnchorPoint = Vector2.new(0, 0) }),
+	TweenService:Create(DropdownButton, TweenInfo.new(0.2, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut, 0, false, 0), { Size = UDim2.new(0, 100, 1, 0), Position = UDim2.new(0.684, 0, 0.5, 0), AnchorPoint = Vector2.new(0, 0.5) })
+}
+
+local function exit()
+	-- This is simple work i dont wanna spend too much on it but works!
+	MainFrame:ClearAllChildren()
+	Tweens[1]:Play()
+	task.wait(.15)
+	Tweens[2]:Play()
+	task.wait(.2)
+	PARENT:Destroy()
+	PARENT = nil
+end
+
+MainFrame.Size = UDim2.new(0, 350, 0, 200)
+MainFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+MainFrame.Position = UDim2.new(0.5, 0, 0.5, 0)
+MainFrame.BackgroundTransparency = 0.3
+MainFrame.BackgroundColor3 = Color3.new(0, 0, 0)
+MainFrame.Parent = PARENT
+
+Corner.Parent = MainFrame
+
+Title.Text = `IYR.LOL LOADER | {__IYRLOADERVERSION__}`
+Title.BackgroundTransparency = 1
+Title.TextColor3 = Color3.new(1, 1, 1)
+Title.TextSize = 13
+Title.Position = UDim2.new(0, 105, 0, 21)
+Title.Font = Enum.Font.Legacy
+Title.Parent = MainFrame
+
+BottomText.Text = 'IYR.LOL | 2024-CurrentYear | FB_Real | discord.gg/iyr'
+BottomText.BackgroundTransparency = 1
+BottomText.TextColor3 = Color3.new(1, 1, 1)
+BottomText.TextSize = 8
+BottomText.Font = Enum.Font.Legacy
+BottomText.AnchorPoint = Vector2.new(0.5,0.5)
+BottomText.Position = UDim2.new(0.5, 0, 0.955, 0)
+BottomText.Parent = MainFrame
+
+CloseButton.Text = 'X'
+CloseButton.BackgroundTransparency = 1
+CloseButton.TextColor3 = Color3.new(1, 1, 1)
+CloseButton.TextSize = 20
+CloseButton.Size = UDim2.new(0, 35, 0, 35)
+CloseButton.Position = UDim2.new(1, -40, 0, 5)
+CloseButton.Parent = MainFrame
+CloseButton.Activated:connect(exit)
+
+
+RunButton.BackgroundTransparency = 1
+RunButton.Position = UDim2.new(0, 17, 0, 140)
+RunButton.Size = UDim2.new(0, 150, 0, 40)
+RunButton.TextSize = 10
+RunButton.Text = 'Run IYR.LOL'
+RunButton.BackgroundColor3 = Color3.new(1, 1, 1)
+RunButton.TextColor3 = Color3.new(1, 1, 1)
+RunButton.TextStrokeColor3 = Color3.new(0, 0, 0)
+RunButton.TextStrokeTransparency = 0
+RunButton.AutoButtonColor = false
+RunButton.Font = Enum.Font.Legacy
+RunButton.Parent = MainFrame
+RunButton.MouseEnter:Connect(function() Tweens[3]:Play() end)
+RunButton.MouseLeave:Connect(function() Tweens[4]:Play() end)
+RunButton.Activated:Connect(function()
+	exit()
+	loadstring(game:HttpGet(`https://ryxeleron.github.io/storage/iyrbackup/{BuildMode == 'Release' and 'nextgen' or (BuildMode == 'Nightly' and 'nextgen-nightly')}/main`))()
+end)
+
+RunButtonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+RunButtonStroke.Color = Color3.new(1, 1, 1)
+RunButtonStroke.Parent = RunButton
+
+DownloadButton.BackgroundTransparency = 1
+DownloadButton.Position = UDim2.new(1, -168, 0, 140)
+DownloadButton.Size = UDim2.new(0, 150, 0, 40)
+DownloadButton.TextSize = 9
+DownloadButton.Text = 'Download IYR.LOL\n(COMING SOON)'
+DownloadButton.BackgroundColor3 = Color3.new(0.294118, 0.294118, 0.294118)
+DownloadButton.TextColor3 = Color3.new(1, 1, 1)
+DownloadButton.TextStrokeColor3 = Color3.new(0, 0, 0)
+DownloadButton.TextStrokeTransparency = 0
+DownloadButton.AutoButtonColor = false
+DownloadButton.Font = Enum.Font.Legacy
+DownloadButton.Parent = MainFrame
+DownloadButton.MouseEnter:Connect(function() Tweens[5]:Play() end)
+DownloadButton.MouseLeave:Connect(function() Tweens[6]:Play() end)
+
+DownloadButtonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+DownloadButtonStroke.Color = Color3.new(0.294118, 0.294118, 0.294118)
+DownloadButtonStroke.Parent = DownloadButton
+
+DropdownFrame.Size = UDim2.new(0.9, 0, 0, 25)
+DropdownFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+DropdownFrame.Position = UDim2.new(0.5, 0, 0.6, 0)
+DropdownFrame.BackgroundTransparency = 1
+DropdownFrame.Parent = MainFrame
+
+DropdownText.AnchorPoint = Vector2.new(0, 0.5)
+DropdownText.Position = UDim2.new(0.06, 0, 0.5, 0)
+DropdownText.Text = 'Build: '
+DropdownText.TextColor3 = Color3.new(1, 1, 1)
+DropdownText.TextSize = 10
+DropdownText.Parent = DropdownFrame
+
+DropdownButton.AnchorPoint = Vector2.new(0, 0.5)
+DropdownButton.Position =  UDim2.new(0.684, 0, 0.5, 0)
+DropdownButton.Size = UDim2.new(0, 100, 1, 0)
+DropdownButton.BackgroundColor3 = Color3.new(1, 1, 1)
+DropdownButton.TextColor3 = Color3.new(1, 1, 1)
+DropdownButton.TextStrokeColor3 = Color3.new(0, 0, 0)
+DropdownButton.TextStrokeTransparency = 0
+DropdownButton.TextSize = 10
+DropdownButton.Text = 'Release'
+DropdownButton.Parent = DropdownFrame
+DropdownButton.Activated:Connect(function()
+	if DropdownEnabled == false then
+		DropdownEnabled = true
+		DownloadButton.Visible = false
+		RunButton.Visible = false
+		Tweens[7]:Play()
+		Tweens[9]:Play()
+	else
+		DropdownEnabled = false
+		DownloadButton.Visible = true
+		RunButton.Visible = true
+		Tweens[8]:Play()
+		Tweens[10]:Play()
+	end
+end)
+
+DropdownContainer.ClipsDescendants = true
+DropdownContainer.BackgroundTransparency = 1
+DropdownContainer.Size = UDim2.new(1,0,0,50)
+DropdownContainer.Position = UDim2.new(0,0,1,0)
+DropdownContainer.Parent = DropdownFrame
+
+DropdownFrame2.Size = UDim2.new(1,0,0,50)
+DropdownFrame2.BackgroundColor3 = Color3.new(1, 1, 1)
+DropdownFrame2.BackgroundTransparency = 0.3
+DropdownFrame2.Position = UDim2.new(0,0,-1,0)
+DropdownFrame2.Parent = DropdownContainer
+
+UIList.CellSize = UDim2.new(0.95, 0, 0, 20)
+UIList.CellPadding = UDim2.new(0, 5, 0, 5)
+UIList.HorizontalAlignment = Enum.HorizontalAlignment.Center
+UIList.VerticalAlignment = Enum.VerticalAlignment.Center
+UIList.Parent = DropdownFrame2
+
+DPB1.Text = `Release (Version {BuildVerRelease})`
+DPB1.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+DPB1.TextColor3 = Color3.new(1,1,1)
+DPB1.Parent = DropdownFrame2
+DPB1.Activated:Connect(function()
+	BuildMode = 'Release'
+	DropdownButton.Text = BuildMode
+	DropdownEnabled = false
+	DownloadButton.Visible = true
+	RunButton.Visible = true
+	Tweens[8]:Play()
+	Tweens[10]:Play()
+end)
+
+DPB2.Text = `Nightly (Version {BuildVerNightly})`
+DPB2.BackgroundColor3 = Color3.fromRGB(50, 50, 50)
+DPB2.TextColor3 = Color3.new(1,1,1)
+DPB2.Parent = DropdownFrame2
+DPB2.Activated:Connect(function()
+	BuildMode = 'Nightly'
+	DropdownButton.Text = BuildMode
+	DropdownEnabled = false
+	DownloadButton.Visible = true
+	RunButton.Visible = true
+	Tweens[8]:Play()
+	Tweens[10]:Play()
+end)

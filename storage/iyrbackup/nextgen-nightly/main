@@ -1,0 +1,783 @@
+--[[
+	8/30/2024 | 4:50 AM +3UTC
+	FINALLY Finished this
+	Now it should change the TobBarApp
+	It's not perfect but it's the best I can do
+	for now.
+	- FB_Real
+]]
+
+if IY_LOADED or IYR_LOADED then
+	if IY_LOADED and not IYR_LOADED then
+		game:Shutdown(); game.Players.LocalPlayer:Kick("You may now execute IYR Nextgen in the next game/server you join. (Please dont have IYR Legacy or IY loaded)"); game.Players.LocalPlayer:Remove()
+	end
+	return
+end
+
+-- UH OH THE THE CONFLICTS OMG. Well i did this for a good reason xd
+pcall(function() getgenv().IYR_LOADED = true; task.spawn(function() while task.wait() do if IYR_LOADED == nil then break end; if IY_LOADED then game:Shutdown(); game.Players.LocalPlayer:Kick("Loading up IY or Legacy IYR may gonna override IYR Nextgen"); game.Players.LocalPlayer:Remove(); task.wait(3) end end end) end)
+DoesHaveWriteFile = false
+DoesHaveReadFile = false
+DoesHaveDeleteFile = false
+if writefile then DoesHaveWriteFile = true else DoesHaveWriteFile = false end; if readfile then DoesHaveReadFile = true else DoesHaveReadFile = false end; if delfile then DoesHaveDeleteFile = true else DoesHaveDeleteFile = false end
+
+local startuptime = tick()
+
+--[[
+	8/31/2024 | 2:49 PM
+	Alright into the main code now :3
+	It's been a long time since I've done something like this.
+	Hopefully this works?
+	I'll be adding more features to this later on.
+	- FB_Real
+]]
+
+-- locals
+
+local cloneref = --[[cloneref or ]]function(o) return o end
+local CommandsInTotal = 0
+
+Players = cloneref(game:GetService("Players"))
+TweenService = cloneref(game:GetService("TweenService"))
+CoreGui = cloneref(game:GetService("CoreGui"))
+EveryClipboard = setclipboard or toclipboard or set_clipboard or (Clipboard and Clipboard.set)
+QueueTeleport = (syn and syn.queue_on_teleport) or queue_on_teleport or (fluxus and fluxus.queue_on_teleport)
+HttpRequest = (syn and syn.request) or (http and http.request) or http_request or (fluxus and fluxus.request) or request
+UserInputService = cloneref(game:GetService("UserInputService"))
+Mouse = Players.LocalPlayer:GetMouse()
+RunService = cloneref(game:GetService("RunService"))
+ContextActionService = cloneref(game:GetService("ContextActionService"))
+TeleportService = cloneref(game:GetService("TeleportService"))
+SoundService = cloneref(game:GetService("SoundService"))
+TextChatService = cloneref(game:GetService("TextChatService"))
+ReplicatedStorage = cloneref(game:GetService("ReplicatedStorage"))
+
+Prefix = ';'
+Commands = {}
+PlaceId = game.PlaceId
+JobId = game.JobId
+isChatLegacy = (TextChatService.ChatVersion == Enum.ChatVersion.LegacyChatService)
+
+function randomString(amount:{})
+	local length = amount and math.random(amount[1], amount[2]) or math.random(10,20)
+	local array = {}
+	for i = 1, length do
+		array[i] = string.char(math.random(32, 126))
+	end
+	return table.concat(array)
+end
+
+PARENT = nil
+if get_hidden_gui or gethui then
+	local hiddenUI = get_hidden_gui or gethui
+	local Main = Instance.new("ScreenGui")
+	Main.Name = randomString()
+	Main.Parent = hiddenUI()
+	Main.IgnoreGuiInset = true
+	PARENT = Main
+elseif syn and syn.protect_gui then
+	local Main = Instance.new("ScreenGui")
+	Main.Name = randomString()
+	syn.protect_gui(Main)
+	Main.Parent = CoreGui
+	Main.IgnoreGuiInset = true
+	PARENT = Main
+elseif CoreGui:FindFirstChild('RobloxGui') then
+	PARENT = CoreGui.RobloxGui
+else
+	local Main = Instance.new("ScreenGui")
+	Main.Name = randomString()
+	Main.Parent = CoreGui
+	Main.IgnoreGuiInset = true
+	PARENT = Main
+end
+
+CommandBarFrame = Instance.new("Frame")
+CommandBarFrame.Parent = PARENT
+CommandBarFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+CommandBarFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+CommandBarFrame.BackgroundTransparency = 1
+CommandBarFrame.Position = UDim2.new(0.5, 0, 0.15, 0)
+CommandBarFrame.Size = UDim2.new(0, 200, 0, 44)
+
+CommandBarScrollingFrame = Instance.new("ScrollingFrame", CommandBarFrame)
+CommandBarScrollingFrame.BackgroundTransparency = 1
+CommandBarScrollingFrame.Size = UDim2.new(1,0,1,0)
+CommandBarScrollingFrame.ScrollingDirection = Enum.ScrollingDirection.X
+CommandBarScrollingFrame.ScrollBarThickness = 5
+CommandBarScrollingFrame.CanvasSize = UDim2.new(0,0,0,0)
+CommandBarScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.X
+CommandBarScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(255,255,255)
+
+CommandBarTextBox = Instance.new("TextBox",CommandBarScrollingFrame)
+CommandBarTextBox.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+CommandBarTextBox.BackgroundTransparency = 1
+CommandBarTextBox.Position = UDim2.new(0.05, 0, 0, 0)
+CommandBarTextBox.Size = UDim2.new(0, 180, 1, 0)
+CommandBarTextBox.FontFace = Font.new("rbxasset://fonts/families/BuilderSans.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+CommandBarTextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+CommandBarTextBox.TextXAlignment = Enum.TextXAlignment.Left
+CommandBarTextBox.TextSize = 16
+CommandBarTextBox.Visible = false
+CommandBarTextBox.AutomaticSize = Enum.AutomaticSize.X
+CommandBarTextBox.ClearTextOnFocus = false
+
+CommandBarCornerUI = Instance.new("UICorner",CommandBarFrame)
+
+local NotificationHolder = Instance.new("Frame")
+NotificationHolder.AnchorPoint = Vector2.new(0.5,0.5)
+NotificationHolder.Size = UDim2.new(1, 0, 0, 370)
+NotificationHolder.Position = UDim2.new(0.5, 0, 0.6, 0)
+NotificationHolder.BackgroundTransparency = 1
+NotificationHolder.Parent = PARENT
+
+local notifications = {}
+
+-- Functions
+
+function createNotification(title, description, duration, soundInfo, iconId)
+	duration = duration or 5
+	local soundId = nil
+	local volume
+	if soundInfo then
+		soundId = soundInfo.soundId or soundInfo
+		volume = soundInfo.volume or 0.5
+	end 
+
+	local NotificationFrame = Instance.new("Frame")
+	NotificationFrame.Size = UDim2.new(0.4, 0, 0.1, 0)
+	NotificationFrame.Position = UDim2.new(0.5, 0, 1, 0)
+	NotificationFrame.AnchorPoint = Vector2.new(0.5, 1)
+	NotificationFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+	NotificationFrame.BorderSizePixel = 0
+	NotificationFrame.BackgroundTransparency = 1
+	NotificationFrame.Visible = false
+	NotificationFrame.Parent = NotificationHolder
+	
+	local UICornerNofitication = Instance.new("UICorner", NotificationFrame)
+	
+	local TitleLabel = Instance.new("TextLabel")
+	TitleLabel.Size = UDim2.new(1, -10, 0.5, 0)
+	
+	if title and description then
+		
+		TitleLabel.Position = UDim2.new(0, 5, 0, 5)
+		TitleLabel.Text = title
+		
+	elseif (title and not description) or (description and not title) then
+		
+		title = title or description
+		description = nil
+		TitleLabel.AnchorPoint = Vector2.new(0, 0.5)
+		TitleLabel.Position = UDim2.new(0, 5, 0.5, 0)
+		TitleLabel.Text = title
+		
+	elseif title == nil and description == nil then
+		error('Expected title to be a string')
+		return
+	end
+	
+	TitleLabel.Font = Enum.Font.Legacy
+	TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+	TitleLabel.TextSize = 14
+	TitleLabel.BackgroundTransparency = 1
+	TitleLabel.Parent = NotificationFrame
+	
+	if title ~= nil and description ~= nil then
+		local DescriptionLabel = Instance.new("TextLabel")
+		DescriptionLabel.Size = UDim2.new(1, -10, 0.4, 0)
+		DescriptionLabel.Position = UDim2.new(0, 5, 0.6, 0)
+		DescriptionLabel.Font = Enum.Font.Legacy
+		DescriptionLabel.Text = description
+		DescriptionLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+		DescriptionLabel.TextSize = 8
+		DescriptionLabel.BackgroundTransparency = 1
+		DescriptionLabel.Parent = NotificationFrame
+	end
+	
+	local DurationFrame = Instance.new("Frame")
+	DurationFrame.Size = UDim2.new(1, -16, 0, 1)
+	DurationFrame.Position = UDim2.new(0, 8, 0, 0)
+	DurationFrame.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	DurationFrame.BorderSizePixel = 0
+	DurationFrame.BackgroundTransparency = 0
+	DurationFrame.Parent = NotificationFrame
+	TweenService:Create(
+		DurationFrame,
+		TweenInfo.new(duration, Enum.EasingStyle.Sine, Enum.EasingDirection.Out),
+		{ Position = UDim2.new(1, -8, 0, 0), Size = UDim2.new(0, 0, 0, 1) }
+	):Play()
+	
+	if iconId then
+		local Icon = Instance.new("ImageLabel")
+		Icon.Size = UDim2.new(0, 30, 0, 30)
+		Icon.Position = UDim2.new(0.01, 0, 0.1, 0)
+		if typeof(iconId) == 'string' then
+			Icon.Image = iconId
+		elseif typeof(iconId) == 'number' then
+			Icon.Image = "rbxassetid://" .. iconId
+		end
+		Icon.BackgroundTransparency = 1
+		Icon.Parent = NotificationFrame
+		if (typeof(iconId) == 'string' or typeof(iconId) == 'number') == false then
+			warn('Expected string for the icon')
+			Icon:Destroy()
+		end
+	end
+
+	if soundId then
+		local Sound = Instance.new("Sound", SoundService)
+		Sound.SoundId = "rbxassetid://" .. soundId
+		Sound.Volume = volume
+		Sound:Play()
+		Sound.Ended:Connect(function()
+			Sound:Destroy()
+		end)
+	end
+
+	table.insert(notifications, NotificationFrame)
+	NotificationFrame.Visible = true
+
+	for i, notif in ipairs(notifications) do
+		local targetPosition = UDim2.new(0.5, 0, 0.9 - (i - 1) * 0.12, 0)
+		local tween = TweenService:Create(
+			notif,
+			TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+			{ Position = targetPosition, BackgroundTransparency = 0.3 }
+		)
+		tween:Play()
+	end
+
+	task.delay(duration, function()
+		for i, notif in ipairs(notifications) do
+			if notif == NotificationFrame then
+				table.remove(notifications, i)
+				break
+			end
+		end
+
+		local disappearTween = TweenService:Create(
+			NotificationFrame,
+			TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.In),
+			{ BackgroundTransparency = 1 }
+		)
+		disappearTween:Play()
+		disappearTween.Completed:Wait()
+		NotificationFrame:Destroy()
+
+		for i, notif in ipairs(notifications) do
+			local targetPosition = UDim2.new(0.5, 0, 0.9 - (i - 1) * 0.12, 0)
+			local repositionTween = TweenService:Create(
+				notif,
+				TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out),
+				{ Position = targetPosition }
+			)
+			repositionTween:Play()
+		end
+	end)
+end
+
+function chatsend(str)
+    str = tostring(str)
+    if not isChatLegacy then
+        TextChatService.TextChannels.RBXGeneral:SendAsync(str)
+    else
+        ReplicatedStorage.DefaultChatSystemChatEvents.SayMessageRequest:FireServer(str, "All")
+    end
+end
+
+function getRoot(char)
+	local rootPart = char:FindFirstChild('HumanoidRootPart') or char:FindFirstChild('Torso') or char:FindFirstChild('UpperTorso')
+	return rootPart
+end
+
+function toClipboard(txt)
+	if EveryClipboard then
+		EveryClipboard(tostring(txt))
+		print("Copied to clipboard",txt)
+	else
+		error("clipboard function doesnt exist. how?")
+	end
+end
+
+local lastlocalhealthhumanoid = Players.LocalPlayer.Character:FindFirstChildWhichIsA("Humanoid").Health
+local localhumanoid = Players.LocalPlayer.Character:FindFirstChildWhichIsA("Humanoid")
+function checklocalhealth()
+	IYRHurtOverlay.Position = UDim2.new(0,0,0,0)
+	IYRHurtOverlay.Size = UDim2.new(1,0,1,0)
+	if localhumanoid.Health < lastlocalhealthhumanoid then
+		IYRHurtOverlay.ImageTransparency = 0
+		TweenService:Create(IYRHurtOverlay,TweenInfo.new(0.5,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut),{ImageTransparency = 1}):Play()
+	end
+	lastlocalhealthhumanoid = localhumanoid.Health
+end
+
+function splitString(str,d)
+	local broken = {}
+	if d == nil then d = "," end
+	for words in string.gmatch(str,"[^"..d.."]+") do
+		table.insert(broken,words)
+	end
+	return broken
+end
+
+function addcmd(name:string,alias:{},desc:string,func: <a>(args: {a}, speaker:Player) -> ())
+	CommandsInTotal += 1
+	local cmd = {
+		Name = name,
+		Alias = alias,
+		Desc = desc,
+		Func = func
+	}
+	table.insert(Commands,cmd)
+end
+
+function iscmdnamealias(cmdName:string, aliases:{})
+	for _, alias in pairs(aliases) do
+		if alias == cmdName then
+			return true
+		end
+	end
+	return false
+end
+
+function execcmd(cmdString:string)
+	local args = splitString(cmdString,' ')
+	local cmdName = args[1]
+	table.remove(args,1)
+	for _, cmd in pairs(Commands) do
+		if cmd.Name == cmdName or iscmdnamealias(cmdName, cmd.Alias) then
+			task.spawn(function()
+				cmd.Func(args,Players.LocalPlayer)
+			end)
+		end
+	end
+end
+
+local flying = false
+local flySpeed = 1
+local flyKeyDown, flyKeyUp
+local function startFly()
+	repeat task.wait() until Players.LocalPlayer and Players.LocalPlayer.Character and getRoot(Players.LocalPlayer.Character) and Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+	repeat task.wait() until Mouse
+
+	if flyKeyDown or flyKeyUp then
+		flyKeyDown:Disconnect()
+		flyKeyUp:Disconnect()
+	end
+
+	local root = getRoot(Players.LocalPlayer.Character)
+	local control = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
+	local lastControl = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
+	local speed = 0
+
+	local function fly()
+		flying = true
+
+		local bodyGyro = Instance.new("BodyGyro")
+		local bodyVelocity = Instance.new("BodyVelocity")
+
+		bodyGyro.P = 90000
+		bodyGyro.maxTorque = Vector3.new(9e9, 9e9, 9e9)
+		bodyGyro.cframe = root.CFrame
+		bodyGyro.Parent = root
+
+		bodyVelocity.velocity = Vector3.new(0, 0, 0)
+		bodyVelocity.maxForce = Vector3.new(9e9, 9e9, 9e9)
+		bodyVelocity.Parent = root
+
+		task.spawn(function()
+			while flying do
+				task.wait()
+
+				if Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+					Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid").PlatformStand = true
+				end
+
+				if control.F + control.B ~= 0 or control.L + control.R ~= 0 or control.Q + control.E ~= 0 then
+					speed = 50
+				else
+					speed = 0
+				end
+
+				local targetVelocity = ((workspace.CurrentCamera.CFrame.lookVector * (control.F + control.B)) + 
+					(workspace.CurrentCamera.CFrame.rightVector * (control.L + control.R))) * speed
+
+				if control.F + control.B + control.L + control.R + control.Q + control.E ~= 0 then
+					lastControl = {F = control.F, B = control.B, L = control.L, R = control.R}
+				end
+
+				TweenService:Create(bodyVelocity, TweenInfo.new(0.3), {velocity = targetVelocity}):Play()
+				TweenService:Create(bodyGyro, TweenInfo.new(0.5), {cframe = workspace.CurrentCamera.CFrame}):Play()
+			end
+
+			control = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
+			lastControl = {F = 0, B = 0, L = 0, R = 0, Q = 0, E = 0}
+			
+			speed = 0
+			
+			bodyGyro:Destroy()
+			bodyVelocity:Destroy()
+			
+			if Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+				Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid").PlatformStand = false
+			end
+		end)
+	end
+
+	flyKeyDown = Mouse.KeyDown:Connect(function(key)
+		key = key:lower()
+		if key == "w" then
+			control.F = flySpeed
+		elseif key == "s" then
+			control.B = -flySpeed
+		elseif key == "a" then
+			control.L = -flySpeed
+		elseif key == "d" then
+			control.R = flySpeed
+		elseif key == "e" then
+			control.Q = flySpeed * 2
+		elseif key == "q" then
+			control.E = -flySpeed * 2
+		end
+	end)
+
+	flyKeyUp = Mouse.KeyUp:Connect(function(key)
+		key = key:lower()
+		if key == "w" then
+			control.F = 0
+		elseif key == "s" then
+			control.B = 0
+		elseif key == "a" then
+			control.L = 0
+		elseif key == "d" then
+			control.R = 0
+		elseif key == "e" then
+			control.Q = 0
+		elseif key == "q" then
+			control.E = 0
+		end
+	end)
+
+	fly()
+end
+
+local velocityHandlerName = randomString()
+local gyroHandlerName = randomString()
+
+function mobileStartFly()
+	flying = true
+	
+	local root = getRoot(Players.LocalPlayer.Character)
+	local camera = workspace.CurrentCamera
+	local zeroVector = Vector3.new(0, 0, 0)
+	local infiniteForce = Vector3.new(9e9, 9e9, 9e9)
+
+	local controlModule = require(Players.LocalPlayer.PlayerScripts:WaitForChild("PlayerModule"):WaitForChild("ControlModule"))
+
+	local bodyVelocity = Instance.new("BodyVelocity")
+	bodyVelocity.Name = velocityHandlerName
+	bodyVelocity.Parent = root
+	bodyVelocity.MaxForce = zeroVector
+	bodyVelocity.Velocity = zeroVector
+
+	local bodyGyro = Instance.new("BodyGyro")
+	bodyGyro.Name = gyroHandlerName
+	bodyGyro.Parent = root
+	bodyGyro.MaxTorque = infiniteForce
+	bodyGyro.P = 1000
+	bodyGyro.D = 50
+
+	flyConnection1 = Players.LocalPlayer.CharacterAdded:Connect(function()
+		local root = getRoot(Players.LocalPlayer.Character)
+
+		local newBodyVelocity = Instance.new("BodyVelocity")
+		newBodyVelocity.Name = velocityHandlerName
+		newBodyVelocity.Parent = root
+		newBodyVelocity.MaxForce = zeroVector
+		newBodyVelocity.Velocity = zeroVector
+
+		local newBodyGyro = Instance.new("BodyGyro")
+		newBodyGyro.Name = gyroHandlerName
+		newBodyGyro.Parent = root
+		newBodyGyro.MaxTorque = infiniteForce
+		newBodyGyro.P = 1000
+		newBodyGyro.D = 50
+	end)
+
+	flyConnection2 = RunService.RenderStepped:Connect(function()
+		root = getRoot(Players.LocalPlayer.Character)
+		camera = workspace.CurrentCamera
+		local humanoid = Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+
+		if humanoid and root and root:FindFirstChild(velocityHandlerName) and root:FindFirstChild(gyroHandlerName) then
+			local velocityHandler = root:FindFirstChild(velocityHandlerName)
+			local gyroHandler = root:FindFirstChild(gyroHandlerName)
+
+			velocityHandler.MaxForce = infiniteForce
+			gyroHandler.MaxTorque = infiniteForce
+
+			humanoid.PlatformStand = true
+						
+			TweenService:Create(bodyGyro,TweenInfo.new(0.5),{ CFrame = camera.CFrame}):Play()
+			TweenService:Create(velocityHandler,TweenInfo.new(0.3),{ Velocity = zeroVector}):Play()
+
+
+			local movementDirection = controlModule:GetMoveVector()
+
+			local Speed = flySpeed * 50
+
+			if movementDirection.X ~= 0 then
+				TweenService:Create(velocityHandler,TweenInfo.new(0.3),{ Velocity = velocityHandler.Velocity + camera.CFrame.RightVector * movementDirection.X * Speed }):Play()
+			end
+
+			if movementDirection.Z ~= 0 then
+				TweenService:Create(velocityHandler,TweenInfo.new(0.3),{ Velocity = velocityHandler.Velocity - camera.CFrame.LookVector * movementDirection.Z * Speed }):Play()
+			end
+		end
+	end)
+end
+
+
+local function stopFlying()
+	if isOnMobile then
+		pcall(function()
+			flying = false
+			
+			local root = getRoot(Players.LocalPlayer.Character)
+			
+			root:FindFirstChild(velocityHandlerName):Destroy()
+			root:FindFirstChild(gyroHandlerName):Destroy()
+			
+			Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid").PlatformStand = false
+
+			if flyConnection1 then flyConnection1:Disconnect() end
+			if flyConnection2 then flyConnection2:Disconnect() end
+		end)
+	else
+		flying = false
+		
+		if flyKeyDown or flyKeyUp then flyKeyDown:Disconnect() flyKeyUp:Disconnect() end
+		
+		if Players.LocalPlayer.Character:FindFirstChildOfClass('Humanoid') then
+			Players.LocalPlayer.Character:FindFirstChildOfClass('Humanoid').PlatformStand = false
+		end
+		
+		pcall(function() workspace.CurrentCamera.CameraType = Enum.CameraType.Custom end)
+	end
+end
+
+local function showCommandBar()
+	TweenService:Create(CommandBarFrame,TweenInfo.new(0.15,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut),{BackgroundTransparency = 0.3}):Play()
+	CommandBarTextBox.Visible = true
+end
+
+local function hideCommandBar()
+	TweenService:Create(CommandBarFrame,TweenInfo.new(0.15,Enum.EasingStyle.Sine,Enum.EasingDirection.InOut),{BackgroundTransparency = 1}):Play()
+	CommandBarTextBox.Visible = false
+end
+
+local function captureCommandBarFocus()
+	showCommandBar()
+	CommandBarTextBox:CaptureFocus()
+	CommandBarTextBox.Text = ''
+	spawn(function()
+		repeat CommandBarTextBox.Text = '' until CommandBarTextBox.Text == ''
+	end)
+end
+
+function getstring(args, begin)
+	local start = begin-1
+	local joiner = '' for i, v in pairs(args) do
+		if i > start then
+			if joiner ~= '' then
+				joinerAA = joiner .. ' ' .. v
+			else
+				joiner = joiner .. v
+			end
+		end
+	end
+	return joiner
+end
+
+-- Script
+
+--local localhealthconnection = localhumanoid:GetPropertyChangedSignal("Health"):Connect(checklocalhealth)
+--IYRHurtOverlay:GetPropertyChangedSignal("Visible"):Connect(function()
+--	IYRFullScreenFrame.Visible = true
+--	IYRHurtOverlay.Visible = true
+--	IYRHurtOverlay.Position = UDim2.new(0,0,0,0)
+--	IYRHurtOverlay.Size = UDim2.new(1,0,1,0)
+--end)
+--
+--Players.LocalPlayer.CharacterAdded:Connect(function()
+--	localhealthconnection:Disconnect()
+--	localhumanoid = Players.LocalPlayer.Character:FindFirstChildWhichIsA("Humanoid")
+--	lastlocalhealthhumanoid = Players.LocalPlayer.Character:FindFirstChildWhichIsA("Humanoid").Health
+--	localhealthconnection = localhumanoid:GetPropertyChangedSignal("Health"):Connect(checklocalhealth)
+--end)
+
+if DoesHaveReadFile == false then
+	warn("readfile function does not exist. please go in their discord and suggest readfile function.")
+end
+if DoesHaveWriteFile == false then
+	warn("writefile function does not exist. please go in their discord and suggest writefile function.")
+end
+if DoesHaveDeleteFile == false then
+	warn("delfile function does not exist. please go in their discord and suggest delfile function.")
+else
+	if pcall(function() readfile("IY_FE.iy") end) then
+		delfile("IY_FE.iy")
+	end
+end
+
+Mouse.KeyDown:Connect(function(key)
+	if key == Prefix then
+		captureCommandBarFocus()
+		spawn(function()
+			repeat CommandBarTextBox.Text = '' until CommandBarTextBox.Text == ''
+		end)
+	end
+end)
+
+CommandBarTextBox.FocusLost:Connect(function(enterPressed)
+	hideCommandBar()
+	if enterPressed then
+		execcmd(CommandBarTextBox.Text)
+	end
+	CommandBarTextBox.Text = ''
+end)
+
+-- Commands
+addcmd("fly",{},"Makes you fly.",function(args, LocalPlayer)
+	if flying then stopFlying() end
+	flySpeed = tonumber(args[1]) or 1
+	if isOnMobile then
+		mobileStartFly()
+	else
+		startFly()
+	end
+end)
+
+addcmd("unfly",{"nofly"},"Stops you from flying",function()
+	stopFlying()
+end)
+
+addcmd("rejoin",{"rj","rjoin"},"Makes you rejoin the server",function(args, LocalPlayer)
+	if #Players:GetPlayers() <= 1 then
+		Players.LocalPlayer:Kick("\nIYR | Rejoining")
+		TeleportService:Teleport(PlaceId,LocalPlayer)
+	else
+		TeleportService:TeleportToPlaceInstance(PlaceId,JobId,LocalPlayer)
+	end
+end)
+
+addcmd("discord",{"dc","discordserver","dcs","ds"},'Tries to make you join the discord',function(args, LocalPlayer)
+	if EveryClipboard then
+		toClipboard('https://discord.com/invite/iyr')
+		createNotification('Copied to clipboard!','discord.gg/bfYJcEwjt2',5)
+	else
+		createNotification('Write the invite', 'discord.gg/bfYJcEwjt2',5)
+	end
+
+	if httprequest then
+		httprequest({
+			Url = 'http://127.0.0.1:6463/rpc?v=1',
+			Method = 'POST',
+			Headers = {
+				['Content-Type'] = 'application/json',
+				Origin = 'https://discord.com'
+			},
+			Body = HttpService:JSONEncode({
+				cmd = 'INVITE_BROWSER',
+				nonce = HttpService:GenerateGUID(false),
+				args = {code = 'iyr'}
+			})
+		})
+	end
+end)
+
+addcmd("unload",{},'Unloads the script!', function(args, LocalPlayer)
+	getgenv().IYR_LOADED = nil
+	PARENT:ClearAllChildren()
+	PARENT = nil
+end)
+
+local originalhheight = Players.LocalPlayer.Character:WaitForChild('Humanoid').HipHeight
+addcmd("hipheight", {'hheight', 'hiph'}, 'Changes your hip height!', function(args, LocalPlayer)
+	createNotification('Changed hipheight', `Changed from {LocalPlayer.Character:WaitForChild('Humanoid').HipHeight} to { tonumber(args[1]) or originalhheight}`)
+	LocalPlayer.Character:WaitForChild('Humanoid').HipHeight = tonumber(args[1]) or originalhheight
+end)
+
+addcmd("sit", {}, 'Sit down basically it.', function(args, LocalPlayer)
+	LocalPlayer.Character:WaitForChild('Humanoid').Sit = true
+end)
+
+local originalwalkspeed = Players.LocalPlayer.Character:WaitForChild('Humanoid').WalkSpeed
+addcmd("walkspeed", {'speed', 'ws', 'walks', 'wspeed'}, 'Changes your walkspeed', function(args, LocalPlayer)
+	createNotification('Changed speed', `Changed from {LocalPlayer.Character:WaitForChild('Humanoid').WalkSpeed} to { tonumber(args[1]) or originalwalkspeed}`)
+	LocalPlayer.Character:WaitForChild('Humanoid').WalkSpeed = tonumber(args[1]) or originalwalkspeed
+end)
+
+local originaljumppower = Players.LocalPlayer.Character:WaitForChild('Humanoid').JumpPower
+addcmd("jumppower", {'jp', 'jpower', 'jumpp'}, 'Changes your jump power', function(args, LocalPlayer)
+	createNotification('Changed jumppower', `Changed from {LocalPlayer.Character:WaitForChild('Humanoid').JumpPower} to { tonumber(args[1]) or originaljumppower}`)
+	LocalPlayer.Character:WaitForChild('Humanoid').JumpPower = tonumber(args[1]) or originaljumppower
+end)
+
+addcmd("dex", {'dexexplorer','explorer'}, 'Opens dex v4!', function(args, LocalPlayer)
+	createNotification('Loading', 'Hold on a sec')
+	loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))()
+end)
+
+addcmd("chat", {'say'}, 'Forces you to say <text> in the chat!', function(args, LocalPlayer)
+	local text = getstring(args, 1)
+	chatsend(text)
+end)
+
+addcmd("stopanimations", {'stopanim', 'stopanimation', 'stopanims'}, 'Stops current animation!', function(args, LocalPlayer)
+	for _, animation in LocalPlayer.Character:WaitForChild('Humanoid'):GetPlayingAnimationTracks() do
+		animation:Stop()
+	end
+end)
+
+addcmd("lay",{'laydown', 'layflat'}, 'Makes you lay down', function(args, LocalPlayer)
+	-- okay its annoying to do only writing. without variables
+	execcmd('sit')
+	task.wait(.2)
+	execcmd('stopanimations')
+	getRoot(LocalPlayer.Character).CFrame = getRoot(LocalPlayer.Character).CFrame * CFrame.Angles(math.pi * 0.5, 0, 0)
+end)
+
+local spamdelay = 0.3
+addcmd("spam", {'spamchat', 'chatspam'}, 'Spams the chat!', function(args, LocalPlayer)
+	spamming = true
+	local text = getstring(args, 1)
+	repeat task.wait(spamdelay)
+		chatsend(`{text} ({randomString({1,1})} IYR • L0L {randomString({1,1})})`)
+	until spamming == false
+end)
+
+addcmd("unspam", {'stopspam', 'stopspamming', 'stopchatspam', 'stopspamchat', 'unspamchat', 'unchatspam'}, 'Stops spamming the chat', function(args, LocalPlayer)
+	spamming = false
+end)
+
+addcmd("spamdelay", {'chatspamdelay'}, 'Delays the chat spam', function(args, LocalPlayer)
+	createNotification('Changed spam delay!', `Changed the delay from {spamdelay} to {tonumber(args[1]) or 0.3}!`)
+	spamdelay = tonumber(args[1]) or 0.3
+end)
+
+addcmd("clearchat", {'cc', 'chatclear','chatc'}, 'Clears the chat serversidely (ONLY WORKS WITH NEW TEXTCHAT)', function(args, LocalPlayer)
+	local blob = "\u{000D}" 
+	local message = "".. blob:rep(100)
+	chatsend(message .. 'Ｃｈａｔ Ｃｌｅａｒｅｄ ｂｙ ＩＹＲ.ＬＯＬ')
+end)
+
+local loadedinseconds = tick() - startuptime; createNotification('IYR.LOL Has been loaded!', `Sucessfully loaded in {loadedinseconds} seconds!`, 5, {soundId = 7518627362, volume = 1}); print([[ 
+⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜
+
+IYR.LOL LOADED WITHIN ]] .. loadedinseconds .. [[ SECODNS
+> Loaded ]] .. CommandsInTotal .. [[ command(s)!
+
+⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜⬜
+]]); startuptime = nil
