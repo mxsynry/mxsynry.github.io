@@ -1,3 +1,4 @@
+--!nonstrict
 --[[
 	Hello! You might wonder why Infinite Yield Reborn is not executing.
         You may have also wondered if the script is obfuscated or not. As you can see, it isn't.
@@ -2799,9 +2800,9 @@ reference = (function()
 		{111,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Text",Parent={105},Position=UDim2.new(0,8,0,148),Size=UDim2.new(1,-8,0,16),Text="Setting up 'goto $1' on the OnChatted event will teleport you to any player that chats.",TextColor3=Color3.new(1,1,1),TextSize=14,TextWrapped=true,TextXAlignment=0,TextYAlignment=0,ZIndex=10,}},
 		{112,"Frame",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Name="Section",Parent={7},Size=UDim2.new(1,0,0,105),ZIndex=10,}},
 		{113,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=4,Name="Header",Parent={112},Position=UDim2.new(0,8,0,5),Size=UDim2.new(1,-8,0,20),Text="Get Further Help",TextColor3=Color3.new(1,1,1),TextSize=20,TextXAlignment=0,ZIndex=10,}},
-		{114,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Text",Parent={112},Position=UDim2.new(0,8,0,30),Size=UDim2.new(1,-8,0,32),Text="You can join the Discord server to get support with IY,  and read up on more documentation such as the Plugin API.",TextColor3=Color3.new(1,1,1),TextSize=14,TextWrapped=true,TextXAlignment=0,ZIndex=10,}},
+		{114,"TextLabel",{BackgroundColor3=Color3.new(1,1,1),BackgroundTransparency=1,Font=3,Name="Text",Parent={112},Position=UDim2.new(0,8,0,30),Size=UDim2.new(1,-8,0,32),Text="You can join the Discord server to get support with IYR, and read up on more documentation such as the Plugin API.",TextColor3=Color3.new(1,1,1),TextSize=14,TextWrapped=true,TextXAlignment=0,ZIndex=10,}},
 		{115,"Frame",{BackgroundColor3=Color3.new(0.1803921610117,0.1803921610117,0.1843137294054),BorderSizePixel=0,Name="Line",Parent={112},Position=UDim2.new(0,10,1,-1),Size=UDim2.new(1,-20,0,1),Visible=false,ZIndex=10,}},
-		{116,"TextButton",{BackgroundColor3=Color3.new(0.48627451062202,0.61960786581039,0.85098040103912),BorderColor3=Color3.new(0.1803921610117,0.1803921610117,0.1843137294054),Font=4,Name="InviteButton",Parent={112},Position=UDim2.new(0,5,0,75),Size=UDim2.new(1,-10,0,25),Text="Copy Discord Invite Link (https://discord.gg/78ZuWSq)",TextColor3=Color3.new(0.1803921610117,0.1803921610117,0.1843137294054),TextSize=16,ZIndex=10,}},
+		{116,"TextButton",{BackgroundColor3=Color3.new(0.48627451062202,0.61960786581039,0.85098040103912),BorderColor3=Color3.new(0.1803921610117,0.1803921610117,0.1843137294054),Font=4,Name="InviteButton",Parent={112},Position=UDim2.new(0,5,0,75),Size=UDim2.new(1,-10,0,25),Text="Copy Discord Invite Link (https://discord.gg/wfYF6SCAb7)",TextColor3=Color3.new(0.1803921610117,0.1803921610117,0.1843137294054),TextSize=16,ZIndex=10,}},
 	})
 	for i,v in pairs(main.Content.List:GetDescendants()) do
 		if v:IsA("TextLabel") then
@@ -2819,7 +2820,7 @@ reference = (function()
 	local lastPress = nil
 	inviteButton.MouseButton1Click:Connect(function()
 		if everyClipboard then
-			toClipboard("https://discord.gg/bfYJcEwjt2")
+			toClipboard("discord.com/invite/wfYF6SCAb7")
 			inviteButton.Text = "Copied"
 		else
 			inviteButton.Text = "No Clipboard Function, type out the link"
@@ -2828,7 +2829,7 @@ reference = (function()
 		lastPress = pressTime
 		task.wait(2)
 		if lastPress ~= pressTime then return end
-		inviteButton.Text = "Copy Discord Invite Link (https://discord.gg/bfYJcEwjt2)"
+		inviteButton.Text = "Copy Discord Invite Link (discord.gg/wfYF6SCAb7)"
 	end)
 	dragGUI(main)
 	main.Parent = PARENT
@@ -6446,10 +6447,10 @@ end)
 
 addcmd('discord', {'dc'}, function(args, speaker)
 	if everyClipboard then
-		toClipboard('https://discord.com/invite/bfYJcEwjt2')
-		notify('Discord Invite', 'Copied to clipboard!\ndiscord.gg/bfYJcEwjt2')
+		toClipboard('https://discord.gg/wfYF6SCAb7')
+		notify('Discord Invite', 'Copied to clipboard!\ndiscord.gg/wfYF6SCAb7')
 	else
-		notify('Discord Invite', 'discord.gg/bfYJcEwjt2')
+		notify('Discord Invite', 'discord.gg/wfYF6SCAb7')
 	end
 	if httprequest then
 		httprequest({
@@ -7519,8 +7520,9 @@ addcmd("toggleantifling", {"tganfl"}, function(args, speaker)
 end)
 
 addcmd("antichatlogs",{"acl", "antichatlogger"}, function(args, speaker)
-        loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/AnthonyIsntHere/anthonysrepository/main/scripts/AntiChatLogger.lua",true))()
-        notify("Anthony's AntiChatLogger", "Loaded, only works on LegacyChatService")
+	notify("Loading",'Hold on a sec')
+    loadstring(game:HttpGetAsync("https://raw.githubusercontent.com/AnthonyIsntHere/anthonysrepository/main/scripts/AntiChatLogger.lua",true))()
+    notify("Anthony's AntiChatLogger", "Loaded, only works on LegacyChatService")
 end)
 
 addcmd("chatlogswebhook", {"logswebhook"}, function(args, speaker)
@@ -8063,7 +8065,7 @@ end)
 
 addcmd('uncframefly',{'uncfly'},function(args, speaker)
     CFing = false
-	execCmd("grav".. lastGravity)
+	execCmd("grav ".. lastGravity)
 	lastGravity=workspace.Gravity
 	if CFloop then
 		CFloop:Disconnect()
@@ -8220,16 +8222,20 @@ local JUMP_POWER = 60
 local JUMP_GAP = 0.3
 local originalSize
 local originalShape
-local originalCameraSubject
+local originalCameraSubject = workspace.CurrentCamera.CameraSubject
 local marbleConnection
 
 addcmd('marble', {'ball'}, function(args, speaker)
     local character = game.Players.LocalPlayer.Character
+    local torso = character:FindFirstChild("Torso") or character:FindFirstChild("UpperTorso")
+
+    if not torso then
+        return
+    end
 
     local ball = character.HumanoidRootPart
     originalSize = ball.Size
     originalShape = ball.Shape
-    originalCameraSubject = workspace.CurrentCamera.CameraSubject
 
     for i, v in ipairs(character:GetDescendants()) do
         if v:IsA("BasePart") then
@@ -8273,7 +8279,8 @@ addcmd('marble', {'ball'}, function(args, speaker)
         end
     end)
 
-    Camera.CameraSubject = ball
+    Camera.CameraSubject = torso
+
     humanoid.Died:Connect(function()
         if marbleConnection then
             marbleConnection:Disconnect()
@@ -11718,7 +11725,7 @@ addcmd('freeze', {'fr'}, function(args, speaker)
     if players ~= nil then
         for i, v in pairs(players) do
             task.spawn(function()
-                if (v == speaker.Name or args[1] == nil or args[1]:lower() == "me") and CFing then
+                if (v == speaker.Name or args[1] == nil or args[1]:lower() == "me") and CFing == true then
                     notify("freeze", "Cannot freeze yourself while cfly is active.")
                     return
                 end
@@ -11738,7 +11745,7 @@ addcmd('thaw', {'unfreeze', 'unfr'}, function(args, speaker)
     if players ~= nil then
         for i, v in pairs(players) do
             task.spawn(function()
-                if (v == speaker.Name or args[1] == nil or args[1]:lower() == "me") and CFing then
+                if (v == speaker.Name or args[1] == nil or args[1]:lower() == "me") and CFing == true then
                     notify("thaw", "Cannot thaw yourself while cfly is active.")
                     return
                 end
