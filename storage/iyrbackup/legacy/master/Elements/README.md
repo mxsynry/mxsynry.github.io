@@ -1,4 +1,7 @@
-# [BCDDex](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/Elements/BCDDex)
+# [BCDDex](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/Elements/BDCDex)
 # [BetterDex](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/Elements/BetterDex)
+# [HashLib.luau](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/Elements/HashLib.luau)
 # [MobileSpy](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/Elements/MobileSpy)
+# [Sandbox.luau](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/Elements/Sandbox.luau)
+# [ScriptDumper.luau](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/Elements/ScriptDumper.luau)
 # [SolaraDex](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/Elements/SolaraDex)
