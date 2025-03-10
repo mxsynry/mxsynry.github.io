@@ -1,4 +1,4 @@
-name: cool jekyll yml file
+name: cool jekyll file
 
 on:
   push:
@@ -24,6 +24,12 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
+      - name: Setup Ruby and Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.3' # Ensure this matches your Jekyll version requirements
+          bundler-cache: true  # Automatically caches installed gems
+
       - name: Cache Jekyll Dependencies
         id: jekyll-cache
         uses: actions/cache@v4
@@ -33,17 +39,10 @@ jobs:
           restore-keys: |
             jekyll-${{ runner.os }}-
 
-      - name: Check Cache Integrity
+      - name: Install Dependencies
         run: |
-          if [ ! -d "vendor/bundle" ]; then
-            echo "Cache is missing or corrupted, reinstalling gems..."
-            rm -rf vendor/bundle
-          fi
-
-      - name: Install Bundler and Jekyll (Ensure Clean Install)
-        run: |
-          gem install bundler jekyll || (rm -rf vendor/bundle && gem install bundler jekyll)
-          bundle install --verbose || (rm -rf vendor/bundle && bundle install --verbose)
+          bundle config set path 'vendor/bundle'
+          bundle install --jobs 4 --retry 3
 
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
