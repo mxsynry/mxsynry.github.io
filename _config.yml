@@ -1,0 +1,40 @@
+title: "Ry's Github Pages :3"
+description: "gng i got some cool shi here"
+url: "https://ryxeleron.github.io"
+baseurl: ""
+
+thumbnail: "https://github.com/RyXeleron/ryxeleron.github.io/settings/og-template"
+
+twitter:
+  username: "your_twitter_handle"
+  card: summary_large_image
+
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jekyll-feed
+  - jekyll-paginate
+  - jekyll-archives
+
+markdown: kramdown
+highlighter: rouge
+
+theme: jekyll-theme-minimal
+show_downloads: true
+
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - node_modules
+  - vendor
+  - README.md
+  - LICENSE
+  - .github/
+
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: "default"
+      image: "https://github.com/RyXeleron/ryxeleron.github.io/settings/og-template"
+      author: "RyXeleron"
