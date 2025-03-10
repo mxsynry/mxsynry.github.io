@@ -1,0 +1,72 @@
+name: cool jekyll yml file
+
+on:
+  push:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Cache Jekyll Dependencies
+        id: jekyll-cache
+        uses: actions/cache@v4
+        with:
+          path: vendor/bundle
+          key: jekyll-${{ runner.os }}-${{ hashFiles('**/Gemfile.lock') }}
+          restore-keys: |
+            jekyll-${{ runner.os }}-
+
+      - name: Check Cache Integrity
+        run: |
+          if [ ! -d "vendor/bundle" ]; then
+            echo "Cache is missing or corrupted, reinstalling gems..."
+            rm -rf vendor/bundle
+          fi
+
+      - name: Install Bundler and Jekyll (Ensure Clean Install)
+        run: |
+          gem install bundler jekyll || (rm -rf vendor/bundle && gem install bundler jekyll)
+          bundle install --verbose || (rm -rf vendor/bundle && bundle install --verbose)
+
+      - name: Build with Jekyll
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./
+          destination: ./_site
+          jekyll_build_options: "--future --incremental"
+
+      - name: Upload Artifact
+        uses: actions/upload-pages-artifact@v3
+
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
+
+      - name: Cleanup Workflow Runs (Optional)
+        uses: geekyeggo/delete-artifact@v2
+        with:
+          name: pages
