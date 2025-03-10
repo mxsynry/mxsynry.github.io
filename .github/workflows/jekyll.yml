@@ -15,6 +15,7 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  # Build Job
   build:
     runs-on: ubuntu-latest
     steps:
@@ -27,7 +28,7 @@ jobs:
       - name: Setup Ruby and Bundler
         uses: ruby/setup-ruby@v1
         with:
-          ruby-version: '3.3'  # Ensure compatibility with Jekyll
+          ruby-version: '3.3'
 
       - name: Install Dependencies
         run: |
@@ -39,11 +40,13 @@ jobs:
         with:
           source: ./
           destination: ./_site
-          jekyll_build_options: "--future --incremental"
+          future: true  # Enables posts with future dates
+          verbose: true # Enables detailed logs
 
       - name: Upload Artifact
         uses: actions/upload-pages-artifact@v3
 
+  # Deployment Job
   deploy:
     environment:
       name: github-pages
