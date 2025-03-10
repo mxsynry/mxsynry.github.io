@@ -12,7 +12,7 @@
 </h1>
 
 <p align="center">
-	Infinite Yield but 𝗯𝗲𝘁𝘁𝗲𝗿
+	Infinite Yield but cooler
 </p>
 
 ## Master Branch Loadstring
@@ -53,10 +53,8 @@ loadstring(game:HttpGet(("https://raw.githubusercontent.com/RyXeleron/infiniteyi
 ### What IYR offers
 - Frequency updates
 - Has support for TextChatService
-- Trimmed down unused or broken commands
-- Now includes counters for Plugins, Aliases, Keybinds, and Waypoints
-- Actually has an OnLeave detection.
-- Being the source of the main IY's updates (ehhh maybe, i've saw them adding shits from mine before :sob:)
+- Removed some unused or broken commands
+- Not getting detected by some unknown client ac because IYR uses a different assetid for the image
 
 ### Preview
 
@@ -87,7 +85,6 @@ loadstring(game:HttpGet(("https://raw.githubusercontent.com/RyXeleron/infiniteyi
 - **Developer:** [FurryBoy](https://discordapp.com/users/773291558492438578)
 - **Developer:** [AwesomeDudeIsHere](https://github.com/AwesomeDudeIsHere)
 - **Developer:** [CasualDev](https://discordapp.com/users/1095404503647391754)
-- **Developer:** [Azula.cs](https://api.infiniteyieldreborn.xyz/) (Ex-Dev)
 
 ### IYR Contributors
 - **Contributor:** [Ry](https://github.com/ryxeleron)
@@ -98,4 +95,4 @@ loadstring(game:HttpGet(("https://raw.githubusercontent.com/RyXeleron/infiniteyi
 ## Contributing
 There are no specific rules for contributing at this time. Simply open a pull request, and if it checks out, we will merge it!
 
---
+---
