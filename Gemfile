@@ -10,4 +10,3 @@ gem "json", "2.2.0"
 group :jekyll_plugins do
   gem "github-pages", "~> 228", group: :jekyll_plugins
 end
-gemspec
