@@ -131,9 +131,6 @@ gem "wdm", ">= 0.1.0", platforms: [:windows]
 
 gem "launchy"
 
-gem "path"
-gem "rake"
-
 group :jekyll_plugins do
   gem "github-pages", "~> 228", group: :jekyll_plugins
 end
