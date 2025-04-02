@@ -4,7 +4,6 @@ source "https://rubygems.org"
 
 gem "minitest"
 gem "rake", ">= 13"
-gem "releaser", path: "tools/releaser"
 gem "sprockets-rails", ">= 2.0.0", require: false
 gem "propshaft", ">= 0.1.7", "!= 1.0.1"
 gem "capybara", ">= 3.39"
@@ -97,9 +96,6 @@ end
 
 gem "aws-sdk-sns", require: false
 gem "webmock"
-
-local_gemfile = File.expand_path(".Gemfile", __dir__)
-instance_eval File.read local_gemfile if File.exist? local_gemfile
 
 group :test do
   gem "minitest-bisect", require: false
