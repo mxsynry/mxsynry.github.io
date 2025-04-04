@@ -4578,7 +4578,7 @@ CMDs[#CMDs + 1] = {NAME = 'unc / unctest / unccheckevn', DESC = 'Tests all UNC E
 CMDs[#CMDs + 1] = {NAME = 'sunc / sunctest / sunccheckevn', DESC = 'Tests all sUNC Environment, credits will be printed'}
 CMDs[#CMDs + 1] = {NAME = 'luarmor / luarmortest / luarmorcheck', DESC = "Tests the executor's luarmor compatibility, by Luarmor themselves"}
 CMDs[#CMDs + 1] = {NAME = 'identitytest / testidentity / validateidentity', DESC = 'Tests the executors identity if its faked or not'}
-CMDs[#CMDs + 1] = {NAME = 'addunc / addmoreunc / adduncevn', DESC = 'Adds some UNC Environment(s), by vxsty'}
+CMDs[#CMDs + 1] = {NAME = 'addunc / addmoreunc / adduncevn [version]', DESC = 'Adds some UNC Environment(s) from version 1 - 3, by vxsty'}
 CMDs[#CMDs + 1] = {NAME = 'clienttoken / ctoken', DESC = 'Copy your client token.'}
 CMDs[#CMDs + 1] = {NAME = 'execute / run / code', DESC = 'Execute a LuaU code.'}
 CMDs[#CMDs + 1] = {NAME = 'explorer / dex', DESC = 'Opens DEX by Moon'}
@@ -13010,7 +13010,7 @@ addcmd("unc",{"unctest","unccheckevn"},function(args, speaker)
     notify("Check console", "Press F9 or type /console in chat to see results")
 end)
 
-getgenv().sUNCDebug = { ["printcheckpoints"] = false, ["delaybetweentests"] = 0}
+getgenv().sUNCDebug = { ["printcheckpoints"] = false, ["delaybetweentests"] = 0 }
 
 addcmd("sunc",{"sunctest","sunccheckevn"},function(args, speaker)
     loadstring(game:HttpGet("https://script.sunc.su/"))()
