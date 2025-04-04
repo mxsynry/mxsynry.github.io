@@ -8,7 +8,7 @@
 # [version](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/version)
 # [verycoolcombinationofstoreandcmdbar](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/verycoolcombinationofstoreandcmdbar)
 
-# <h1 align="center">![IYR1](https://github.com/user-attachments/assets/3a9ca248-b931-41a9-b46e-b503f3c051f0)
+# <h1 align="center">![IYR1](/logo.png?raw=true)
 </h1>
 
 <p align="center">
@@ -95,4 +95,4 @@ loadstring(game:HttpGet(("https://raw.githubusercontent.com/RyXeleron/infiniteyi
 ## Contributing
 There are no specific rules for contributing at this time. Simply open a pull request, and if it checks out, we will merge it!
 
----
+--

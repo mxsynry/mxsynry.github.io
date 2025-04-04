@@ -1,24 +1,23 @@
 -- // MoreUNC V2.0.0, Have fun skidding devs!
 
-Operations = {
-    {'(%w+[_%w]*)%s*%+=(%s*)(%w+[_%w]*)', '%1=%1%2+%3'},  -- Addition assignment (+=)
-    {'(%w+[_%w]*)%s*%-=(%s*)(%w+[_%w]*)', '%1=%1%2-%3'},  -- Subtraction assignment (-=)
-    {'(%w+[_%w]*)%s*%*=(%s*)(%w+[_%w]*)', '%1=%1%2*%3'},  -- Multiplication assignment (*=)
-    {'(%w+[_%w]*)%s*/=(%s*)(%w+[_%w]*)', '%1=%1%2/%3'},  -- Division assignment (/=)
-    {'(%w+[_%w]*)%s*%%=(%s*)(%w+[_%w]*)', '%1=%1%2%%%3'},  -- Modulo assignment (%%=)
-    {'(%w+[_%w]*)%s*%.%.=(%s*)(%w+[_%w]*)', '%1=%1%2..%3'},  -- Concatenation assignment (..=)
-    {'(%w+[_%w]*)%s*&=(%s*)(%w+[_%w]*)', '%1=%1%2&%3'},  -- Bitwise AND assignment (&=)
-    {'(%w+[_%w]*)%s*|=(%s*)(%w+[_%w]*)', '%1=%1%2|%3'},  -- Bitwise OR assignment (|=)
-    {'(%w+[_%w]*)%s*%^=(%s*)(%w+[_%w]*)', '%1=%1%2^%3'},  -- Bitwise XOR assignment (^=)
-    {'(%w+[_%w]*)%s*<<=(%s*)(%w+[_%w]*)', '%1=%1%2<<%3'}, -- Left shift assignment (<<=)
-    {'(%w+[_%w]*)%s*>>=(%s*)(%w+[_%w]*)', '%1=%1%2>>%3'}, -- Right shift assignment (>>=)
-    {'(%w+[_%w]*)%s*:=%s*function%s*%((.-)%)', 'local %1 = function(%2)'},  -- Convert shorthand := to full function definition
-    {'(%w+[_%w]*)%s*->%s*(.-)', 'local %1 = function(x) return %2 end'} -- Convert shorthand -> to function definition
-}
+-- uh no just here to fix some regional errors
 
+local Operations = { -- Fixes executors that only use lua, not luau
+	Addition = {'(%w+)(%s*)%+=(%s*)(%w+)', '%1%2=%3%1%2+%3%4'}, -- v1+=v2 -> v1=v1+v2
+	Subtraction = {'(%w+)(%s*)%-=(%s*)(%w+)', '%1%2=%3%1%2-%3%4'}, -- v1-=v2
+	Multiplication = {'(%w+)(%s*)%*=(%s*)(%w+)', '%1%2=%3%1%2*%3%4'}, -- v1*=v2
+	Division = {'(%w+)(%s*)/=(%s*)(%w+)', '%1%2=%3%1%2/%3%4'}, -- v1/=v2
+	Modulus = {'(%w+)(%s*)%%=(%s*)(%w+)','%1%2=%3%1%2%%%3%4'}, -- v1%=v2
+	Concatenation = {'(%w+)(%s*)%.%.=(%s*)(%w+)', '%1%2=%3%1%2..%3%4'} -- v1..=v2
+}
 local forceoverride = {}
 
-function replace(Code) return string.gsub(Code, Operations[1], Operations[2]) end
+function replace(Code)
+	for _, t in next, Operations do
+		Code = string.gsub(Code, t[1], t[2])
+	end
+	return Code
+end
 
 local Options = {
 	OverrideFunctions = false, -- If the executor Overrides already existing functions
