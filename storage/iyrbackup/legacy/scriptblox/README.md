@@ -1,8 +1,8 @@
-# [IYRCMDBAR](https://ryxeleron.github.io/storage/iyrbackup/legacy/scriptblox/IYRCMDBAR)
-# [Infinite Store](https://ryxeleron.github.io/storage/iyrbackup/legacy/scriptblox/Infinite%20Store)
-# [source](https://ryxeleron.github.io/storage/iyrbackup/legacy/scriptblox/source)
-# [version](https://ryxeleron.github.io/storage/iyrbackup/legacy/scriptblox/version)
-# [verycoolcombinationofstoreandcmdbar](https://ryxeleron.github.io/storage/iyrbackup/legacy/scriptblox/verycoolcombinationofstoreandcmdbar)
+# [IYRCMDBAR](https://mxsynry.github.io/storage/iyrbackup/legacy/scriptblox/IYRCMDBAR)
+# [Infinite Store](https://mxsynry.github.io/storage/iyrbackup/legacy/scriptblox/Infinite%20Store)
+# [source](https://mxsynry.github.io/storage/iyrbackup/legacy/scriptblox/source)
+# [version](https://mxsynry.github.io/storage/iyrbackup/legacy/scriptblox/version)
+# [verycoolcombinationofstoreandcmdbar](https://mxsynry.github.io/storage/iyrbackup/legacy/scriptblox/verycoolcombinationofstoreandcmdbar)
 
 # <h1 align="center">![IYR1](https://github.com/user-attachments/assets/3a9ca248-b931-41a9-b46e-b503f3c051f0)
 </h1>
@@ -35,7 +35,7 @@ Features:
 
 ## Loadstring:
 ```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/RyXeleron/infiniteyield-reborn/refs/heads/scriptblox/source"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/refs/heads/scriptblox/source"))()
 ```
 
 Thank you.

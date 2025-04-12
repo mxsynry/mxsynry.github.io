@@ -1,12 +1,12 @@
-# [Elements](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/Elements)
-# [IYCMDBARALREADYEXECUTED](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/IYCMDBARALREADYEXECUTED)
-# [IYRCMDBAR](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/IYRCMDBAR)
-# [Infinite Store](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/Infinite%20Store)
-# [Infinite Yield FD](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/Infinite%20Yield%20FD)
-# [source](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/source)
-# [uselessscriptthatexistsinthisrepoiwin](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/uselessscriptthatexistsinthisrepoiwin)
-# [version](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/version)
-# [verycoolcombinationofstoreandcmdbar](https://ryxeleron.github.io/storage/iyrbackup/legacy/master/verycoolcombinationofstoreandcmdbar)
+# [Elements](https://mxsynry.github.io/storage/iyrbackup/legacy/master/Elements)
+# [IYCMDBARALREADYEXECUTED](https://mxsynry.github.io/storage/iyrbackup/legacy/master/IYCMDBARALREADYEXECUTED)
+# [IYRCMDBAR](https://mxsynry.github.io/storage/iyrbackup/legacy/master/IYRCMDBAR)
+# [Infinite Store](https://mxsynry.github.io/storage/iyrbackup/legacy/master/Infinite%20Store)
+# [Infinite Yield FD](https://mxsynry.github.io/storage/iyrbackup/legacy/master/Infinite%20Yield%20FD)
+# [source](https://mxsynry.github.io/storage/iyrbackup/legacy/master/source)
+# [uselessscriptthatexistsinthisrepoiwin](https://mxsynry.github.io/storage/iyrbackup/legacy/master/uselessscriptthatexistsinthisrepoiwin)
+# [version](https://mxsynry.github.io/storage/iyrbackup/legacy/master/version)
+# [verycoolcombinationofstoreandcmdbar](https://mxsynry.github.io/storage/iyrbackup/legacy/master/verycoolcombinationofstoreandcmdbar)
 
 # <h1 align="center">![IYR1](/logo.png?raw=true)
 </h1>
@@ -18,25 +18,25 @@
 ## Master Branch Loadstring
 
 ```lua
-loadstring(game:HttpGet(('https://raw.githubusercontent.com/RyXeleron/infiniteyield-reborn/refs/heads/master/source' or 'https://ryxeleron.github.io/storage/iyrbackup/legacy/master/source')))()
+loadstring(game:HttpGet(('https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/refs/heads/master/source' or 'https://mxsynry.github.io/storage/iyrbackup/legacy/master/source')))()
 ```
 
 ## IYStore x IYR (Debloated / No NSFW)
 
 ```lua
-loadstring(game:HttpGet(("https://raw.githubusercontent.com/RyXeleron/infiniteyield-reborn/refs/heads/master/Infinite%20Store" or "https://ryxeleron.github.io/storage/iyrbackup/legacy/master/Infinite%20Store")))()
+loadstring(game:HttpGet(("https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/refs/heads/master/Infinite%20Store" or "https://mxsynry.github.io/storage/iyrbackup/legacy/master/Infinite%20Store")))()
 ```
 
 ## IYRCMDLine (Reconstructed)
 
 ```lua
-loadstring(game:HttpGet(("https://raw.githubusercontent.com/RyXeleron/infiniteyield-reborn/refs/heads/master/IYRCMDBAR" or "https://ryxeleron.github.io/storage/iyrbackup/legacy/master/IYRCMDBAR")))()
+loadstring(game:HttpGet(("https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/refs/heads/master/IYRCMDBAR" or "https://mxsynry.github.io/storage/iyrbackup/legacy/master/IYRCMDBAR")))()
 ```
 
 ---
 
 ## For Reuploaders on ScriptBlox
-[READ THIS BEFORE UPLOADING TO AVOID GETTING BANNED](https://github.com/RyXeleron/infiniteyield-reborn/tree/scriptblox?tab=readme-ov-file#for-the-reuploaders-on-scriptblox-please-read-me).
+[READ THIS BEFORE UPLOADING TO AVOID GETTING BANNED](https://github.com/mxsynry/infiniteyield-reborn/tree/scriptblox?tab=readme-ov-file#for-the-reuploaders-on-scriptblox-please-read-me).
 
 ---
 
@@ -87,7 +87,7 @@ loadstring(game:HttpGet(("https://raw.githubusercontent.com/RyXeleron/infiniteyi
 - **Developer:** [CasualDev](https://discordapp.com/users/1095404503647391754)
 
 ### IYR Contributors
-- **Contributor:** [Ry](https://github.com/ryxeleron)
+- **Contributor:** [Ry](https://github.com/mxsynry)
 - **Contributor** [TheCoolestSmug](https://discordapp.com/users/807464610147598336)
 - **Contributor** [igor_tigrek](https://discordapp.com/users/1029468860652470315)
 
