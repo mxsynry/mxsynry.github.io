@@ -1,6 +1,8 @@
 # [Elements](https://mxsynry.github.io/storage/iyrbackup/legacy/master/Elements)
 # [IYCMDBARALREADYEXECUTED](https://mxsynry.github.io/storage/iyrbackup/legacy/master/IYCMDBARALREADYEXECUTED)
 # [IYRCMDBAR](https://mxsynry.github.io/storage/iyrbackup/legacy/master/IYRCMDBAR)
+# [logo.png](https://mxsynry.github.io/storage/iyrbackup/legacy/master/logo.png)
+# [removedcommands](https://mxsynry.github.io/storage/iyrbackup/legacy/master/IYRCMDBAR/removedcommands)
 # [Infinite Store](https://mxsynry.github.io/storage/iyrbackup/legacy/master/Infinite%20Store)
 # [Infinite Yield FD](https://mxsynry.github.io/storage/iyrbackup/legacy/master/Infinite%20Yield%20FD)
 # [source](https://mxsynry.github.io/storage/iyrbackup/legacy/master/source)
