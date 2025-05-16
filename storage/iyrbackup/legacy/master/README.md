@@ -1,15 +1,3 @@
-# [Elements](https://mxsynry.github.io/storage/iyrbackup/legacy/master/Elements)
-# [IYCMDBARALREADYEXECUTED](https://mxsynry.github.io/storage/iyrbackup/legacy/master/IYCMDBARALREADYEXECUTED)
-# [IYRCMDBAR](https://mxsynry.github.io/storage/iyrbackup/legacy/master/IYRCMDBAR)
-# [logo.png](https://mxsynry.github.io/storage/iyrbackup/legacy/master/logo.png)
-# [removedcommands](https://mxsynry.github.io/storage/iyrbackup/legacy/master/IYRCMDBAR/removedcommands)
-# [Infinite Store](https://mxsynry.github.io/storage/iyrbackup/legacy/master/Infinite%20Store)
-# [Infinite Yield FD](https://mxsynry.github.io/storage/iyrbackup/legacy/master/Infinite%20Yield%20FD)
-# [source](https://mxsynry.github.io/storage/iyrbackup/legacy/master/source)
-# [uselessscriptthatexistsinthisrepoiwin](https://mxsynry.github.io/storage/iyrbackup/legacy/master/uselessscriptthatexistsinthisrepoiwin)
-# [version](https://mxsynry.github.io/storage/iyrbackup/legacy/master/version)
-# [verycoolcombinationofstoreandcmdbar](https://mxsynry.github.io/storage/iyrbackup/legacy/master/verycoolcombinationofstoreandcmdbar)
-
 # <h1 align="center">![IYR1](/logo.png?raw=true)
 </h1>
 
@@ -92,9 +80,11 @@ loadstring(game:HttpGet(("https://raw.githubusercontent.com/mxsynry/infiniteyiel
 - **Contributor:** [Ry](https://github.com/mxsynry)
 - **Contributor** [TheCoolestSmug](https://discordapp.com/users/807464610147598336)
 - **Contributor** [igor_tigrek](https://discordapp.com/users/1029468860652470315)
+- **Contributor** [Eku](https://github.com/ProjektEta)
+- **Contributor** [Tatsuki](https://github.com/yixiyotatsuki)
 
 
 ## Contributing
 There are no specific rules for contributing at this time. Simply open a pull request, and if it checks out, we will merge it!
 
---
+---
