@@ -1,3 +1,5 @@
+# [Blue Archive OST 3. Mischievous Step.mp4](https://mxsynry.github.io/storage/other-stuff/Blue%20Archive%20OST%203.%20Mischievous%20Step.mp4)
+# [cape.png](https://mxsynry.github.io/storage/other-stuff/cape.png)
 # [changeexecutoridentiyfr.lua](https://mxsynry.github.io/storage/other-stuff/changeexecutoridentiyfr.lua)
 # [identities.md](https://github.com/mxsynry/NamingStandard/raw/refs/heads/main/Identities.md)
 # [iyr-execution.lua](https://mxsynry.github.io/storage/other-stuff/iyr-execution.lua)
@@ -8,4 +10,6 @@
 # [Showcase.mp4](https://mxsynry.github.io/storage/other-stuff/Showcase.mp4)
 # [is-this-what-IY-kids-riding-for.mp4](https://mxsynry.github.io/storage/other-stuff/is-this-what-IY-kids-riding-for.mp4)
 # [didnt-know-ppl-were-this-desperate.mp4](https://mxsynry.github.io/storage/other-stuff/didnt-know-ppl-were-this-desperate.mp4)
+# [skin.png](https://mxsynry.github.io/storage/other-stuff/skin.png)
+# [uhh_very_sigma.png](https://mxsynry.github.io/storage/other-stuff/uhh_very_sigma.png)
 # [vulntestsource.lua](https://mxsynry.github.io/storage/other-stuff/vulntestsource.lua)
