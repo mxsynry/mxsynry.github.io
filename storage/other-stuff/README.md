@@ -7,6 +7,7 @@
 # [mods.rar](https://mxsynry.github.io/storage/other-stuff/mods.rar)
 # [NamelessAnimation.luau](https://mxsynry.github.io/storage/other-stuff/NamelessAnimation.luau)
 # [Natives.mp4](https://mxsynry.github.io/storage/other-stuff/Natives.mp4)
+# [Ryu_Racing.luau](https://mxsynry.github.io/storage/other-stuff/Ryu_Racing.luau)
 # [Showcase.mp4](https://mxsynry.github.io/storage/other-stuff/Showcase.mp4)
 # [is-this-what-IY-kids-riding-for.mp4](https://mxsynry.github.io/storage/other-stuff/is-this-what-IY-kids-riding-for.mp4)
 # [didnt-know-ppl-were-this-desperate.mp4](https://mxsynry.github.io/storage/other-stuff/didnt-know-ppl-were-this-desperate.mp4)
