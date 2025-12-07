@@ -1,5 +1,7 @@
+--loadstring(game:HttpGet("https://mxsynry.github.io/storage/other-stuff/Ryu_Racing.luau"))()
+
 local FVelocity = Vector3.new(0, 0, 0)
-local ECSetting = false
+local SCSetting = false
 local ISSetting = false
 local VMSetting = 1
 local SVSetting = 50
@@ -76,7 +78,7 @@ end
 local oldindex;
 if getgenv().hookmetamethod and getgenv().getnamecallmethod then
     oldindex = hookmetamethod(game, "__index", function(v1, v2)
-        if ECSetting and v2 == "Velocity" and getnamecallmethod() == "ToOrientation" then
+        if SCSetting and v2 == "Velocity" and getnamecallmethod() == "ToOrientation" then
             return FVelocity
         end
         return oldindex(v1, v2)
@@ -177,17 +179,19 @@ end
 local MainTab = Window:CreateTab("Main", 4483362458)
 local SettingsTab = Window:CreateTab("Settings", 7734053495)
 
-local ToggleEC = MainTab:CreateToggle({
-   Name = "Easy Control",
+MainTab:CreateSection("Base exploits")
+
+local ToggleSC = MainTab:CreateToggle({
+   Name = "Snap Control",
    Info = "Makes steering significantly easier.",
    CurrentValue = false,
-   Flag = "EasyControl",
+   Flag = "SnapControl",
    Callback = function(Bool)
-      if Bool and not HookCheck("Easy Control") then
-          ToggleEC:ChangeValue(false)
+      if Bool and not HookCheck("Snap Control") then
+          ToggleSC:ChangeValue(false)
           return
       end
-      ECSetting = Bool
+      SCSetting = Bool
    end,
 })
 
@@ -243,7 +247,7 @@ local SliderVM = MainTab:CreateSlider({
    Range = {1, 3},
    Increment = 0.1,
    Suffix = "x",
-   CurrentValue = 1,
+   CurrentValue = 2,
    Flag = "VelocityMult",
    Callback = function(Value)
       VMSetting = Value
@@ -271,10 +275,10 @@ local ToggleJP = MainTab:CreateToggle({
 local SliderJP = MainTab:CreateSlider({
     Name = "Jump Power/Height Value",
     Info = "Sets the jump height (50 is default for JumpPower).",
-    Range = {0, 150},
+    Range = {0, 30},
     Increment = 1,
     Suffix = " units",
-    CurrentValue = 50,
+    CurrentValue = 10,
     Flag = "JumpPowerValue",
     Callback = function(Value)
         JPSliderValue = Value
@@ -284,6 +288,7 @@ local SliderJP = MainTab:CreateSlider({
     end,
 })
 
+MainTab:CreateSection("TouchInterests")
 
 MainTab:CreateButton({
    Name = "Skip stage (Vulnerable)",
@@ -309,7 +314,7 @@ MainTab:CreateButton({
    end,
 })
 
-MainTab:CreateSection("Skip Stage Warnings")
+MainTab:CreateSection("Info and Warnings")
 
 MainTab:CreateParagraph({
     Title = "DANGER: Skip Stage Warning",
@@ -320,7 +325,6 @@ MainTab:CreateParagraph({
     Title = "Optimal Skip Usage",
     Content = "<font color=\"rgb(255, 215, 0)\">This function skips roughly half of the round's progression. To avoid instant kicks, only use it after some time has passed since the start, or when you observe opponents are already making good progress. Use your opponents' positions as a measurement on when to trigger the skip.</font>",
 })
-
 
 MainTab:CreateSection("Misc")
 
