@@ -1,7 +1,10 @@
---loadstring(game:HttpGet("https://mxsynry.github.io/storage/other-stuff/Ryu_Racing.luau"))()
+local RunService = game:GetService("RunService")
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
 
 local FVelocity = Vector3.new(0, 0, 0)
-local SCSetting = false
+local SCSetting = false 
+local SCModeLoop = false 
 local ISSetting = false
 local VMSetting = 1
 local SVSetting = 50
@@ -9,7 +12,7 @@ local isDynamicVelocity = true
 
 local JPSetting = false
 local JPSliderValue = 50
-local JumpLoopConnection = nil
+local JPConnection = nil
 
 local function SmoothVelocity(Velocity)
     if isDynamicVelocity then
@@ -22,8 +25,8 @@ local function SmoothVelocity(Velocity)
     end
 end
 
-local function MaintainJumpPower(jpower)
-    local player = game.Players.LocalPlayer
+local function MaintainJP(jpower)
+    local player = Players.LocalPlayer
     local character = player.Character
     if not character then return end
 
@@ -37,30 +40,45 @@ local function MaintainJumpPower(jpower)
     end
 end
 
-local function JumpPowerLoop()
-    if JumpLoopConnection then JumpLoopConnection:Disconnect() end 
+local function JPLoop()
+    if JPConnection then JPConnection:Disconnect() end 
 
-    JumpLoopConnection = task.spawn(function()
-        local player = game.Players.LocalPlayer
+    JPConnection = task.spawn(function()
+        local player = Players.LocalPlayer
         local lastChar = player.Character
 
         while JPSetting do
             local currentJP = JPSetting and JPSliderValue or 0
             
-            MaintainJumpPower(currentJP)
+            MaintainJP(currentJP)
             
             if player.Character ~= lastChar and player.Character then
                 lastChar = player.Character
                 player.Character:WaitForChild("Humanoid", 5) 
-                MaintainJumpPower(currentJP) 
+                MaintainJP(currentJP) 
             end
 
             task.wait(0.1)
         end
-        MaintainJumpPower(0) 
+        MaintainJP(0) 
     end)
 end
 
+RunService.RenderStepped:Connect(function()
+    if SCSetting and SCModeLoop then
+        local player = Players.LocalPlayer
+        if player and player.Character then
+            local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+            local camera = Workspace.CurrentCamera
+            
+            if rootPart and camera then
+                local camLook = camera.CFrame.LookVector
+                local lookTarget = rootPart.Position + Vector3.new(camLook.X, 0, camLook.Z)
+                rootPart.CFrame = CFrame.lookAt(rootPart.Position, lookTarget)
+            end
+        end
+    end
+end)
 
 local function HookCheck(var)
     if not getgenv().hookmetamethod or not getgenv().getnamecallmethod then
@@ -78,7 +96,7 @@ end
 local oldindex;
 if getgenv().hookmetamethod and getgenv().getnamecallmethod then
     oldindex = hookmetamethod(game, "__index", function(v1, v2)
-        if SCSetting and v2 == "Velocity" and getnamecallmethod() == "ToOrientation" then
+        if SCSetting and not SCModeLoop and v2 == "Velocity" and getnamecallmethod() == "ToOrientation" then
             return FVelocity
         end
         return oldindex(v1, v2)
@@ -181,28 +199,57 @@ local SettingsTab = Window:CreateTab("Settings", 7734053495)
 
 MainTab:CreateSection("Base exploits")
 
-local ToggleSC = MainTab:CreateToggle({
+local ToggleSC 
+ToggleSC = MainTab:CreateToggle({
    Name = "Snap Control",
-   Info = "Makes steering significantly easier.",
    CurrentValue = false,
    Flag = "SnapControl",
    Callback = function(Bool)
-      if Bool and not HookCheck("Snap Control") then
-          ToggleSC:ChangeValue(false)
+      if Bool and not SCModeLoop and not HookCheck("Snap Control") then
+          ToggleSC:Set(false) 
           return
       end
       SCSetting = Bool
    end,
 })
 
+MainTab:CreateKeybind({
+    Name = "Toggle Snap Control",
+    CurrentKeybind = "Q",
+    HoldToInteract = false,
+    Flag = "SnapKeybind",
+    Callback = function(KeybindHeld)
+        local newState = not SCSetting
+        SCSetting = newState
+        if ToggleSC then
+            ToggleSC:Set(newState)
+        end
+    end,
+})
+
+MainTab:CreateToggle({
+    Name = "Snap Mode (Hook/Loop)",
+    CurrentValue = false,
+    Flag = "SnapModeToggle",
+    Callback = function(Bool)
+        SCModeLoop = Bool
+        local modeName = Bool and "Camera Loop (No Hook)" or "Velocity Hook"
+        Rayfield:Notify({
+            Title = "Snap Mode Changed",
+            Content = "Switched to: " .. modeName,
+            Duration = 3,
+            Image = nil,
+        })
+    end,
+})
+
 local ToggleIS = MainTab:CreateToggle({
    Name = "Infinite Stamina",
-   Info = "Prevents stamina depletion.",
    CurrentValue = false,
    Flag = "InfStamina",
    Callback = function(Bool)
       if Bool and not HookCheck("Infinite Stamina") then
-          ToggleIS:ChangeValue(false)
+          ToggleIS:Set(false)
           return
       end
       ISSetting = Bool
@@ -213,7 +260,6 @@ MainTab:CreateSection("Velocity Control")
 
 local SliderSV = MainTab:CreateSlider({
     Name = "Static Velocity Amount",
-    Info = "Sets a fixed speed (studs/sec) when Static mode is active.",
     Range = {10, 200},
     Increment = 1,
     Suffix = " stud/s",
@@ -225,13 +271,12 @@ local SliderSV = MainTab:CreateSlider({
 })
 
 local ToggleVMMode = MainTab:CreateToggle({
-    Name = "Velocity Mode (Dynamic/Static)",
-    Info = "Toggle to use Dynamic Multiplier (ON) or Static Fixed Velocity (OFF).",
+    Name = "Velocity Mode (Multiplier/Static)",
     CurrentValue = true,
     Flag = "DynamicModeToggle",
     Callback = function(Bool)
         isDynamicVelocity = Bool
-        local mode = Bool and "Dynamic Multiplier" or "Static Fixed Speed"
+        local mode = Bool and "Multiplier" or "Fixed"
         Rayfield:Notify({
             Title = "Velocity Mode Changed",
             Content = "Switched to: " .. mode,
@@ -243,7 +288,6 @@ local ToggleVMMode = MainTab:CreateToggle({
 
 local SliderVM = MainTab:CreateSlider({
    Name = "Dynamic Velocity Multiplier",
-   Info = "Multiplies your speed when Dynamic mode is active.",
    Range = {1, 3},
    Increment = 0.1,
    Suffix = "x",
@@ -258,23 +302,21 @@ MainTab:CreateSection("Jump Control")
 
 local ToggleJP = MainTab:CreateToggle({
     Name = "Toggle Jump Power",
-    Info = "Enables custom jump settings (0 height when OFF).",
     CurrentValue = false,
     Flag = "JumpPowerToggle",
     Callback = function(Bool)
         JPSetting = Bool
         if Bool then
-            JumpPowerLoop()
+            JPLoop()
         else
-            if JumpLoopConnection then JumpLoopConnection:Disconnect() end
-            MaintainJumpPower(0) 
+            if JPConnection then JPConnection:Disconnect() end
+            MaintainJP(0) 
         end
     end,
 })
 
 local SliderJP = MainTab:CreateSlider({
     Name = "Jump Power/Height Value",
-    Info = "Sets the jump height (50 is default for JumpPower).",
     Range = {0, 30},
     Increment = 1,
     Suffix = " units",
@@ -283,7 +325,7 @@ local SliderJP = MainTab:CreateSlider({
     Callback = function(Value)
         JPSliderValue = Value
         if JPSetting then
-            MaintainJumpPower(Value)
+            MaintainJP(Value)
         end
     end,
 })
@@ -317,13 +359,33 @@ MainTab:CreateButton({
 MainTab:CreateSection("Info and Warnings")
 
 MainTab:CreateParagraph({
-    Title = "DANGER: Skip Stage Warning",
+    Title = "Skip Stage Warning",
     Content = "<font color=\"rgb(255, 0, 0)\">This feature uses touch interest events to trick the game into thinking you hit the stage goal. You should only use this in private servers or sparingly in public servers. The delay must be reasonable, or the game will kick you and potentially flag your account.</font>",
 })
 
 MainTab:CreateParagraph({
     Title = "Optimal Skip Usage",
     Content = "<font color=\"rgb(255, 215, 0)\">This function skips roughly half of the round's progression. To avoid instant kicks, only use it after some time has passed since the start, or when you observe opponents are already making good progress. Use your opponents' positions as a measurement on when to trigger the skip.</font>",
+})
+
+MainTab:CreateParagraph({
+    Title = "Snap Control",
+    Content = "<font color=\"rgb(255, 255, 255)\">Snap control helps you steer more easily but it costs a lot of performance by using hookmetamethod which is highly unoptimized and unstable in most executors. I recommend using the keybind to toggle mid-race so you can save performance strategically.</font>",
+})
+
+MainTab:CreateParagraph({
+    Title = "Snap Control Modes",
+    Content = "<font color=\"rgb(200, 200, 200)\">Again, stability and lag are very much based on what executor you're using.\n Hook Method (OFF): This uses physics hooks to orient velocity, often resulting in a smoother feel but imposing a higher performance load.\n Loop Method (ON): This bypasses the hooks by using RenderStepped to force the character to face the camera, eliminating hook lag but potentially feeling more immediate or rigid.\nTest both modes to see which is better optimized for your current setup.</font>",
+})
+
+MainTab:CreateParagraph({
+    Title = "Performance Usage",
+    Content = "<font color=\"rgb(255, 255, 255)\">Since performance degrades heavily when running multiple hookmetamethod exploits (like Snap Control Hook Mode and Infinite Stamina), consider switching to alternatives. You can maintain speed and control with minimal lag by pairing Static Velocity (non-hook based) with the Snap Control Loop Method. This combination uses fewer hooks, offering better stability and potentially a smoother experience.</font>",
+})
+
+MainTab:CreateParagraph({
+    Title = "Features",
+    Content = "<font color=\"rgb(200, 200, 200)\">Infinite Stamina: Prevents stamina bar depletion.\nStatic Velocity: Overrides physics with fixed speed.\nDynamic Velocity: Multiplies native speed.\nJump Toggle: Enables custom jump height (default 0, disabled by game).</font>",
 })
 
 MainTab:CreateSection("Misc")
@@ -339,6 +401,14 @@ local ButtonDiscord = MainTab:CreateButton({
         Duration = 3,
         Image = nil,
      })
+   end,
+})
+
+local ButtonIYR = MainTab:CreateButton({
+   Name = "Infinite Yield Reborn",
+   Interact = 'Click',
+   Callback = function()
+    loadstring(game:HttpGet('https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/refs/heads/master/source'))()
    end,
 })
 
