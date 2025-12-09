@@ -1,3 +1,5 @@
+--loadstring(game:HttpGet:(“https://mxsynry.github.io/storage/other-stuff/Ryu_Racing.luau“))()
+
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -41,7 +43,6 @@ local function MaintainJP(jpower)
 end
 
 local function JPLoop()
-    -- FIX: Changed Disconnect() to task.cancel() because JPConnection is a thread, not a connection
     if JPConnection then task.cancel(JPConnection) end 
 
     JPConnection = task.spawn(function()
@@ -202,7 +203,7 @@ MainTab:CreateSection("Base exploits")
 
 local ToggleSC 
 ToggleSC = MainTab:CreateToggle({
-   Name = "Steer Control", -- RENAMED
+   Name = "Steer Control",
    CurrentValue = false,
    Flag = "SnapControl",
    Callback = function(Bool)
@@ -215,7 +216,7 @@ ToggleSC = MainTab:CreateToggle({
 })
 
 MainTab:CreateKeybind({
-    Name = "Toggle Steer Control", -- RENAMED
+    Name = "Toggle Steer Control",
     CurrentKeybind = "Q",
     HoldToInteract = false,
     Flag = "SnapKeybind",
@@ -229,7 +230,7 @@ MainTab:CreateKeybind({
 })
 
 MainTab:CreateToggle({
-    Name = "Steer Mode (Hook/Loop)", -- RENAMED
+    Name = "Steer Mode (Hook/Loop)",
     CurrentValue = false,
     Flag = "SnapModeToggle",
     Callback = function(Bool)
@@ -310,7 +311,7 @@ local ToggleJP = MainTab:CreateToggle({
         if Bool then
             JPLoop()
         else
-            if JPConnection then task.cancel(JPConnection) end -- FIX: Changed Disconnect to task.cancel
+            if JPConnection then task.cancel(JPConnection) end 
             MaintainJP(0) 
         end
     end,
@@ -370,12 +371,12 @@ MainTab:CreateParagraph({
 })
 
 MainTab:CreateParagraph({
-    Title = "Steer Control", -- RENAMED
+    Title = "Steer Control",
     Content = "<font color=\"rgb(255, 255, 255)\">Steer control helps you steer more easily but it costs a lot of performance by using hookmetamethod which is highly unoptimized and unstable in most executors. I recommend using the keybind to toggle mid-race so you can save performance strategically.</font>",
 })
 
 MainTab:CreateParagraph({
-    Title = "Steer Control Modes", -- RENAMED
+    Title = "Steer Control Modes",
     Content = "<font color=\"rgb(200, 200, 200)\">Again, stability and lag are very much based on what executor you're using.\n Hook Method (OFF): This uses physics hooks to orient velocity, often resulting in a smoother feel but imposing a higher performance load.\n Loop Method (ON): This bypasses the hooks by using RenderStepped to force the character to face the camera, eliminating hook lag but potentially feeling more immediate or rigid.\nTest both modes to see which is better optimized for your current setup.</font>",
 })
 
