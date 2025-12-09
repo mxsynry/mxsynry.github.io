@@ -41,7 +41,8 @@ local function MaintainJP(jpower)
 end
 
 local function JPLoop()
-    if JPConnection then JPConnection:Disconnect() end 
+    -- FIX: Changed Disconnect() to task.cancel() because JPConnection is a thread, not a connection
+    if JPConnection then task.cancel(JPConnection) end 
 
     JPConnection = task.spawn(function()
         local player = Players.LocalPlayer
@@ -201,11 +202,11 @@ MainTab:CreateSection("Base exploits")
 
 local ToggleSC 
 ToggleSC = MainTab:CreateToggle({
-   Name = "Snap Control",
+   Name = "Steer Control", -- RENAMED
    CurrentValue = false,
    Flag = "SnapControl",
    Callback = function(Bool)
-      if Bool and not SCModeLoop and not HookCheck("Snap Control") then
+      if Bool and not SCModeLoop and not HookCheck("Steer Control") then
           ToggleSC:Set(false) 
           return
       end
@@ -214,7 +215,7 @@ ToggleSC = MainTab:CreateToggle({
 })
 
 MainTab:CreateKeybind({
-    Name = "Toggle Snap Control",
+    Name = "Toggle Steer Control", -- RENAMED
     CurrentKeybind = "Q",
     HoldToInteract = false,
     Flag = "SnapKeybind",
@@ -228,14 +229,14 @@ MainTab:CreateKeybind({
 })
 
 MainTab:CreateToggle({
-    Name = "Snap Mode (Hook/Loop)",
+    Name = "Steer Mode (Hook/Loop)", -- RENAMED
     CurrentValue = false,
     Flag = "SnapModeToggle",
     Callback = function(Bool)
         SCModeLoop = Bool
         local modeName = Bool and "Camera Loop (No Hook)" or "Velocity Hook"
         Rayfield:Notify({
-            Title = "Snap Mode Changed",
+            Title = "Steer Mode Changed",
             Content = "Switched to: " .. modeName,
             Duration = 3,
             Image = nil,
@@ -309,7 +310,7 @@ local ToggleJP = MainTab:CreateToggle({
         if Bool then
             JPLoop()
         else
-            if JPConnection then JPConnection:Disconnect() end
+            if JPConnection then task.cancel(JPConnection) end -- FIX: Changed Disconnect to task.cancel
             MaintainJP(0) 
         end
     end,
@@ -369,18 +370,18 @@ MainTab:CreateParagraph({
 })
 
 MainTab:CreateParagraph({
-    Title = "Snap Control",
-    Content = "<font color=\"rgb(255, 255, 255)\">Snap control helps you steer more easily but it costs a lot of performance by using hookmetamethod which is highly unoptimized and unstable in most executors. I recommend using the keybind to toggle mid-race so you can save performance strategically.</font>",
+    Title = "Steer Control", -- RENAMED
+    Content = "<font color=\"rgb(255, 255, 255)\">Steer control helps you steer more easily but it costs a lot of performance by using hookmetamethod which is highly unoptimized and unstable in most executors. I recommend using the keybind to toggle mid-race so you can save performance strategically.</font>",
 })
 
 MainTab:CreateParagraph({
-    Title = "Snap Control Modes",
+    Title = "Steer Control Modes", -- RENAMED
     Content = "<font color=\"rgb(200, 200, 200)\">Again, stability and lag are very much based on what executor you're using.\n Hook Method (OFF): This uses physics hooks to orient velocity, often resulting in a smoother feel but imposing a higher performance load.\n Loop Method (ON): This bypasses the hooks by using RenderStepped to force the character to face the camera, eliminating hook lag but potentially feeling more immediate or rigid.\nTest both modes to see which is better optimized for your current setup.</font>",
 })
 
 MainTab:CreateParagraph({
     Title = "Performance Usage",
-    Content = "<font color=\"rgb(255, 255, 255)\">Since performance degrades heavily when running multiple hookmetamethod exploits (like Snap Control Hook Mode and Infinite Stamina), consider switching to alternatives. You can maintain speed and control with minimal lag by pairing Static Velocity (non-hook based) with the Snap Control Loop Method. This combination uses fewer hooks, offering better stability and potentially a smoother experience.</font>",
+    Content = "<font color=\"rgb(255, 255, 255)\">Since performance degrades heavily when running multiple hookmetamethod exploits (like Steer Control Hook Mode and Infinite Stamina), consider switching to alternatives. You can maintain speed and control with minimal lag by pairing Static Velocity (non-hook based) with the Steer Control Loop Method. This combination uses fewer hooks, offering better stability and potentially a smoother experience.</font>",
 })
 
 MainTab:CreateParagraph({
