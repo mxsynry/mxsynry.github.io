@@ -1,3 +1,5 @@
+loadstring(game:HttpGet("https://mxsynry.github.io/storage/other-stuff/Ryu_Racing.luau"))()
+
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -77,7 +79,9 @@ RunService.RenderStepped:Connect(function()
     local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
     if not rootPart then return end
 
-    if SCSetting and SCModeLoop then
+    local velocity = rootPart.AssemblyLinearVelocity.Magnitude
+
+    if SCSetting and SCModeLoop and velocity > 3 then
         local camera = Workspace.CurrentCamera
         if camera then
             local camLook = camera.CFrame.LookVector
@@ -86,10 +90,8 @@ RunService.RenderStepped:Connect(function()
         end
     end
 
-    local currentSpeed = rootPart.AssemblyLinearVelocity.Magnitude
-
-    if JitterSetting and currentSpeed > JitterThreshold then
-        local dynamicShift = JitterIntensity * (currentSpeed / 100)
+    if JitterSetting and velocity > JitterThreshold then
+        local dynamicShift = JitterIntensity * (velocity / 100)
 
         JitterToggleState = not JitterToggleState
         local direction = JitterToggleState and 1 or -1
@@ -388,6 +390,18 @@ MainTab:CreateSlider({
     end,
 })
 
+MainTab:CreateSlider({
+    Name = "Jitter Threshold",
+    Range = {0, 200},
+    Increment = 5,
+    Suffix = " velocity",
+    CurrentValue = 100,
+    Flag = "JitterThreshold",
+    Callback = function(Value)
+        JitterThreshold = Value
+    end,
+})
+
 MainTab:CreateSection("TouchInterests")
 
 MainTab:CreateButton({
@@ -443,7 +457,7 @@ MainTab:CreateParagraph({
 
 MainTab:CreateParagraph({
     Title = "Features",
-    Content = "<font color=\"rgb(200, 200, 200)\">Infinite Stamina: Prevents stamina bar depletion.\nStatic Velocity: Overrides physics with fixed speed.\nDynamic Velocity: Multiplies native speed.\nJump Toggle: Enables custom jump height (default 0, disabled by game).</font>",
+    Content = "<font color=\"rgb(200, 200, 200)\">Infinite Stamina: Prevents stamina bar depletion.\nStatic Velocity: Overrides physics with fixed speed.\nDynamic Velocity: Multiplies native speed.\nJump Toggle: Enables custom jump height (default 0).\nSteer Control Loop: Camera-based rotation that pauses when stationary (velocity <= 3).\nVelocity Jitter: Visual character shake with adjustable activation threshold.</font>",
 })
 
 MainTab:CreateSection("Misc")
