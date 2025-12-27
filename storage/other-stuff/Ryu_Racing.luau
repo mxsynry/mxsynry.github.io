@@ -1,5 +1,3 @@
---loadstring(game:HttpGet:(“https://mxsynry.github.io/storage/other-stuff/Ryu_Racing.luau“))()
-
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
 local Workspace = game:GetService("Workspace")
@@ -15,6 +13,12 @@ local isDynamicVelocity = true
 local JPSetting = false
 local JPSliderValue = 50
 local JPConnection = nil
+
+local JitterSetting = false
+local JitterIntensity = 1
+local JitterLastOffset = Vector3.new(0, 0, 0)
+local JitterToggleState = false
+local JitterThreshold = 100
 
 local function SmoothVelocity(Velocity)
     if isDynamicVelocity then
@@ -67,17 +71,39 @@ local function JPLoop()
 end
 
 RunService.RenderStepped:Connect(function()
+    local player = Players.LocalPlayer
+    if not player or not player.Character then return end
+    
+    local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+    if not rootPart then return end
+
     if SCSetting and SCModeLoop then
-        local player = Players.LocalPlayer
-        if player and player.Character then
-            local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
-            local camera = Workspace.CurrentCamera
-            
-            if rootPart and camera then
-                local camLook = camera.CFrame.LookVector
-                local lookTarget = rootPart.Position + Vector3.new(camLook.X, 0, camLook.Z)
-                rootPart.CFrame = CFrame.lookAt(rootPart.Position, lookTarget)
-            end
+        local camera = Workspace.CurrentCamera
+        if camera then
+            local camLook = camera.CFrame.LookVector
+            local lookTarget = rootPart.Position + Vector3.new(camLook.X, 0, camLook.Z)
+            rootPart.CFrame = CFrame.lookAt(rootPart.Position, lookTarget)
+        end
+    end
+
+    local currentSpeed = rootPart.AssemblyLinearVelocity.Magnitude
+
+    if JitterSetting and currentSpeed > JitterThreshold then
+        local dynamicShift = JitterIntensity * (currentSpeed / 100)
+
+        JitterToggleState = not JitterToggleState
+        local direction = JitterToggleState and 1 or -1
+        
+        local currentOffset = rootPart.CFrame.RightVector * (dynamicShift * direction)
+
+        local stableCFrame = rootPart.CFrame - JitterLastOffset
+        rootPart.CFrame = stableCFrame + currentOffset
+        
+        JitterLastOffset = currentOffset
+    else
+        if JitterLastOffset ~= Vector3.zero then
+            rootPart.CFrame = rootPart.CFrame - JitterLastOffset
+            JitterLastOffset = Vector3.zero
         end
     end
 end)
@@ -332,6 +358,36 @@ local SliderJP = MainTab:CreateSlider({
     end,
 })
 
+MainTab:CreateSection("Fun Features")
+
+MainTab:CreateToggle({
+    Name = "Velocity Jitter (Visual)",
+    CurrentValue = false,
+    Flag = "JitterToggle",
+    Callback = function(Bool)
+        JitterSetting = Bool
+        if not Bool and JitterLastOffset ~= Vector3.zero then
+            local p = Players.LocalPlayer
+            if p and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                 p.Character.HumanoidRootPart.CFrame = p.Character.HumanoidRootPart.CFrame - JitterLastOffset
+                 JitterLastOffset = Vector3.zero
+            end
+        end
+    end,
+})
+
+MainTab:CreateSlider({
+    Name = "Jitter Intensity",
+    Range = {0.1, 2.0},
+    Increment = 0.1,
+    Suffix = "x",
+    CurrentValue = 0.5,
+    Flag = "JitterIntensity",
+    Callback = function(Value)
+        JitterIntensity = Value
+    end,
+})
+
 MainTab:CreateSection("TouchInterests")
 
 MainTab:CreateButton({
@@ -361,6 +417,11 @@ MainTab:CreateButton({
 MainTab:CreateSection("Info and Warnings")
 
 MainTab:CreateParagraph({
+    Title = "Velocity Jitter",
+    Content = "<font color=\"rgb(100, 255, 100)\">This is a visual effect that shakes your character based on how fast you are going. It only activates when your speed is > 50. It uses RenderStepped for smooth local visuals and scales intensity with speed.</font>",
+})
+
+MainTab:CreateParagraph({
     Title = "Skip Stage Warning",
     Content = "<font color=\"rgb(255, 0, 0)\">This feature uses touch interest events to trick the game into thinking you hit the stage goal. You should only use this in private servers or sparingly in public servers. The delay must be reasonable, or the game will kick you and potentially flag your account.</font>",
 })
@@ -373,11 +434,6 @@ MainTab:CreateParagraph({
 MainTab:CreateParagraph({
     Title = "Steer Control",
     Content = "<font color=\"rgb(255, 255, 255)\">Steer control helps you steer more easily but it costs a lot of performance by using hookmetamethod which is highly unoptimized and unstable in most executors. I recommend using the keybind to toggle mid-race so you can save performance strategically.</font>",
-})
-
-MainTab:CreateParagraph({
-    Title = "Steer Control Modes",
-    Content = "<font color=\"rgb(200, 200, 200)\">Again, stability and lag are very much based on what executor you're using.\n Hook Method (OFF): This uses physics hooks to orient velocity, often resulting in a smoother feel but imposing a higher performance load.\n Loop Method (ON): This bypasses the hooks by using RenderStepped to force the character to face the camera, eliminating hook lag but potentially feeling more immediate or rigid.\nTest both modes to see which is better optimized for your current setup.</font>",
 })
 
 MainTab:CreateParagraph({
