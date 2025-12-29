@@ -69,6 +69,7 @@
     /var/mobile/Containers/Data/Application/[Roblox_ID]/Library/Cookies/
    ```
    You can install the AppData or the AppEditor Tweaks on Havoc to perform these steps faster.
+   
    *Note: Non-jailbroken users must completely uninstall and reinstall Roblox. DO NOT OFFLOAD because it would still keep your Roblox Cookie.*
 
 • **Network & IP Reset Commands:**
