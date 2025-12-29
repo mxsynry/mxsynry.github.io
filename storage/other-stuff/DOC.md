@@ -116,13 +116,19 @@
 
 ## 3. Other Enforcement Bans: Chargebacks & Waves
 • **Chargeback Bans:** These are "Very High" severity. Disputing a Robux purchase through your bank results in instant Permanent Termination.
+
 • Stacking Multiple chargebacks or unauthorized charges lead to blacklisting the payment method and potentially all linked accounts.
+
 • **Banwaves:** Occur periodically (e.g., during "The Hunt" 2025) and target users of modified clients.
+
 • Closet hacking (careful usage) reduces reports, but automated checks for "modified clients" can still trigger bans regardless of your visibility to other players.
 
 ## 4. New Bypasses
+
 • **Mobile Hotspots:** Creating a hotspot from your phone provides a fresh IP and network ID, effectively bypassing home Wi-Fi bans.
+
 • **Dynamic IP Reset:** Unplug your modem for 5 minutes if your ISP provides dynamic IPs.
+
 • **Developer "Edit Permissions":** Creators with edit permissions for a specific place are currently exempt from automated actions against modified clients within that specific place only.
 
 ## 5. Extras & Additions
