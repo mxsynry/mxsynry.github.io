@@ -124,7 +124,6 @@
 • Closet hacking (careful usage) reduces reports, but automated checks for "modified clients" can still trigger bans regardless of your visibility to other players.
 
 ## 4. New Bypasses
-
 • **Mobile Hotspots:** Creating a hotspot from your phone provides a fresh IP and network ID, effectively bypassing home Wi-Fi bans.
 
 • **Dynamic IP Reset:** Unplug your modem for 5 minutes if your ISP provides dynamic IPs.
