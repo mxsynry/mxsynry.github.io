@@ -1,4 +1,5 @@
 # [Blue Archive OST 3. Mischievous Step.mp4](https://mxsynry.github.io/storage/other-stuff/Blue%20Archive%20OST%203.%20Mischievous%20Step.mp4)
+# [DOC.md](https://mxsynry.github.io/storage/other-stuff/DOC.md)
 # [cape.png](https://mxsynry.github.io/storage/other-stuff/cape.png)
 # [changeexecutoridentiyfr.lua](https://mxsynry.github.io/storage/other-stuff/changeexecutoridentiyfr.lua)
 # [identities.md](https://github.com/mxsynry/NamingStandard/raw/refs/heads/main/Identities.md)
