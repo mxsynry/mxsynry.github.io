@@ -2,26 +2,43 @@
 
 ## 1. Detections
 • **Account Flags:** Unlike temporary suspensions, terminations often trigger "poison bans" across associated accounts. Linking happens via:
+    
     • **Verified Data:** Shared email addresses and phone numbers.
+    
     • **Shared Payment Methods:** Using the same credit card across multiple accounts.
+
 • **BanAsync() (Experience Level):** A specialized API that lets developers ban users from specific games, will give you the error code 600 enforcement ban upon joining a game when you got banned.
+    
     • **Alt Detection:** It includes a toggle for "Real-time alt account detection," which automatically prevents suspected alts from joining that game.
+    
     • **Limitations:** Its accuracy is often criticized; some developers report it may only catch 9% of blatant alts if users don't immediately use the "Account Switcher" feature.
+
 • **CookieHash & Local Data:**
+    
     • **RobloxCookies.dat:** Located in `AppData/Local/Roblox/LocalStorage/RobloxCookies.dat`. This file tracks your session history across account switches.
+
 • **IP Address & Network Tracking:** Roblox now aggressively monitors IP ranges. Severe violations can lead to IP Bans, where all devices on a network (including siblings) are blocked.
 • **MAC Addresses & Device Identifiers:** Used to track hardware fingerprints beyond simple cookies.
 
 ## 2. Bypass & Mitigation Methods
 • **Account Linking Protection:**
+    
     • **Isolate Accounts:** Never use the same email or phone number for alts.
+    
     • **Avoid the Account Switcher:** Manually log out and clear cookies instead of using the built-in switcher.
+
 • **Clearing Tracking Data:**
+    
     • **Manual Deletion:** Delete the Roblox folder in `%localappdata%\Temp` and `%localappdata%\Roblox\LocalStorage` to clear hardware and session identifiers.
+
 • **Network & IP Masking:**
+    
     • **Basic CMD Commands:** `ipconfig /release` followed by `ipconfig /renew` (and `flushdns`) can reset your IP if your ISP uses dynamic addressing.
+    
     • **Residential Proxies:** These are more effective than standard VPNs because they appear as regular home users, making them harder for Roblox to blacklist.
+    
     • **BanAsync Wiper Tools** like [Centerepic’s ByeBanAsync](https://github.com/centerepic/ByeBanAsync), [RoSeal](https://www.roseal.live), [SSVI1’s Auto File Clearer](https://github.com/SSVI1/System-Optimization-Framework-Roblox), [iKingNinja’s Account Manager for FireFox](https://addons.mozilla.org/en-US/firefox/addon/accounts-manager/) and [ic3w0lf22’s Windows Account Manager.](https://github.com/ic3w0lf22/Roblox-Account-Manager)
+    
     • **MAC Address Spoofing:** Use tools like [Technitium MAC Address Changer](https://technitium.com/tmac/) to randomize the hardware address of all network adapters.
 
 • **Manual commands to clear cookies:**
