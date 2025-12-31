@@ -457,7 +457,7 @@ MainTab:CreateParagraph({
 
 MainTab:CreateParagraph({
     Title = "Features",
-    Content = "<font color=\"rgb(200, 200, 200)\">Infinite Stamina: Prevents stamina bar depletion.\nStatic Velocity: Overrides physics with fixed speed.\nDynamic Velocity: Multiplies native speed.\nJump Toggle: Enables custom jump height (default 0).\nSteer Control Loop: Camera-based rotation that pauses when stationary (velocity <= 3).\nVelocity Jitter: Visual character shake with adjustable activation threshold.</font>",
+    Content = "Infinite Stamina: Prevents stamina bar depletion.\nStatic Velocity: Overrides physics with fixed speed.\nDynamic Velocity: Multiplies native speed.\nJump Toggle: Enables custom jump height (default 0).\nSteer Control Loop: Camera-based rotation that pauses when stationary (velocity <= 3).\nVelocity Jitter: Visual character shake with adjustable activation threshold.",
 })
 
 MainTab:CreateSection("Misc")
