@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Repo File Browser</title>
+  <style>
+    *{margin:0;padding:0;box-sizing:border-box}
+    body{font-family:'Segoe UI',sans-serif;background:#0d1117;color:#c9d1d9;height:100vh;display:flex;flex-direction:column}
+    header{background:#161b22;padding:12px 20px;border-bottom:1px solid #30363d;display:flex;align-items:center;gap:12px}
+    header h1{font-size:16px;font-weight:600;color:#f0f6fc}
+    header input{flex:1;background:#0d1117;border:1px solid #30363d;border-radius:6px;padding:6px 12px;color:#c9d1d9;font-size:13px;outline:none}
+    header input:focus{border-color:#58a6ff}
+    .container{display:flex;flex:1;overflow:hidden}
+    .sidebar{width:280px;background:#161b22;border-right:1px solid #30363d;overflow-y:auto;padding:8px 0}
+    .sidebar .item{padding:6px 16px;font-size:13px;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .sidebar .item:hover{background:#1f242c}
+    .sidebar .item.active{background:#1f6feb;color:#fff}
+    .sidebar .folder{color:#58a6ff}
+    .sidebar .file{color:#8b949e}
+    .sidebar .indent{margin-left:16px}
+    .content{flex:1;overflow:auto;padding:20px}
+    .content pre{background:#161b22;border:1px solid #30363d;border-radius:6px;padding:16px;font-size:13px;line-height:1.5;overflow-x:auto}
+    .content img{max-width:100%}
+    .breadcrumb{display:flex;gap:8px;align-items:center;margin-bottom:16px;font-size:14px}
+    .breadcrumb span{cursor:pointer;color:#58a6ff}
+    .breadcrumb span:hover{text-decoration:underline}
+    .loading{color:#8b949e;font-size:13px;padding:20px}
+    .error{color:#f85149;font-size:13px;padding:20px}
+    ::-webkit-scrollbar{width:8px;height:8px}
+    ::-webkit-scrollbar-track{background:transparent}
+    ::-webkit-scrollbar-thumb{background:#30363d;border-radius:4px}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>📁 mxsynry.github.io</h1>
+    <input type="text" id="search" placeholder="Filter files..." autocomplete="off">
+  </header>
+  <div class="container">
+    <div class="sidebar" id="sidebar"><div class="loading">Loading...</div></div>
+    <div class="content" id="content"><div class="loading">Select a file to view</div></div>
+  </div>
+
+  <script>
+    const OWNER = 'mxsynry';
+    const REPO = 'mxsynry.github.io';
+    const BRANCH = 'main';
+    const API_BASE = `https://api.github.com/repos/${OWNER}/${REPO}/contents`;
+    const RAW_BASE = `https://raw.githubusercontent.com/${OWNER}/${REPO}/${BRANCH}`;
+
+    let fileTree = [];
+    let currentPath = '';
+
+    async function fetchFiles(path = '') {
+      try {
+        const res = await fetch(`${API_BASE}/${path}?ref=${BRANCH}`);
+        if (!res.ok) throw new Error('Failed to fetch');
+        return await res.json();
+      } catch (e) {
+        return [];
+      }
+    }
+
+    async function buildTree(path = '', depth = 0, parent = null) {
+      const items = await fetchFiles(path);
+      const result = [];
+      for (const item of items) {
+        const node = { ...item, depth, expanded: false, children: [] };
+        if (item.type === 'dir') {
+          node.children = await buildTree(item.path, depth + 1, node);
+        }
+        result.push(node);
+      }
+      return result.sort((a, b) => {
+        if (a.type === b.type) return a.name.localeCompare(b.name);
+        return a.type === 'dir' ? -1 : 1;
+      });
+    }
+
+    function renderTree(nodes, container) {
+      container.innerHTML = '';
+      for (const node of nodes) {
+        const div = document.createElement('div');
+        div.className = 'item' + (node.type === 'dir' ? ' folder' : ' file');
+        div.style.paddingLeft = `${12 + node.depth * 16}px`;
+        const icon = node.type === 'dir' ? (node.expanded ? '📂' : '📁') : getFileIcon(node.name);
+        div.innerHTML = `<span>${icon}</span><span>${escapeHtml(node.name)}</span>`;
+        div.onclick = () => {
+          if (node.type === 'dir') {
+            node.expanded = !node.expanded;
+            renderAll();
+          } else {
+            loadFile(node.path);
+            document.querySelectorAll('.item.active').forEach(el => el.classList.remove('active'));
+            div.classList.add('active');
+          }
+        };
+        container.appendChild(div);
+        if (node.type === 'dir' && node.expanded) {
+          renderTree(node.children, container);
+        }
+      }
+    }
+
+    function getFileIcon(name) {
+      if (name.endsWith('.html')) return '🌐';
+      if (name.endsWith('.js')) return '📜';
+      if (name.endsWith('.css')) return '🎨';
+      if (name.endsWith('.md')) return '📝';
+      if (name.endsWith('.json')) return '⚙️';
+      if (name.endsWith('.png') || name.endsWith('.jpg') || name.endsWith('.gif')) return '🖼️';
+      return '📄';
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    async function loadFile(path) {
+      const content = document.getElementById('content');
+      content.innerHTML = '<div class="loading">Loading...</div>';
+      try {
+        const res = await fetch(`${RAW_BASE}/${path}`);
+        const text = await res.text();
+        const ext = path.split('.').pop().toLowerCase();
+
+        let html = `<div class="breadcrumb">`;
+        const parts = path.split('/');
+        let accum = '';
+        html += `<span onclick="loadRoot()">root</span>`;
+        for (const part of parts) {
+          accum += (accum ? '/' : '') + part;
+          html += ` / <span onclick="navigateTo('${accum}')">${escapeHtml(part)}</span>`;
+        }
+        html += `</div>`;
+
+        if (['png','jpg','jpeg','gif','webp','svg'].includes(ext)) {
+          html += `<img src="${RAW_BASE}/${path}" alt="${escapeHtml(path)}">`;
+        } else if (['md','markdown'].includes(ext)) {
+          html += `<pre>${escapeHtml(text)}</pre>`;
+        } else {
+          html += `<pre><code>${escapeHtml(text)}</code></pre>`;
+        }
+        content.innerHTML = html;
+      } catch (e) {
+        content.innerHTML = `<div class="error">Failed to load: ${escapeHtml(path)}</div>`;
+      }
+    }
+
+    function loadRoot() {
+      document.getElementById('content').innerHTML = '<div class="loading">Select a file to view</div>';
+    }
+
+    function navigateTo(path) {
+      const node = findNode(fileTree, path);
+      if (node && node.type === 'file') loadFile(path);
+    }
+
+    function findNode(nodes, path) {
+      for (const node of nodes) {
+        if (node.path === path) return node;
+        if (node.children) {
+          const found = findNode(node.children, path);
+          if (found) return found;
+        }
+      }
+      return null;
+    }
+
+    function filterTree(nodes, query) {
+      const results = [];
+      for (const node of nodes) {
+        const match = node.name.toLowerCase().includes(query.toLowerCase());
+        const childMatches = node.children ? filterTree(node.children, query) : [];
+        if (match || childMatches.length > 0) {
+          const clone = { ...node, expanded: true, children: childMatches };
+          results.push(clone);
+        }
+      }
+      return results;
+    }
+
+    function renderAll() {
+      const sidebar = document.getElementById('sidebar');
+      const query = document.getElementById('search').value;
+      const display = query ? filterTree(fileTree, query) : fileTree;
+      renderTree(display, sidebar);
+    }
+
+    document.getElementById('search').addEventListener('input', renderAll);
+
+    async function init() {
+      fileTree = await buildTree();
+      renderAll();
+    }
+
+    init();
+  </script>
+</body>
+</html>
