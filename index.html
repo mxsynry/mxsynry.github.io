@@ -32,16 +32,17 @@ body {
 header {
   background: var(--bg-elev);
   border-bottom: 1px solid var(--border);
-  padding: 16px 24px;
+  padding: 14px 20px;
   display: flex;
   align-items: center;
   gap: 12px;
   position: sticky;
   top: 0;
   z-index: 10;
+  flex-shrink: 0;
 }
 header h1 {
-  font-size: 18px;
+  font-size: 17px;
   font-weight: 600;
   color: var(--text);
 }
@@ -59,10 +60,11 @@ header a:hover { text-decoration: underline; }
   display: flex;
   gap: 8px;
   align-items: center;
-  padding: 12px 24px;
+  padding: 10px 20px;
   background: var(--bg);
   border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
+  flex-shrink: 0;
 }
 .toolbar input {
   background: var(--bg-elev);
@@ -71,7 +73,7 @@ header a:hover { text-decoration: underline; }
   padding: 6px 12px;
   color: var(--text);
   font-size: 14px;
-  min-width: 260px;
+  min-width: 220px;
   outline: none;
 }
 .toolbar input:focus { border-color: var(--accent); }
@@ -79,29 +81,89 @@ header a:hover { text-decoration: underline; }
   background: var(--bg-elev2);
   border: 1px solid var(--border);
   border-radius: 6px;
-  padding: 6px 14px;
+  padding: 6px 12px;
   color: var(--text);
-  font-size: 13px;
+  font-size: 12px;
   cursor: pointer;
   transition: background 0.15s;
 }
 .toolbar button:hover { background: var(--border); }
-.toolbar button.active { background: var(--accent); color: #000; border-color: var(--accent); }
+.toolbar button.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
+.layout {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+.sidebar {
+  width: 260px;
+  min-width: 200px;
+  max-width: 400px;
+  background: var(--bg-elev);
+  border-right: 1px solid var(--border);
+  overflow-y: auto;
+  padding: 8px 0;
+  resize: horizontal;
+}
+.sidebar::-webkit-resizer { background: var(--border); }
+.tree-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 8px;
+  cursor: pointer;
+  font-size: 13px;
+  border-radius: 4px;
+  margin: 0 6px;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.tree-item:hover { background: var(--bg-elev2); }
+.tree-toggle {
+  width: 14px;
+  text-align: center;
+  font-size: 10px;
+  color: var(--text-dim);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.tree-spacer { width: 14px; flex-shrink: 0; }
+.tree-icon { font-size: 14px; flex-shrink: 0; }
+.tree-label {
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.tree-label.active { color: var(--accent); font-weight: 600; }
+.content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-width: 0;
+}
 .breadcrumb {
-  padding: 10px 24px;
+  padding: 10px 20px;
   font-size: 14px;
   color: var(--text-dim);
   border-bottom: 1px solid var(--border);
   background: var(--bg);
+  flex-shrink: 0;
 }
-.breadcrumb span { cursor: pointer; color: var(--accent); }
-.breadcrumb span:hover { text-decoration: underline; }
-.breadcrumb .sep { margin: 0 6px; color: var(--text-dim); cursor: default; }
-.breadcrumb .current { color: var(--text); cursor: default; }
-.main { flex: 1; padding: 0 24px 40px; }
+.breadcrumb .bc-root, .breadcrumb .bc-part {
+  cursor: pointer;
+  color: var(--accent);
+}
+.breadcrumb .bc-root:hover, .breadcrumb .bc-part:hover { text-decoration: underline; }
+.breadcrumb .bc-sep { margin: 0 6px; color: var(--text-dim); }
+.breadcrumb .bc-current { color: var(--text); font-weight: 500; }
+.main {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 20px 30px;
+}
 .file-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 12px;
   margin-top: 16px;
 }
@@ -193,6 +255,7 @@ header a:hover { text-decoration: underline; }
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  width: 100%;
 }
 .preview-header {
   display: flex;
@@ -219,6 +282,7 @@ header a:hover { text-decoration: underline; }
   display: flex;
   align-items: center;
   justify-content: center;
+  min-height: 100px;
 }
 .preview-body img, .preview-body video { max-width: 100%; max-height: 70vh; border-radius: 6px; }
 .preview-body pre {
@@ -255,12 +319,15 @@ header a:hover { text-decoration: underline; }
   font-weight: 500;
 }
 .preview-actions button { background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); }
+@media (max-width: 768px) {
+  .sidebar { display: none; }
+}
 </style>
 <base target="_blank">
 </head>
 <body>
 <header>
-  <svg height="24" width="24" viewBox="0 0 16 16" fill="white"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
+  <svg height="22" width="22" viewBox="0 0 16 16" fill="white"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
   <h1><a href="https://github.com/mxsynry/mxsynry.github.io" target="_blank">mxsynry / mxsynry.github.io</a></h1>
   <span class="badge" id="fileCountBadge">0 files</span>
 </header>
@@ -269,14 +336,20 @@ header a:hover { text-decoration: underline; }
   <input type="text" id="search" placeholder="Search files..." autocomplete="off">
   <button id="btnGrid" class="active">Grid</button>
   <button id="btnList">List</button>
-  <button id="btnExpand">Expand All</button>
-  <button id="btnCollapse">Collapse All</button>
+  <button id="btnExpandAll">Expand All</button>
+  <button id="btnCollapseAll">Collapse All</button>
   <button id="btnRefresh">Refresh</button>
 </div>
 
-<div class="breadcrumb" id="breadcrumb">mxsynry.github.io</div>
-
-<div class="main" id="main"></div>
+<div class="layout">
+  <div class="sidebar" id="sidebar">
+    <div id="tree"></div>
+  </div>
+  <div class="content">
+    <div class="breadcrumb" id="breadcrumb">mxsynry.github.io</div>
+    <div class="main" id="main"></div>
+  </div>
+</div>
 
 <div class="preview-overlay" id="previewOverlay">
   <div class="preview-box">
@@ -290,20 +363,15 @@ header a:hover { text-decoration: underline; }
 </div>
 
 <script>
-
-const REPO = "https://github.com/mxsynry/mxsynry.github.io";
-const RAW = "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/";
-const API = "https://api.github.com/repos/mxsynry/mxsynry.github.io/contents/";
-
 const SNAPSHOT = {"name":"mxsynry.github.io","path":"","type":"dir","children":[{"name":".github","path":".github","type":"dir","children":[{"name":"workflows","path":".github/workflows","type":"dir","children":[{"name":"jekyll.yml","path":".github/workflows/jekyll.yml","type":"file","size":1278,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/.github/workflows/jekyll.yml","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/.github/workflows/jekyll.yml"}]}]},{"name":"Gemfile","path":"Gemfile","type":"file","size":3256,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Gemfile","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Gemfile"},{"name":"Natives.mp4","path":"Natives.mp4","type":"file","size":4636787,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Natives.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Natives.mp4"},{"name":"Others","path":"Others","type":"dir","children":[{"name":"Editor","path":"Others/Editor","type":"dir","children":[{"name":"fgd.html","path":"Others/Editor/fgd.html","type":"file","size":19130,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Editor/fgd.html","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Editor/fgd.html"},{"name":"fileaccess","path":"Others/Editor/fileaccess","type":"dir","children":[]},{"name":"index (1).html","path":"Others/Editor/index (1).html","type":"file","size":20873,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Editor/index%20(1).html","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Editor/index%20(1).html"},{"name":"index.html","path":"Others/Editor/index.html","type":"file","size":36211,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Editor/index.html","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Editor/index.html"},{"name":"min","path":"Others/Editor/min","type":"dir","children":[]},{"name":"vs","path":"Others/Editor/vs","type":"dir","children":[]}]},{"name":"Voxlis.NET","path":"Others/Voxlis.NET","type":"dir","children":[{"name":"Background.mp4","path":"Others/Voxlis.NET/Background.mp4","type":"file","size":3421756,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/Background.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Voxlis.NET/Background.mp4"},{"name":"TP.png","path":"Others/Voxlis.NET/TP.png","type":"file","size":1358167,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/TP.png","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Voxlis.NET/TP.png"},{"name":"globe.ico","path":"Others/Voxlis.NET/globe.ico","type":"file","size":44029,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/globe.ico","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Voxlis.NET/globe.ico"},{"name":"test.html","path":"Others/Voxlis.NET/test.html","type":"file","size":4230,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/test.html","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Voxlis.NET/test.html"}]}]},{"name":"assets","path":"assets","type":"dir","children":[{"name":"css","path":"assets/css","type":"dir","children":[{"name":"style.scss","path":"assets/css/style.scss","type":"file","size":776,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/assets/css/style.scss","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/assets/css/style.scss"}]}]},{"name":"index.html","path":"index.html","type":"file","size":7734,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/index.html","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/index.html"},{"name":"storage","path":"storage","type":"dir","children":[{"name":"README.md","path":"storage/README.md","type":"file","size":122,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/README.md","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/README.md"},{"name":"iyrbackup","path":"storage/iyrbackup","type":"dir","children":[{"name":"README.md","path":"storage/iyrbackup/README.md","type":"file","size":220,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/iyrbackup/README.md","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/iyrbackup/README.md"},{"name":"legacy","path":"storage/iyrbackup/legacy","type":"dir","children":[]},{"name":"nextgen-nightly","path":"storage/iyrbackup/nextgen-nightly","type":"dir","children":[]}]},{"name":"other-stuff","path":"storage/other-stuff","type":"dir","children":[{"name":"Blue Archive OST 3. Mischievous Step.mp4","path":"storage/other-stuff/Blue Archive OST 3. Mischievous Step.mp4","type":"file","size":12466821,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Blue%20Archive%20OST%203.%20Mischievous%20Step.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Blue%20Archive%20OST%203.%20Mischievous%20Step.mp4"},{"name":"DOC.md","path":"storage/other-stuff/DOC.md","type":"file","size":10128,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/DOC.md","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/DOC.md"},{"name":"Minecraft_ 1.20.4 - Singleplayer 2025-02-17 17-46-49.mp4","path":"storage/other-stuff/Minecraft_ 1.20.4 - Singleplayer 2025-02-17 17-46-49.mp4","type":"file","size":39682523,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Minecraft_%201.20.4%20-%20Singleplayer%202025-02-17%2017-46-49.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Minecraft_%201.20.4%20-%20Singleplayer%202025-02-17%2017-46-49.mp4"},{"name":"NamelessAnimation.luau","path":"storage/other-stuff/NamelessAnimation.luau","type":"file","size":75046,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/NamelessAnimation.luau","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/NamelessAnimation.luau"},{"name":"Natives.mp4","path":"storage/other-stuff/Natives.mp4","type":"file","size":4636787,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Natives.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Natives.mp4"},{"name":"README.md","path":"storage/other-stuff/README.md","type":"file","size":1915,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/README.md","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/README.md"},{"name":"Ryu_Racing.luau","path":"storage/other-stuff/Ryu_Racing.luau","type":"file","size":16039,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Ryu_Racing.luau","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Ryu_Racing.luau"},{"name":"Ryu_Shenanigans.luau","path":"storage/other-stuff/Ryu_Shenanigans.luau","type":"file","size":15706,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Ryu_Shenanigans.luau","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Ryu_Shenanigans.luau"},{"name":"Showcase.mp4","path":"storage/other-stuff/Showcase.mp4","type":"file","size":24498550,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Showcase.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Showcase.mp4"},{"name":"Standalone_Disguise.lua","path":"storage/other-stuff/Standalone_Disguise.lua","type":"file","size":72686,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Standalone_Disguise.lua","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Standalone_Disguise.lua"},{"name":"block_tales.lua","path":"storage/other-stuff/block_tales.lua","type":"file","size":18490,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/block_tales.lua","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/block_tales.lua"},{"name":"cape.png","path":"storage/other-stuff/cape.png","type":"file","size":1105,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/cape.png","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/cape.png"},{"name":"changeexecutoridentiyfr.lua","path":"storage/other-stuff/changeexecutoridentiyfr.lua","type":"file","size":192,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/changeexecutoridentiyfr.lua","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/changeexecutoridentiyfr.lua"},{"name":"didnt-know-ppl-were-this-desperate.mp4","path":"storage/other-stuff/didnt-know-ppl-were-this-desperate.mp4","type":"file","size":4294600,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/didnt-know-ppl-were-this-desperate.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/didnt-know-ppl-were-this-desperate.mp4"},{"name":"is-this-what-IY-kids-riding-for.mp4","path":"storage/other-stuff/is-this-what-IY-kids-riding-for.mp4","type":"file","size":3752266,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/is-this-what-IY-kids-riding-for.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/is-this-what-IY-kids-riding-for.mp4"},{"name":"iyr-execution.lua","path":"storage/other-stuff/iyr-execution.lua","type":"file","size":2028,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/iyr-execution.lua","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/iyr-execution.lua"},{"name":"mods.rar","path":"storage/other-stuff/mods.rar","type":"file","size":103646223,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/mods.rar","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/mods.rar"},{"name":"never-knew-people-are-this-desperate.mp4","path":"storage/other-stuff/never-knew-people-are-this-desperate.mp4","type":"file","size":3130276,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/never-knew-people-are-this-desperate.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/never-knew-people-are-this-desperate.mp4"},{"name":"skin.png","path":"storage/other-stuff/skin.png","type":"file","size":2671,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/skin.png","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/skin.png"},{"name":"uhh_very_sigma.png","path":"storage/other-stuff/uhh_very_sigma.png","type":"file","size":1473824,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/uhh_very_sigma.png","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/uhh_very_sigma.png"},{"name":"vulntestsource.lua","path":"storage/other-stuff/vulntestsource.lua","type":"file","size":23718,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/vulntestsource.lua","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/vulntestsource.lua"}]}]}]};
 
 let viewMode = 'grid';
 let currentPath = '';
-let currentNode = SNAPSHOT;
 let searchQuery = '';
+let expandedDirs = new Set();
 
 function formatSize(bytes) {
-  if (!bytes) return '';
+  if (bytes == null) return '';
   const units = ['B','KB','MB','GB'];
   let i = 0;
   while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
@@ -312,7 +380,7 @@ function formatSize(bytes) {
 
 function getIcon(node) {
   if (node.type === 'dir') return { char: '\u{1F4C1}', color: 'var(--dir)' };
-  const ext = node.name.split('.').pop().toLowerCase();
+  const ext = (node.name.split('.').pop() || '').toLowerCase();
   const map = {
     html: { char: '\u{1F310}', color: 'var(--accent)' },
     htm:  { char: '\u{1F310}', color: 'var(--accent)' },
@@ -345,7 +413,7 @@ function getIcon(node) {
 
 function findNode(path) {
   if (!path) return SNAPSHOT;
-  const parts = path.split('/');
+  const parts = path.split('/').filter(Boolean);
   let node = SNAPSHOT;
   for (const part of parts) {
     if (!node.children) return null;
@@ -375,25 +443,97 @@ function countFiles(node) {
   return node.children.reduce((sum, c) => sum + countFiles(c), 0);
 }
 
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function buildTreeHTML(node, path, level) {
+  if (!node.children) return '';
+  let html = '';
+  const sorted = [...node.children].sort((a, b) => {
+    if (a.type === b.type) return a.name.localeCompare(b.name);
+    return a.type === 'dir' ? -1 : 1;
+  });
+  for (const child of sorted) {
+    const childPath = path ? path + '/' + child.name : child.name;
+    const isDir = child.type === 'dir';
+    const icon = getIcon(child);
+    const isExpanded = expandedDirs.has(childPath);
+    const isActive = currentPath === childPath || (currentPath && currentPath.startsWith(childPath + '/'));
+    const indent = level * 16;
+
+    html += '<div class="tree-item" data-path="' + escapeHtml(childPath) + '" data-type="' + child.type + '" style="padding-left:' + (indent + 8) + 'px" title="' + escapeHtml(child.name) + '">';
+    if (isDir) {
+      html += '<span class="tree-toggle" data-path="' + escapeHtml(childPath) + '">' + (isExpanded ? '\u25BC' : '\u25B6') + '</span>';
+    } else {
+      html += '<span class="tree-spacer"></span>';
+    }
+    html += '<span class="tree-icon" style="color:' + icon.color + '">' + icon.char + '</span>';
+    html += '<span class="tree-label' + (isActive ? ' active' : '') + '">' + escapeHtml(child.name) + '</span>';
+    html += '</div>';
+
+    if (isDir && isExpanded) {
+      html += buildTreeHTML(child, childPath, level + 1);
+    }
+  }
+  return html;
+}
+
 function render() {
   const main = document.getElementById('main');
   const breadcrumb = document.getElementById('breadcrumb');
   const badge = document.getElementById('fileCountBadge');
+  const treeEl = document.getElementById('tree');
 
-  const parts = currentPath ? currentPath.split('/') : [];
-  let bcHtml = '<span onclick="navigateTo(\'\')">mxsynry.github.io</span>';
+  // Render tree sidebar
+  treeEl.innerHTML = buildTreeHTML(SNAPSHOT, '', 0);
+
+  // Bind tree clicks
+  treeEl.querySelectorAll('.tree-item').forEach(el => {
+    el.addEventListener('click', (e) => {
+      const path = el.dataset.path;
+      const type = el.dataset.type;
+      if (type === 'dir') {
+        if (e.target.classList.contains('tree-toggle')) {
+          e.stopPropagation();
+          if (expandedDirs.has(path)) {
+            expandedDirs.delete(path);
+          } else {
+            expandedDirs.add(path);
+          }
+          render();
+        } else {
+          navigateTo(path);
+        }
+      } else {
+        const node = findNode(path);
+        if (node) previewFile(node);
+      }
+    });
+  });
+
+  // Update breadcrumb
+  const parts = currentPath ? currentPath.split('/').filter(Boolean) : [];
+  let bcHtml = '<span class="bc-root" data-path="">mxsynry.github.io</span>';
   let acc = '';
   for (let i = 0; i < parts.length; i++) {
     acc = acc ? acc + '/' + parts[i] : parts[i];
-    bcHtml += '<span class="sep">/</span>';
+    bcHtml += '<span class="bc-sep">/</span>';
     if (i === parts.length - 1) {
-      bcHtml += '<span class="current">' + escapeHtml(parts[i]) + '</span>';
+      bcHtml += '<span class="bc-current">' + escapeHtml(parts[i]) + '</span>';
     } else {
-      bcHtml += '<span onclick="navigateTo(' + JSON.stringify(acc) + ')">' + escapeHtml(parts[i]) + '</span>';
+      bcHtml += '<span class="bc-part" data-path="' + escapeHtml(acc) + '">' + escapeHtml(parts[i]) + '</span>';
     }
   }
   breadcrumb.innerHTML = bcHtml;
 
+  // Bind breadcrumb clicks
+  breadcrumb.querySelectorAll('.bc-root, .bc-part').forEach(el => {
+    el.addEventListener('click', () => navigateTo(el.dataset.path || ''));
+  });
+
+  // Get items to show
   let items = [];
   if (searchQuery) {
     const all = getAllFiles(SNAPSHOT, '');
@@ -401,8 +541,8 @@ function render() {
     items = all.filter(f => f.name.toLowerCase().includes(q) || f.fullPath.toLowerCase().includes(q));
     items.sort((a, b) => a.fullPath.localeCompare(b.fullPath));
   } else {
-    currentNode = findNode(currentPath) || SNAPSHOT;
-    items = currentNode.children || [];
+    const node = findNode(currentPath) || SNAPSHOT;
+    items = node.children || [];
     items = [...items].sort((a, b) => {
       if (a.type === b.type) return a.name.localeCompare(b.name);
       return a.type === 'dir' ? -1 : 1;
@@ -425,29 +565,19 @@ function render() {
       const path = searchQuery ? item.fullPath : (currentPath ? currentPath + '/' + item.name : item.name);
       const card = document.createElement('div');
       card.className = 'card';
-      card.innerHTML = `
-        <div class="icon" style="color:${icon.color}">${icon.char}</div>
-        <div class="name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
-        <div class="meta">
-          <span>${isDir ? (item.children ? item.children.length + ' items' : 'dir') : formatSize(item.size)}</span>
-          <span>${isDir ? 'folder' : (item.name.split('.').pop() || 'file')}</span>
-        </div>
-        <div class="actions">
-          ${isDir ? `<a onclick="navigateTo('${escapeHtml(path)}')">Open</a>` : `<a href="${escapeHtml(item.download_url)}" target="_blank" download>Download</a>`}
-          <a href="${escapeHtml(item.html_url)}" target="_blank">GitHub</a>
-        </div>
-      `;
-      if (isDir) {
-        card.addEventListener('click', (e) => {
-          if (e.target.tagName === 'A') return;
-          navigateTo(path);
-        });
-      } else {
-        card.addEventListener('click', (e) => {
-          if (e.target.tagName === 'A') return;
-          previewFile(item);
-        });
-      }
+      card.dataset.path = path;
+      card.dataset.type = item.type;
+      card.innerHTML = '<div class="icon" style="color:' + icon.color + '">' + icon.char + '</div>' +
+        '<div class="name" title="' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + '</div>' +
+        '<div class="meta"><span>' + (isDir ? (item.children ? item.children.length + ' items' : 'dir') : formatSize(item.size)) + '</span>' +
+        '<span>' + (isDir ? 'folder' : (item.name.split('.').pop() || 'file')) + '</span></div>' +
+        '<div class="actions">' +
+        (isDir ? '<a class="btn-open">Open</a>' : '<a class="btn-dl" href="' + escapeHtml(item.download_url) + '" target="_blank" download>Download</a>') +
+        '<a class="btn-gh" href="' + escapeHtml(item.html_url) + '" target="_blank">GitHub</a></div>';
+      card.addEventListener('click', (e) => {
+        if (e.target.tagName === 'A') return;
+        if (isDir) { navigateTo(path); } else { previewFile(item); }
+      });
       grid.appendChild(card);
     }
   } else {
@@ -459,39 +589,35 @@ function render() {
       const path = searchQuery ? item.fullPath : (currentPath ? currentPath + '/' + item.name : item.name);
       const row = document.createElement('div');
       row.className = 'file-row';
-      row.innerHTML = `
-        <span class="icon" style="color:${icon.color}">${icon.char}</span>
-        <span class="name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span>
-        <span class="size">${isDir ? '' : formatSize(item.size)}</span>
-        <div class="actions">
-          ${isDir ? `<a onclick="navigateTo('${escapeHtml(path)}')">Open</a>` : `<a href="${escapeHtml(item.download_url)}" target="_blank" download>Download</a>`}
-          <a href="${escapeHtml(item.html_url)}" target="_blank">GitHub</a>
-        </div>
-      `;
-      if (isDir) {
-        row.addEventListener('click', (e) => {
-          if (e.target.tagName === 'A') return;
-          navigateTo(path);
-        });
-      } else {
-        row.addEventListener('click', (e) => {
-          if (e.target.tagName === 'A') return;
-          previewFile(item);
-        });
-      }
+      row.dataset.path = path;
+      row.dataset.type = item.type;
+      row.innerHTML = '<span class="icon" style="color:' + icon.color + '">' + icon.char + '</span>' +
+        '<span class="name" title="' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + '</span>' +
+        '<span class="size">' + (isDir ? '' : formatSize(item.size)) + '</span>' +
+        '<div class="actions">' +
+        (isDir ? '<a class="btn-open">Open</a>' : '<a class="btn-dl" href="' + escapeHtml(item.download_url) + '" target="_blank" download>Download</a>') +
+        '<a class="btn-gh" href="' + escapeHtml(item.html_url) + '" target="_blank">GitHub</a></div>';
+      row.addEventListener('click', (e) => {
+        if (e.target.tagName === 'A') return;
+        if (isDir) { navigateTo(path); } else { previewFile(item); }
+      });
       list.appendChild(row);
     }
   }
-}
-
-function escapeHtml(str) {
-  return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
 }
 
 function navigateTo(path) {
   currentPath = path;
   searchQuery = '';
   document.getElementById('search').value = '';
+  if (path) {
+    const parts = path.split('/').filter(Boolean);
+    let acc = '';
+    for (const part of parts) {
+      acc = acc ? acc + '/' + part : part;
+      expandedDirs.add(acc);
+    }
+  }
   render();
 }
 
@@ -503,38 +629,37 @@ function previewFile(item) {
 
   title.textContent = item.name;
   body.innerHTML = '<div style="color:var(--text-dim);padding:40px;">Loading...</div>';
-  actions.innerHTML = `
-    <a href="${escapeHtml(item.download_url)}" target="_blank" download>Download</a>
-    <a href="${escapeHtml(item.html_url)}" target="_blank">View on GitHub</a>
-    <button id="previewCloseBtn">Close</button>
-  `;
+  actions.innerHTML = '<a href="' + escapeHtml(item.download_url) + '" target="_blank" download>Download</a>' +
+    '<a href="' + escapeHtml(item.html_url) + '" target="_blank">View on GitHub</a>' +
+    '<button id="previewCloseBtn">Close</button>';
   overlay.classList.add('active');
 
   document.getElementById('previewCloseBtn').onclick = () => overlay.classList.remove('active');
 
-  const ext = item.name.split('.').pop().toLowerCase();
+  const ext = (item.name.split('.').pop() || '').toLowerCase();
   const isImage = ['png','jpg','jpeg','gif','ico','webp','svg'].includes(ext);
   const isVideo = ['mp4','webm','mov'].includes(ext);
-  const isText = ['html','htm','css','js','ts','lua','luau','md','json','yml','yaml','txt','rb','gemfile'].includes(ext) || item.size < 500000;
+  const isText = ['html','htm','css','js','ts','lua','luau','md','json','yml','yaml','txt','rb','gemfile'].includes(ext) || (item.size && item.size < 500000);
 
   if (isImage) {
-    body.innerHTML = `<img src="${escapeHtml(item.download_url)}" alt="${escapeHtml(item.name)}">`;
+    body.innerHTML = '<img src="' + escapeHtml(item.download_url) + '" alt="' + escapeHtml(item.name) + '">';
   } else if (isVideo) {
-    body.innerHTML = `<video controls src="${escapeHtml(item.download_url)}"></video>`;
+    body.innerHTML = '<video controls src="' + escapeHtml(item.download_url) + '"></video>';
   } else if (isText) {
     fetch(item.download_url)
       .then(r => r.text())
       .then(text => {
-        body.innerHTML = `<pre>${escapeHtml(text)}</pre>`;
+        body.innerHTML = '<pre>' + escapeHtml(text) + '</pre>';
       })
       .catch(() => {
-        body.innerHTML = `<div style="color:var(--text-dim)">Could not load preview.</div>`;
+        body.innerHTML = '<div style="color:var(--text-dim)">Could not load preview.</div>';
       });
   } else {
-    body.innerHTML = `<div style="color:var(--text-dim);text-align:center;padding:40px;">Preview not available for this file type.<br><br><a href="${escapeHtml(item.download_url)}" target="_blank" download style="color:var(--accent)">Download instead</a></div>`;
+    body.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:40px;">Preview not available for this file type.<br><br><a href="' + escapeHtml(item.download_url) + '" target="_blank" download style="color:var(--accent)">Download instead</a></div>';
   }
 }
 
+// Event listeners
 document.getElementById('search').addEventListener('input', e => {
   searchQuery = e.target.value.trim();
   render();
@@ -554,12 +679,24 @@ document.getElementById('btnList').addEventListener('click', () => {
   render();
 });
 
-document.getElementById('btnExpand').addEventListener('click', () => {
-  navigateTo('');
+document.getElementById('btnExpandAll').addEventListener('click', () => {
+  function collectDirs(node, prefix) {
+    if (!node.children) return;
+    for (const child of node.children) {
+      if (child.type === 'dir') {
+        const p = prefix ? prefix + '/' + child.name : child.name;
+        expandedDirs.add(p);
+        collectDirs(child, p);
+      }
+    }
+  }
+  collectDirs(SNAPSHOT, '');
+  render();
 });
 
-document.getElementById('btnCollapse').addEventListener('click', () => {
-  navigateTo('');
+document.getElementById('btnCollapseAll').addEventListener('click', () => {
+  expandedDirs.clear();
+  render();
 });
 
 document.getElementById('btnRefresh').addEventListener('click', () => {
@@ -583,7 +720,6 @@ document.addEventListener('keydown', e => {
 });
 
 render();
-
 </script>
 </body>
 </html>
