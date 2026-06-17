@@ -1425,6 +1425,136 @@
             outline-offset: 3px;
         }
 
+
+        /* ============================================================
+           PATCH: aligned card action buttons + subtle 3D hover/glint
+        ============================================================ */
+
+        .executors-grid {
+            align-items: stretch;
+        }
+
+        .executor-card {
+            display: flex;
+            flex-direction: column;
+            min-height: 100%;
+            transform-style: preserve-3d;
+            will-change: transform, box-shadow;
+            isolation: isolate;
+        }
+
+        .executor-card::after {
+            content: "";
+            position: absolute;
+            inset: -45%;
+            z-index: 0;
+            pointer-events: none;
+            opacity: 0;
+            background: linear-gradient(
+                115deg,
+                transparent 35%,
+                rgba(255,255,255,0.07) 46%,
+                rgba(236,72,153,0.12) 50%,
+                rgba(124,58,237,0.10) 54%,
+                transparent 65%
+            );
+            transform: translateX(-32%) translateY(18%) rotate(8deg);
+            transition: opacity 0.28s ease, transform 0.55s ease;
+        }
+
+        .executor-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .executor-card:hover {
+            transform: perspective(1100px) translateY(-5px) rotateX(0.7deg) rotateY(-0.7deg);
+            box-shadow:
+                0 16px 42px rgba(0,0,0,0.34),
+                0 0 32px rgba(124,58,237,0.16),
+                0 0 22px rgba(236,72,153,0.10);
+            border-color: rgba(236,72,153,0.36);
+        }
+
+        .executor-card:hover::after {
+            opacity: 1;
+            transform: translateX(28%) translateY(-12%) rotate(8deg);
+        }
+
+        .card-body {
+            flex: 0 0 auto;
+        }
+
+        .feature-tags {
+            margin-bottom: 1rem;
+        }
+
+        .card-footer {
+            margin-top: auto;
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            align-items: stretch;
+            gap: 0.5rem;
+            min-height: 58px;
+        }
+
+        .card-footer .btn-small {
+            width: 100%;
+            min-height: 42px;
+            justify-content: center;
+            text-align: center;
+            white-space: nowrap;
+            line-height: 1.15;
+        }
+
+        .card-footer .btn-secondary,
+        .card-footer .btn-primary {
+            border-radius: 8px;
+        }
+
+        .card-footer .btn-secondary {
+            background: rgba(15,15,24,0.62);
+        }
+
+        .card-footer .btn-secondary:hover {
+            background: linear-gradient(135deg, rgba(124,58,237,0.14), rgba(236,72,153,0.10));
+        }
+
+        .stat-card,
+        .version-item,
+        .compare-card,
+        .filter-section {
+            transform-style: preserve-3d;
+            will-change: transform, box-shadow;
+        }
+
+        .stat-card:hover,
+        .version-item:hover,
+        .compare-card:hover,
+        .filter-section:hover {
+            transform: perspective(1000px) translateY(-2px) rotateX(0.45deg);
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .executor-card,
+            .executor-card::after,
+            .stat-card,
+            .version-item,
+            .compare-card,
+            .filter-section {
+                transition: none !important;
+                animation: none !important;
+                transform: none !important;
+            }
+        }
+
+        .disabled-link {
+            opacity: 0.42;
+            cursor: not-allowed;
+            pointer-events: none;
+            user-select: none;
+        }
+
     </style>
 </head>
 <body>
@@ -2881,17 +3011,18 @@
                         <div class="card-footer">
                             ${item.website && item.website !== '#' ? `
                                 <a href="${escapeHtml(item.website)}" target="_blank" class="btn-small btn-primary" rel="noopener">Website</a>
-                            ` : ''}
+                            ` : `<span class="btn-small btn-secondary disabled-link" aria-disabled="true">Website</span>`}
                             ${item.discord ? `
                                 <a href="${escapeHtml(item.discord)}" target="_blank" class="btn-small btn-secondary" rel="noopener">Discord</a>
-                            ` : ''}
+                            ` : `<span class="btn-small btn-secondary disabled-link" aria-disabled="true">Discord</span>`}
                             ${item.purchaseLink ? `
                                 <a href="${escapeHtml(item.purchaseLink)}" target="_blank" class="btn-small btn-secondary" rel="noopener">Buy</a>
-                            ` : ''}
+                            ` : `<span class="btn-small btn-secondary disabled-link" aria-disabled="true">Buy</span>`}
                         </div>
                     </div>
                 `;
             }).join('');
+            bindCardTilt();
         }
 
         function renderTable() {
@@ -2934,6 +3065,28 @@
                     </tr>
                 `;
             }).join('');
+        }
+
+
+        // Subtle card tilt. Safe because cards are re-rendered often.
+        function bindCardTilt() {
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+            document.querySelectorAll('.executor-card').forEach(card => {
+                if (card.dataset.tiltBound === '1') return;
+                card.dataset.tiltBound = '1';
+
+                card.addEventListener('mousemove', event => {
+                    const rect = card.getBoundingClientRect();
+                    const x = (event.clientX - rect.left) / rect.width - 0.5;
+                    const y = (event.clientY - rect.top) / rect.height - 0.5;
+                    card.style.transform = `perspective(1100px) translateY(-5px) rotateX(${(-y * 1.8).toFixed(2)}deg) rotateY(${(x * 1.8).toFixed(2)}deg)`;
+                });
+
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = '';
+                });
+            });
         }
 
         // ============================================================
