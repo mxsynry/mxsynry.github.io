@@ -29,13 +29,10 @@ body {
   display: flex;
   flex-direction: column;
 }
-/* Dark scrollbar for WebKit */
 ::-webkit-scrollbar { width: 10px; height: 10px; }
 ::-webkit-scrollbar-track { background: var(--bg-elev); }
 ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
 ::-webkit-scrollbar-thumb:hover { background: #484f58; }
-
-/* Firefox */
 * { scrollbar-width: thin; scrollbar-color: var(--border) var(--bg-elev); }
 header {
   background: var(--bg-elev);
@@ -49,11 +46,7 @@ header {
   z-index: 10;
   flex-shrink: 0;
 }
-header h1 {
-  font-size: 17px;
-  font-weight: 600;
-  color: var(--text);
-}
+header h1 { font-size: 17px; font-weight: 600; color: var(--text); }
 header a { color: var(--accent); text-decoration: none; }
 header a:hover { text-decoration: underline; }
 .badge {
@@ -97,11 +90,7 @@ header a:hover { text-decoration: underline; }
 }
 .toolbar button:hover { background: var(--border); }
 .toolbar button.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
-.layout {
-  display: flex;
-  flex: 1;
-  overflow: hidden;
-}
+.layout { display: flex; flex: 1; overflow: hidden; }
 .sidebar {
   width: 260px;
   min-width: 200px;
@@ -126,210 +115,52 @@ header a:hover { text-decoration: underline; }
   overflow: hidden;
 }
 .tree-item:hover { background: var(--bg-elev2); }
-.tree-toggle {
-  width: 14px;
-  text-align: center;
-  font-size: 10px;
-  color: var(--text-dim);
-  cursor: pointer;
-  flex-shrink: 0;
-}
+.tree-toggle { width: 14px; text-align: center; font-size: 10px; color: var(--text-dim); cursor: pointer; flex-shrink: 0; }
 .tree-spacer { width: 14px; flex-shrink: 0; }
 .tree-icon { font-size: 14px; flex-shrink: 0; }
-.tree-label {
-  color: var(--text);
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
+.tree-label { color: var(--text); overflow: hidden; text-overflow: ellipsis; }
 .tree-label.active { color: var(--accent); font-weight: 600; }
-.content {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  min-width: 0;
-}
-.breadcrumb {
-  padding: 10px 20px;
-  font-size: 14px;
-  color: var(--text-dim);
-  border-bottom: 1px solid var(--border);
-  background: var(--bg);
-  flex-shrink: 0;
-}
-.breadcrumb .bc-root, .breadcrumb .bc-part {
-  cursor: pointer;
-  color: var(--accent);
-}
+.content { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
+.breadcrumb { padding: 10px 20px; font-size: 14px; color: var(--text-dim); border-bottom: 1px solid var(--border); background: var(--bg); flex-shrink: 0; }
+.breadcrumb .bc-root, .breadcrumb .bc-part { cursor: pointer; color: var(--accent); }
 .breadcrumb .bc-root:hover, .breadcrumb .bc-part:hover { text-decoration: underline; }
 .breadcrumb .bc-sep { margin: 0 6px; color: var(--text-dim); }
 .breadcrumb .bc-current { color: var(--text); font-weight: 500; }
-.main {
-  flex: 1;
-  overflow-y: auto;
-  padding: 0 20px 30px;
-}
-.file-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
-  margin-top: 16px;
-}
-.file-list {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  margin-top: 16px;
-  background: var(--border);
-  border-radius: 8px;
-  overflow: hidden;
-}
-.file-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 16px;
-  background: var(--bg-elev);
-  cursor: pointer;
-  transition: background 0.1s;
-}
+.main { flex: 1; overflow-y: auto; padding: 0 20px 30px; }
+.file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
+.file-list { display: flex; flex-direction: column; gap: 1px; margin-top: 16px; background: var(--border); border-radius: 8px; overflow: hidden; }
+.file-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--bg-elev); cursor: pointer; transition: background 0.1s; }
 .file-row:hover { background: var(--bg-elev2); }
 .file-row .icon { width: 20px; text-align: center; font-size: 16px; flex-shrink: 0; }
 .file-row .name { flex: 1; font-size: 14px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .file-row .size { font-size: 12px; color: var(--text-dim); flex-shrink: 0; min-width: 70px; text-align: right; }
 .file-row .actions { display: flex; gap: 8px; opacity: 0; transition: opacity 0.15s; }
 .file-row:hover .actions { opacity: 1; }
-.file-row .actions a {
-  font-size: 12px;
-  color: var(--accent);
-  text-decoration: none;
-  padding: 2px 8px;
-  border-radius: 4px;
-  background: var(--bg-elev2);
-  border: 1px solid var(--border);
-}
+.file-row .actions a { font-size: 12px; color: var(--accent); text-decoration: none; padding: 2px 8px; border-radius: 4px; background: var(--bg-elev2); border: 1px solid var(--border); }
 .file-row .actions a:hover { background: var(--border); }
-.card {
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px;
-  cursor: pointer;
-  transition: transform 0.1s, border-color 0.15s;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
+.card { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 14px; cursor: pointer; transition: transform 0.1s, border-color 0.15s; display: flex; flex-direction: column; gap: 8px; }
 .card:hover { border-color: var(--accent); transform: translateY(-1px); }
 .card .icon { font-size: 28px; text-align: center; margin-bottom: 4px; }
 .card .name { font-size: 14px; font-weight: 500; color: var(--text); word-break: break-all; }
 .card .meta { font-size: 12px; color: var(--text-dim); display: flex; justify-content: space-between; }
 .card .actions { display: flex; gap: 6px; margin-top: 4px; }
-.card .actions a {
-  flex: 1;
-  text-align: center;
-  font-size: 12px;
-  color: var(--accent);
-  text-decoration: none;
-  padding: 4px;
-  border-radius: 4px;
-  background: var(--bg-elev2);
-  border: 1px solid var(--border);
-}
+.card .actions a { flex: 1; text-align: center; font-size: 12px; color: var(--accent); text-decoration: none; padding: 4px; border-radius: 4px; background: var(--bg-elev2); border: 1px solid var(--border); }
 .card .actions a:hover { background: var(--border); }
-.empty {
-  text-align: center;
-  padding: 60px 20px;
-  color: var(--text-dim);
-  font-size: 15px;
-}
-.preview-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.85);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  z-index: 100;
-  padding: 24px;
-}
+.empty { text-align: center; padding: 60px 20px; color: var(--text-dim); font-size: 15px; }
+.preview-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 100; padding: 24px; }
 .preview-overlay.active { display: flex; }
-.preview-box {
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  max-width: 90vw;
-  max-height: 90vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-  width: 100%;
-}
-.preview-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--border);
-  background: var(--bg-elev2);
-}
+.preview-box { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 12px; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; width: 100%; }
+.preview-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--bg-elev2); }
 .preview-header .title { font-size: 14px; font-weight: 500; }
-.preview-header .close {
-  background: none;
-  border: none;
-  color: var(--text-dim);
-  font-size: 20px;
-  cursor: pointer;
-  padding: 0 4px;
-}
+.preview-header .close { background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer; padding: 0 4px; }
 .preview-header .close:hover { color: var(--text); }
-.preview-body {
-  flex: 1;
-  overflow: auto;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: 100px;
-}
+.preview-body { flex: 1; overflow: auto; padding: 16px; display: flex; align-items: center; justify-content: center; min-height: 100px; }
 .preview-body img, .preview-body video { max-width: 100%; max-height: 70vh; border-radius: 6px; }
-.preview-body pre {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 16px;
-  font-size: 13px;
-  line-height: 1.5;
-  overflow: auto;
-  max-width: 80vw;
-  max-height: 70vh;
-  white-space: pre-wrap;
-  word-break: break-word;
-  color: var(--text);
-  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-}
-.preview-actions {
-  display: flex;
-  gap: 8px;
-  padding: 12px 16px;
-  border-top: 1px solid var(--border);
-  background: var(--bg-elev2);
-}
-.preview-actions a, .preview-actions button {
-  background: var(--accent);
-  color: #000;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 14px;
-  font-size: 13px;
-  text-decoration: none;
-  cursor: pointer;
-  font-weight: 500;
-}
+.preview-body pre { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px; font-size: 13px; line-height: 1.5; overflow: auto; max-width: 80vw; max-height: 70vh; white-space: pre-wrap; word-break: break-word; color: var(--text); font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+.preview-actions { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--bg-elev2); }
+.preview-actions a, .preview-actions button { background: var(--accent); color: #000; border: none; border-radius: 6px; padding: 6px 14px; font-size: 13px; text-decoration: none; cursor: pointer; font-weight: 500; }
 .preview-actions button { background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); }
-@media (max-width: 768px) {
-  .sidebar { display: none; }
-}
+@media (max-width: 768px) { .sidebar { display: none; } }
 </style>
 <base target="_blank">
 </head>
@@ -371,8 +202,8 @@ header a:hover { text-decoration: underline; }
 </div>
 
 <script>
-const SNAPSHOT = {"name":"mxsynry.github.io","path":"","type":"dir","children":[{"name":".github","path":".github","type":"dir","children":[{"name":"workflows","path":".github/workflows","type":"dir","children":[{"name":"jekyll.yml","path":".github/workflows/jekyll.yml","type":"file","size":1278,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/.github/workflows/jekyll.yml","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/.github/workflows/jekyll.yml"}]}]},{"name":"Gemfile","path":"Gemfile","type":"file","size":3256,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Gemfile","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Gemfile"},{"name":"Natives.mp4","path":"Natives.mp4","type":"file","size":4636787,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Natives.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Natives.mp4"},{"name":"Others","path":"Others","type":"dir","children":[{"name":"Editor","path":"Others/Editor","type":"dir","children":[{"name":"fgd.html","path":"Others/Editor/fgd.html","type":"file","size":19130,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Editor/fgd.html","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Editor/fgd.html"},{"name":"fileaccess","path":"Others/Editor/fileaccess","type":"dir","children":[]},{"name":"index (1).html","path":"Others/Editor/index (1).html","type":"file","size":20873,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Editor/index%20(1).html","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Editor/index%20(1).html"},{"name":"index.html","path":"Others/Editor/index.html","type":"file","size":36211,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Editor/index.html","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Editor/index.html"},{"name":"min","path":"Others/Editor/min","type":"dir","children":[]},{"name":"vs","path":"Others/Editor/vs","type":"dir","children":[]}]},{"name":"Voxlis.NET","path":"Others/Voxlis.NET","type":"dir","children":[{"name":"Background.mp4","path":"Others/Voxlis.NET/Background.mp4","type":"file","size":3421756,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/Background.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Voxlis.NET/Background.mp4"},{"name":"TP.png","path":"Others/Voxlis.NET/TP.png","type":"file","size":1358167,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/TP.png","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Voxlis.NET/TP.png"},{"name":"globe.ico","path":"Others/Voxlis.NET/globe.ico","type":"file","size":44029,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/globe.ico","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Voxlis.NET/globe.ico"},{"name":"test.html","path":"Others/Voxlis.NET/test.html","type":"file","size":4230,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/test.html","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Voxlis.NET/test.html"}]}]},{"name":"assets","path":"assets","type":"dir","children":[{"name":"css","path":"assets/css","type":"dir","children":[{"name":"style.scss","path":"assets/css/style.scss","type":"file","size":776,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/assets/css/style.scss","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/assets/css/style.scss"}]}]},{"name":"index.html","path":"index.html","type":"file","size":7734,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/index.html","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/index.html"},{"name":"storage","path":"storage","type":"dir","children":[{"name":"README.md","path":"storage/README.md","type":"file","size":122,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/README.md","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/README.md"},{"name":"iyrbackup","path":"storage/iyrbackup","type":"dir","children":[{"name":"README.md","path":"storage/iyrbackup/README.md","type":"file","size":220,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/iyrbackup/README.md","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/iyrbackup/README.md"},{"name":"legacy","path":"storage/iyrbackup/legacy","type":"dir","children":[]},{"name":"nextgen-nightly","path":"storage/iyrbackup/nextgen-nightly","type":"dir","children":[]}]},{"name":"other-stuff","path":"storage/other-stuff","type":"dir","children":[{"name":"Blue Archive OST 3. Mischievous Step.mp4","path":"storage/other-stuff/Blue Archive OST 3. Mischievous Step.mp4","type":"file","size":12466821,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Blue%20Archive%20OST%203.%20Mischievous%20Step.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Blue%20Archive%20OST%203.%20Mischievous%20Step.mp4"},{"name":"DOC.md","path":"storage/other-stuff/DOC.md","type":"file","size":10128,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/DOC.md","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/DOC.md"},{"name":"Minecraft_ 1.20.4 - Singleplayer 2025-02-17 17-46-49.mp4","path":"storage/other-stuff/Minecraft_ 1.20.4 - Singleplayer 2025-02-17 17-46-49.mp4","type":"file","size":39682523,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Minecraft_%201.20.4%20-%20Singleplayer%202025-02-17%2017-46-49.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Minecraft_%201.20.4%20-%20Singleplayer%202025-02-17%2017-46-49.mp4"},{"name":"NamelessAnimation.luau","path":"storage/other-stuff/NamelessAnimation.luau","type":"file","size":75046,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/NamelessAnimation.luau","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/NamelessAnimation.luau"},{"name":"Natives.mp4","path":"storage/other-stuff/Natives.mp4","type":"file","size":4636787,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Natives.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Natives.mp4"},{"name":"README.md","path":"storage/other-stuff/README.md","type":"file","size":1915,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/README.md","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/README.md"},{"name":"Ryu_Racing.luau","path":"storage/other-stuff/Ryu_Racing.luau","type":"file","size":16039,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Ryu_Racing.luau","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Ryu_Racing.luau"},{"name":"Ryu_Shenanigans.luau","path":"storage/other-stuff/Ryu_Shenanigans.luau","type":"file","size":15706,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Ryu_Shenanigans.luau","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Ryu_Shenanigans.luau"},{"name":"Showcase.mp4","path":"storage/other-stuff/Showcase.mp4","type":"file","size":24498550,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Showcase.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Showcase.mp4"},{"name":"Standalone_Disguise.lua","path":"storage/other-stuff/Standalone_Disguise.lua","type":"file","size":72686,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Standalone_Disguise.lua","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Standalone_Disguise.lua"},{"name":"block_tales.lua","path":"storage/other-stuff/block_tales.lua","type":"file","size":18490,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/block_tales.lua","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/block_tales.lua"},{"name":"cape.png","path":"storage/other-stuff/cape.png","type":"file","size":1105,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/cape.png","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/cape.png"},{"name":"changeexecutoridentiyfr.lua","path":"storage/other-stuff/changeexecutoridentiyfr.lua","type":"file","size":192,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/changeexecutoridentiyfr.lua","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/changeexecutoridentiyfr.lua"},{"name":"didnt-know-ppl-were-this-desperate.mp4","path":"storage/other-stuff/didnt-know-ppl-were-this-desperate.mp4","type":"file","size":4294600,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/didnt-know-ppl-were-this-desperate.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/didnt-know-ppl-were-this-desperate.mp4"},{"name":"is-this-what-IY-kids-riding-for.mp4","path":"storage/other-stuff/is-this-what-IY-kids-riding-for.mp4","type":"file","size":3752266,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/is-this-what-IY-kids-riding-for.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/is-this-what-IY-kids-riding-for.mp4"},{"name":"iyr-execution.lua","path":"storage/other-stuff/iyr-execution.lua","type":"file","size":2028,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/iyr-execution.lua","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/iyr-execution.lua"},{"name":"mods.rar","path":"storage/other-stuff/mods.rar","type":"file","size":103646223,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/mods.rar","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/mods.rar"},{"name":"never-knew-people-are-this-desperate.mp4","path":"storage/other-stuff/never-knew-people-are-this-desperate.mp4","type":"file","size":3130276,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/never-knew-people-are-this-desperate.mp4","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/never-knew-people-are-this-desperate.mp4"},{"name":"skin.png","path":"storage/other-stuff/skin.png","type":"file","size":2671,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/skin.png","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/skin.png"},{"name":"uhh_very_sigma.png","path":"storage/other-stuff/uhh_very_sigma.png","type":"file","size":1473824,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/uhh_very_sigma.png","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/uhh_very_sigma.png"},{"name":"vulntestsource.lua","path":"storage/other-stuff/vulntestsource.lua","type":"file","size":23718,"download_url":"https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/vulntestsource.lua","html_url":"https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/vulntestsource.lua"}]}]}]};
-
+// SNAPSHOT is now dynamic
+let SNAPSHOT = null;
 let viewMode = 'grid';
 let currentPath = '';
 let searchQuery = '';
@@ -424,16 +255,15 @@ function findNode(path) {
   const parts = path.split('/').filter(Boolean);
   let node = SNAPSHOT;
   for (const part of parts) {
-    if (!node.children) return null;
+    if (!node || !node.children) return null;
     node = node.children.find(c => c.name === part);
-    if (!node) return null;
   }
   return node;
 }
 
 function getAllFiles(node, prefix) {
   const files = [];
-  if (!node.children) return files;
+  if (!node || !node.children) return files;
   for (const child of node.children) {
     const p = prefix ? prefix + '/' + child.name : child.name;
     if (child.type === 'dir') {
@@ -445,7 +275,9 @@ function getAllFiles(node, prefix) {
   return files;
 }
 
+// Fixed bug: Doesn't throw error if snapshot root structure missing
 function countFiles(node) {
+  if (!node) return 0;
   if (node.type === 'file') return 1;
   if (!node.children) return 0;
   return node.children.reduce((sum, c) => sum + countFiles(c), 0);
@@ -457,7 +289,7 @@ function escapeHtml(str) {
 }
 
 function buildTreeHTML(node, path, level) {
-  if (!node.children) return '';
+  if (!node || !node.children) return '';
   let html = '';
   const sorted = [...node.children].sort((a, b) => {
     if (a.type === b.type) return a.name.localeCompare(b.name);
@@ -480,7 +312,6 @@ function buildTreeHTML(node, path, level) {
     html += '<span class="tree-icon" style="color:' + icon.color + '">' + icon.char + '</span>';
     html += '<span class="tree-label' + (isActive ? ' active' : '') + '">' + escapeHtml(child.name) + '</span>';
     html += '</div>';
-
     if (isDir && isExpanded) {
       html += buildTreeHTML(child, childPath, level + 1);
     }
@@ -489,15 +320,13 @@ function buildTreeHTML(node, path, level) {
 }
 
 function render() {
+  if (!SNAPSHOT) return;
   const main = document.getElementById('main');
   const breadcrumb = document.getElementById('breadcrumb');
   const badge = document.getElementById('fileCountBadge');
   const treeEl = document.getElementById('tree');
 
-  // Render tree sidebar
   treeEl.innerHTML = buildTreeHTML(SNAPSHOT, '', 0);
-
-  // Bind tree clicks
   treeEl.querySelectorAll('.tree-item').forEach(el => {
     el.addEventListener('click', (e) => {
       const path = el.dataset.path;
@@ -505,11 +334,7 @@ function render() {
       if (type === 'dir') {
         if (e.target.classList.contains('tree-toggle')) {
           e.stopPropagation();
-          if (expandedDirs.has(path)) {
-            expandedDirs.delete(path);
-          } else {
-            expandedDirs.add(path);
-          }
+          if (expandedDirs.has(path)) { expandedDirs.delete(path); } else { expandedDirs.add(path); }
           render();
         } else {
           navigateTo(path);
@@ -521,7 +346,6 @@ function render() {
     });
   });
 
-  // Update breadcrumb
   const parts = currentPath ? currentPath.split('/').filter(Boolean) : [];
   let bcHtml = '<span class="bc-root" data-path="">mxsynry.github.io</span>';
   let acc = '';
@@ -536,12 +360,10 @@ function render() {
   }
   breadcrumb.innerHTML = bcHtml;
 
-  // Bind breadcrumb clicks
   breadcrumb.querySelectorAll('.bc-root, .bc-part').forEach(el => {
     el.addEventListener('click', () => navigateTo(el.dataset.path || ''));
   });
 
-  // Get items to show
   let items = [];
   if (searchQuery) {
     const all = getAllFiles(SNAPSHOT, '');
@@ -635,7 +457,6 @@ function previewFile(item) {
   const title = document.getElementById('previewTitle');
   const body = document.getElementById('previewBody');
   const actions = document.getElementById('previewActions');
-
   title.textContent = item.name;
   body.innerHTML = '<div style="color:var(--text-dim);padding:40px;">Loading...</div>';
   actions.innerHTML = '<a href="' + escapeHtml(item.download_url) + '" target="_blank" download>Download</a>' +
@@ -649,7 +470,6 @@ function previewFile(item) {
   const isImage = ['png','jpg','jpeg','gif','ico','webp','svg'].includes(ext);
   const isVideo = ['mp4','webm','mov'].includes(ext);
   const isText = ['html','htm','css','js','ts','lua','luau','md','json','yml','yaml','txt','rb','gemfile'].includes(ext) || (item.size && item.size < 500000);
-
   if (isImage) {
     body.innerHTML = '<img src="' + escapeHtml(item.download_url) + '" alt="' + escapeHtml(item.name) + '">';
   } else if (isVideo) {
@@ -657,40 +477,32 @@ function previewFile(item) {
   } else if (isText) {
     fetch(item.download_url)
       .then(r => r.text())
-      .then(text => {
-        body.innerHTML = '<pre>' + escapeHtml(text) + '</pre>';
-      })
-      .catch(() => {
-        body.innerHTML = '<div style="color:var(--text-dim)">Could not load preview.</div>';
-      });
+      .then(text => { body.innerHTML = '<pre>' + escapeHtml(text) + '</pre>'; })
+      .catch(() => { body.innerHTML = '<div style="color:var(--text-dim)">Could not load preview.</div>'; });
   } else {
     body.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:40px;">Preview not available for this file type.<br><br><a href="' + escapeHtml(item.download_url) + '" target="_blank" download style="color:var(--accent)">Download instead</a></div>';
   }
 }
 
-// Event listeners
 document.getElementById('search').addEventListener('input', e => {
   searchQuery = e.target.value.trim();
   render();
 });
-
 document.getElementById('btnGrid').addEventListener('click', () => {
   viewMode = 'grid';
   document.getElementById('btnGrid').classList.add('active');
   document.getElementById('btnList').classList.remove('active');
   render();
 });
-
 document.getElementById('btnList').addEventListener('click', () => {
   viewMode = 'list';
   document.getElementById('btnList').classList.add('active');
   document.getElementById('btnGrid').classList.remove('active');
   render();
 });
-
 document.getElementById('btnExpandAll').addEventListener('click', () => {
   function collectDirs(node, prefix) {
-    if (!node.children) return;
+    if (!node || !node.children) return;
     for (const child of node.children) {
       if (child.type === 'dir') {
         const p = prefix ? prefix + '/' + child.name : child.name;
@@ -702,33 +514,29 @@ document.getElementById('btnExpandAll').addEventListener('click', () => {
   collectDirs(SNAPSHOT, '');
   render();
 });
-
-document.getElementById('btnCollapseAll').addEventListener('click', () => {
-  expandedDirs.clear();
-  render();
-});
-
-document.getElementById('btnRefresh').addEventListener('click', () => {
-  location.reload();
-});
-
-document.getElementById('previewClose').addEventListener('click', () => {
-  document.getElementById('previewOverlay').classList.remove('active');
-});
-
+document.getElementById('btnCollapseAll').addEventListener('click', () => { expandedDirs.clear(); render(); });
+document.getElementById('btnRefresh').addEventListener('click', () => { location.reload(); });
+document.getElementById('previewClose').addEventListener('click', () => { document.getElementById('previewOverlay').classList.remove('active'); });
 document.getElementById('previewOverlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('previewOverlay')) {
-    document.getElementById('previewOverlay').classList.remove('active');
-  }
+  if (e.target === document.getElementById('previewOverlay')) { document.getElementById('previewOverlay').classList.remove('active'); }
 });
-
 document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') {
-    document.getElementById('previewOverlay').classList.remove('active');
-  }
+  if (e.key === 'Escape') { document.getElementById('previewOverlay').classList.remove('active'); }
 });
 
-render();
+// New async Initializer function
+async function init() {
+  try {
+    const res = await fetch('./tree.json');
+    if(!res.ok) throw new Error('Could not fetch tree.json configuration.');
+    SNAPSHOT = await res.json();
+    render();
+  } catch(e) {
+    console.error(e);
+    document.getElementById('main').innerHTML = '<div class="empty" style="color:#ff7b72;">Failed to load index. Make sure tree.json exists!</div>';
+  }
+}
+init();
 </script>
 </body>
 </html>
