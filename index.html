@@ -29,6 +29,14 @@ body {
   display: flex;
   flex-direction: column;
 }
+/* Dark scrollbar for WebKit */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: var(--bg-elev); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
+::-webkit-scrollbar-thumb:hover { background: #484f58; }
+
+/* Firefox */
+* { scrollbar-width: thin; scrollbar-color: var(--border) var(--bg-elev); }
 header {
   background: var(--bg-elev);
   border-bottom: 1px solid var(--border);
@@ -575,8 +583,9 @@ function render() {
         (isDir ? '<a class="btn-open">Open</a>' : '<a class="btn-dl" href="' + escapeHtml(item.download_url) + '" target="_blank" download>Download</a>') +
         '<a class="btn-gh" href="' + escapeHtml(item.html_url) + '" target="_blank">GitHub</a></div>';
       card.addEventListener('click', (e) => {
-        if (e.target.tagName === 'A') return;
-        if (isDir) { navigateTo(path); } else { previewFile(item); }
+        if (e.target.classList.contains('btn-gh') || e.target.classList.contains('btn-dl')) return;
+        if (isDir) navigateTo(path);
+        else previewFile(item);
       });
       grid.appendChild(card);
     }
@@ -630,7 +639,7 @@ function previewFile(item) {
   title.textContent = item.name;
   body.innerHTML = '<div style="color:var(--text-dim);padding:40px;">Loading...</div>';
   actions.innerHTML = '<a href="' + escapeHtml(item.download_url) + '" target="_blank" download>Download</a>' +
-    '<a href="' + escapeHtml(item.html_url) + '" target="_blank">View on GitHub</a>' +
+    '<a href="' + item.html_url + '" target="_blank" rel="noopener">GitHub</a>' +
     '<button id="previewCloseBtn">Close</button>';
   overlay.classList.add('active');
 
