@@ -1736,6 +1736,16 @@
                         </div>
 
                         <div class="filter-section">
+                            <div class="filter-section-title">Detection</div>
+                            <div class="segmented-control" data-segment-group="detectionState">
+                                <button class="filter-chip active" data-segment="detectionState" data-value="all">All</button>
+                                <button class="filter-chip" data-segment="detectionState" data-value="clean">Clean</button>
+                                <button class="filter-chip" data-segment="detectionState" data-value="detected">Detected</button>
+                                <button class="filter-chip" data-segment="detectionState" data-value="unknown">Unknown</button>
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
                             <div class="filter-section-title">Tags</div>
                             <div class="tag-filter-list">
                                 <label class="filter-check"><input class="theme-check" type="checkbox" data-tag-filter value="multi-instance"> Multi-instance</label>
@@ -1918,6 +1928,7 @@
             if (catalogFilters.price !== 'all') count++;
             if (catalogFilters.type !== 'all') count++;
             if (catalogFilters.updatedState !== 'all') count++;
+            if (catalogFilters.detectionState !== 'all') count++;
             if (catalogFilters.tags.length) count++;
             if (catalogFilters.verified) count++;
             if (catalogFilters.trending) count++;
@@ -2676,6 +2687,7 @@
                 if (currentFilter === 'paid' && item.free !== false) return false;
                 if (currentFilter === 'detected' && item.detected !== true) return false;
                 if (currentFilter === 'undetected' && item.detected !== false) return false;
+                if (currentFilter === 'clean' && item.detected !== false) return false;
                 if (currentFilter === 'weao' && !hasSource(item, 'weao')) return false;
                 if (currentFilter === 'voxlis' && !hasSource(item, 'voxlis')) return false;
                 if (currentFilter === 'both' && item.source !== 'both') return false;
@@ -3146,6 +3158,7 @@
             price: 'all',
             type: 'all',
             updatedState: 'all',
+            detectionState: 'all',
             tags: [],
             verified: false,
             trending: false,
@@ -3256,6 +3269,7 @@
             catalogFilters.price = 'all';
             catalogFilters.type = 'all';
             catalogFilters.updatedState = 'all';
+            catalogFilters.detectionState = 'all';
             catalogFilters.tags = [];
             catalogFilters.verified = false;
             catalogFilters.trending = false;
@@ -3301,6 +3315,7 @@
                 if (catalogFilters.price !== 'all') activeBits.push(`Price: ${catalogFilters.price}`);
                 if (catalogFilters.type !== 'all') activeBits.push(`Type: ${catalogFilters.type}`);
                 if (catalogFilters.updatedState !== 'all') activeBits.push(`Updated: ${catalogFilters.updatedState}`);
+                if (catalogFilters.detectionState !== 'all') activeBits.push(`Detection: ${catalogFilters.detectionState}`);
                 if (catalogFilters.tags.length) activeBits.push(`Tags: ${catalogFilters.tags.join(', ')}`);
                 if (catalogFilters.verified) activeBits.push('Verified only');
                 if (catalogFilters.trending) activeBits.push('Trending only');
@@ -3569,6 +3584,10 @@
                 if (filters.updatedState === 'yes' && item.updateStatus !== true) return false;
                 if (filters.updatedState === 'no' && item.updateStatus === true) return false;
 
+                if (filters.detectionState === 'clean' && item.detected !== false) return false;
+                if (filters.detectionState === 'detected' && item.detected !== true) return false;
+                if (filters.detectionState === 'unknown' && (item.detected === true || item.detected === false)) return false;
+
                 if (filters.tags.length && !filters.tags.every(tag => itemMatchesTag(item, tag))) return false;
 
                 if (filters.verified && !itemIsVerified(item)) return false;
@@ -3624,6 +3643,7 @@
             if (catalogFilters.price !== 'all') activeBits.push(`Price: ${catalogFilters.price}`);
             if (catalogFilters.type !== 'all') activeBits.push(`Type: ${catalogFilters.type}`);
             if (catalogFilters.updatedState !== 'all') activeBits.push(`Updated: ${catalogFilters.updatedState}`);
+            if (catalogFilters.detectionState !== 'all') activeBits.push(`Detection: ${catalogFilters.detectionState}`);
             if (catalogFilters.tags.length) activeBits.push(`Tags: ${catalogFilters.tags.join(', ')}`);
             if (catalogFilters.verified) activeBits.push('Verified only');
             if (catalogFilters.trending) activeBits.push('Trending only');
