@@ -93,7 +93,7 @@
         }
 	</style>
 	<meta charset="utf-8" />
-	<title></title>
+	<title>Luau Editor</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 	<link href="https://kit-pro.fontawesome.com/releases/v6.2.0/css/pro.min.css" rel="stylesheet">
@@ -134,201 +134,599 @@
 		<button class="btn_tabadd m-1" id="open_addtab">+</button>
 	</div>
 	<script>
-		let tab_editing = "";
-		let first_tab = "main.lua";
+/*
+  LuauEditorTools
+  - Persistent Monaco tabs with backend fallback to localStorage
+  - Dynamic Luau autocomplete for variables and table fields
 
+  Usage after Monaco editor creation:
+    LuauEditorTools.init({ editor, monaco, staticProposals: () => Proposals });
+*/
+(function () {
+  'use strict';
 
+  const DEFAULTS = {
+    apiBase: 'http://localhost:9911',
+    storageKey: 'mxsynry:luau-editor-tabs:v2',
+    firstTabName: 'main.lua',
+    tabContainerId: 'tabcon',
+    addButtonId: 'open_addtab',
+    tabNameInputId: 'tabname',
+    modalId: 'addtab',
+    saveDebounceMs: 450,
+    apiTimeoutMs: 900,
+    useApi: true
+  };
 
+  function joinUrl(base, path) {
+    return String(base || '').replace(/\/$/, '') + '/' + String(path || '').replace(/^\//, '');
+  }
 
-        async function start() {
-			opentab(first_tab);
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[ch]));
+  }
 
-			console.log(first_tab);
-			
-		}
-		async function loadtab(first) {
-			try {
-				document.getElementById("tabcon").innerHTML = "";
-				const response = await fetch('http://localhost:9911/files');
-				const files = await response.json();
-				const tabcon = document.getElementById('tabcon');
+  function safeFileName(name) {
+    const cleaned = String(name || '').trim().replace(/[\\/:*?"<>|]/g, '_');
+    if (!cleaned) return '';
+    return /\.(lua|luau|txt)$/i.test(cleaned) ? cleaned : cleaned + '.lua';
+  }
 
-				files.forEach(file => {
+  function toast(ok, message) {
+    if (typeof window.Toastify === 'function') {
+      window.Toastify({
+        text: message,
+        duration: 2200,
+        gravity: 'top',
+        position: 'right',
+        close: true,
+        stopOnFocus: true,
+        style: { background: ok ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'linear-gradient(135deg,#dc2626,#ef4444)' }
+      }).showToast();
+      return;
+    }
+    (ok ? console.log : console.warn)(message);
+  }
 
-                        if (file.name !== "undefined") {
-					
-                            const tabButton = document.createElement('div');
-                            tabButton.classList.add('grid-tab', 'btn_tab', 'px-1', 'mx-1');
-                            if (first_tab === "") {
-                                tabButton.innerHTML = `
-                                    <button class="text-start btn_intab" onclick="opentab('${file.name}')" data-file="${file.name}" id="first_tab">${file.name}</button>
-                                    <button class="btn_intab" onclick="deltab('${file.name}')">X</button>
-                                `;
-                                first_tab = file.name;
-                            } else {
-                                tabButton.innerHTML = `
-                                    <button class="text-start btn_intab" onclick="opentab('${file.name}')" data-file="${file.name}">${file.name}</button>
-                                    <button class="btn_intab" onclick="deltab('${file.name}')">X</button>
-                                `;
-                            }
+  function createApiClient(options) {
+    let apiOnline = null;
 
-                            tabcon.appendChild(tabButton);
-                        } 
-					
-					
-					
-				});
-                if (first === true) {
-                    start();
-                }
-				
-			} catch (error) {
-				console.error('Error fetching files:', error);
-			}
-		}
-
-		
-		async function addtab() {
-			try {
-				const filename = $("#tabname").val()
-				if (filename !== "") {
-					const response = await fetch(`http://localhost:9911/addtab/${filename}`, {
-						method: 'POST',
-					});
-					
-					if (response.ok) {
-						
-						$('#addtab').modal('hide')
-						loadtab(false);
-					} else if (response.status === 409) {
-						al(false, `${filename} already exists.`);
-					} else {
-						al(false, 'Failed to create tab.');
-					}
-				} else {
-					al(false, "Please enter tab name.")
-				}
-			} catch (error) {
-				console.error('Error adding tab:', error);
-				al(false, 'Error adding tab: ' + error);
-			}
-		}
-
-        async function opentab(filename) {
-			if (filename !== 'undefined') {
-				if (tab_editing !== "") {
-					await savetab(tab_editing);
-				}
-				try {
-					const response = await fetch(`http://localhost:9911/opentab/${filename}`);
-					const data = await response.text();
-						
-					monaco.editor.getModels()[0].setValue(data);
-					tab_editing = filename;
-				} catch (error) {
-					console.error('Error opening tab:', error);
-				}
-			}
-		}
-
-
-		async function deltab(filename) {
-            if (filename !== "main.lua") {
-                try {
-                    const response = await fetch(`http://localhost:9911/delete/${filename}`, { method: 'DELETE' });
-                    const message = await response.text();
-                    console.log(message);
-                    await loadtab(false);
-                    if (tab_editing === filename) {
-                        opentab("main.lua");
-                    }
-                    const response2 = await fetch(`http://localhost:9911/delete/${filename}`, { method: 'DELETE' });
-                    const message2 = await response2.text();
-                    console.log(message);
-                } catch (error) {
-                    console.error('Error deleting file:', error);
-                }
-            } else {
-                al(false, "Cannot delete main.lua!")
-            }
-		}
-
-		async function savetab(filename) {
-			if (filename !== 'undefined') {
-				const data = editor.getValue();
-				try {
-					const response = await fetch(`http://localhost:9911/savetab/${filename}`, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'text/plain'
-						},
-						body: data
-					});
-					const result = await response.text();
-					console.log(result);
-				} catch (error) {
-					console.error('Error saving file:', error);
-				}
-			}
-		}
-
-
-        
-
-		
-
-		function al(status, text) {
-			if (status === true) { 
-				Toastify({
-					text: text,
-					duration: 2000,
-					destination: "https://github.com/apvarun/toastify-js",
-					newWindow: true,
-					close: true,
-					gravity: "top", // `top` or `bottom`
-					position: "right", // `left`, `center` or `right`
-					stopOnFocus: true, // Prevents dismissing of toast on hover
-					style: {
-						
-						background: "Green",
-					},
-				onClick: function(){} // Callback after click
-				}).showToast();
-			} else {
-				Toastify({
-					text: text,
-					duration: 2000,
-					destination: "https://github.com/apvarun/toastify-js",
-					newWindow: true,
-					close: true,
-					gravity: "top", // `top` or `bottom`
-					position: "right", // `left`, `center` or `right`
-					stopOnFocus: true, // Prevents dismissing of toast on hover
-					style: {
-						
-						background: "Red",
-					},
-				onClick: function(){} // Callback after click
-				}).showToast();
-			}
-		}
-		$("#open_addtab").click(function(){
-            const myModal = new bootstrap.Modal('#addtab', {
-                keyboard: false
-            })
-            myModal.show();
+    async function request(path, init = {}) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), options.apiTimeoutMs);
+      try {
+        const response = await fetch(joinUrl(options.apiBase, path), {
+          ...init,
+          signal: controller.signal
         });
-		
-        loadtab(true);
+        if (!response.ok) {
+          const msg = await response.text().catch(() => response.statusText);
+          throw new Error(msg || `HTTP ${response.status}`);
+        }
+        return response;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
 
-        window.onbeforeunload = function() {
-            savetab(editing_tab);
+    async function isOnline() {
+      if (!options.useApi) return false;
+      if (apiOnline !== null) return apiOnline;
+      try {
+        await request('/files');
+        apiOnline = true;
+      } catch {
+        apiOnline = false;
+      }
+      return apiOnline;
+    }
+
+    function markOffline() {
+      apiOnline = false;
+    }
+
+    return { request, isOnline, markOffline };
+  }
+
+  function createStorage(options, api) {
+    function localRead() {
+      try {
+        const raw = localStorage.getItem(options.storageKey);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed.tabs)) return null;
+        return parsed;
+      } catch {
+        return null;
+      }
+    }
+
+    function localWrite(state) {
+      const serializable = {
+        activeName: state.activeName,
+        tabs: state.tabs.map(tab => ({ name: tab.name, content: tab.content || '', updatedAt: tab.updatedAt || Date.now() }))
+      };
+      localStorage.setItem(options.storageKey, JSON.stringify(serializable));
+    }
+
+    async function loadFromApi() {
+      if (!(await api.isOnline())) return null;
+      const filesResponse = await api.request('/files');
+      const files = await filesResponse.json();
+      if (!Array.isArray(files)) return null;
+
+      const tabs = [];
+      for (const file of files) {
+        const name = safeFileName(file && file.name);
+        if (!name || name === 'undefined') continue;
+        try {
+          const response = await api.request('/opentab/' + encodeURIComponent(name));
+          tabs.push({ name, content: await response.text(), updatedAt: Date.now() });
+        } catch {
+          tabs.push({ name, content: '', updatedAt: Date.now() });
+        }
+      }
+      return tabs.length ? { activeName: tabs[0].name, tabs } : null;
+    }
+
+    async function saveToApi(tab) {
+      if (!(await api.isOnline())) return false;
+      try {
+        await api.request('/savetab/' + encodeURIComponent(tab.name), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: tab.content || ''
+        });
+        return true;
+      } catch (error) {
+        api.markOffline();
+        console.warn('API save failed; using localStorage fallback:', error);
+        return false;
+      }
+    }
+
+    async function createOnApi(name) {
+      if (!(await api.isOnline())) return false;
+      try {
+        await api.request('/addtab/' + encodeURIComponent(name), { method: 'POST' });
+        return true;
+      } catch (error) {
+        api.markOffline();
+        console.warn('API add failed; using localStorage fallback:', error);
+        return false;
+      }
+    }
+
+    async function deleteOnApi(name) {
+      if (!(await api.isOnline())) return false;
+      try {
+        await api.request('/delete/' + encodeURIComponent(name), { method: 'DELETE' });
+        return true;
+      } catch (error) {
+        api.markOffline();
+        console.warn('API delete failed; using localStorage fallback:', error);
+        return false;
+      }
+    }
+
+    return { localRead, localWrite, loadFromApi, saveToApi, createOnApi, deleteOnApi };
+  }
+
+  function stripCommentsAndStrings(code) {
+    return String(code || '')
+      .replace(/--\[\[[\s\S]*?\]\]/g, ' ')
+      .replace(/--[^\n]*/g, ' ')
+      .replace(/\[\[[\s\S]*?\]\]/g, ' ')
+      .replace(/"(?:\\.|[^"\\])*"/g, '""')
+      .replace(/'(?:\\.|[^'\\])*'/g, "''");
+  }
+
+  function addName(map, name, kind, detail) {
+    if (!name || /^(and|break|do|else|elseif|end|false|for|function|if|in|local|nil|not|or|repeat|return|then|true|until|while)$/i.test(name)) return;
+    if (!/^[A-Za-z_]\w*$/.test(name)) return;
+    if (!map.has(name)) map.set(name, { name, kind, detail });
+  }
+
+  function splitIdentifiers(list) {
+    return String(list || '')
+      .split(',')
+      .map(part => part.trim())
+      .filter(part => /^[A-Za-z_]\w*$/.test(part));
+  }
+
+  function collectTableFields(text, objectName, body, fields) {
+    if (!fields.has(objectName)) fields.set(objectName, new Map());
+    const fieldMap = fields.get(objectName);
+    const addField = (field, kind = 'Field') => {
+      if (!field || !/^[A-Za-z_]\w*$/.test(field)) return;
+      if (!fieldMap.has(field)) fieldMap.set(field, { name: field, kind, detail: `${objectName}.${field}` });
+    };
+
+    let match;
+    const namedField = /(?:^|[,\n;])\s*([A-Za-z_]\w*)\s*=/g;
+    while ((match = namedField.exec(body))) addField(match[1]);
+
+    const quotedField = /\[\s*["']([A-Za-z_]\w*)["']\s*\]\s*=/g;
+    while ((match = quotedField.exec(body))) addField(match[1]);
+
+    const methodField = /(?:^|[,\n;])\s*([A-Za-z_]\w*)\s*=\s*function\b/g;
+    while ((match = methodField.exec(body))) addField(match[1], 'Method');
+  }
+
+  function analyzeLuau(code) {
+    const cleaned = stripCommentsAndStrings(code);
+    const variables = new Map();
+    const fields = new Map();
+    let match;
+
+    const localVars = /\blocal\s+(?!function\b)([A-Za-z_]\w*(?:\s*,\s*[A-Za-z_]\w*)*)\s*(?==|\n|$)/g;
+    while ((match = localVars.exec(cleaned))) {
+      for (const name of splitIdentifiers(match[1])) addName(variables, name, 'Variable', 'local variable');
+    }
+
+    const localFunctions = /\blocal\s+function\s+([A-Za-z_]\w*)\s*\(([^)]*)\)/g;
+    while ((match = localFunctions.exec(cleaned))) {
+      addName(variables, match[1], 'Function', 'local function');
+      for (const param of splitIdentifiers(match[2])) addName(variables, param, 'Variable', 'function parameter');
+    }
+
+    const functions = /\bfunction\s+([A-Za-z_]\w*)(?:([.:])([A-Za-z_]\w*))?\s*\(([^)]*)\)/g;
+    while ((match = functions.exec(cleaned))) {
+      if (match[3]) {
+        const obj = match[1];
+        addName(variables, obj, 'Variable', 'table/object');
+        if (!fields.has(obj)) fields.set(obj, new Map());
+        fields.get(obj).set(match[3], { name: match[3], kind: match[2] === ':' ? 'Method' : 'Function', detail: `${obj}${match[2]}${match[3]}` });
+      } else {
+        addName(variables, match[1], 'Function', 'function');
+      }
+      for (const param of splitIdentifiers(match[4])) addName(variables, param, 'Variable', 'function parameter');
+    }
+
+    const genericFor = /\bfor\s+([A-Za-z_]\w*(?:\s*,\s*[A-Za-z_]\w*)*)\s+in\b/g;
+    while ((match = genericFor.exec(cleaned))) {
+      for (const name of splitIdentifiers(match[1])) addName(variables, name, 'Variable', 'for-loop variable');
+    }
+
+    const numericFor = /\bfor\s+([A-Za-z_]\w*)\s*=/g;
+    while ((match = numericFor.exec(cleaned))) addName(variables, match[1], 'Variable', 'numeric for-loop variable');
+
+    const globals = /^\s*([A-Za-z_]\w*)\s*=/gm;
+    while ((match = globals.exec(cleaned))) addName(variables, match[1], 'Variable', 'script variable');
+
+    const tableDecl = /\b(?:local\s+)?([A-Za-z_]\w*)\s*=\s*\{([\s\S]*?)\}/g;
+    while ((match = tableDecl.exec(cleaned))) {
+      addName(variables, match[1], 'Variable', 'table');
+      collectTableFields(cleaned, match[1], match[2], fields);
+    }
+
+    const dottedAssignment = /\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)\s*=/g;
+    while ((match = dottedAssignment.exec(cleaned))) {
+      addName(variables, match[1], 'Variable', 'table/object');
+      if (!fields.has(match[1])) fields.set(match[1], new Map());
+      fields.get(match[1]).set(match[2], { name: match[2], kind: 'Field', detail: `${match[1]}.${match[2]}` });
+    }
+
+    return { variables, fields };
+  }
+
+  function completionKind(monaco, kind) {
+    const K = monaco.languages.CompletionItemKind;
+    return K[kind] || K.Variable;
+  }
+
+  function getReplaceRange(model, position) {
+    const word = model.getWordUntilPosition(position);
+    return new monaco.Range(position.lineNumber, word.startColumn, position.lineNumber, word.endColumn);
+  }
+
+  function installDynamicIntellisense(monaco, editor) {
+    let analysis = analyzeLuau(editor.getValue());
+    let timer = null;
+
+    const refresh = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        analysis = analyzeLuau(editor.getValue());
+      }, 120);
+    };
+
+    editor.onDidChangeModelContent(refresh);
+    refresh();
+
+    const provider = {
+      triggerCharacters: ['.', ':'],
+      provideCompletionItems(model, position) {
+        analysis = analyzeLuau(model.getValue());
+        const range = getReplaceRange(model, position);
+        const line = model.getValueInRange({
+          startLineNumber: position.lineNumber,
+          startColumn: 1,
+          endLineNumber: position.lineNumber,
+          endColumn: position.column
+        });
+
+        const memberMatch = line.match(/([A-Za-z_]\w*)\s*([.:])\s*[A-Za-z_]*$/);
+        if (memberMatch) {
+          const objectName = memberMatch[1];
+          const objectFields = analysis.fields.get(objectName);
+          if (!objectFields) return { suggestions: [] };
+          return {
+            suggestions: [...objectFields.values()].map(field => ({
+              label: field.name,
+              kind: completionKind(monaco, field.kind),
+              detail: field.detail || 'detected table field',
+              insertText: field.name,
+              range
+            }))
+          };
+        }
+
+        return {
+          suggestions: [...analysis.variables.values()].map(variable => ({
+            label: variable.name,
+            kind: completionKind(monaco, variable.kind),
+            detail: variable.detail || 'detected variable',
+            insertText: variable.name,
+            range
+          }))
         };
-	
-	
-		
+      }
+    };
 
-  	</script>
+    const disposables = [
+      monaco.languages.registerCompletionItemProvider('lua', provider)
+    ];
+
+    try {
+      monaco.languages.register({ id: 'luau' });
+      disposables.push(monaco.languages.registerCompletionItemProvider('luau', provider));
+    } catch {}
+
+    return {
+      refresh: () => { analysis = analyzeLuau(editor.getValue()); },
+      dispose: () => disposables.forEach(item => item.dispose && item.dispose())
+    };
+  }
+
+  function init(userOptions) {
+    const options = { ...DEFAULTS, ...(userOptions || {}) };
+    const editor = options.editor || window.editor || window.editorInstance;
+    const monaco = options.monaco || window.monaco;
+    if (!editor || !monaco) throw new Error('LuauEditorTools.init requires Monaco editor and monaco.');
+
+    injectStyles();
+
+    const api = createApiClient(options);
+    const storage = createStorage(options, api);
+    const state = {
+      tabs: [],
+      activeName: '',
+      isApplyingEditorValue: false,
+      saveTimer: null
+    };
+
+    function getTab(name = state.activeName) {
+      return state.tabs.find(tab => tab.name === name) || null;
+    }
+
+    function ensureMainTab() {
+      if (!state.tabs.length) {
+        state.tabs.push({ name: options.firstTabName, content: '', updatedAt: Date.now() });
+        state.activeName = options.firstTabName;
+      }
+      if (!state.activeName || !getTab(state.activeName)) state.activeName = state.tabs[0].name;
+    }
+
+    function persistLocal() {
+      storage.localWrite(state);
+    }
+
+    async function persistActiveToApi() {
+      const tab = getTab();
+      if (!tab) return;
+      await storage.saveToApi(tab);
+    }
+
+    function syncActiveFromEditor() {
+      const tab = getTab();
+      if (!tab || !editor) return;
+      tab.content = editor.getValue();
+      tab.updatedAt = Date.now();
+    }
+
+    function scheduleSave() {
+      if (state.isApplyingEditorValue) return;
+      syncActiveFromEditor();
+      persistLocal();
+      clearTimeout(state.saveTimer);
+      state.saveTimer = setTimeout(() => persistActiveToApi(), options.saveDebounceMs);
+    }
+
+    function renderTabs() {
+      const tabcon = document.getElementById(options.tabContainerId);
+      if (!tabcon) return;
+      tabcon.innerHTML = '';
+
+      state.tabs.forEach(tab => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'grid-tab btn_tab px-1 mx-1' + (tab.name === state.activeName ? ' active-tab' : '');
+        wrapper.dataset.file = tab.name;
+
+        const openBtn = document.createElement('button');
+        openBtn.className = 'text-start btn_intab tab-title';
+        openBtn.textContent = tab.name;
+        openBtn.title = tab.name;
+        openBtn.addEventListener('click', () => openTab(tab.name));
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'btn_intab tab-close';
+        closeBtn.type = 'button';
+        closeBtn.textContent = '×';
+        closeBtn.title = 'Close tab';
+        closeBtn.addEventListener('click', event => {
+          event.stopPropagation();
+          deleteTab(tab.name);
+        });
+
+        wrapper.append(openBtn, closeBtn);
+        tabcon.appendChild(wrapper);
+      });
+    }
+
+    function applyEditorValue(value) {
+      state.isApplyingEditorValue = true;
+      editor.setValue(value || '');
+      state.isApplyingEditorValue = false;
+      editor.focus();
+    }
+
+    async function openTab(name) {
+      name = safeFileName(name);
+      if (!name) return;
+      syncActiveFromEditor();
+      persistLocal();
+      await persistActiveToApi();
+
+      let tab = getTab(name);
+      if (!tab) {
+        tab = { name, content: '', updatedAt: Date.now() };
+        state.tabs.push(tab);
+      }
+
+      state.activeName = name;
+      applyEditorValue(tab.content);
+      renderTabs();
+      persistLocal();
+    }
+
+    async function addTab(name) {
+      name = safeFileName(name || document.getElementById(options.tabNameInputId)?.value);
+      if (!name) return toast(false, 'Please enter a tab name.');
+      if (getTab(name)) return toast(false, `${name} already exists.`);
+
+      syncActiveFromEditor();
+      await storage.createOnApi(name);
+      state.tabs.push({ name, content: '', updatedAt: Date.now() });
+      state.activeName = name;
+      applyEditorValue('');
+      renderTabs();
+      persistLocal();
+
+      const input = document.getElementById(options.tabNameInputId);
+      if (input) input.value = '';
+      const modalEl = document.getElementById(options.modalId);
+      if (modalEl && window.bootstrap) {
+        const modal = window.bootstrap.Modal.getInstance(modalEl) || new window.bootstrap.Modal(modalEl);
+        modal.hide();
+      }
+      toast(true, `Created ${name}`);
+    }
+
+    async function deleteTab(name) {
+      name = safeFileName(name);
+      if (!name) return;
+      if (name === options.firstTabName) return toast(false, `Cannot delete ${options.firstTabName}.`);
+
+      state.tabs = state.tabs.filter(tab => tab.name !== name);
+      await storage.deleteOnApi(name);
+      ensureMainTab();
+      if (state.activeName === name || !getTab(state.activeName)) {
+        state.activeName = state.tabs[0].name;
+        applyEditorValue(getTab().content);
+      }
+      renderTabs();
+      persistLocal();
+      toast(true, `Deleted ${name}`);
+    }
+
+    async function saveTab(name = state.activeName) {
+      const tab = getTab(name);
+      if (!tab) return;
+      if (name === state.activeName) syncActiveFromEditor();
+      persistLocal();
+      await storage.saveToApi(tab);
+    }
+
+    async function loadTabs(first = true) {
+      const apiState = await storage.loadFromApi().catch(error => {
+        console.warn('Tab API unavailable, using localStorage:', error);
+        return null;
+      });
+      const localState = storage.localRead();
+      const loaded = apiState || localState || null;
+
+      state.tabs = loaded?.tabs?.map(tab => ({
+        name: safeFileName(tab.name),
+        content: String(tab.content || ''),
+        updatedAt: tab.updatedAt || Date.now()
+      })).filter(tab => tab.name) || [];
+      state.activeName = safeFileName(loaded?.activeName) || options.firstTabName;
+      ensureMainTab();
+      renderTabs();
+      persistLocal();
+
+      if (first) applyEditorValue(getTab(state.activeName)?.content || '');
+    }
+
+    editor.onDidChangeModelContent(() => {
+      scheduleSave();
+      const value = editor.getValue();
+      if (window.chrome?.webview?.postMessage) {
+        try { window.chrome.webview.postMessage(value); } catch {}
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      syncActiveFromEditor();
+      persistLocal();
+    });
+
+    document.getElementById(options.addButtonId)?.addEventListener('click', () => {
+      const modalEl = document.getElementById(options.modalId);
+      if (modalEl && window.bootstrap) new window.bootstrap.Modal(modalEl, { keyboard: false }).show();
+      else {
+        const name = prompt('Tab name');
+        if (name) addTab(name);
+      }
+    });
+
+    // Compatibility with your old inline onclick handlers.
+    window.addtab = () => addTab();
+    window.opentab = openTab;
+    window.deltab = deleteTab;
+    window.savetab = saveTab;
+    window.loadtab = loadTabs;
+    window.LuauTabs = { state, addTab, openTab, deleteTab, saveTab, loadTabs };
+
+    const intellisense = installDynamicIntellisense(monaco, editor);
+    window.LuauDynamicIntellisense = intellisense;
+
+    loadTabs(true);
+    return { state, addTab, openTab, deleteTab, saveTab, loadTabs, intellisense };
+  }
+
+  function injectStyles() {
+    if (document.getElementById('luau-editor-tools-style')) return;
+    const style = document.createElement('style');
+    style.id = 'luau-editor-tools-style';
+    style.textContent = `
+      .btn_tab { position: relative; overflow: hidden; transition: border-color .15s ease, background .15s ease; }
+      .btn_tab.active-tab { border-color: #8b5cf6 !important; background: linear-gradient(135deg, rgba(124,58,237,.32), rgba(236,72,153,.18)) !important; }
+      .btn_tab.active-tab::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg,#7c3aed,#ec4899); }
+      .tab-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .tab-close { opacity: .7; font-weight: 700; }
+      .tab-close:hover { opacity: 1; color: #f472b6; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  window.LuauEditorTools = { init, analyzeLuau };
+})();
+
+	</script>
 
 	<div id="container" style="width:100%;height:100%;"></div>
 	
@@ -461,7 +859,9 @@
 
 
 			editor.onDidChangeModelContent(function (e) {
-				window.chrome.webview.postMessage(editor.getValue())
+				if (window.chrome && window.chrome.webview && typeof window.chrome.webview.postMessage === 'function') {
+					window.chrome.webview.postMessage(editor.getValue());
+				}
 			});
 
 			GetText = function () {
@@ -582,6 +982,13 @@
 			}
 			
 			window.editorInstance = editor;
+
+			window.LuauEditorTools.init({
+				editor: editor,
+				monaco: monaco,
+				apiBase: 'http://localhost:9911',
+				firstTabName: 'main.lua'
+			});
 
 			// Modify this method
 			editor.getEditorValue = function() {
