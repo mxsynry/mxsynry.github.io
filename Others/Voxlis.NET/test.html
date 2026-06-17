@@ -1970,8 +1970,28 @@
         // ============================================================
         // FETCH HELPERS
         // ============================================================
+        function withCacheBust(url, options = {}) {
+            if (options.cacheBust === false) return url;
+
+            // WEAO/whatexpsare.online must be requested exactly.
+            // Adding cache-bust query params like ?_ts=... makes that API fail.
+            try {
+                const parsed = new URL(url, window.location.href);
+                const host = parsed.hostname.toLowerCase();
+
+                if (host.includes('weao.xyz') || host.includes('whatexpsare.online')) {
+                    return parsed.toString();
+                }
+
+                parsed.searchParams.set('_ts', Date.now().toString());
+                return parsed.toString();
+            } catch {
+                return url;
+            }
+        }
+
         async function fetchJson(url, options = {}) {
-            const response = await fetch(url, {
+            const response = await fetch(withCacheBust(url, options), {
                 method: 'GET',
                 mode: 'cors',
                 cache: 'no-store',
@@ -1994,7 +2014,7 @@
         }
 
         async function fetchText(url, options = {}) {
-            const response = await fetch(url, {
+            const response = await fetch(withCacheBust(url, options), {
                 method: 'GET',
                 mode: 'cors',
                 cache: 'no-store',
@@ -2011,13 +2031,13 @@
             return response.text();
         }
 
-        async function fetchWithFallback(primary, fallback) {
+        async function fetchWithFallback(primary, fallback, options = {}) {
             try {
-                return await fetchJson(primary);
+                return await fetchJson(primary, options);
             } catch (err) {
                 console.warn(`Primary failed: ${primary}`, err);
                 if (!fallback) throw err;
-                return fetchJson(fallback);
+                return fetchJson(fallback, options);
             }
         }
 
@@ -2095,6 +2115,34 @@
             return value === true || value === 'true' || value === 1 || value === '1';
         }
 
+        function getCurrentRobloxVersionForPlatform(platform) {
+            if (!versionsData) return null;
+            const normalized = normalizePlatform(platform);
+            const keyMap = {
+                windows: 'Windows',
+                mac: 'Mac',
+                android: 'Android',
+                ios: 'iOS'
+            };
+            return versionsData[keyMap[normalized]] || null;
+        }
+
+        function inferWeaoUpdateStatus(item, platform) {
+            const explicitKnown = item.updateStatus === true || item.updateStatus === false;
+            const currentRobloxVersion = getCurrentRobloxVersionForPlatform(platform);
+            const itemRobloxVersion = item.rbxversion || item.rbxVersion || '';
+
+            // WEAO's API can occasionally lag behind its page/CDN in one field.
+            // If the executor Roblox version matches the current Roblox version,
+            // treat it as updated even if updateStatus was stale/false.
+            if (currentRobloxVersion && itemRobloxVersion && itemRobloxVersion === currentRobloxVersion) {
+                return true;
+            }
+
+            if (explicitKnown) return item.updateStatus === true;
+            return null;
+        }
+
         // ============================================================
         // WEAO NORMALIZATION
         // ============================================================
@@ -2102,6 +2150,7 @@
             const isFree = item.free === true || (item.cost && item.cost.toLowerCase().includes('free'));
             const price = item.cost || (isFree ? 'Free' : 'Paid');
             const platform = normalizePlatform(item.platform);
+            const inferredUpdateStatus = inferWeaoUpdateStatus(item, platform);
 
             return {
                 id: `${source}-${item._id || item.trackerId || normalizeSlug(item.title) || Math.random().toString(36).slice(2)}`,
@@ -2113,7 +2162,7 @@
                 free: isFree,
                 price,
                 detected: item.detected === true,
-                updateStatus: item.updateStatus === true,
+                updateStatus: inferredUpdateStatus,
                 uncStatus: item.uncStatus === true,
                 suncPercentage: Number(item.suncPercentage || 0),
                 uncPercentage: Number(item.uncPercentage || 0),
@@ -2145,7 +2194,7 @@
                 source,
                 sources: [source],
                 sourceLabel: source.toUpperCase(),
-                updateSource: item.updateStatus === true || item.updateStatus === false ? 'WEAO' : '',
+                updateSource: inferredUpdateStatus === true || inferredUpdateStatus === false ? 'WEAO' : '',
                 raw: item
             };
         }
@@ -2577,8 +2626,8 @@
 
             try {
                 const weaoPromise = Promise.all([
-                    fetchWithFallback(CONFIG.weao.exploits, CONFIG.weao.alts.exploits),
-                    fetchWithFallback(CONFIG.weao.versions, CONFIG.weao.alts.versions)
+                    fetchWithFallback(CONFIG.weao.exploits, CONFIG.weao.alts.exploits, { cacheBust: false }),
+                    fetchWithFallback(CONFIG.weao.versions, CONFIG.weao.alts.versions, { cacheBust: false })
                 ]).catch(error => {
                     console.warn('WEAO unavailable:', error);
                     showToast(`WEAO failed: ${error.message}`, 'error');
