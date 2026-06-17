@@ -534,6 +534,12 @@
             border: 1px solid rgba(236, 72, 153, 0.3);
         }
 
+        .badge-source-both {
+            background: linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(236, 72, 153, 0.2));
+            color: #f0abfc;
+            border: 1px solid rgba(236, 72, 153, 0.45);
+        }
+
         .card-body {
             margin-bottom: 1rem;
         }
@@ -983,6 +989,188 @@
             to { transform: translateX(0); opacity: 1; }
         }
 
+
+
+        /* Voxlis-style filter panel */
+        .controls-stack {
+            display: grid;
+            gap: 1rem;
+            align-items: stretch;
+        }
+
+        .control-top-row {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .filter-panel {
+            background: linear-gradient(180deg, rgba(124,58,237,0.08), rgba(236,72,153,0.04)), var(--surface);
+            border: 1px solid rgba(124, 58, 237, 0.22);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            box-shadow: 0 16px 45px rgba(0,0,0,0.18);
+        }
+
+        .filter-panel-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .filter-panel-title {
+            font-size: 1.1rem;
+            font-weight: 750;
+            background: linear-gradient(135deg, var(--accent), #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .filter-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .filter-section {
+            background: rgba(10,10,15,0.42);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 10px;
+            padding: 0.9rem;
+        }
+
+        .filter-section-title {
+            color: var(--text-muted);
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-bottom: 0.65rem;
+            font-weight: 700;
+        }
+
+        .segmented-control, .source-control, .checkbox-stack, .tag-filter-list, .show-only-list {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.45rem;
+        }
+
+        .filter-chip {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(18,18,26,0.78);
+            color: var(--text-muted);
+            border-radius: 9999px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            font-weight: 650;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .filter-chip:hover {
+            border-color: rgba(236,72,153,0.45);
+            color: var(--text);
+            box-shadow: 0 0 16px rgba(124, 58, 237, 0.14);
+        }
+
+        .filter-chip.active {
+            color: white;
+            border-color: transparent;
+            background: linear-gradient(135deg, var(--accent), #a855f7 48%, #ec4899);
+            box-shadow: 0 0 18px rgba(236,72,153,0.24), 0 0 16px rgba(124,58,237,0.18);
+        }
+
+        .filter-select {
+            width: 100%;
+            padding: 0.65rem 0.8rem;
+            border-radius: 10px;
+            background: #0f0f17;
+            color: var(--text);
+            border: 1px solid var(--border);
+            outline: none;
+        }
+
+        .filter-select:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124,58,237,0.16);
+        }
+
+        .filter-check {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.35rem 0.45rem;
+            color: var(--text-muted);
+            font-size: 0.83rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        input.theme-check {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 5px;
+            border: 1px solid rgba(139, 92, 246, 0.55);
+            background: #0f0f17;
+            box-shadow: inset 0 0 0 2px rgba(10,10,15,0.8);
+            cursor: pointer;
+            display: inline-grid;
+            place-content: center;
+            flex: 0 0 auto;
+        }
+
+        input.theme-check::after {
+            content: "";
+            width: 9px;
+            height: 9px;
+            border-radius: 3px;
+            transform: scale(0);
+            transition: transform 0.14s ease;
+            background: white;
+        }
+
+        input.theme-check:checked {
+            border-color: transparent;
+            background: linear-gradient(135deg, var(--accent), #ec4899);
+            box-shadow: 0 0 14px rgba(236,72,153,0.22);
+        }
+
+        input.theme-check:checked::after {
+            transform: scale(1);
+        }
+
+        .filter-toggle-card {
+            margin-top: 0.75rem;
+            padding: 0.85rem;
+            border-radius: 10px;
+            border: 1px solid rgba(245,158,11,0.18);
+            background: rgba(245,158,11,0.055);
+        }
+
+        .filter-toggle-card strong {
+            display: block;
+            color: var(--text);
+            margin-bottom: 0.25rem;
+            font-size: 0.87rem;
+        }
+
+        .filter-toggle-card p {
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            line-height: 1.45;
+        }
+
+        .filter-status-line {
+            color: var(--text-muted);
+            font-size: 0.82rem;
+            margin-top: 0.75rem;
+        }
+
         @media (max-width: 768px) {
             .hero-title {
                 font-size: 2.5rem;
@@ -1188,24 +1376,115 @@
                 </div>
             </div>
 
-            <div class="controls">
-                <div class="search-box">
-                    <input type="text" id="searchInput" placeholder="Search executors...">
+            <div class="controls controls-stack">
+                <div class="control-top-row">
+                    <div class="search-box">
+                        <input type="text" id="searchInput" placeholder="Search executors...">
+                    </div>
+                    <button class="btn btn-refresh" onclick="refreshData()">Refresh</button>
+                    <button class="btn" onclick="resetFilters()">Reset Filters</button>
                 </div>
-                <div class="filter-group">
-                    <button class="btn active" data-filter="all" onclick="setFilter('all')">All</button>
-                    <button class="btn" data-filter="free" onclick="setFilter('free')">Free</button>
-                    <button class="btn" data-filter="paid" onclick="setFilter('paid')">Paid</button>
-                    <button class="btn" data-filter="windows" onclick="setFilter('windows')">Windows</button>
-                    <button class="btn" data-filter="android" onclick="setFilter('android')">Android</button>
-                    <button class="btn" data-filter="ios" onclick="setFilter('ios')">iOS</button>
-                    <button class="btn" data-filter="mac" onclick="setFilter('mac')">Mac</button>
-                    <button class="btn" data-filter="detected" onclick="setFilter('detected')">Detected</button>
-                    <button class="btn" data-filter="undetected" onclick="setFilter('undetected')">Undetected</button>
-                    <button class="btn" data-filter="weao" onclick="setFilter('weao')">WEAO</button>
-                    <button class="btn" data-filter="voxlis" onclick="setFilter('voxlis')">Voxlis</button>
+
+                <div class="filter-panel" id="filterPanel">
+                    <div class="filter-panel-header">
+                        <div>
+                            <div class="filter-panel-title">Filters</div>
+                            <div class="filter-status-line" id="filterStatusLine">Using Voxlis catalog filter model</div>
+                        </div>
+                    </div>
+
+                    <div class="filter-grid">
+                        <div class="filter-section">
+                            <div class="filter-section-title">Sort by</div>
+                            <select class="filter-select" id="sortSelect" data-filter-field="sort">
+                                <option value="most-popular">Most Popular</option>
+                                <option value="random">Random</option>
+                                <option value="updated-first">Updated First</option>
+                                <option value="name-asc">Name A-Z</option>
+                                <option value="price-asc">Price Low-High</option>
+                                <option value="sunc-desc">sUNC High-Low</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-section">
+                            <div class="filter-section-title">Source</div>
+                            <div class="source-control">
+                                <button class="filter-chip active" data-source-filter="all" onclick="setFilter('all')">All</button>
+                                <button class="filter-chip" data-source-filter="weao" onclick="setFilter('weao')">WEAO</button>
+                                <button class="filter-chip" data-source-filter="voxlis" onclick="setFilter('voxlis')">Voxlis</button>
+                                <button class="filter-chip" data-source-filter="both" onclick="setFilter('both')">Both</button>
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
+                            <div class="filter-section-title">Platform</div>
+                            <div class="checkbox-stack">
+                                <label class="filter-check"><input class="theme-check" type="checkbox" data-platform-filter value="windows"> Windows</label>
+                                <label class="filter-check"><input class="theme-check" type="checkbox" data-platform-filter value="mac"> macOS</label>
+                                <label class="filter-check"><input class="theme-check" type="checkbox" data-platform-filter value="android"> Android</label>
+                                <label class="filter-check"><input class="theme-check" type="checkbox" data-platform-filter value="ios"> iOS</label>
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
+                            <div class="filter-section-title">Price</div>
+                            <div class="segmented-control" data-segment-group="price">
+                                <button class="filter-chip active" data-segment="price" data-value="all">All</button>
+                                <button class="filter-chip" data-segment="price" data-value="free">Free</button>
+                                <button class="filter-chip" data-segment="price" data-value="paid">Paid</button>
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
+                            <div class="filter-section-title">Type</div>
+                            <div class="segmented-control" data-segment-group="type">
+                                <button class="filter-chip active" data-segment="type" data-value="all">All</button>
+                                <button class="filter-chip" data-segment="type" data-value="external">External</button>
+                                <button class="filter-chip" data-segment="type" data-value="executor">Executor</button>
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
+                            <div class="filter-section-title">Updated</div>
+                            <div class="segmented-control" data-segment-group="updatedState">
+                                <button class="filter-chip active" data-segment="updatedState" data-value="all">All</button>
+                                <button class="filter-chip" data-segment="updatedState" data-value="yes">Yes</button>
+                                <button class="filter-chip" data-segment="updatedState" data-value="no">No</button>
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
+                            <div class="filter-section-title">Tags</div>
+                            <div class="tag-filter-list">
+                                <label class="filter-check"><input class="theme-check" type="checkbox" data-tag-filter value="multi-instance"> Multi-instance</label>
+                                <label class="filter-check"><input class="theme-check" type="checkbox" data-tag-filter value="decompiler"> Decompiler</label>
+                                <label class="filter-check"><input class="theme-check" type="checkbox" data-tag-filter value="raknet"> RakNet</label>
+                                <label class="filter-check"><input class="theme-check" type="checkbox" data-tag-filter value="serverside"> Server-side</label>
+                                <label class="filter-check"><input class="theme-check" type="checkbox" data-tag-filter value="kernel"> Kernel</label>
+                                <label class="filter-check"><input class="theme-check" type="checkbox" data-tag-filter value="keysystem"> Key-system</label>
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
+                            <div class="filter-section-title">Show only</div>
+                            <div class="show-only-list">
+                                <label class="filter-check"><input class="theme-check" type="checkbox" data-show-only-filter value="verified"> Verified</label>
+                                <label class="filter-check"><input class="theme-check" type="checkbox" data-show-only-filter value="trending"> Trending</label>
+                                <label class="filter-check"><input class="theme-check" type="checkbox" data-show-only-filter value="warning"> Warning</label>
+                            </div>
+
+                            <div class="filter-toggle-card">
+                                <label class="filter-check"><input class="theme-check" type="checkbox" id="showInsecureToggle"> <strong>Insecure mode enabled</strong></label>
+                                <p>Insecure mode includes risky or not-yet-verified executors in the catalog results. These stay hidden by default for safety.</p>
+                            </div>
+
+                            <div class="filter-toggle-card">
+                                <label class="filter-check"><input class="theme-check" type="checkbox" id="showInviteOnlyToggle"> <strong>Showing invite-only results</strong></label>
+                                <p>Include invite-only executors in the catalog results. These stay hidden by default.</p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <button class="btn btn-refresh" onclick="refreshData()">Refresh</button>
             </div>
 
             <div class="tab-container">
@@ -1541,6 +1820,9 @@
                 conSummary: '',
                 review: '',
                 source,
+                sources: [source],
+                sourceLabel: source.toUpperCase(),
+                updateSource: item.updateStatus === true || item.updateStatus === false ? 'WEAO' : '',
                 raw: item
             };
         }
@@ -1671,6 +1953,9 @@
                 conSummary: points.con_summary || '',
                 review,
                 source: 'voxlis',
+                sources: ['voxlis'],
+                sourceLabel: 'Voxlis',
+                updateSource: '',
                 raw: { info, points, review }
             };
 
@@ -1759,7 +2044,10 @@
                     const status = platformBlock[serviceKey];
                     if (!status || typeof status !== 'object') continue;
 
-                    row.updateStatus = status.updated === true;
+                    if (status.updated === true || status.updated === false) {
+                        row.updateStatus = status.updated;
+                        row.updateSource = 'Voxlis';
+                    }
                     row.version = status.output || status.version || row.version;
                     row.rbxVersion = status._baseline || row.rbxVersion;
                     row.updatedDate = 'Voxlis API';
@@ -1773,6 +2061,183 @@
             const compact = slug.replace(/-/g, '');
             const alias = PRICE_ALIASES[slug];
             return [...new Set([slug, compact, alias].filter(Boolean))];
+        }
+
+
+        // ============================================================
+        // SOURCE MERGING
+        // ============================================================
+        const CANONICAL_NAME_ALIASES = {
+            arceusxneo: 'arceusx',
+            arceusx: 'arceusx',
+            vegax: 'vegax',
+            yubx: 'yubx',
+            yubx: 'yubx',
+            macsploit: 'macsploit',
+            matrixhub: 'matrix',
+            matrix: 'matrix',
+            dx9warev2: 'dx9ware',
+            bunnifun: 'bunni'
+        };
+
+        function canonicalExecutorKey(name) {
+            const compact = normalizeSlug(name).replace(/-/g, '');
+            return CANONICAL_NAME_ALIASES[compact] || compact;
+        }
+
+        function hasSource(item, source) {
+            const list = Array.isArray(item.sources) ? item.sources : [item.source].filter(Boolean);
+            return list.includes(source);
+        }
+
+        function makeSourceLabel(sources) {
+            const list = Array.isArray(sources) ? sources : [];
+            if (list.includes('weao') && list.includes('voxlis')) return 'Both';
+            if (list.includes('weao')) return 'WEAO';
+            if (list.includes('voxlis')) return 'Voxlis';
+            return 'Unknown';
+        }
+
+        function sourceClass(item) {
+            if (item.source === 'both') return 'both';
+            if (hasSource(item, 'weao')) return 'weao';
+            if (hasSource(item, 'voxlis')) return 'voxlis';
+            return 'unknown';
+        }
+
+        function hasMeaningfulValue(value) {
+            if (value === null || value === undefined) return false;
+            if (typeof value === 'string') {
+                const v = value.trim();
+                return v !== '' && v !== 'N/A' && v !== 'Unknown' && v !== '#';
+            }
+            if (Array.isArray(value)) return value.length > 0;
+            return true;
+        }
+
+        function chooseValue(primary, fallback) {
+            return hasMeaningfulValue(primary) ? primary : fallback;
+        }
+
+        function chooseBetterText(primary, fallback) {
+            if (!hasMeaningfulValue(primary)) return fallback;
+            if (!hasMeaningfulValue(fallback)) return primary;
+            const p = String(primary).trim();
+            const f = String(fallback).trim();
+            const generic = ['Paid', 'Free', 'FREE', 'Unknown', 'N/A', '#'];
+            if (generic.includes(p) && !generic.includes(f)) return f;
+            if (p === 'Free' && f.startsWith('FREE or')) return f;
+            return p;
+        }
+
+        function chooseBoolean(primary, fallback) {
+            if (primary === true || primary === false) return primary;
+            if (fallback === true || fallback === false) return fallback;
+            return null;
+        }
+
+        function mergeUniqueArrays(...arrays) {
+            return [...new Set(arrays.flat().filter(Boolean))];
+        }
+
+        function resolveMergedUpdateStatus(weao, voxlis) {
+            const weaoKnown = weao.updateStatus === true || weao.updateStatus === false;
+            const voxlisKnown = voxlis.updateStatus === true || voxlis.updateStatus === false;
+
+            if (weaoKnown && voxlisKnown) {
+                return {
+                    status: weao.updateStatus,
+                    source: weao.updateStatus === voxlis.updateStatus ? 'Both' : 'WEAO / Voxlis disagree'
+                };
+            }
+            if (weaoKnown) return { status: weao.updateStatus, source: 'WEAO' };
+            if (voxlisKnown) return { status: voxlis.updateStatus, source: 'Voxlis' };
+            return { status: null, source: '' };
+        }
+
+        function mergeWhaoAndVoxlisRows(weao, voxlis, key) {
+            const sources = ['weao', 'voxlis'];
+            const platforms = mergeUniqueArrays(weao.platforms || [weao.platform], voxlis.platforms || [voxlis.platform]);
+            const update = resolveMergedUpdateStatus(weao, voxlis);
+            const tags = mergeUniqueArrays(weao.tags || [], voxlis.tags || []);
+            const badges = mergeUniqueArrays(weao.badges || [], voxlis.badges || []);
+
+            return {
+                ...weao,
+                id: `both-${key}`,
+                name: chooseValue(weao.name, voxlis.name),
+                version: chooseValue(weao.version, voxlis.version),
+                platform: platforms[0] || chooseValue(weao.platform, voxlis.platform),
+                platforms,
+                platformDisplay: formatPlatforms(platforms),
+                free: chooseBoolean(voxlis.free, weao.free),
+                price: chooseBetterText(weao.price, voxlis.price),
+                detected: chooseBoolean(weao.detected, voxlis.detected),
+                updateStatus: update.status,
+                updateSource: update.source,
+                uncStatus: chooseBoolean(weao.uncStatus, voxlis.uncStatus),
+                suncPercentage: hasMeaningfulValue(weao.suncPercentage) ? weao.suncPercentage : voxlis.suncPercentage,
+                uncPercentage: hasMeaningfulValue(weao.uncPercentage) ? weao.uncPercentage : voxlis.uncPercentage,
+                rbxVersion: chooseValue(weao.rbxVersion, voxlis.rbxVersion),
+                updatedDate: chooseBetterText(weao.updatedDate, voxlis.updatedDate),
+                website: chooseValue(weao.website, voxlis.website),
+                discord: chooseValue(weao.discord, voxlis.discord),
+                purchaseLink: chooseValue(weao.purchaseLink, voxlis.purchaseLink),
+                decompiler: Boolean(weao.decompiler || voxlis.decompiler),
+                multiInject: Boolean(weao.multiInject || voxlis.multiInject),
+                keysystem: Boolean(weao.keysystem || voxlis.keysystem),
+                clientmods: Boolean(weao.clientmods || voxlis.clientmods),
+                beta: Boolean(weao.beta || voxlis.beta),
+                elementCertified: Boolean(weao.elementCertified || voxlis.elementCertified),
+                longestRunning: Boolean(weao.longestRunning || voxlis.longestRunning),
+                hasIssues: Boolean(weao.hasIssues || voxlis.hasIssues),
+                detectionReason: chooseValue(weao.detectionReason, voxlis.detectionReason),
+                description: chooseBetterText(weao.description, voxlis.description),
+                logo: chooseValue(weao.logo, voxlis.logo),
+                owner: chooseValue(weao.owner, voxlis.owner),
+                screenshots: mergeUniqueArrays(weao.screenshots || [], voxlis.screenshots || []),
+                extType: chooseValue(weao.extType, voxlis.extType),
+                tags,
+                badges,
+                proSummary: chooseValue(voxlis.proSummary, weao.proSummary),
+                neutralSummary: chooseValue(voxlis.neutralSummary, weao.neutralSummary),
+                conSummary: chooseValue(voxlis.conSummary, weao.conSummary),
+                review: chooseValue(voxlis.review, weao.review),
+                source: 'both',
+                sources,
+                sourceLabel: 'Both',
+                raw: {
+                    weao: weao.raw || weao,
+                    voxlis: voxlis.raw || voxlis
+                }
+            };
+        }
+
+        function mergeExecutorRows(weaoRows, voxlisRows) {
+            const map = new Map();
+
+            for (const row of weaoRows) {
+                const key = canonicalExecutorKey(row.name);
+                row.sources = ['weao'];
+                row.source = 'weao';
+                row.sourceLabel = 'WEAO';
+                map.set(key, row);
+            }
+
+            for (const row of voxlisRows) {
+                const key = canonicalExecutorKey(row.name);
+                row.sources = ['voxlis'];
+                row.source = 'voxlis';
+                row.sourceLabel = 'Voxlis';
+
+                if (map.has(key)) {
+                    map.set(key, mergeWhaoAndVoxlisRows(map.get(key), row, key));
+                } else {
+                    map.set(key, row);
+                }
+            }
+
+            return [...map.values()].sort((a, b) => a.name.localeCompare(b.name));
         }
 
         // ============================================================
@@ -1812,15 +2277,16 @@
                     ? exploits.map(item => normalizeExecutorData(item, 'weao'))
                     : [];
 
-                allData = [...weaoRows, ...voxlisRows];
+                allData = mergeExecutorRows(weaoRows, voxlisRows);
 
                 if (!allData.length) throw new Error('No WEAO or Voxlis data could be loaded.');
 
                 updateStats();
                 filterData(document.getElementById('searchInput').value);
+                const bothCount = allData.filter(row => row.source === 'both').length;
                 document.getElementById('lastUpdated').textContent =
-                    `Last updated: ${new Date().toLocaleString()} | WEAO: ${weaoRows.length} | Voxlis: ${voxlisRows.length}`;
-                showToast(`Loaded ${weaoRows.length} WEAO + ${voxlisRows.length} Voxlis rows`, 'success');
+                    `Last updated: ${new Date().toLocaleString()} | Merged: ${allData.length} | WEAO: ${weaoRows.length} | Voxlis: ${voxlisRows.length} | Both: ${bothCount}`;
+                showToast(`Loaded ${allData.length} merged executors (${bothCount} from both sources)`, 'success');
             } catch (error) {
                 console.error('Load error:', error);
                 container.innerHTML = `
@@ -1898,8 +2364,9 @@
                 if (currentFilter === 'paid' && item.free !== false) return false;
                 if (currentFilter === 'detected' && item.detected !== true) return false;
                 if (currentFilter === 'undetected' && item.detected !== false) return false;
-                if (currentFilter === 'weao' && item.source !== 'weao') return false;
-                if (currentFilter === 'voxlis' && item.source !== 'voxlis') return false;
+                if (currentFilter === 'weao' && !hasSource(item, 'weao')) return false;
+                if (currentFilter === 'voxlis' && !hasSource(item, 'voxlis')) return false;
+                if (currentFilter === 'both' && item.source !== 'both') return false;
                 if (['windows', 'android', 'ios', 'mac'].includes(currentFilter)) {
                     if (!item.platforms?.includes(currentFilter) && item.platform !== currentFilter) return false;
                 }
@@ -1935,8 +2402,9 @@
         }
 
         function getUpdateUi(item) {
-            if (item.updateStatus === true) return { text: 'Updated', dot: 'online', color: 'var(--success)' };
-            if (item.updateStatus === false) return { text: 'Outdated', dot: 'warning', color: 'var(--warning)' };
+            const suffix = item.updateSource ? ` · ${item.updateSource}` : '';
+            if (item.updateStatus === true) return { text: `Updated${suffix}`, dot: 'online', color: 'var(--success)' };
+            if (item.updateStatus === false) return { text: `Outdated${suffix}`, dot: 'warning', color: 'var(--warning)' };
             return { text: 'Unknown', dot: 'warning', color: 'var(--warning)' };
         }
 
@@ -2052,7 +2520,7 @@
                 { key: 'elementCertified', label: 'Verified', bool: true },
                 { key: 'updatedDate', label: 'Last Updated' },
                 { key: 'rbxVersion', label: 'Roblox Version' },
-                { key: 'source', label: 'Data Source' }
+                { key: 'sourceLabel', label: 'Data Source' }
             ];
 
             container.innerHTML = `
@@ -2133,7 +2601,7 @@
                                 ${escapeHtml(item.name)}
                             </a>
                             <div class="badges">
-                                <span class="badge badge-source-${escapeHtml(item.source)}">${escapeHtml(item.source.toUpperCase())}</span>
+                                <span class="badge badge-source-${escapeHtml(sourceClass(item))}">${escapeHtml(item.sourceLabel || item.source.toUpperCase())}</span>
                                 <span class="badge ${item.free ? 'badge-free' : 'badge-paid'}">
                                     ${item.free ? 'Free' : 'Paid'}
                                 </span>
@@ -2147,6 +2615,11 @@
                             <div class="info-row">
                                 <span class="info-label">Platform</span>
                                 <span class="info-value"><span class="badge badge-platform">${escapeHtml(item.platformDisplay)}</span></span>
+                            </div>
+
+                            <div class="info-row">
+                                <span class="info-label">Data Source</span>
+                                <span class="info-value"><span class="badge badge-source-${escapeHtml(sourceClass(item))}">${escapeHtml(item.sourceLabel || item.source.toUpperCase())}</span></span>
                             </div>
 
                             <div class="info-row">
@@ -2272,7 +2745,7 @@
                         <td>${unc}</td>
                         <td>${escapeHtml(item.version)}</td>
                         <td><span style="color: ${updateUi.color}">${updateUi.text}</span></td>
-                        <td><span class="badge badge-source-${escapeHtml(item.source)}">${escapeHtml(item.source.toUpperCase())}</span></td>
+                        <td><span class="badge badge-source-${escapeHtml(sourceClass(item))}">${escapeHtml(item.sourceLabel || item.source.toUpperCase())}</span></td>
                         <td>
                             ${item.website && item.website !== '#' ? `<a href="${escapeHtml(item.website)}" target="_blank" class="btn-small btn-primary" rel="noopener">Open</a>` : '-'}
                         </td>
@@ -2318,6 +2791,484 @@
 
         function escapeForInlineJs(value) {
             return JSON.stringify(String(value)).replace(/"/g, '&quot;');
+        }
+
+
+        // ============================================================
+        // VOXLIS FILTER MODEL OVERRIDES
+        // Mirrors src/config/pages/roblox.js + cards-catalog.js semantics.
+        // ============================================================
+        const VOXLIS_FILTER_CONFIG = {
+            platformOrder: ['windows', 'mac', 'android', 'ios'],
+            filterableTags: ['multi-instance', 'decompiler', 'raknet', 'serverside', 'kernel', 'keysystem'],
+            showOnlyFilters: ['verified', 'trending', 'warning']
+        };
+
+        const catalogFilters = {
+            source: 'all',
+            sort: 'most-popular',
+            platforms: [],
+            price: 'all',
+            type: 'all',
+            updatedState: 'all',
+            tags: [],
+            verified: false,
+            trending: false,
+            warning: false,
+            showInsecure: false,
+            showInviteOnly: false
+        };
+
+        function setupEventListeners() {
+            document.getElementById('searchInput')?.addEventListener('input', (e) => {
+                filterData(e.target.value);
+            });
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.setAttribute('target', '_self');
+                anchor.addEventListener('click', (event) => {
+                    const hash = anchor.getAttribute('href');
+                    const target = hash ? document.querySelector(hash) : null;
+                    if (!target) return;
+                    event.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    history.replaceState(null, '', hash);
+                });
+            });
+
+            setupCatalogFilterControls();
+            syncFilterUi();
+        }
+
+        function setupCatalogFilterControls() {
+            document.getElementById('sortSelect')?.addEventListener('change', (event) => {
+                catalogFilters.sort = event.target.value;
+                filterData(document.getElementById('searchInput')?.value || '');
+            });
+
+            document.querySelectorAll('[data-platform-filter]').forEach(input => {
+                input.addEventListener('change', () => {
+                    catalogFilters.platforms = [...document.querySelectorAll('[data-platform-filter]:checked')].map(el => el.value);
+                    syncFilterUi();
+                    filterData(document.getElementById('searchInput')?.value || '');
+                });
+            });
+
+            document.querySelectorAll('[data-tag-filter]').forEach(input => {
+                input.addEventListener('change', () => {
+                    catalogFilters.tags = [...document.querySelectorAll('[data-tag-filter]:checked')].map(el => normalizeTagKey(el.value));
+                    syncFilterUi();
+                    filterData(document.getElementById('searchInput')?.value || '');
+                });
+            });
+
+            document.querySelectorAll('[data-show-only-filter]').forEach(input => {
+                input.addEventListener('change', () => {
+                    catalogFilters[input.value] = input.checked;
+                    syncFilterUi();
+                    filterData(document.getElementById('searchInput')?.value || '');
+                });
+            });
+
+            document.querySelectorAll('[data-segment]').forEach(button => {
+                button.addEventListener('click', () => {
+                    const field = button.dataset.segment;
+                    const value = button.dataset.value;
+                    if (!field) return;
+                    catalogFilters[field] = value;
+                    syncFilterUi();
+                    filterData(document.getElementById('searchInput')?.value || '');
+                });
+            });
+
+            document.getElementById('showInsecureToggle')?.addEventListener('change', (event) => {
+                catalogFilters.showInsecure = event.target.checked;
+                syncFilterUi();
+                filterData(document.getElementById('searchInput')?.value || '');
+            });
+
+            document.getElementById('showInviteOnlyToggle')?.addEventListener('change', (event) => {
+                catalogFilters.showInviteOnly = event.target.checked;
+                syncFilterUi();
+                filterData(document.getElementById('searchInput')?.value || '');
+            });
+        }
+
+        function setFilter(filter) {
+            catalogFilters.source = filter || 'all';
+            currentFilter = catalogFilters.source;
+            syncFilterUi();
+            filterData(document.getElementById('searchInput')?.value || '');
+        }
+
+        function resetFilters() {
+            catalogFilters.source = 'all';
+            catalogFilters.sort = 'most-popular';
+            catalogFilters.platforms = [];
+            catalogFilters.price = 'all';
+            catalogFilters.type = 'all';
+            catalogFilters.updatedState = 'all';
+            catalogFilters.tags = [];
+            catalogFilters.verified = false;
+            catalogFilters.trending = false;
+            catalogFilters.warning = false;
+            catalogFilters.showInsecure = false;
+            catalogFilters.showInviteOnly = false;
+            currentFilter = 'all';
+            const search = document.getElementById('searchInput');
+            if (search) search.value = '';
+            syncFilterUi();
+            filterData('');
+        }
+
+        function syncFilterUi() {
+            document.querySelectorAll('[data-source-filter]').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.sourceFilter === catalogFilters.source);
+            });
+            document.querySelectorAll('[data-segment]').forEach(btn => {
+                const field = btn.dataset.segment;
+                btn.classList.toggle('active', catalogFilters[field] === btn.dataset.value);
+            });
+            document.querySelectorAll('[data-platform-filter]').forEach(input => {
+                input.checked = catalogFilters.platforms.includes(input.value);
+            });
+            document.querySelectorAll('[data-tag-filter]').forEach(input => {
+                input.checked = catalogFilters.tags.includes(normalizeTagKey(input.value));
+            });
+            document.querySelectorAll('[data-show-only-filter]').forEach(input => {
+                input.checked = Boolean(catalogFilters[input.value]);
+            });
+            const sort = document.getElementById('sortSelect');
+            if (sort) sort.value = catalogFilters.sort;
+            const insecure = document.getElementById('showInsecureToggle');
+            if (insecure) insecure.checked = catalogFilters.showInsecure;
+            const invite = document.getElementById('showInviteOnlyToggle');
+            if (invite) invite.checked = catalogFilters.showInviteOnly;
+
+            const status = document.getElementById('filterStatusLine');
+            if (status) {
+                const activeBits = [];
+                if (catalogFilters.source !== 'all') activeBits.push(`Source: ${catalogFilters.source}`);
+                if (catalogFilters.platforms.length) activeBits.push(`Platforms: ${catalogFilters.platforms.map(displayPlatform).join(', ')}`);
+                if (catalogFilters.price !== 'all') activeBits.push(`Price: ${catalogFilters.price}`);
+                if (catalogFilters.type !== 'all') activeBits.push(`Type: ${catalogFilters.type}`);
+                if (catalogFilters.updatedState !== 'all') activeBits.push(`Updated: ${catalogFilters.updatedState}`);
+                if (catalogFilters.tags.length) activeBits.push(`Tags: ${catalogFilters.tags.join(', ')}`);
+                if (catalogFilters.verified) activeBits.push('Verified only');
+                if (catalogFilters.trending) activeBits.push('Trending only');
+                if (catalogFilters.warning) activeBits.push('Warning only');
+                if (catalogFilters.showInsecure) activeBits.push('Insecure visible');
+                if (catalogFilters.showInviteOnly) activeBits.push('Invite-only visible');
+                status.textContent = activeBits.length ? activeBits.join(' · ') : 'Using Voxlis catalog filter model';
+            }
+        }
+
+        function toArray(value) {
+            if (Array.isArray(value)) return value.filter(Boolean);
+            return value ? [value] : [];
+        }
+
+        function normalizeTagKey(value = '') {
+            const compact = String(value || '').trim().toLowerCase().replace(/[^a-z0-9]+/g, '');
+            if (compact === 'servside' || compact === 'serverside' || compact === 'server-side') return 'serverside';
+            if (compact === 'multiinstance') return 'multi-instance';
+            if (compact === 'key' || compact === 'keysystem' || compact === 'key-system') return 'keysystem';
+            if (compact === 'inviteonly' || compact === 'invite') return 'inviteonly';
+            return String(value || '').trim().toLowerCase();
+        }
+
+        function hasTagValue(tags = [], target = '') {
+            const needle = normalizeTagKey(target);
+            return toArray(tags).some(tag => normalizeTagKey(tag) === needle);
+        }
+
+        function itemIsInsecure(item) {
+            return hasTagValue(item.tags, 'insecure') || item.insecure === true;
+        }
+
+        function itemIsInviteOnly(item) {
+            return hasTagValue(item.tags, 'inviteonly') || item.inviteOnly === true;
+        }
+
+        function itemHasWarning(item) {
+            return item.warning === true || hasTagValue(item.badges, 'warning') || hasTagValue(item.badges, 'warningred') || Boolean(item.raw?.voxlis?.modals?.warning?.enabled || item.raw?.voxlis?.modals?.warningred?.enabled || item.raw?.modals?.warning?.enabled || item.raw?.modals?.warningred?.enabled);
+        }
+
+        function itemIsVerified(item) {
+            return item.elementCertified === true || hasTagValue(item.badges, 'verified');
+        }
+
+        function itemIsTrending(item) {
+            return hasTagValue(item.badges, 'trending');
+        }
+
+        function normalizeVoxlisType(type = '') {
+            const value = String(type || '').trim().toLowerCase();
+            if (!value || value === 'internal') return 'internal';
+            if (value === 'executor') return 'internal';
+            if (value === 'serverside' || value === 'server-side') return 'serverside';
+            if (value === 'external') return 'external';
+            return value;
+        }
+
+        function itemMatchesType(item, typeFilter) {
+            if (typeFilter === 'all') return true;
+            const type = normalizeVoxlisType(item.cardType || item.extType || item.type);
+            if (typeFilter === 'executor') return type === 'internal' || type === 'executor';
+            if (typeFilter === 'external') return type === 'external';
+            return type === typeFilter;
+        }
+
+        function itemMatchesTag(item, tag) {
+            const normalized = normalizeTagKey(tag);
+            if (normalized === 'keysystem') return item.keysystem === true || hasTagValue(item.tags, 'keysystem') || hasTagValue(item.tags, 'freemium');
+            if (normalized === 'serverside') return hasTagValue(item.tags, 'serverside') || normalizeVoxlisType(item.cardType || item.extType) === 'serverside';
+            if (normalized === 'multi-instance') return item.multiInject === true || hasTagValue(item.tags, 'multi-instance');
+            if (normalized === 'decompiler') return item.decompiler === true || hasTagValue(item.tags, 'decompiler');
+            return hasTagValue(item.tags, normalized);
+        }
+
+        function getSortablePrice(item) {
+            if (item.free === true) return 0;
+            const price = String(item.price || '').match(/\d+(?:\.\d+)?/);
+            return price ? Number(price[0]) : Number.POSITIVE_INFINITY;
+        }
+
+        function getPopularityRank(item) {
+            // No public click-count endpoint is guaranteed here, so approximate Voxlis priority:
+            // trending first, verified next, updated next, then stronger sUNC.
+            let rank = 0;
+            if (itemIsTrending(item)) rank -= 1000;
+            if (itemIsVerified(item)) rank -= 200;
+            if (item.updateStatus === true) rank -= 100;
+            if (Number.isFinite(Number(item.suncPercentage))) rank -= Number(item.suncPercentage);
+            if (item.free === true) rank -= 5;
+            if (item.source === 'both') rank -= 15;
+            return rank;
+        }
+
+        async function fetchVoxlisExecutorFolder(folderName, prices, apiStatus) {
+            const [info, points, review, modals] = await Promise.all([
+                fetchJson(rawVoxlisUrl(folderName, 'info.json'), { allow404: true }),
+                fetchJson(rawVoxlisUrl(folderName, 'points.json'), { allow404: true }),
+                fetchText(rawVoxlisUrl(folderName, 'review.md'), { allow404: true }),
+                fetchJson(rawVoxlisUrl(folderName, 'modals.json'), { allow404: true }).catch(() => null)
+            ]);
+
+            if (!info || info.hidden === true) return null;
+            return normalizeVoxlisExecutorData(folderName, info, points || {}, review || '', prices || {}, apiStatus, modals || {});
+        }
+
+        function normalizeVoxlisExecutorData(folderName, info, points, review, prices, apiStatus, modals = {}) {
+            const name = info.name || folderName;
+            const slug = normalizeSlug(name);
+            const platforms = Array.isArray(info.platforms) && info.platforms.length
+                ? info.platforms.map(normalizePlatform)
+                : [normalizePlatform(info.platform || 'unknown')];
+            const primaryPlatform = platforms[0] || 'unknown';
+            const priceMeta = getVoxlisPrice(slug, platforms, prices);
+            const tags = toArray(info.tags).map(normalizeTagKey);
+            const badges = toArray(info.badges).map(normalizeTagKey);
+            const website = getFirstUrl(info.urls?.website) || getFirstUrl(info.website) || getFirstUrl(info.url) || '#';
+            const discord = getFirstUrl(info.urls?.discord) || getFirstUrl(info.discord);
+            const descriptionParts = [points.pro_summary, points.neutral_summary, points.con_summary, cleanMarkdown(review)].filter(Boolean);
+            const cardType = normalizeVoxlisType(info.type || 'internal');
+
+            const row = {
+                id: `voxlis-${slug}`,
+                name,
+                version: 'N/A',
+                platform: primaryPlatform,
+                platforms,
+                platformDisplay: formatPlatforms(platforms),
+                free: priceMeta.free,
+                price: priceMeta.price,
+                detected: null,
+                updateStatus: null,
+                uncStatus: null,
+                suncPercentage: null,
+                uncPercentage: null,
+                rbxVersion: 'N/A',
+                updatedDate: 'GitHub data',
+                website,
+                discord,
+                purchaseLink: priceMeta.purchaseLink,
+                decompiler: itemMatchesRawTag(tags, 'decompiler'),
+                multiInject: itemMatchesRawTag(tags, 'multi-instance'),
+                keysystem: info.keyed === true || itemMatchesRawTag(tags, 'keysystem') || itemMatchesRawTag(tags, 'freemium'),
+                clientmods: itemMatchesRawTag(tags, 'clientmods') || itemMatchesRawTag(tags, 'client-mods'),
+                beta: badges.includes('beta'),
+                elementCertified: badges.includes('verified'),
+                longestRunning: badges.includes('longest-running'),
+                hasIssues: Boolean(modals?.warning?.enabled || modals?.warningred?.enabled),
+                detectionReason: null,
+                description: truncate(descriptionParts.join(' '), 260),
+                logo: null,
+                owner: null,
+                screenshots: [],
+                extType: cardType,
+                cardType,
+                tags,
+                badges,
+                insecure: tags.includes('insecure'),
+                inviteOnly: tags.includes('inviteonly'),
+                warning: Boolean(modals?.warning?.enabled || modals?.warningred?.enabled || badges.includes('warning') || badges.includes('warningred')),
+                proSummary: points.pro_summary || '',
+                neutralSummary: points.neutral_summary || '',
+                conSummary: points.con_summary || '',
+                review,
+                source: 'voxlis',
+                sources: ['voxlis'],
+                sourceLabel: 'Voxlis',
+                updateSource: '',
+                randomSortKey: Math.random(),
+                raw: { info, points, review, modals }
+            };
+
+            applyVoxlisStatus(row, apiStatus);
+            return row;
+        }
+
+        function itemMatchesRawTag(tags, tag) {
+            return toArray(tags).some(value => normalizeTagKey(value) === normalizeTagKey(tag));
+        }
+
+        function mergeWhaoAndVoxlisRows(weao, voxlis, key) {
+            const sources = ['weao', 'voxlis'];
+            const platforms = mergeUniqueArrays(weao.platforms || [weao.platform], voxlis.platforms || [voxlis.platform]);
+            const update = resolveMergedUpdateStatus(weao, voxlis);
+            const tags = mergeUniqueArrays(weao.tags || [], voxlis.tags || []);
+            const badges = mergeUniqueArrays(weao.badges || [], voxlis.badges || []);
+
+            return {
+                ...weao,
+                id: `both-${key}`,
+                name: chooseValue(weao.name, voxlis.name),
+                version: chooseValue(weao.version, voxlis.version),
+                platform: platforms[0] || chooseValue(weao.platform, voxlis.platform),
+                platforms,
+                platformDisplay: formatPlatforms(platforms),
+                free: chooseBoolean(voxlis.free, weao.free),
+                price: chooseBetterText(weao.price, voxlis.price),
+                detected: chooseBoolean(weao.detected, voxlis.detected),
+                updateStatus: update.status,
+                updateSource: update.source,
+                uncStatus: chooseBoolean(weao.uncStatus, voxlis.uncStatus),
+                suncPercentage: hasMeaningfulValue(weao.suncPercentage) ? weao.suncPercentage : voxlis.suncPercentage,
+                uncPercentage: hasMeaningfulValue(weao.uncPercentage) ? weao.uncPercentage : voxlis.uncPercentage,
+                rbxVersion: chooseValue(weao.rbxVersion, voxlis.rbxVersion),
+                updatedDate: chooseBetterText(weao.updatedDate, voxlis.updatedDate),
+                website: chooseValue(weao.website, voxlis.website),
+                discord: chooseValue(weao.discord, voxlis.discord),
+                purchaseLink: chooseValue(weao.purchaseLink, voxlis.purchaseLink),
+                decompiler: Boolean(weao.decompiler || voxlis.decompiler),
+                multiInject: Boolean(weao.multiInject || voxlis.multiInject),
+                keysystem: Boolean(weao.keysystem || voxlis.keysystem),
+                clientmods: Boolean(weao.clientmods || voxlis.clientmods),
+                beta: Boolean(weao.beta || voxlis.beta),
+                elementCertified: Boolean(weao.elementCertified || voxlis.elementCertified),
+                longestRunning: Boolean(weao.longestRunning || voxlis.longestRunning),
+                hasIssues: Boolean(weao.hasIssues || voxlis.hasIssues),
+                warning: Boolean(weao.warning || voxlis.warning),
+                insecure: Boolean(weao.insecure || voxlis.insecure),
+                inviteOnly: Boolean(weao.inviteOnly || voxlis.inviteOnly),
+                detectionReason: chooseValue(weao.detectionReason, voxlis.detectionReason),
+                description: chooseBetterText(weao.description, voxlis.description),
+                logo: chooseValue(weao.logo, voxlis.logo),
+                owner: chooseValue(weao.owner, voxlis.owner),
+                screenshots: mergeUniqueArrays(weao.screenshots || [], voxlis.screenshots || []),
+                extType: chooseValue(voxlis.extType, weao.extType),
+                cardType: chooseValue(voxlis.cardType, weao.cardType || weao.extType),
+                tags,
+                badges,
+                proSummary: chooseValue(voxlis.proSummary, weao.proSummary),
+                neutralSummary: chooseValue(voxlis.neutralSummary, weao.neutralSummary),
+                conSummary: chooseValue(voxlis.conSummary, weao.conSummary),
+                review: chooseValue(voxlis.review, weao.review),
+                source: 'both',
+                sources,
+                sourceLabel: 'Both',
+                randomSortKey: Math.random(),
+                raw: { weao: weao.raw || weao, voxlis: voxlis.raw || voxlis }
+            };
+        }
+
+        function filterData(searchTerm = '') {
+            const term = String(searchTerm || '').toLowerCase().trim();
+            const filters = catalogFilters;
+
+            const matched = allData.filter(item => {
+                if (!filters.showInsecure && itemIsInsecure(item)) return false;
+                if (!filters.showInviteOnly && itemIsInviteOnly(item)) return false;
+
+                if (filters.source === 'weao' && !hasSource(item, 'weao')) return false;
+                if (filters.source === 'voxlis' && !hasSource(item, 'voxlis')) return false;
+                if (filters.source === 'both' && item.source !== 'both') return false;
+
+                if (filters.platforms.length) {
+                    const platforms = toArray(item.platforms?.length ? item.platforms : item.platform).map(normalizePlatform);
+                    if (!filters.platforms.some(platform => platforms.includes(platform))) return false;
+                }
+
+                if (filters.price === 'free' && item.free !== true) return false;
+                if (filters.price === 'paid' && item.free !== false) return false;
+
+                if (!itemMatchesType(item, filters.type)) return false;
+
+                if (filters.updatedState === 'yes' && item.updateStatus !== true) return false;
+                if (filters.updatedState === 'no' && item.updateStatus === true) return false;
+
+                if (filters.tags.length && !filters.tags.every(tag => itemMatchesTag(item, tag))) return false;
+
+                if (filters.verified && !itemIsVerified(item)) return false;
+                if (filters.trending && !itemIsTrending(item)) return false;
+                if (filters.warning && !itemHasWarning(item)) return false;
+
+                if (term) {
+                    const searchable = [
+                        item.name, item.version, item.platformDisplay, item.price, item.owner,
+                        item.description, item.proSummary, item.neutralSummary, item.conSummary,
+                        item.extType, item.cardType, item.sourceLabel,
+                        ...(item.tags || []), ...(item.badges || [])
+                    ].join(' ').toLowerCase();
+                    if (!searchable.includes(term)) return false;
+                }
+
+                return true;
+            });
+
+            filteredData = sortItems(matched, filters.sort);
+            updateFilterStatusCounts(matched.length);
+            renderGrid();
+            renderTable();
+        }
+
+        function sortItems(items, sortValue) {
+            const list = [...items];
+            if (sortValue === 'random') {
+                return list.sort((a, b) => (a.randomSortKey ?? 0) - (b.randomSortKey ?? 0) || a.name.localeCompare(b.name));
+            }
+            if (sortValue === 'name-asc') {
+                return list.sort((a, b) => a.name.localeCompare(b.name));
+            }
+            if (sortValue === 'price-asc') {
+                return list.sort((a, b) => getSortablePrice(a) - getSortablePrice(b) || a.name.localeCompare(b.name));
+            }
+            if (sortValue === 'sunc-desc') {
+                return list.sort((a, b) => (Number(b.suncPercentage) || -1) - (Number(a.suncPercentage) || -1) || a.name.localeCompare(b.name));
+            }
+            if (sortValue === 'updated-first') {
+                return list.sort((a, b) => Number(b.updateStatus === true) - Number(a.updateStatus === true) || getPopularityRank(a) - getPopularityRank(b) || a.name.localeCompare(b.name));
+            }
+            return list.sort((a, b) => getPopularityRank(a) - getPopularityRank(b) || a.name.localeCompare(b.name));
+        }
+
+        function updateFilterStatusCounts(count) {
+            const status = document.getElementById('filterStatusLine');
+            if (!status) return;
+            const total = allData.filter(item => (catalogFilters.showInsecure || !itemIsInsecure(item)) && (catalogFilters.showInviteOnly || !itemIsInviteOnly(item))).length;
+            const activeText = status.textContent && status.textContent !== 'Using Voxlis catalog filter model' ? ` · ${status.textContent}` : '';
+            status.textContent = `Showing ${count} of ${total} catalog results${activeText}`;
         }
 
         // ============================================================
