@@ -1,0 +1,80 @@
+name: Generate Repository File Tree
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-tree:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Generate tree.json
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const repoOwner = context.repo.owner;
+            const repoName = context.repo.repo;
+            const branch = 'main';
+
+            function buildTree(dirPath, currentRelPath = '') {
+              const items = fs.readdirSync(dirPath);
+              const children = [];
+
+              for (const item of items) {
+                // Ignore hidden Git systems and our system configuration files
+                if (item === '.git' || item === '.github' || item === 'tree.json') continue;
+
+                const fullPath = path.join(dirPath, item);
+                const relPath = currentRelPath ? `${currentRelPath}/${item}` : item;
+                const stat = fs.statSync(fullPath);
+
+                if (stat.isDirectory()) {
+                  children.push({
+                    name: item,
+                    path: relPath,
+                    type: 'dir',
+                    children: buildTree(fullPath, relPath)
+                  });
+                } else {
+                  // Uniform escaping to match raw URL rules
+                  const escapedPath = relPath.split('/').map(encodeURIComponent).join('/');
+                  children.push({
+                    name: item,
+                    path: relPath,
+                    type: 'file',
+                    size: stat.size,
+                    download_url: `https://raw.githubusercontent.com/${repoOwner}/${repoName}/${branch}/${escapedPath}`,
+                    html_url: `https://github.com/${repoOwner}/${repoName}/blob/${branch}/${escapedPath}`
+                  });
+                }
+              }
+              return children;
+            }
+
+            const treeRoot = {
+              name: repoName,
+              path: "",
+              type: "dir",
+              children: buildTree(process.cwd())
+            };
+
+            fs.writeFileSync('tree.json', JSON.stringify(treeRoot, null, 2));
+
+      - name: Commit and Push tree.json
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add tree.json
+          git diff-index --quiet HEAD || git commit -m "chore: dynamically rebuild file tree index [skip ci]"
+          git push
