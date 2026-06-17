@@ -1,117 +1,2334 @@
-<html lang="en"><head>
-    <meta charset="utf-8">
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-
-    <meta name="description" content="Ready to 𝙬𝙞𝙣?">
-    <link rel="icon" href="https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/globe.ico" type="image/x-icon"> 
+    <meta name="description" content="Ready to win?">
+    <link rel="icon" href="https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/globe.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-
-    <meta name="description" content="Ready to 𝙬𝙞𝙣?">
-    <meta name="author" content="mxsynry">
-    
-    <meta property="og:title" content="Voxlis.NET">
-    <meta property="og:description" content="Ready to 𝙬𝙞𝙣?">
+    <meta property="og:title" content="Voxlis.NET + WEAO Dashboard">
+    <meta property="og:description" content="Your exploits, your safety and knowledge.">
     <meta property="og:image" content="https://github.com/mxsynry/mxsynry.github.io/raw/main/Others/Voxlis.NET/TP.png">
-    <meta property="og:url" content="https://mxsynry.Github.Io/">
     <meta property="og:type" content="website">
-    
     <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="RobloxHackers.lol">
-    <meta name="twitter:description" content="Ready to 𝙬𝙞𝙣?">
-    <meta name="twitter:image" content="https://github.com/mxsynry/mxsynry.github.io/raw/main/Others/Voxlis.NET/TP.png">
-    <meta property="og:url" content="https://mxsynry.Github.Io/">
-    
-    <title>RobloxHackers.lol</title>
+    <title>Voxlis.NET + WEAO Dashboard</title>
     <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            font-family: 'Arial', sans-serif;
-            color: #fff;
-            text-align: center;
+        :root {
+            --bg: #0a0a0f;
+            --surface: #12121a;
+            --surface-hover: #1a1a25;
+            --border: #2a2a3a;
+            --text: #e0e0e0;
+            --text-muted: #8888a0;
+            --accent: #7c3aed;
+            --accent-hover: #8b5cf6;
+            --accent-glow: rgba(124, 58, 237, 0.8);
+            --accent-glow-light: rgba(139, 92, 246, 0.6);
+            --success: #10b981;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
         }
 
-        .background-video {
-            position: fixed;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Dark mode scrollbar */
+        ::-webkit-scrollbar {
+            width: 10px;
+            height: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #3a3a4a;
+            border-radius: 5px;
+            border: 2px solid var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4a4a5a;
+        }
+
+        html {
+            scrollbar-width: thin;
+            scrollbar-color: #3a3a4a var(--bg);
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ============================================================
+           HERO / LANDING SECTION (Purple Theme)
+        ============================================================ */
+        .hero-section {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .hero-video {
+            position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
-            z-index: -1;
-            filter: blur(5px);
+            z-index: 0;
+            filter: blur(5px) brightness(0.4);
         }
 
-        .container {
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
+        .hero-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(10,10,15,0.3) 0%, rgba(10,10,15,0.8) 70%, var(--bg) 100%);
+            z-index: 1;
         }
 
-        .header-text {
-            margin-bottom: 0.1rem;
+        .hero-content {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            padding: 2rem;
         }
 
-        .header-text a {
-            font-size: 3rem;
-            font-weight: bold;
+        .hero-title {
+            font-size: 4rem;
+            font-weight: 800;
             color: #fff;
             text-decoration: none;
-            display: inline-block; /* Required for animation */
-            transition: all 0.2s ease;
-        }
-
-        .glow-red {
-            color: red;
-            text-shadow: 0 0 8px rgba(255, 0, 0, 0.8), 
-                         0 0 12px rgba(255, 0, 0, 0.6), 
-                         0 0 16px rgba(255, 0, 0, 0.4);
-            animation: glow-animation 0.01s infinite;
-        }
-
-        .shake-animation {
             display: inline-block;
-            animation: shake-animation 0.01s infinite;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.5rem;
+            transition: all 0.3s ease;
         }
 
-        @keyframes glow-animation {
-            0% { text-shadow: 0 0 8px rgba(255, 0, 0, 0.8); }
-            50% { text-shadow: 0 0 24px rgba(255, 0, 0, 1); }
-            100% { text-shadow: 0 0 8px rgba(255, 0, 0, 0.8); }
+        .hero-title .voxlis {
+            color: var(--accent);
+            text-shadow: 0 0 12px var(--accent-glow),
+                         0 0 24px var(--accent-glow-light),
+                         0 0 36px rgba(124, 58, 237, 0.3);
+            animation: purple-glow 2s ease-in-out infinite;
         }
 
-        @keyframes shake-animation {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-2px); }
-            50% { transform: translateX(2px); }
-            75% { transform: translateX(-2px); }
+        .hero-title .plus {
+            color: var(--text-muted);
+            font-weight: 300;
+            margin: 0 0.5rem;
         }
 
-        .header-text a:hover {
-            color: red;
-            animation: glow-animation 1s infinite, shake-animation 0.01s infinite;
+        .hero-title .weao {
+            color: #ec4899;
+            text-shadow: 0 0 12px rgba(236, 72, 153, 0.8),
+                         0 0 24px rgba(236, 72, 153, 0.4);
+            animation: pink-glow 2s ease-in-out infinite 0.5s;
         }
 
-        .main-text {
+        @keyframes purple-glow {
+            0%, 100% { text-shadow: 0 0 12px var(--accent-glow), 0 0 24px var(--accent-glow-light); }
+            50% { text-shadow: 0 0 24px var(--accent-glow), 0 0 48px rgba(124, 58, 237, 0.6), 0 0 72px rgba(124, 58, 237, 0.3); }
+        }
+
+        @keyframes pink-glow {
+            0%, 100% { text-shadow: 0 0 12px rgba(236, 72, 153, 0.8), 0 0 24px rgba(236, 72, 153, 0.4); }
+            50% { text-shadow: 0 0 24px rgba(236, 72, 153, 0.9), 0 0 48px rgba(236, 72, 153, 0.5), 0 0 72px rgba(236, 72, 153, 0.2); }
+        }
+
+        .hero-tagline {
+            font-size: 1.5rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            font-weight: 300;
+        }
+
+        .hero-tagline .highlight {
+            color: var(--accent);
+            font-weight: 600;
+            text-shadow: 0 0 8px var(--accent-glow);
+        }
+
+        .hero-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, var(--accent), #9333ea);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border: none;
+            border-radius: 9999px;
+            cursor: pointer;
+            text-decoration: none;
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+            transition: all 0.3s ease;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .hero-btn:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 0 40px rgba(124, 58, 237, 0.6);
+            background: linear-gradient(135deg, var(--accent-hover), #a855f7);
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .scroll-indicator {
+            position: absolute;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            animation: bounce 2s infinite;
+            cursor: pointer;
+        }
+
+        .scroll-indicator svg {
+            width: 24px;
+            height: 24px;
+            stroke: var(--accent);
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateX(-50%) translateY(0); }
+            40% { transform: translateX(-50%) translateY(-10px); }
+            60% { transform: translateX(-50%) translateY(-5px); }
+        }
+
+        /* ============================================================
+           DASHBOARD SECTION
+        ============================================================ */
+        .dashboard-section {
+            position: relative;
+            z-index: 3;
+            background: var(--bg);
+            padding-top: 2rem;
+        }
+
+        .dashboard-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .dashboard-header {
+            text-align: center;
+            padding: 2rem 0;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h2 {
             font-size: 2rem;
+            background: linear-gradient(135deg, var(--accent), #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
         }
+
+        .dashboard-header p {
+            color: var(--text-muted);
+        }
+
+        .stats-bar {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.25rem;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            background: var(--surface-hover);
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.1);
+        }
+
+        .stat-value {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 0.25rem;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 250px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.5rem;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            color: var(--text);
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+
+        .search-box input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(124, 58, 237, 0.15);
+        }
+
+        .search-box::before {
+            content: "\ud83d\udd0d";
+            position: absolute;
+            left: 0.75rem;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0.5;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 0.6rem 1rem;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            border-radius: var(--radius);
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: all 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: var(--surface-hover);
+            border-color: var(--accent);
+            box-shadow: 0 0 10px rgba(124, 58, 237, 0.15);
+        }
+
+        .btn.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+            box-shadow: 0 0 15px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-refresh {
+            background: linear-gradient(135deg, var(--accent), #9333ea);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .btn-refresh:hover {
+            background: linear-gradient(135deg, var(--accent-hover), #a855f7);
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+        }
+
+        .loading {
+            text-align: center;
+            padding: 4rem;
+            color: var(--text-muted);
+        }
+
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+            box-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid var(--danger);
+            color: var(--danger);
+            padding: 1.5rem;
+            border-radius: var(--radius);
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .executors-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .executor-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .executor-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent), #ec4899);
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .executor-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(124, 58, 237, 0.15);
+            border-color: rgba(124, 58, 237, 0.3);
+        }
+
+        .executor-card:hover::before {
+            opacity: 1;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+
+        .executor-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: color 0.2s;
+        }
+
+        .executor-name:hover {
+            color: var(--accent);
+        }
+
+        .badges {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            padding: 0.25rem 0.6rem;
+            border-radius: 9999px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.025em;
+        }
+
+        .badge-free {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-paid {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        .badge-detected {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .badge-undetected {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .badge-platform {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--info);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+        }
+
+        .badge-source-weao {
+            background: rgba(124, 58, 237, 0.15);
+            color: var(--accent);
+            border: 1px solid rgba(124, 58, 237, 0.3);
+        }
+
+        .badge-source-voxlis {
+            background: rgba(236, 72, 153, 0.15);
+            color: #ec4899;
+            border: 1px solid rgba(236, 72, 153, 0.3);
+        }
+
+        .card-body {
+            margin-bottom: 1rem;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+        .info-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+        }
+
+        .info-value {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .status-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.online {
+            background: var(--success);
+            box-shadow: 0 0 8px var(--success);
+        }
+
+        .status-dot.offline {
+            background: var(--danger);
+            box-shadow: 0 0 8px var(--danger);
+        }
+
+        .status-dot.warning {
+            background: var(--warning);
+            box-shadow: 0 0 8px var(--warning);
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 0.25rem;
+        }
+
+        .progress-fill {
+            height: 100%;
+            border-radius: 3px;
+            transition: width 0.5s ease;
+        }
+
+        .sunc-score {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .score-circle {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.75rem;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .card-footer {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-small {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            border-radius: 6px;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #9333ea);
+            color: white;
+            border: none;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--accent-hover), #a855f7);
+            box-shadow: 0 0 15px rgba(124, 58, 237, 0.3);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            color: var(--text-muted);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--surface-hover);
+            color: var(--text);
+            border-color: var(--accent);
+        }
+
+        .versions-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .version-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .version-item {
+            padding: 1rem;
+            background: var(--bg);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            transition: all 0.2s;
+        }
+
+        .version-item:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(124, 58, 237, 0.1);
+        }
+
+        .version-platform {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+
+        .version-hash {
+            font-family: 'Courier New', monospace;
+            font-size: 0.875rem;
+            color: var(--accent);
+            word-break: break-all;
+            text-shadow: 0 0 5px rgba(124, 58, 237, 0.3);
+        }
+
+        .version-date {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.25rem;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-container {
+            margin-bottom: 2rem;
+        }
+
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 1px solid var(--border);
+            margin-bottom: 1.5rem;
+            overflow-x: auto;
+        }
+
+        .tab {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 1rem;
+            border-bottom: 2px solid transparent;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            color: var(--text);
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .feature-tags {
+            display: flex;
+            gap: 0.375rem;
+            flex-wrap: wrap;
+            margin-top: 0.75rem;
+        }
+
+        .feature-tag {
+            padding: 0.25rem 0.5rem;
+            background: rgba(124, 58, 237, 0.1);
+            color: var(--accent);
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .last-updated {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+            font-size: 0.875rem;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .comparison-table th {
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            background: var(--bg);
+        }
+
+        .comparison-table tr:hover {
+            background: var(--surface-hover);
+        }
+
+        .comparison-table td {
+            color: var(--text);
+        }
+
+        .compare-bar {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .compare-bar-label {
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .compare-pills {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            flex: 1;
+        }
+
+        .compare-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            background: linear-gradient(135deg, var(--accent), #9333ea);
+            color: white;
+            border-radius: 9999px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            box-shadow: 0 0 10px rgba(124, 58, 237, 0.3);
+        }
+
+        .compare-pill .remove {
+            cursor: pointer;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+            font-size: 1rem;
+            line-height: 1;
+        }
+
+        .compare-pill .remove:hover {
+            opacity: 1;
+        }
+
+        .compare-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .compare-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .compare-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .compare-card:hover {
+            border-color: var(--accent);
+            box-shadow: 0 0 20px rgba(124, 58, 237, 0.1);
+        }
+
+        .compare-card h4 {
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--accent);
+        }
+
+        .compare-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.03);
+            font-size: 0.875rem;
+        }
+
+        .compare-row .label {
+            color: var(--text-muted);
+        }
+
+        .compare-row .value {
+            font-weight: 600;
+        }
+
+        .card-select-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .card-select-row input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            accent-color: var(--accent);
+            cursor: pointer;
+        }
+
+        .card-select-row label {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .toast-container {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 1000;
+        }
+
+        .toast {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem 1.5rem;
+            color: var(--text);
+            box-shadow: var(--shadow);
+            animation: slideIn 0.3s ease;
+            max-width: 400px;
+        }
+
+        .toast.error {
+            border-color: var(--danger);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .toast.success {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        @media (max-width: 768px) {
+            .hero-title {
+                font-size: 2.5rem;
+            }
+            .hero-tagline {
+                font-size: 1.1rem;
+            }
+            .dashboard-container {
+                padding: 1rem;
+            }
+            .executors-grid {
+                grid-template-columns: 1fr;
+            }
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .search-box {
+                min-width: 100%;
+            }
+            .compare-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    
+
+        /* ============================================================
+           PATCH: clearer purple/pink gradients + themed checkboxes
+        ============================================================ */
+        :root {
+            --pink: #ec4899;
+            --pink-hover: #f472b6;
+            --gradient-main: linear-gradient(135deg, #7c3aed 0%, #a855f7 48%, #ec4899 100%);
+            --gradient-main-hover: linear-gradient(135deg, #8b5cf6 0%, #c084fc 45%, #f472b6 100%);
+            --gradient-soft: linear-gradient(135deg, rgba(124, 58, 237, 0.16), rgba(236, 72, 153, 0.12));
+        }
+
+        .hero-btn,
+        .btn.active,
+        .btn-refresh,
+        .btn-primary,
+        .compare-pill {
+            background: var(--gradient-main) !important;
+            border-color: rgba(236, 72, 153, 0.45) !important;
+            color: #fff !important;
+            box-shadow: 0 0 22px rgba(124, 58, 237, 0.35), 0 0 18px rgba(236, 72, 153, 0.18) !important;
+        }
+
+        .hero-btn:hover,
+        .btn.active:hover,
+        .btn-refresh:hover,
+        .btn-primary:hover {
+            background: var(--gradient-main-hover) !important;
+            border-color: rgba(244, 114, 182, 0.65) !important;
+            box-shadow: 0 0 32px rgba(124, 58, 237, 0.45), 0 0 24px rgba(236, 72, 153, 0.28) !important;
+        }
+
+        .btn:not(.active):not(.btn-refresh):hover,
+        .btn-secondary:hover {
+            border-color: rgba(236, 72, 153, 0.55);
+            background: var(--gradient-soft);
+        }
+
+        .dashboard-header h2,
+        .executor-card::before,
+        .version-item:hover,
+        .compare-card:hover {
+            border-color: rgba(236, 72, 153, 0.35);
+        }
+
+        .badge-unknown {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
+            width: 20px;
+            height: 20px;
+            min-width: 20px;
+            border-radius: 6px;
+            border: 1px solid rgba(236, 72, 153, 0.45);
+            background: #0f0f18;
+            display: inline-grid;
+            place-content: center;
+            cursor: pointer;
+            transition: all 0.18s ease;
+            box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.12), 0 0 0 rgba(236, 72, 153, 0);
+        }
+
+        input[type="checkbox"]::before {
+            content: "";
+            width: 10px;
+            height: 10px;
+            transform: scale(0);
+            transition: transform 0.15s ease;
+            background: #fff;
+            clip-path: polygon(14% 44%, 0 58%, 38% 96%, 100% 20%, 86% 6%, 36% 66%);
+        }
+
+        input[type="checkbox"]:checked {
+            background: var(--gradient-main);
+            border-color: rgba(244, 114, 182, 0.9);
+            box-shadow: 0 0 14px rgba(236, 72, 153, 0.35), 0 0 10px rgba(124, 58, 237, 0.28);
+        }
+
+        input[type="checkbox"]:checked::before {
+            transform: scale(1);
+        }
+
+        input[type="checkbox"]:focus-visible {
+            outline: 2px solid rgba(236, 72, 153, 0.8);
+            outline-offset: 3px;
+        }
+
     </style>
 </head>
 <body>
-    <video autoplay="" loop="" muted="" class="background-video">
-        <source src="https://cdn.akamai.steamstatic.com/steamcommunity/public/images/items/1313140/c80d1a3ea315f69f72cbb77bffe42c5ed0f7b945.mp4" type="video/mp4">
-        Your browser does not support the video tag.
-    </video>
-    <div class="container">
-        <p class="header-text">
-            <a href="https://robloxhackers.lol/" target="_blank" class="glow-red">Voxlis.NET</a>
-        </p>
-        <p class="main-text">Your <span class="glow-red shake-animation">exploits</span>, your <span class="glow-red shake-animation">safety and knowledges</span>.</p>
-    </div>
+    <!-- ============================================================
+         HERO / LANDING SECTION
+    ============================================================ -->
+    <section class="hero-section" id="hero">
+        <video autoplay loop muted class="hero-video" playsinline>
+            <source src="https://cdn.akamai.steamstatic.com/steamcommunity/public/images/items/1313140/c80d1a3ea315f69f72cbb77bffe42c5ed0f7b945.mp4" type="video/mp4">
+        </video>
+        <div class="hero-overlay"></div>
 
+        <div class="hero-content">
+            <a href="#dashboard" class="hero-title">
+                <span class="voxlis">Voxlis.NET</span>
+                <span class="plus">+</span>
+                <span class="weao">WEAO</span>
+            </a>
+            <p class="hero-tagline">
+                Your <span class="highlight">exploits</span>, your <span class="highlight">safety</span> and <span class="highlight">knowledge</span>.
+            </p>
+            <a href="#dashboard" class="hero-btn">
+                <span>Enter Dashboard</span>
+                <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+                </svg>
+            </a>
+        </div>
 
-</body><style id="stylus-62" type="text/css" class="stylus"></style></html>
+        <a href="#dashboard" class="scroll-indicator">
+            <span>Scroll to explore</span>
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
+            </svg>
+        </a>
+    </section>
+
+    <!-- ============================================================
+         DASHBOARD SECTION
+    ============================================================ -->
+    <section class="dashboard-section" id="dashboard">
+        <div class="dashboard-container">
+            <div class="dashboard-header">
+                <h2>Executor Dashboard</h2>
+                <p>Live data from Voxlis.NET &amp; WEAO.xyz</p>
+            </div>
+
+            <div class="stats-bar" id="statsBar">
+                <div class="stat-card">
+                    <div class="stat-value" id="totalCount">-</div>
+                    <div class="stat-label">Total</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="freeCount">-</div>
+                    <div class="stat-label">Free</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="paidCount">-</div>
+                    <div class="stat-label">Paid</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="updatedCount">-</div>
+                    <div class="stat-label">Updated</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="outdatedCount">-</div>
+                    <div class="stat-label">Outdated</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="detectedCount">-</div>
+                    <div class="stat-label">Detected</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" id="undetectedCount">-</div>
+                    <div class="stat-label">Undetected</div>
+                </div>
+            </div>
+
+            <div class="versions-panel" id="versionsPanel">
+                <h3 style="margin-bottom: 0.5rem;">Roblox Versions</h3>
+                <div class="version-grid" id="versionGrid">
+                    <div class="loading">
+                        <div class="spinner"></div>
+                        Loading versions...
+                    </div>
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="search-box">
+                    <input type="text" id="searchInput" placeholder="Search executors...">
+                </div>
+                <div class="filter-group">
+                    <button class="btn active" data-filter="all" onclick="setFilter('all')">All</button>
+                    <button class="btn" data-filter="free" onclick="setFilter('free')">Free</button>
+                    <button class="btn" data-filter="paid" onclick="setFilter('paid')">Paid</button>
+                    <button class="btn" data-filter="windows" onclick="setFilter('windows')">Windows</button>
+                    <button class="btn" data-filter="android" onclick="setFilter('android')">Android</button>
+                    <button class="btn" data-filter="ios" onclick="setFilter('ios')">iOS</button>
+                    <button class="btn" data-filter="mac" onclick="setFilter('mac')">Mac</button>
+                    <button class="btn" data-filter="detected" onclick="setFilter('detected')">Detected</button>
+                    <button class="btn" data-filter="undetected" onclick="setFilter('undetected')">Undetected</button>
+                    <button class="btn" data-filter="weao" onclick="setFilter('weao')">WEAO</button>
+                    <button class="btn" data-filter="voxlis" onclick="setFilter('voxlis')">Voxlis</button>
+                </div>
+                <button class="btn btn-refresh" onclick="refreshData()">Refresh</button>
+            </div>
+
+            <div class="tab-container">
+                <div class="tabs">
+                    <button class="tab active" onclick="switchTab(event, 'grid')">Grid View</button>
+                    <button class="tab" onclick="switchTab(event, 'table')">Table View</button>
+                    <button class="tab" onclick="switchTab(event, 'comparison')">Comparison</button>
+                </div>
+
+                <div id="gridTab" class="tab-content active">
+                    <div id="gridContainer" class="executors-grid">
+                        <div class="loading" style="grid-column: 1/-1;">
+                            <div class="spinner"></div>
+                            <p>Loading executor data...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tableTab" class="tab-content">
+                    <div id="tableContainer" style="overflow-x: auto;">
+                        <table class="comparison-table" id="dataTable">
+                            <thead>
+                                <tr>
+                                    <th>Select</th>
+                                    <th>Name</th>
+                                    <th>Status</th>
+                                    <th>Platform</th>
+                                    <th>Price</th>
+                                    <th>sUNC</th>
+                                    <th>UNC</th>
+                                    <th>Version</th>
+                                    <th>Updated</th>
+                                    <th>Source</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tableBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div id="comparisonTab" class="tab-content">
+                    <div class="compare-bar" id="compareBar">
+                        <span class="compare-bar-label">Selected:</span>
+                        <div class="compare-pills" id="comparePills">
+                            <span style="color: var(--text-muted); font-size: 0.875rem;">Click checkboxes in Grid or Table view to select executors for comparison</span>
+                        </div>
+                        <div class="compare-actions">
+                            <button class="btn" onclick="clearCompare()">Clear All</button>
+                            <button class="btn btn-refresh" onclick="renderComparison()">Compare</button>
+                        </div>
+                    </div>
+                    <div id="comparisonContainer">
+                        <p style="color: var(--text-muted); text-align: center; padding: 2rem;">
+                            Select executors using the checkboxes in Grid or Table view, then click Compare.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="last-updated" id="lastUpdated">
+                Last updated: Never
+            </div>
+        </div>
+    </section>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script>
+        // ============================================================
+        // CONFIGURATION
+        // ============================================================
+        const VOXLIS_REF = 'e9d09ba47a41e04794bb5e5c6b323edb249dbfcb';
+
+        const CONFIG = {
+            weao: {
+                exploits: 'https://weao.xyz/api/status/exploits',
+                versions: 'https://weao.xyz/api/versions/current',
+                alts: {
+                    exploits: 'https://whatexpsare.online/api/status/exploits',
+                    versions: 'https://whatexpsare.online/api/versions/current'
+                }
+            },
+            voxlis: {
+                ref: VOXLIS_REF,
+                contents: `https://api.github.com/repos/localscripts/voxlis.NET/contents/public/data/roblox?ref=${VOXLIS_REF}`,
+                rawBase: `https://raw.githubusercontent.com/localscripts/voxlis.NET/${VOXLIS_REF}/public/data/roblox`,
+                prices: `https://raw.githubusercontent.com/localscripts/voxlis.NET/${VOXLIS_REF}/public/data/roblox/prices.json`,
+                // Optional: deploy localscripts/voxlisAPI yourself and put the live endpoint here.
+                // Example: 'https://your.domain/testxd.php'
+                apiStatus: ''
+            }
+        };
+
+        const KNOWN_VOXLIS_FOLDERS = [
+            'Aimmy', 'Arceus X', 'Bunni', 'Codex', 'Cosmic', 'Cryptic',
+            'Delta', 'Exoliner', 'Hydrogen', 'Isaeva', 'Macsploit', 'Madium',
+            'Matcha', 'Matrix', 'Milkers', 'Potassium', 'Real', 'Ronin',
+            'Seliware', 'Serotonin', 'Severe', 'SirHurt', 'Solara', 'Tomato',
+            'Vega X', 'Velocity', 'Volcano', 'Volt', 'Wave', 'Xeno', 'Yerba', 'YuB-x'
+        ];
+
+        const PRICE_ALIASES = {
+            arceusx: 'arceusx',
+            arceusxneo: 'arceusx',
+            vegax: 'vegax',
+            macsploit: 'macsploit',
+            matrixhub: 'matrix',
+            matrix: 'matrix',
+            yubx: 'yub-x',
+            'yub-x': 'yub-x',
+            dx9warev2: 'dx9ware',
+            bunnifun: 'bunni'
+        };
+
+        const STATUS_PLATFORM_KEYS = {
+            windows: 'windows',
+            mac: 'macos',
+            macos: 'macos',
+            android: 'android',
+            ios: 'ios'
+        };
+
+        // ============================================================
+        // STATE
+        // ============================================================
+        let allData = [];
+        let filteredData = [];
+        let currentFilter = 'all';
+        let versionsData = null;
+        let selectedForCompare = new Set();
+
+        // ============================================================
+        // INITIALIZATION
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadAllData();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            document.getElementById('searchInput').addEventListener('input', (e) => {
+                filterData(e.target.value);
+            });
+
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.setAttribute('target', '_self');
+                anchor.addEventListener('click', (event) => {
+                    const hash = anchor.getAttribute('href');
+                    const target = hash ? document.querySelector(hash) : null;
+                    if (!target) return;
+
+                    event.preventDefault();
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    history.replaceState(null, '', hash);
+                });
+            });
+        }
+
+        // ============================================================
+        // FETCH HELPERS
+        // ============================================================
+        async function fetchJson(url, options = {}) {
+            const response = await fetch(url, {
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-store',
+                headers: { 'Accept': 'application/json, text/plain, */*' }
+            });
+
+            if (options.allow404 && response.status === 404) return null;
+
+            if (!response.ok) {
+                const text = await response.text().catch(() => '');
+                throw new Error(`${url} failed: HTTP ${response.status} ${text.slice(0, 120)}`);
+            }
+
+            const text = await response.text();
+            try {
+                return JSON.parse(text);
+            } catch {
+                throw new Error(`${url} did not return valid JSON. Body: ${text.slice(0, 120)}`);
+            }
+        }
+
+        async function fetchText(url, options = {}) {
+            const response = await fetch(url, {
+                method: 'GET',
+                mode: 'cors',
+                cache: 'no-store',
+                headers: { 'Accept': 'text/plain, text/markdown, */*' }
+            });
+
+            if (options.allow404 && response.status === 404) return '';
+
+            if (!response.ok) {
+                const text = await response.text().catch(() => '');
+                throw new Error(`${url} failed: HTTP ${response.status} ${text.slice(0, 120)}`);
+            }
+
+            return response.text();
+        }
+
+        async function fetchWithFallback(primary, fallback) {
+            try {
+                return await fetchJson(primary);
+            } catch (err) {
+                console.warn(`Primary failed: ${primary}`, err);
+                if (!fallback) throw err;
+                return fetchJson(fallback);
+            }
+        }
+
+        // ============================================================
+        // NORMALIZATION HELPERS
+        // ============================================================
+        function normalizePlatform(platform) {
+            const p = String(platform || 'Windows').toLowerCase();
+            if (p.includes('win')) return 'windows';
+            if (p.includes('android')) return 'android';
+            if (p.includes('ios')) return 'ios';
+            if (p.includes('mac')) return 'mac';
+            if (p.includes('mobile')) return 'android';
+            return p;
+        }
+
+        function normalizeStatusPlatform(platform) {
+            const normalized = normalizePlatform(platform);
+            return STATUS_PLATFORM_KEYS[normalized] || normalized;
+        }
+
+        function normalizeSlug(name) {
+            return String(name || '')
+                .toLowerCase()
+                .replace(/&/g, 'and')
+                .replace(/[^a-z0-9-]/g, '');
+        }
+
+        function encodePathSegment(value) {
+            return String(value).split('/').map(encodeURIComponent).join('/');
+        }
+
+        function rawVoxlisUrl(folderName, filename) {
+            return `${CONFIG.voxlis.rawBase}/${encodePathSegment(folderName)}/${filename}`;
+        }
+
+        function getFirstUrl(value) {
+            if (Array.isArray(value)) return value[0] || null;
+            return value || null;
+        }
+
+        function cleanMarkdown(md) {
+            return String(md || '')
+                .replace(/```[\s\S]*?```/g, ' ')
+                .replace(/`([^`]+)`/g, '$1')
+                .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+                .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+                .replace(/^>\s?/gm, '')
+                .replace(/[#*_~>-]/g, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+        }
+
+        function truncate(text, length = 180) {
+            const value = String(text || '').trim();
+            if (value.length <= length) return value;
+            return `${value.slice(0, length).trim()}...`;
+        }
+
+        function displayPlatform(platform) {
+            const p = normalizePlatform(platform);
+            if (p === 'windows') return 'Windows';
+            if (p === 'android') return 'Android';
+            if (p === 'ios') return 'iOS';
+            if (p === 'mac') return 'macOS';
+            return platform || 'Unknown';
+        }
+
+        function formatPlatforms(platforms) {
+            const list = Array.isArray(platforms) && platforms.length ? platforms : ['unknown'];
+            return [...new Set(list.map(displayPlatform))].join(', ');
+        }
+
+        function isTrue(value) {
+            return value === true || value === 'true' || value === 1 || value === '1';
+        }
+
+        // ============================================================
+        // WEAO NORMALIZATION
+        // ============================================================
+        function normalizeExecutorData(item, source) {
+            const isFree = item.free === true || (item.cost && item.cost.toLowerCase().includes('free'));
+            const price = item.cost || (isFree ? 'Free' : 'Paid');
+            const platform = normalizePlatform(item.platform);
+
+            return {
+                id: `${source}-${item._id || item.trackerId || normalizeSlug(item.title) || Math.random().toString(36).slice(2)}`,
+                name: item.title || 'Unknown',
+                version: item.version || 'N/A',
+                platform,
+                platforms: [platform],
+                platformDisplay: item.platform || displayPlatform(platform),
+                free: isFree,
+                price,
+                detected: item.detected === true,
+                updateStatus: item.updateStatus === true,
+                uncStatus: item.uncStatus === true,
+                suncPercentage: Number(item.suncPercentage || 0),
+                uncPercentage: Number(item.uncPercentage || 0),
+                rbxVersion: item.rbxversion || 'N/A',
+                updatedDate: item.updatedDate || 'Unknown',
+                website: item.websitelink || '#',
+                discord: item.discordlink || null,
+                purchaseLink: item.purchaselink || null,
+                decompiler: item.decompiler === true,
+                multiInject: item.multiInject === true,
+                keysystem: item.keysystem === true,
+                clientmods: item.clientmods === true,
+                beta: item.beta === true,
+                elementCertified: item.elementCertified === true,
+                longestRunning: item.longestRunning === true,
+                hasIssues: item.hasIssues === true,
+                detectionReason: item.detectionReason || null,
+                description: item.slug?.fullDescription || null,
+                logo: item.slug?.logo || null,
+                owner: item.slug?.owner || null,
+                screenshots: item.slug?.screenshots || [],
+                extType: item.extype || 'unknown',
+                tags: [],
+                badges: [],
+                proSummary: '',
+                neutralSummary: '',
+                conSummary: '',
+                review: '',
+                source,
+                raw: item
+            };
+        }
+
+        // ============================================================
+        // VOXLIS FETCHING + NORMALIZATION
+        // ============================================================
+        async function fetchVoxlisFolders() {
+            try {
+                const entries = await fetchJson(CONFIG.voxlis.contents);
+                if (!Array.isArray(entries)) throw new Error('GitHub contents response was not an array');
+
+                const folders = entries
+                    .filter(entry => entry.type === 'dir')
+                    .map(entry => entry.name)
+                    .filter(Boolean);
+
+                if (folders.length) return folders;
+                throw new Error('No Voxlis folders returned by GitHub contents API');
+            } catch (error) {
+                console.warn('Voxlis folder API failed; using known folder fallback:', error);
+                return KNOWN_VOXLIS_FOLDERS;
+            }
+        }
+
+        async function fetchVoxlisApiStatus() {
+            if (!CONFIG.voxlis.apiStatus) return null;
+
+            const separator = CONFIG.voxlis.apiStatus.includes('?') ? '&' : '?';
+            const url = `${CONFIG.voxlis.apiStatus}${separator}errors=1`;
+
+            try {
+                return await fetchJson(url);
+            } catch (error) {
+                console.warn('Voxlis API status endpoint failed:', error);
+                return null;
+            }
+        }
+
+        async function fetchVoxlisExecutors() {
+            const [folders, prices, apiStatus] = await Promise.all([
+                fetchVoxlisFolders(),
+                fetchJson(CONFIG.voxlis.prices).catch(error => {
+                    console.warn('Voxlis prices failed:', error);
+                    return {};
+                }),
+                fetchVoxlisApiStatus()
+            ]);
+
+            const rows = await Promise.all(
+                folders.map(folder => fetchVoxlisExecutorFolder(folder, prices, apiStatus)
+                    .catch(error => {
+                        console.warn(`Skipping Voxlis folder ${folder}:`, error);
+                        return null;
+                    }))
+            );
+
+            return rows.filter(Boolean);
+        }
+
+        async function fetchVoxlisExecutorFolder(folderName, prices, apiStatus) {
+            const [info, points, review] = await Promise.all([
+                fetchJson(rawVoxlisUrl(folderName, 'info.json'), { allow404: true }),
+                fetchJson(rawVoxlisUrl(folderName, 'points.json'), { allow404: true }),
+                fetchText(rawVoxlisUrl(folderName, 'review.md'), { allow404: true })
+            ]);
+
+            if (!info || info.hidden === true) return null;
+            return normalizeVoxlisExecutorData(folderName, info, points || {}, review || '', prices || {}, apiStatus);
+        }
+
+        function normalizeVoxlisExecutorData(folderName, info, points, review, prices, apiStatus) {
+            const name = folderName;
+            const slug = normalizeSlug(name);
+            const platforms = Array.isArray(info.platforms) && info.platforms.length
+                ? info.platforms.map(normalizePlatform)
+                : [normalizePlatform(info.platform || 'unknown')];
+            const primaryPlatform = platforms[0] || 'unknown';
+            const priceMeta = getVoxlisPrice(slug, platforms, prices);
+            const tags = Array.isArray(info.tags) ? info.tags : [];
+            const badges = Array.isArray(info.badges) ? info.badges : [];
+            const website = getFirstUrl(info.urls?.website) || getFirstUrl(info.url) || '#';
+            const discord = getFirstUrl(info.urls?.discord);
+            const descriptionParts = [
+                points.pro_summary,
+                points.neutral_summary,
+                points.con_summary,
+                cleanMarkdown(review)
+            ].filter(Boolean);
+
+            const row = {
+                id: `voxlis-${slug}`,
+                name,
+                version: 'N/A',
+                platform: primaryPlatform,
+                platforms,
+                platformDisplay: formatPlatforms(platforms),
+                free: priceMeta.free,
+                price: priceMeta.price,
+                detected: null,
+                updateStatus: null,
+                uncStatus: null,
+                suncPercentage: null,
+                uncPercentage: null,
+                rbxVersion: 'N/A',
+                updatedDate: 'GitHub data',
+                website,
+                discord,
+                purchaseLink: priceMeta.purchaseLink,
+                decompiler: tags.includes('decompiler'),
+                multiInject: tags.includes('multi-instance') || tags.includes('multi_instance'),
+                keysystem: info.keyed === true,
+                clientmods: tags.includes('clientmods') || tags.includes('client-mods'),
+                beta: badges.includes('beta'),
+                elementCertified: badges.includes('verified') || badges.includes('element-certified'),
+                longestRunning: badges.includes('longest-running'),
+                hasIssues: false,
+                detectionReason: null,
+                description: truncate(descriptionParts.join(' '), 260),
+                logo: null,
+                owner: null,
+                screenshots: [],
+                extType: info.type || 'unknown',
+                tags,
+                badges,
+                proSummary: points.pro_summary || '',
+                neutralSummary: points.neutral_summary || '',
+                conSummary: points.con_summary || '',
+                review,
+                source: 'voxlis',
+                raw: { info, points, review }
+            };
+
+            applyVoxlisStatus(row, apiStatus);
+            return row;
+        }
+
+        function getVoxlisPrice(slug, platforms, prices) {
+            const key = PRICE_ALIASES[slug] || slug;
+            const freeProducts = Array.isArray(prices.freeProducts) ? prices.freeProducts : [];
+            const priceInfo = prices[key];
+
+            if (freeProducts.includes(key)) {
+                return { free: true, price: 'FREE', purchaseLink: null };
+            }
+
+            if (!priceInfo || !Array.isArray(priceInfo.offers) || priceInfo.offers.length === 0) {
+                return { free: false, price: 'Unknown', purchaseLink: null };
+            }
+
+            const normalizedPlatforms = platforms.map(normalizeStatusPlatform);
+            let offers = priceInfo.offers.filter(offer => normalizedPlatforms.includes(normalizeStatusPlatform(offer.platform)));
+            if (!offers.length) offers = priceInfo.offers;
+
+            const freeOffers = offers.filter(offer => Number(offer.price) === 0);
+            const paidOffers = offers.filter(offer => Number(offer.price) > 0).sort((a, b) => Number(a.price) - Number(b.price));
+
+            if (freeOffers.length && paidOffers.length) {
+                return {
+                    free: true,
+                    price: `FREE or from ${formatOffer(paidOffers[0], true)}`,
+                    purchaseLink: priceInfo.purchaseUrl || null
+                };
+            }
+
+            if (freeOffers.length) {
+                return { free: true, price: 'FREE', purchaseLink: priceInfo.purchaseUrl || null };
+            }
+
+            if (paidOffers.length === 1 && Number(paidOffers[0].days) === -1) {
+                return {
+                    free: false,
+                    price: formatOffer(paidOffers[0], false),
+                    purchaseLink: priceInfo.purchaseUrl || null
+                };
+            }
+
+            return {
+                free: false,
+                price: `From ${formatOffer(paidOffers[0], true)}`,
+                purchaseLink: priceInfo.purchaseUrl || null
+            };
+        }
+
+        function formatOffer(offer, includeFor = true) {
+            if (!offer) return 'Unknown';
+
+            const price = formatCurrency(offer.price, offer.currency);
+            const days = Number(offer.days);
+
+            if (days === -1) return `${price} Lifetime`;
+            if (!days || days <= 0) return price;
+
+            return includeFor ? `${price} for ${days} ${days === 1 ? 'day' : 'days'}` : `${price} ${days}d`;
+        }
+
+        function formatCurrency(price, currency) {
+            const n = Number(price);
+            const value = Number.isInteger(n) ? String(n) : n.toFixed(2).replace(/0+$/, '').replace(/\.$/, '');
+            if (currency === 'EUR') return `€${value}`;
+            if (currency && currency !== 'USD') return `${currency} ${value}`;
+            return `$${value}`;
+        }
+
+        function applyVoxlisStatus(row, apiStatus) {
+            if (!apiStatus || typeof apiStatus !== 'object') return;
+
+            const possibleServiceKeys = getPossibleStatusKeys(row.name);
+            const possiblePlatformKeys = row.platforms.map(normalizeStatusPlatform);
+
+            for (const platformKey of possiblePlatformKeys) {
+                const platformBlock = apiStatus[platformKey];
+                if (!platformBlock || typeof platformBlock !== 'object') continue;
+
+                for (const serviceKey of possibleServiceKeys) {
+                    const status = platformBlock[serviceKey];
+                    if (!status || typeof status !== 'object') continue;
+
+                    row.updateStatus = status.updated === true;
+                    row.version = status.output || status.version || row.version;
+                    row.rbxVersion = status._baseline || row.rbxVersion;
+                    row.updatedDate = 'Voxlis API';
+                    return;
+                }
+            }
+        }
+
+        function getPossibleStatusKeys(name) {
+            const slug = normalizeSlug(name);
+            const compact = slug.replace(/-/g, '');
+            const alias = PRICE_ALIASES[slug];
+            return [...new Set([slug, compact, alias].filter(Boolean))];
+        }
+
+        // ============================================================
+        // MAIN LOAD
+        // ============================================================
+        async function loadAllData() {
+            const container = document.getElementById('gridContainer');
+            container.innerHTML = `
+                <div class="loading" style="grid-column: 1/-1;">
+                    <div class="spinner"></div>
+                    <p>Fetching WEAO API &amp; Voxlis folder data...</p>
+                </div>
+            `;
+
+            try {
+                const weaoPromise = Promise.all([
+                    fetchWithFallback(CONFIG.weao.exploits, CONFIG.weao.alts.exploits),
+                    fetchWithFallback(CONFIG.weao.versions, CONFIG.weao.alts.versions)
+                ]).catch(error => {
+                    console.warn('WEAO unavailable:', error);
+                    showToast(`WEAO failed: ${error.message}`, 'error');
+                    return [[], null];
+                });
+
+                const voxlisPromise = fetchVoxlisExecutors().catch(error => {
+                    console.warn('Voxlis unavailable:', error);
+                    showToast(`Voxlis failed: ${error.message}`, 'error');
+                    return [];
+                });
+
+                const [[exploits, versions], voxlisRows] = await Promise.all([weaoPromise, voxlisPromise]);
+
+                versionsData = versions;
+                displayVersions(versions || {});
+
+                const weaoRows = Array.isArray(exploits)
+                    ? exploits.map(item => normalizeExecutorData(item, 'weao'))
+                    : [];
+
+                allData = [...weaoRows, ...voxlisRows];
+
+                if (!allData.length) throw new Error('No WEAO or Voxlis data could be loaded.');
+
+                updateStats();
+                filterData(document.getElementById('searchInput').value);
+                document.getElementById('lastUpdated').textContent =
+                    `Last updated: ${new Date().toLocaleString()} | WEAO: ${weaoRows.length} | Voxlis: ${voxlisRows.length}`;
+                showToast(`Loaded ${weaoRows.length} WEAO + ${voxlisRows.length} Voxlis rows`, 'success');
+            } catch (error) {
+                console.error('Load error:', error);
+                container.innerHTML = `
+                    <div class="error" style="grid-column: 1/-1;">
+                        <h3>Failed to load data</h3>
+                        <p>${escapeHtml(error.message)}</p>
+                        <p style="margin-top: 1rem; font-size: 0.875rem;">
+                            Run this through a local server, not file://. If DevTools shows CORS errors, use a proxy for the blocked API.
+                        </p>
+                        <button class="btn btn-refresh" onclick="refreshData()" style="margin-top: 1rem;">
+                            Retry
+                        </button>
+                    </div>
+                `;
+                showToast(`Error: ${error.message}`, 'error');
+            }
+        }
+
+        // ============================================================
+        // RENDERING
+        // ============================================================
+        function displayVersions(versions) {
+            const grid = document.getElementById('versionGrid');
+            const platforms = [
+                { key: 'Windows', label: 'Windows', icon: '🟣' },
+                { key: 'Mac', label: 'macOS', icon: '🍎' },
+                { key: 'Android', label: 'Android', icon: '🤖' },
+                { key: 'iOS', label: 'iOS', icon: '📱' }
+            ];
+
+            grid.innerHTML = platforms.map(p => {
+                const ver = versions[p.key];
+                const date = versions[`${p.key}Date`] || 'Unknown';
+                return `
+                    <div class="version-item">
+                        <div class="version-platform">${p.icon} ${p.label}</div>
+                        <div class="version-hash">${escapeHtml(ver || 'N/A')}</div>
+                        <div class="version-date">${escapeHtml(date)}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateStats() {
+            const total = allData.length;
+            const free = allData.filter(e => e.free === true).length;
+            const paid = allData.filter(e => e.free === false).length;
+            const updated = allData.filter(e => e.updateStatus === true).length;
+            const outdated = allData.filter(e => e.updateStatus === false).length;
+            const detected = allData.filter(e => e.detected === true).length;
+            const undetected = allData.filter(e => e.detected === false).length;
+
+            document.getElementById('totalCount').textContent = total;
+            document.getElementById('freeCount').textContent = free;
+            document.getElementById('paidCount').textContent = paid;
+            document.getElementById('updatedCount').textContent = updated;
+            document.getElementById('outdatedCount').textContent = outdated;
+            document.getElementById('detectedCount').textContent = detected;
+            document.getElementById('undetectedCount').textContent = undetected;
+        }
+
+        function setFilter(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.filter-group .btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.filter === filter);
+            });
+            filterData(document.getElementById('searchInput').value);
+        }
+
+        function filterData(searchTerm = '') {
+            const term = searchTerm.toLowerCase().trim();
+
+            filteredData = allData.filter(item => {
+                if (currentFilter === 'free' && item.free !== true) return false;
+                if (currentFilter === 'paid' && item.free !== false) return false;
+                if (currentFilter === 'detected' && item.detected !== true) return false;
+                if (currentFilter === 'undetected' && item.detected !== false) return false;
+                if (currentFilter === 'weao' && item.source !== 'weao') return false;
+                if (currentFilter === 'voxlis' && item.source !== 'voxlis') return false;
+                if (['windows', 'android', 'ios', 'mac'].includes(currentFilter)) {
+                    if (!item.platforms?.includes(currentFilter) && item.platform !== currentFilter) return false;
+                }
+
+                if (term) {
+                    const searchable = [
+                        item.name,
+                        item.version,
+                        item.platformDisplay,
+                        item.price,
+                        item.owner,
+                        item.description,
+                        item.proSummary,
+                        item.neutralSummary,
+                        item.conSummary,
+                        ...(item.tags || []),
+                        ...(item.badges || [])
+                    ].join(' ').toLowerCase();
+                    if (!searchable.includes(term)) return false;
+                }
+
+                return true;
+            });
+
+            renderGrid();
+            renderTable();
+        }
+
+        function getDetectionUi(item) {
+            if (item.detected === true) return { text: 'Detected', badge: 'badge-detected', dot: 'offline', color: 'var(--danger)' };
+            if (item.detected === false) return { text: 'Clean', badge: 'badge-undetected', dot: 'online', color: 'var(--success)' };
+            return { text: 'Unknown', badge: 'badge-unknown', dot: 'warning', color: 'var(--warning)' };
+        }
+
+        function getUpdateUi(item) {
+            if (item.updateStatus === true) return { text: 'Updated', dot: 'online', color: 'var(--success)' };
+            if (item.updateStatus === false) return { text: 'Outdated', dot: 'warning', color: 'var(--warning)' };
+            return { text: 'Unknown', dot: 'warning', color: 'var(--warning)' };
+        }
+
+        function hasNumber(value) {
+            return value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
+        }
+
+        function renderSunc(item) {
+            if (!hasNumber(item.suncPercentage)) {
+                return `<span style="color: var(--text-muted);">N/A</span>`;
+            }
+
+            const score = Number(item.suncPercentage);
+            const suncColor = score >= 90 ? 'var(--success)' : score >= 50 ? 'var(--warning)' : 'var(--danger)';
+
+            return `
+                <div class="sunc-score">
+                    <div class="score-circle" style="background: ${suncColor}20; color: ${suncColor}; border: 2px solid ${suncColor};">
+                        ${score}%
+                    </div>
+                    <div style="flex: 1;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${score}%; background: ${suncColor};"></div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function buildFeatureTags(item) {
+            const features = [];
+            if (item.decompiler) features.push('Decompiler');
+            if (item.multiInject) features.push('Multi-Instance');
+            if (item.keysystem) features.push('Key System');
+            if (item.clientmods) features.push('Client Mods');
+            if (item.beta) features.push('Beta');
+            if (item.elementCertified) features.push('Verified');
+            if (item.tags?.length) features.push(...item.tags.map(tag => tag.replace(/-/g, ' ')));
+            if (item.badges?.length) features.push(...item.badges);
+            return [...new Set(features.filter(Boolean))];
+        }
+
+        function toggleCompare(id) {
+            if (selectedForCompare.has(id)) {
+                selectedForCompare.delete(id);
+            } else {
+                if (selectedForCompare.size >= 6) {
+                    showToast('Maximum 6 executors can be compared at once', 'error');
+                    return;
+                }
+                selectedForCompare.add(id);
+            }
+            updateCompareBar();
+            renderGrid();
+            renderTable();
+        }
+
+        function updateCompareBar() {
+            const pills = document.getElementById('comparePills');
+            if (selectedForCompare.size === 0) {
+                pills.innerHTML = `<span style="color: var(--text-muted); font-size: 0.875rem;">Click checkboxes in Grid or Table view to select executors for comparison</span>`;
+                return;
+            }
+
+            const selectedItems = allData.filter(e => selectedForCompare.has(e.id));
+            pills.innerHTML = selectedItems.map(item => `
+                <span class="compare-pill">
+                    ${escapeHtml(item.name)}
+                    <span class="remove" onclick="toggleCompare(${escapeForInlineJs(item.id)})">&times;</span>
+                </span>
+            `).join('');
+        }
+
+        function clearCompare() {
+            selectedForCompare.clear();
+            updateCompareBar();
+            renderGrid();
+            renderTable();
+            document.getElementById('comparisonContainer').innerHTML = `
+                <p style="color: var(--text-muted); text-align: center; padding: 2rem;">
+                    Select executors using the checkboxes in Grid or Table view, then click Compare.
+                </p>
+            `;
+        }
+
+        function renderComparison() {
+            const container = document.getElementById('comparisonContainer');
+            const selectedItems = allData.filter(e => selectedForCompare.has(e.id));
+
+            if (selectedItems.length < 2) {
+                container.innerHTML = `
+                    <p style="color: var(--text-muted); text-align: center; padding: 2rem;">
+                        Select at least 2 executors to compare.
+                    </p>
+                `;
+                return;
+            }
+
+            const fields = [
+                { key: 'name', label: 'Name' },
+                { key: 'version', label: 'Version' },
+                { key: 'platformDisplay', label: 'Platform' },
+                { key: 'price', label: 'Price' },
+                { key: 'suncPercentage', label: 'sUNC', suffix: '%', nullable: true },
+                { key: 'uncPercentage', label: 'UNC', suffix: '%', nullable: true },
+                { key: 'detected', label: 'Detected', bool: true },
+                { key: 'updateStatus', label: 'Updated', bool: true },
+                { key: 'decompiler', label: 'Decompiler', bool: true },
+                { key: 'multiInject', label: 'Multi-Instance', bool: true },
+                { key: 'keysystem', label: 'Key System', bool: true },
+                { key: 'clientmods', label: 'Client Mods', bool: true },
+                { key: 'beta', label: 'Beta', bool: true },
+                { key: 'elementCertified', label: 'Verified', bool: true },
+                { key: 'updatedDate', label: 'Last Updated' },
+                { key: 'rbxVersion', label: 'Roblox Version' },
+                { key: 'source', label: 'Data Source' }
+            ];
+
+            container.innerHTML = `
+                <div class="compare-grid">
+                    ${selectedItems.map(item => `
+                        <div class="compare-card fade-in">
+                            <h4>${escapeHtml(item.name)}</h4>
+                            ${fields.map(f => renderCompareRow(item, f)).join('')}
+                            ${item.description ? `<p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.75rem;">${escapeHtml(item.description)}</p>` : ''}
+                            <div class="card-footer" style="margin-top: 1rem; padding-top: 1rem;">
+                                ${item.website && item.website !== '#' ? `<a href="${escapeHtml(item.website)}" target="_blank" class="btn-small btn-primary" rel="noopener">Website</a>` : ''}
+                                ${item.discord ? `<a href="${escapeHtml(item.discord)}" target="_blank" class="btn-small btn-secondary" rel="noopener">Discord</a>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function renderCompareRow(item, field) {
+            let val = item[field.key];
+
+            if (field.bool) {
+                val = val === null || val === undefined ? 'Unknown' : val ? 'Yes' : 'No';
+            }
+
+            if (field.nullable && !hasNumber(val)) {
+                val = 'N/A';
+            } else if (field.suffix && val !== 'N/A' && val !== null && val !== undefined) {
+                val = `${val}${field.suffix}`;
+            }
+
+            if (field.key === 'detected') {
+                const ui = getDetectionUi(item);
+                return `<div class="compare-row"><span class="label">${field.label}</span><span class="value" style="color: ${ui.color}">${escapeHtml(val)}</span></div>`;
+            }
+
+            if (field.key === 'updateStatus') {
+                const ui = getUpdateUi(item);
+                return `<div class="compare-row"><span class="label">${field.label}</span><span class="value" style="color: ${ui.color}">${escapeHtml(val)}</span></div>`;
+            }
+
+            return `<div class="compare-row"><span class="label">${field.label}</span><span class="value">${escapeHtml(val || 'N/A')}</span></div>`;
+        }
+
+        function renderGrid() {
+            const container = document.getElementById('gridContainer');
+
+            if (filteredData.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-muted);">
+                        <p style="font-size: 1.25rem; margin-bottom: 0.5rem;">No executors found</p>
+                        <p>Try adjusting your filters or search terms</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filteredData.map(item => {
+                const detectionUi = getDetectionUi(item);
+                const updateUi = getUpdateUi(item);
+                const isSelected = selectedForCompare.has(item.id);
+                const features = buildFeatureTags(item);
+
+                return `
+                    <div class="executor-card fade-in" data-id="${escapeHtml(item.id)}">
+                        <div class="card-select-row">
+                            <input type="checkbox"
+                                id="cb-${escapeHtml(item.id)}"
+                                ${isSelected ? 'checked' : ''}
+                                onchange="toggleCompare(${escapeForInlineJs(item.id)})">
+                            <label for="cb-${escapeHtml(item.id)}">Compare</label>
+                        </div>
+
+                        <div class="card-header">
+                            <a href="${escapeHtml(item.website || '#')}" target="_blank" class="executor-name" rel="noopener">
+                                ${item.logo ? `<img src="${escapeHtml(item.logo)}" alt="" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;" onerror="this.style.display='none'">` : ''}
+                                ${escapeHtml(item.name)}
+                            </a>
+                            <div class="badges">
+                                <span class="badge badge-source-${escapeHtml(item.source)}">${escapeHtml(item.source.toUpperCase())}</span>
+                                <span class="badge ${item.free ? 'badge-free' : 'badge-paid'}">
+                                    ${item.free ? 'Free' : 'Paid'}
+                                </span>
+                                <span class="badge ${detectionUi.badge}">
+                                    ${detectionUi.text}
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <div class="info-row">
+                                <span class="info-label">Platform</span>
+                                <span class="info-value"><span class="badge badge-platform">${escapeHtml(item.platformDisplay)}</span></span>
+                            </div>
+
+                            <div class="info-row">
+                                <span class="info-label">Version</span>
+                                <span class="info-value">${escapeHtml(item.version)}</span>
+                            </div>
+
+                            <div class="info-row">
+                                <span class="info-label">Price</span>
+                                <span class="info-value">${escapeHtml(item.price)}</span>
+                            </div>
+
+                            <div class="info-row">
+                                <span class="info-label">Update</span>
+                                <span class="info-value">
+                                    <span class="status-indicator">
+                                        <span class="status-dot ${updateUi.dot}"></span>
+                                        <span style="color: ${updateUi.color}">${updateUi.text}</span>
+                                    </span>
+                                </span>
+                            </div>
+
+                            <div class="info-row">
+                                <span class="info-label">sUNC Score</span>
+                                <span class="info-value">${renderSunc(item)}</span>
+                            </div>
+
+                            ${hasNumber(item.uncPercentage) ? `
+                            <div class="info-row">
+                                <span class="info-label">UNC Score</span>
+                                <span class="info-value">${item.uncPercentage}%</span>
+                            </div>
+                            ` : ''}
+
+                            ${item.rbxVersion && item.rbxVersion !== 'N/A' ? `
+                            <div class="info-row">
+                                <span class="info-label">Roblox Ver</span>
+                                <span class="info-value" style="font-family: monospace; font-size: 0.8rem;">${escapeHtml(item.rbxVersion)}</span>
+                            </div>
+                            ` : ''}
+
+                            ${item.proSummary ? `
+                            <div class="info-row">
+                                <span class="info-label">Pro</span>
+                                <span class="info-value" style="max-width: 65%; text-align: right;">${escapeHtml(item.proSummary)}</span>
+                            </div>
+                            ` : ''}
+
+                            ${item.neutralSummary ? `
+                            <div class="info-row">
+                                <span class="info-label">Note</span>
+                                <span class="info-value" style="max-width: 65%; text-align: right; color: var(--warning);">${escapeHtml(item.neutralSummary)}</span>
+                            </div>
+                            ` : ''}
+
+                            ${item.conSummary ? `
+                            <div class="info-row">
+                                <span class="info-label">Con</span>
+                                <span class="info-value" style="max-width: 65%; text-align: right; color: var(--danger);">${escapeHtml(item.conSummary)}</span>
+                            </div>
+                            ` : ''}
+
+                            ${item.detectionReason ? `
+                            <div class="info-row">
+                                <span class="info-label">Detection</span>
+                                <span class="info-value" style="color: var(--danger); font-size: 0.8rem;">${escapeHtml(item.detectionReason)}</span>
+                            </div>
+                            ` : ''}
+                        </div>
+
+                        ${features.length > 0 ? `
+                        <div class="feature-tags">
+                            ${features.map(f => `<span class="feature-tag">${escapeHtml(f)}</span>`).join('')}
+                        </div>
+                        ` : ''}
+
+                        <div class="card-footer">
+                            ${item.website && item.website !== '#' ? `
+                                <a href="${escapeHtml(item.website)}" target="_blank" class="btn-small btn-primary" rel="noopener">Website</a>
+                            ` : ''}
+                            ${item.discord ? `
+                                <a href="${escapeHtml(item.discord)}" target="_blank" class="btn-small btn-secondary" rel="noopener">Discord</a>
+                            ` : ''}
+                            ${item.purchaseLink ? `
+                                <a href="${escapeHtml(item.purchaseLink)}" target="_blank" class="btn-small btn-secondary" rel="noopener">Buy</a>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('tableBody');
+
+            tbody.innerHTML = filteredData.map(item => {
+                const detectionUi = getDetectionUi(item);
+                const updateUi = getUpdateUi(item);
+                const isSelected = selectedForCompare.has(item.id);
+                const sunc = hasNumber(item.suncPercentage) ? `${item.suncPercentage}%` : 'N/A';
+                const unc = hasNumber(item.uncPercentage) ? `${item.uncPercentage}%` : 'N/A';
+
+                return `
+                    <tr>
+                        <td>
+                            <input type="checkbox"
+                                ${isSelected ? 'checked' : ''}
+                                onchange="toggleCompare(${escapeForInlineJs(item.id)})">
+                        </td>
+                        <td>
+                            <strong>${escapeHtml(item.name)}</strong>
+                            ${item.beta ? '<span class="badge" style="margin-left: 0.5rem;">BETA</span>' : ''}
+                        </td>
+                        <td>
+                            <span class="status-indicator">
+                                <span class="status-dot ${detectionUi.dot}"></span>
+                                <span style="color: ${detectionUi.color}">${detectionUi.text}</span>
+                            </span>
+                        </td>
+                        <td>${escapeHtml(item.platformDisplay)}</td>
+                        <td>${escapeHtml(item.price)}</td>
+                        <td>${sunc}</td>
+                        <td>${unc}</td>
+                        <td>${escapeHtml(item.version)}</td>
+                        <td><span style="color: ${updateUi.color}">${updateUi.text}</span></td>
+                        <td><span class="badge badge-source-${escapeHtml(item.source)}">${escapeHtml(item.source.toUpperCase())}</span></td>
+                        <td>
+                            ${item.website && item.website !== '#' ? `<a href="${escapeHtml(item.website)}" target="_blank" class="btn-small btn-primary" rel="noopener">Open</a>` : '-'}
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ============================================================
+        // UI HELPERS
+        // ============================================================
+        function switchTab(event, tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.currentTarget.classList.add('active');
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById(tabName + 'Tab').classList.add('active');
+        }
+
+        function refreshData() {
+            loadAllData();
+        }
+
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateX(100%)';
+                toast.style.transition = 'all 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        function escapeHtml(text) {
+            if (text == null) return '';
+            const div = document.createElement('div');
+            div.textContent = String(text);
+            return div.innerHTML;
+        }
+
+        function escapeForInlineJs(value) {
+            return JSON.stringify(String(value)).replace(/"/g, '&quot;');
+        }
+
+        // ============================================================
+        // AUTO REFRESH
+        // ============================================================
+        setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                refreshData();
+            }
+        }, 300000);
+
+    </script>
+</body>
+</html>
