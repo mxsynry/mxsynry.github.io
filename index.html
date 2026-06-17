@@ -3,211 +3,468 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>mxsynry.github.io — Repo Browser</title>
+<meta name="theme-color" content="#0b0b12">
+<link rel="icon" href="https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/globe.ico" type="image/x-icon">
+<link rel="shortcut icon" href="https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/globe.ico" type="image/x-icon">
+<title>mxsynry.github.io</title>
 <style>
 :root {
-  --bg: #0d1117;
-  --bg-elev: #161b22;
-  --bg-elev2: #21262d;
-  --border: #30363d;
-  --text: #c9d1d9;
-  --text-dim: #8b949e;
-  --accent: #58a6ff;
-  --accent-hover: #79b8ff;
-  --dir: #e3b341;
-  --file: #a5d6ff;
-  --code: #7ee787;
-  --media: #f778ba;
-  --archive: #d2a8ff;
+  --bg: #08080d;
+  --bg-soft: #0d0d16;
+  --surface: rgba(18, 18, 29, 0.82);
+  --surface-strong: #141421;
+  --surface-hover: #1d1d2f;
+  --border: rgba(255,255,255,0.08);
+  --border-strong: rgba(168,85,247,0.38);
+  --text: #f2f0ff;
+  --text-muted: #a7a3bd;
+  --text-dim: #77728f;
+  --purple: #7c3aed;
+  --purple-2: #a855f7;
+  --pink: #ec4899;
+  --blue: #38bdf8;
+  --green: #34d399;
+  --yellow: #facc15;
+  --danger: #fb7185;
+  --dir: #fbbf24;
+  --file: #93c5fd;
+  --code: #86efac;
+  --media: #f9a8d4;
+  --archive: #c4b5fd;
+  --radius: 18px;
+  --radius-sm: 12px;
+  --shadow: 0 24px 70px rgba(0,0,0,0.42);
+  --gradient: linear-gradient(135deg, var(--purple) 0%, var(--purple-2) 45%, var(--pink) 100%);
+  --gradient-soft: linear-gradient(135deg, rgba(124,58,237,0.18), rgba(236,72,153,0.14));
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
+html { scrollbar-width: thin; scrollbar-color: rgba(168,85,247,0.48) var(--bg); }
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-  background: var(--bg);
-  color: var(--text);
   min-height: 100vh;
   display: flex;
   flex-direction: column;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 12% -8%, rgba(124,58,237,0.35), transparent 30%),
+    radial-gradient(circle at 88% 5%, rgba(236,72,153,0.24), transparent 30%),
+    radial-gradient(circle at 60% 110%, rgba(56,189,248,0.12), transparent 26%),
+    var(--bg);
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  overflow: hidden;
 }
 ::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: var(--bg-elev); }
-::-webkit-scrollbar-thumb { background: var(--border); border-radius: 5px; }
-::-webkit-scrollbar-thumb:hover { background: #484f58; }
-* { scrollbar-width: thin; scrollbar-color: var(--border) var(--bg-elev); }
-header {
-  background: var(--bg-elev);
-  border-bottom: 1px solid var(--border);
-  padding: 14px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: rgba(168,85,247,0.36); border-radius: 999px; border: 2px solid var(--bg); }
+::-webkit-scrollbar-thumb:hover { background: rgba(236,72,153,0.56); }
+a { color: inherit; }
+button, select, input { font: inherit; }
+.app-shell { height: 100vh; display: grid; grid-template-rows: auto auto 1fr; min-height: 0; }
+.header {
   position: sticky;
   top: 0;
-  z-index: 10;
-  flex-shrink: 0;
-}
-header h1 { font-size: 17px; font-weight: 600; color: var(--text); }
-header a { color: var(--accent); text-decoration: none; }
-header a:hover { text-decoration: underline; }
-.badge {
-  background: var(--bg-elev2);
-  border: 1px solid var(--border);
-  border-radius: 20px;
-  padding: 2px 10px;
-  font-size: 12px;
-  color: var(--text-dim);
-}
-.toolbar {
+  z-index: 20;
   display: flex;
-  gap: 8px;
   align-items: center;
-  padding: 10px 20px;
-  background: var(--bg);
+  gap: 16px;
+  padding: 16px 22px;
   border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
+  background: rgba(8,8,13,0.82);
+  backdrop-filter: blur(20px);
+}
+.logo {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: var(--gradient);
+  box-shadow: 0 0 26px rgba(124,58,237,0.28), 0 0 32px rgba(236,72,153,0.12);
   flex-shrink: 0;
 }
-.toolbar input {
-  background: var(--bg-elev);
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 6px 12px;
-  color: var(--text);
-  font-size: 14px;
-  min-width: 220px;
-  outline: none;
+.logo img { width: 24px; height: 24px; object-fit: contain; filter: drop-shadow(0 0 10px rgba(255,255,255,0.25)); }
+.title-wrap { min-width: 0; flex: 1; }
+.title-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.title-row h1 {
+  font-size: clamp(18px, 2vw, 24px);
+  letter-spacing: -0.035em;
+  line-height: 1.1;
 }
-.toolbar input:focus { border-color: var(--accent); }
-.toolbar button {
-  background: var(--bg-elev2);
+.title-row h1 span {
+  background: var(--gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+.subtitle { margin-top: 4px; color: var(--text-muted); font-size: 13px; }
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(255,255,255,0.055);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 6px 12px;
-  color: var(--text);
+  color: var(--text-muted);
+  border-radius: 999px;
+  padding: 5px 10px;
   font-size: 12px;
+  white-space: nowrap;
+}
+.header-actions { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.btn, .mini-btn, .select {
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.045);
+  color: var(--text);
+  border-radius: 999px;
+  padding: 10px 14px;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: transform .18s ease, border-color .18s ease, background .18s ease, box-shadow .18s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
 }
-.toolbar button:hover { background: var(--border); }
-.toolbar button.active { background: var(--accent); color: #000; border-color: var(--accent); font-weight: 600; }
-.layout { display: flex; flex: 1; overflow: hidden; }
+.btn:hover, .mini-btn:hover, .select:hover { border-color: rgba(236,72,153,0.45); background: rgba(255,255,255,0.075); box-shadow: 0 0 22px rgba(124,58,237,0.13); }
+.btn:active, .mini-btn:active { transform: translateY(1px); }
+.btn.primary, .mini-btn.primary { background: var(--gradient); border-color: transparent; color: #fff; font-weight: 750; box-shadow: 0 12px 28px rgba(124,58,237,0.24); }
+.btn.ghost { color: var(--text-muted); }
+.mini-btn { padding: 7px 10px; border-radius: 12px; font-size: 12px; }
+.mini-btn.primary { color: white !important; }
+.toolbar {
+  z-index: 15;
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(8,8,13,0.64);
+  backdrop-filter: blur(18px);
+}
+.search-wrap { position: relative; min-width: 0; }
+.search-wrap svg { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-dim); pointer-events: none; }
+.search-wrap input {
+  width: 100%;
+  border: 1px solid rgba(168,85,247,0.34);
+  background: linear-gradient(180deg, rgba(22,22,36,0.92), rgba(13,13,22,0.92));
+  color: var(--text);
+  border-radius: 999px;
+  padding: 13px 16px 13px 48px;
+  outline: none;
+  transition: border-color .18s ease, box-shadow .18s ease;
+}
+.search-wrap input::placeholder { color: #88839c; }
+.search-wrap input:focus { border-color: rgba(236,72,153,0.65); box-shadow: 0 0 0 4px rgba(124,58,237,0.14), 0 0 28px rgba(236,72,153,0.12); }
+.toolbar-actions { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
+.segment {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  background: rgba(255,255,255,0.045);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+.segment button {
+  background: transparent;
+  border: 0;
+  color: var(--text-muted);
+  padding: 8px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: background .18s ease, color .18s ease;
+}
+.segment button.active { color: #fff; background: var(--gradient); font-weight: 750; }
+.select-wrap { display: inline-flex; align-items: center; gap: 8px; color: var(--text-muted); font-size: 13px; }
+.select {
+  appearance: none;
+  padding-right: 34px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%), linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position: calc(100% - 18px) 50%, calc(100% - 13px) 50%;
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  color: var(--text);
+}
+.layout { display: grid; grid-template-columns: minmax(230px, 300px) 1fr; min-height: 0; overflow: hidden; }
 .sidebar {
-  width: 260px;
-  min-width: 200px;
-  max-width: 400px;
-  background: var(--bg-elev);
   border-right: 1px solid var(--border);
-  overflow-y: auto;
-  padding: 8px 0;
+  background: rgba(15,15,26,0.74);
+  backdrop-filter: blur(18px);
+  overflow: auto;
+  padding: 12px 10px 24px;
   resize: horizontal;
+  min-width: 220px;
+  max-width: 420px;
 }
-.sidebar::-webkit-resizer { background: var(--border); }
+.sidebar-top { padding: 10px 10px 12px; color: var(--text-muted); font-size: 12px; text-transform: uppercase; letter-spacing: .08em; font-weight: 800; }
 .tree-item {
   display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 5px 8px;
+  gap: 7px;
+  padding: 8px 10px;
   cursor: pointer;
+  border-radius: 12px;
   font-size: 13px;
-  border-radius: 4px;
-  margin: 0 6px;
-  white-space: nowrap;
-  overflow: hidden;
+  min-width: 0;
+  color: var(--text-muted);
 }
-.tree-item:hover { background: var(--bg-elev2); }
-.tree-toggle { width: 14px; text-align: center; font-size: 10px; color: var(--text-dim); cursor: pointer; flex-shrink: 0; }
-.tree-spacer { width: 14px; flex-shrink: 0; }
-.tree-icon { font-size: 14px; flex-shrink: 0; }
-.tree-label { color: var(--text); overflow: hidden; text-overflow: ellipsis; }
-.tree-label.active { color: var(--accent); font-weight: 600; }
-.content { flex: 1; display: flex; flex-direction: column; overflow: hidden; min-width: 0; }
-.breadcrumb { padding: 10px 20px; font-size: 14px; color: var(--text-dim); border-bottom: 1px solid var(--border); background: var(--bg); flex-shrink: 0; }
-.breadcrumb .bc-root, .breadcrumb .bc-part { cursor: pointer; color: var(--accent); }
-.breadcrumb .bc-root:hover, .breadcrumb .bc-part:hover { text-decoration: underline; }
-.breadcrumb .bc-sep { margin: 0 6px; color: var(--text-dim); }
-.breadcrumb .bc-current { color: var(--text); font-weight: 500; }
-.main { flex: 1; overflow-y: auto; padding: 0 20px 30px; }
-.file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 16px; }
-.file-list { display: flex; flex-direction: column; gap: 1px; margin-top: 16px; background: var(--border); border-radius: 8px; overflow: hidden; }
-.file-row { display: flex; align-items: center; gap: 10px; padding: 10px 16px; background: var(--bg-elev); cursor: pointer; transition: background 0.1s; }
-.file-row:hover { background: var(--bg-elev2); }
-.file-row .icon { width: 20px; text-align: center; font-size: 16px; flex-shrink: 0; }
-.file-row .name { flex: 1; font-size: 14px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.file-row .size { font-size: 12px; color: var(--text-dim); flex-shrink: 0; min-width: 70px; text-align: right; }
-.file-row .actions { display: flex; gap: 8px; opacity: 0; transition: opacity 0.15s; }
-.file-row:hover .actions { opacity: 1; }
-.file-row .actions a { font-size: 12px; color: var(--accent); text-decoration: none; padding: 2px 8px; border-radius: 4px; background: var(--bg-elev2); border: 1px solid var(--border); }
-.file-row .actions a:hover { background: var(--border); }
-.card { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 10px; padding: 14px; cursor: pointer; transition: transform 0.1s, border-color 0.15s; display: flex; flex-direction: column; gap: 8px; }
-.card:hover { border-color: var(--accent); transform: translateY(-1px); }
-.card .icon { font-size: 28px; text-align: center; margin-bottom: 4px; }
-.card .name { font-size: 14px; font-weight: 500; color: var(--text); word-break: break-all; }
-.card .meta { font-size: 12px; color: var(--text-dim); display: flex; justify-content: space-between; }
-.card .actions { display: flex; gap: 6px; margin-top: 4px; }
-.card .actions a { flex: 1; text-align: center; font-size: 12px; color: var(--accent); text-decoration: none; padding: 4px; border-radius: 4px; background: var(--bg-elev2); border: 1px solid var(--border); }
-.card .actions a:hover { background: var(--border); }
-.empty { text-align: center; padding: 60px 20px; color: var(--text-dim); font-size: 15px; }
-.preview-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 100; padding: 24px; }
-.preview-overlay.active { display: flex; }
-.preview-box { background: var(--bg-elev); border: 1px solid var(--border); border-radius: 12px; max-width: 90vw; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; width: 100%; }
-.preview-header { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border-bottom: 1px solid var(--border); background: var(--bg-elev2); }
-.preview-header .title { font-size: 14px; font-weight: 500; }
-.preview-header .close { background: none; border: none; color: var(--text-dim); font-size: 20px; cursor: pointer; padding: 0 4px; }
+.tree-item:hover { background: rgba(255,255,255,0.06); color: var(--text); }
+.tree-toggle, .tree-spacer { width: 16px; flex: 0 0 16px; text-align: center; font-size: 10px; color: var(--text-dim); }
+.tree-icon { width: 20px; flex: 0 0 20px; text-align: center; }
+.tree-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tree-label.active { color: #fff; font-weight: 800; text-shadow: 0 0 14px rgba(236,72,153,0.18); }
+.content { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+.breadcrumb {
+  padding: 13px 22px;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  background: rgba(8,8,13,0.34);
+  font-size: 13px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+.breadcrumb .bc-root, .breadcrumb .bc-part { cursor: pointer; color: #d8b4fe; }
+.breadcrumb .bc-root:hover, .breadcrumb .bc-part:hover { color: #f0abfc; }
+.breadcrumb .bc-sep { margin: 0 8px; color: var(--text-dim); }
+.breadcrumb .bc-current { color: var(--text); font-weight: 750; }
+.main { flex: 1; min-height: 0; overflow: auto; padding: 22px; }
+.path-note {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 16px;
+  padding: 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--gradient-soft);
+  color: var(--text-muted);
+}
+.path-note strong { color: var(--text); }
+.file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(235px, 1fr)); gap: 16px; }
+.file-list { display: flex; flex-direction: column; gap: 8px; }
+.card, .file-row {
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(24,24,39,0.88), rgba(14,14,23,0.88));
+  box-shadow: 0 16px 34px rgba(0,0,0,0.22);
+  transition: transform .18s ease, border-color .18s ease, box-shadow .18s ease, background .18s ease;
+}
+.card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius);
+  padding: 16px;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 3px;
+  background: var(--gradient);
+  opacity: 0;
+  transition: opacity .18s ease;
+}
+.card:hover, .file-row:hover { transform: translateY(-2px); border-color: rgba(236,72,153,0.42); box-shadow: 0 20px 48px rgba(0,0,0,0.30), 0 0 26px rgba(124,58,237,0.12); }
+.card:hover::before { opacity: 1; }
+.card .icon { font-size: 30px; line-height: 1; }
+.card .name { font-weight: 800; line-height: 1.25; word-break: break-word; color: var(--text); }
+.card .path { color: var(--text-dim); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.card .meta { display: flex; justify-content: space-between; gap: 8px; color: var(--text-muted); font-size: 12px; }
+.card .actions, .file-row .actions { display: flex; gap: 7px; flex-wrap: wrap; }
+.card .actions { margin-top: auto; }
+.file-row {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 13px 14px;
+  border-radius: 14px;
+  cursor: pointer;
+}
+.file-row .icon { font-size: 20px; text-align: center; }
+.file-row .name { font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-row .subpath { color: var(--text-dim); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
+.file-row .size { color: var(--text-muted); font-size: 12px; min-width: 70px; text-align: right; }
+.empty {
+  min-height: 280px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  color: var(--text-muted);
+  border: 1px dashed rgba(168,85,247,0.28);
+  border-radius: var(--radius);
+  background: rgba(255,255,255,0.03);
+  padding: 40px;
+}
+.preview-overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  place-items: center;
+  background: rgba(0,0,0,0.72);
+  backdrop-filter: blur(10px);
+  z-index: 100;
+  padding: 24px;
+}
+.preview-overlay.active { display: grid; }
+.preview-box {
+  width: min(1100px, 94vw);
+  max-height: 90vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 22px;
+  border: 1px solid rgba(168,85,247,0.3);
+  background: rgba(17,17,28,0.98);
+  box-shadow: var(--shadow);
+}
+.preview-header, .preview-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  background: rgba(255,255,255,0.045);
+  border-bottom: 1px solid var(--border);
+}
+.preview-actions { border-bottom: 0; border-top: 1px solid var(--border); justify-content: flex-start; flex-wrap: wrap; }
+.preview-header .title { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.preview-header .close { background: transparent; border: 0; color: var(--text-muted); font-size: 24px; cursor: pointer; }
 .preview-header .close:hover { color: var(--text); }
-.preview-body { flex: 1; overflow: auto; padding: 16px; display: flex; align-items: center; justify-content: center; min-height: 100px; }
-.preview-body img, .preview-body video { max-width: 100%; max-height: 70vh; border-radius: 6px; }
-.preview-body pre { background: var(--bg); border: 1px solid var(--border); border-radius: 6px; padding: 16px; font-size: 13px; line-height: 1.5; overflow: auto; max-width: 80vw; max-height: 70vh; white-space: pre-wrap; word-break: break-word; color: var(--text); font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
-.preview-actions { display: flex; gap: 8px; padding: 12px 16px; border-top: 1px solid var(--border); background: var(--bg-elev2); }
-.preview-actions a, .preview-actions button { background: var(--accent); color: #000; border: none; border-radius: 6px; padding: 6px 14px; font-size: 13px; text-decoration: none; cursor: pointer; font-weight: 500; }
-.preview-actions button { background: var(--bg-elev); color: var(--text); border: 1px solid var(--border); }
-@media (max-width: 768px) { .sidebar { display: none; } }
+.preview-body { flex: 1; overflow: auto; padding: 18px; min-height: 180px; display: grid; place-items: center; }
+.preview-body img, .preview-body video { max-width: 100%; max-height: 70vh; border-radius: 14px; }
+.preview-body pre {
+  justify-self: stretch;
+  align-self: stretch;
+  background: #07070b;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  color: #e6edf3;
+  font-size: 13px;
+  line-height: 1.55;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+.loading { color: var(--text-muted); padding: 40px; }
+.toast {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 200;
+  padding: 13px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(168,85,247,0.3);
+  background: rgba(17,17,28,0.96);
+  color: var(--text);
+  box-shadow: var(--shadow);
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+  transition: opacity .2s ease, transform .2s ease;
+}
+.toast.show { opacity: 1; transform: translateY(0); }
+@media (max-width: 900px) {
+  body { overflow: auto; }
+  .app-shell { height: auto; min-height: 100vh; display: flex; flex-direction: column; }
+  .toolbar { grid-template-columns: 1fr; }
+  .toolbar-actions { justify-content: flex-start; }
+  .layout { grid-template-columns: 1fr; overflow: visible; }
+  .sidebar { display: none; }
+  .main { overflow: visible; }
+  .file-row { grid-template-columns: 28px minmax(0, 1fr); }
+  .file-row .size, .file-row .actions { grid-column: 2; text-align: left; }
+  .header { align-items: flex-start; }
+  .header-actions { display: none; }
+}
 </style>
-<base target="_blank">
 </head>
 <body>
-<header>
-  <svg height="22" width="22" viewBox="0 0 16 16" fill="white"><path d="M8 0c4.42 0 8 3.58 8 8a8.013 8.013 0 0 1-5.45 7.59c-.4.08-.55-.17-.55-.38 0-.27.01-1.13.01-2.2 0-.75-.25-1.23-.54-1.48 1.78-.2 3.65-.88 3.65-3.95 0-.88-.31-1.59-.82-2.15.08-.2.36-1.02-.08-2.12 0 0-.67-.22-2.2.82-.64-.18-1.32-.27-2-.27-.68 0-1.36.09-2 .27-1.53-1.03-2.2-.82-2.2-.82-.44 1.1-.16 1.92-.08 2.12-.51.56-.82 1.28-.82 2.15 0 3.06 1.86 3.75 3.64 3.95-.23.2-.44.55-.51 1.07-.46.21-1.61.55-2.33-.66-.15-.24-.6-.83-1.23-.82-.67.01-.27.38.01.53.34.19.73.9.82 1.13.16.45.68 1.31 2.69.94 0 .67.01 1.3.01 1.49 0 .21-.15.45-.55.38A7.995 7.995 0 0 1 0 8c0-4.42 3.58-8 8-8Z"/></svg>
-  <h1><a href="https://github.com/mxsynry/mxsynry.github.io" target="_blank">mxsynry / mxsynry.github.io</a></h1>
-  <span class="badge" id="fileCountBadge">0 files</span>
-</header>
+<div class="app-shell">
+  <header class="header">
+    <div class="logo" aria-hidden="true">
+      <img src="https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/globe.ico" alt="">
+    </div>
+    <div class="title-wrap">
+      <div class="title-row">
+        <h1><span>mxsynry.github.io</span></h1>
+        <span class="badge" id="fileCountBadge">0 files</span>
+        <span class="badge" id="currentModeBadge">HTML opens: Site</span>
+      </div>
+      <p class="subtitle">Browse my GitHub Pages files, preview assets, and launch HTML pages from their live site path.</p>
+    </div>
+    <div class="header-actions">
+      <a class="btn ghost" href="https://github.com/mxsynry/mxsynry.github.io" target="_blank" rel="noopener">GitHub</a>
+      <a class="btn primary" href="https://mxsynry.github.io" target="_blank" rel="noopener">Live Site</a>
+    </div>
+  </header>
 
-<div class="toolbar">
-  <input type="text" id="search" placeholder="Search files..." autocomplete="off">
-  <button id="btnGrid" class="active">Grid</button>
-  <button id="btnList">List</button>
-  <button id="btnExpandAll">Expand All</button>
-  <button id="btnCollapseAll">Collapse All</button>
-  <button id="btnRefresh">Refresh</button>
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
+      <input type="text" id="search" placeholder="Search files or paths..." autocomplete="off" spellcheck="false">
+    </div>
+    <div class="toolbar-actions">
+      <div class="segment" aria-label="View mode">
+        <button id="btnGrid" class="active" type="button">Grid</button>
+        <button id="btnList" type="button">List</button>
+      </div>
+      <label class="select-wrap">Open HTML
+        <select class="select" id="htmlOpenMode" title="What happens when you click an HTML file">
+          <option value="pages">mxsynry.github.io path</option>
+          <option value="preview">Preview code here</option>
+          <option value="github">GitHub file page</option>
+          <option value="raw">Raw file</option>
+        </select>
+      </label>
+      <button class="btn ghost" id="btnExpandAll" type="button">Expand</button>
+      <button class="btn ghost" id="btnCollapseAll" type="button">Collapse</button>
+      <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
+    </div>
+  </div>
+
+  <div class="layout">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">Files</div>
+      <div id="tree"></div>
+    </aside>
+    <main class="content">
+      <div class="breadcrumb" id="breadcrumb">mxsynry.github.io</div>
+      <div class="main" id="main"></div>
+    </main>
+  </div>
 </div>
 
-<div class="layout">
-  <div class="sidebar" id="sidebar">
-    <div id="tree"></div>
-  </div>
-  <div class="content">
-    <div class="breadcrumb" id="breadcrumb">mxsynry.github.io</div>
-    <div class="main" id="main"></div>
-  </div>
-</div>
-
-<div class="preview-overlay" id="previewOverlay">
+<div class="preview-overlay" id="previewOverlay" role="dialog" aria-modal="true" aria-hidden="true">
   <div class="preview-box">
     <div class="preview-header">
       <span class="title" id="previewTitle">Preview</span>
-      <button class="close" id="previewClose">&times;</button>
+      <button class="close" id="previewClose" type="button" aria-label="Close preview">&times;</button>
     </div>
     <div class="preview-body" id="previewBody"></div>
     <div class="preview-actions" id="previewActions"></div>
   </div>
 </div>
+<div class="toast" id="toast"></div>
 
 <script>
-// SNAPSHOT is now dynamic
+const CONFIG = {
+  owner: 'mxsynry',
+  repo: 'mxsynry.github.io',
+  branch: 'main',
+  pagesOrigin: 'https://mxsynry.github.io'
+};
+
 let SNAPSHOT = null;
-let viewMode = 'grid';
+let viewMode = localStorage.getItem('mxsynry:viewMode') || localStorage.getItem('repoBrowser:viewMode') || 'grid';
 let currentPath = '';
 let searchQuery = '';
 let expandedDirs = new Set();
+let htmlOpenMode = localStorage.getItem('mxsynry:htmlOpenMode') || localStorage.getItem('repoBrowser:htmlOpenMode') || 'pages';
 
 function formatSize(bytes) {
   if (bytes == null) return '';
@@ -217,37 +474,68 @@ function formatSize(bytes) {
   return bytes.toFixed(i === 0 ? 0 : 1) + ' ' + units[i];
 }
 
+function extOf(name = '') { return (String(name).split('.').pop() || '').toLowerCase(); }
+function isHtmlFile(node) { return node && node.type !== 'dir' && ['html','htm'].includes(extOf(node.name)); }
+function encodePath(path = '') { return path.split('/').filter(Boolean).map(encodeURIComponent).join('/'); }
+function getPagesUrl(path = '') { return CONFIG.pagesOrigin.replace(/\/$/, '') + '/' + encodePath(path); }
+function getGitHubUrl(path = '', type = 'file') {
+  const kind = type === 'dir' ? 'tree' : 'blob';
+  return `https://github.com/${CONFIG.owner}/${CONFIG.repo}/${kind}/${CONFIG.branch}/${encodePath(path)}`;
+}
+function getRawUrl(path = '') {
+  return `https://raw.githubusercontent.com/${CONFIG.owner}/${CONFIG.repo}/${CONFIG.branch}/${encodePath(path)}`;
+}
+
 function getIcon(node) {
-  if (node.type === 'dir') return { char: '\u{1F4C1}', color: 'var(--dir)' };
-  const ext = (node.name.split('.').pop() || '').toLowerCase();
+  if (node.type === 'dir') return { char: '📁', color: 'var(--dir)' };
+  const ext = extOf(node.name);
   const map = {
-    html: { char: '\u{1F310}', color: 'var(--accent)' },
-    htm:  { char: '\u{1F310}', color: 'var(--accent)' },
-    css:  { char: '\u{1F3A8}', color: 'var(--accent)' },
-    scss: { char: '\u{1F3A8}', color: 'var(--accent)' },
-    js:   { char: '\u{1F4DD}', color: 'var(--code)' },
-    ts:   { char: '\u{1F4DD}', color: 'var(--code)' },
-    lua:  { char: '\u{1F4DD}', color: 'var(--code)' },
-    luau: { char: '\u{1F4DD}', color: 'var(--code)' },
-    md:   { char: '\u{1F4C4}', color: 'var(--text)' },
-    yml:  { char: '\u{2699}\uFE0F', color: 'var(--text-dim)' },
-    yaml: { char: '\u{2699}\uFE0F', color: 'var(--text-dim)' },
-    json: { char: '\u{1F4E6}', color: 'var(--text-dim)' },
-    mp4:  { char: '\u{1F3AC}', color: 'var(--media)' },
-    png:  { char: '\u{1F5BC}\uFE0F', color: 'var(--media)' },
-    jpg:  { char: '\u{1F5BC}\uFE0F', color: 'var(--media)' },
-    jpeg: { char: '\u{1F5BC}\uFE0F', color: 'var(--media)' },
-    gif:  { char: '\u{1F5BC}\uFE0F', color: 'var(--media)' },
-    ico:  { char: '\u{1F5BC}\uFE0F', color: 'var(--media)' },
-    rar:  { char: '\u{1F4E6}', color: 'var(--archive)' },
-    zip:  { char: '\u{1F4E6}', color: 'var(--archive)' },
-    tar:  { char: '\u{1F4E6}', color: 'var(--archive)' },
-    gz:   { char: '\u{1F4E6}', color: 'var(--archive)' },
-    rb:   { char: '\u{1F4DD}', color: 'var(--code)' },
-    gemfile:{ char: '\u{1F48E}', color: 'var(--text-dim)' }
+    html: { char: '🌐', color: 'var(--pink)' }, htm: { char: '🌐', color: 'var(--pink)' },
+    css: { char: '🎨', color: 'var(--blue)' }, scss: { char: '🎨', color: 'var(--blue)' },
+    js: { char: '📜', color: 'var(--code)' }, ts: { char: '📜', color: 'var(--code)' },
+    lua: { char: '📜', color: 'var(--code)' }, luau: { char: '📜', color: 'var(--code)' }, rb: { char: '📜', color: 'var(--code)' },
+    md: { char: '📄', color: 'var(--text)' }, txt: { char: '📄', color: 'var(--text)' },
+    yml: { char: '⚙️', color: 'var(--text-muted)' }, yaml: { char: '⚙️', color: 'var(--text-muted)' }, json: { char: '📦', color: 'var(--archive)' },
+    mp4: { char: '🎬', color: 'var(--media)' }, webm: { char: '🎬', color: 'var(--media)' }, mov: { char: '🎬', color: 'var(--media)' },
+    png: { char: '🖼️', color: 'var(--media)' }, jpg: { char: '🖼️', color: 'var(--media)' }, jpeg: { char: '🖼️', color: 'var(--media)' }, gif: { char: '🖼️', color: 'var(--media)' }, webp: { char: '🖼️', color: 'var(--media)' }, svg: { char: '🖼️', color: 'var(--media)' }, ico: { char: '🖼️', color: 'var(--media)' },
+    rar: { char: '🗜️', color: 'var(--archive)' }, zip: { char: '🗜️', color: 'var(--archive)' }, tar: { char: '🗜️', color: 'var(--archive)' }, gz: { char: '🗜️', color: 'var(--archive)' }
   };
-  if (node.name.toLowerCase() === 'gemfile') return map.gemfile;
-  return map[ext] || { char: '\u{1F4C4}', color: 'var(--text)' };
+  if (String(node.name).toLowerCase() === 'gemfile') return { char: '💎', color: 'var(--archive)' };
+  return map[ext] || { char: '📄', color: 'var(--file)' };
+}
+
+function escapeHtml(str) {
+  if (str == null) return '';
+  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  clearTimeout(showToast.timer);
+  showToast.timer = setTimeout(() => toast.classList.remove('show'), 2600);
+}
+
+function normalizeNode(node, parentPath = '') {
+  if (!node) return null;
+  const name = node.name || CONFIG.repo;
+  const type = node.type === 'tree' ? 'dir' : node.type === 'blob' ? 'file' : (node.type || 'dir');
+  const path = parentPath ? parentPath + '/' + name : (node.path || '');
+  const normalized = {
+    ...node,
+    name,
+    type,
+    path: node.path || path,
+    fullPath: node.fullPath || node.path || path,
+    size: node.size,
+    html_url: node.html_url,
+    download_url: node.download_url
+  };
+  if (type === 'dir') {
+    normalized.children = (node.children || []).map(child => normalizeNode(child, normalized.fullPath)).filter(Boolean);
+  }
+  return normalized;
 }
 
 function findNode(path) {
@@ -258,65 +546,59 @@ function findNode(path) {
     if (!node || !node.children) return null;
     node = node.children.find(c => c.name === part);
   }
-  return node;
+  return node || null;
 }
 
-function getAllFiles(node, prefix) {
+function getAllFiles(node, prefix = '') {
   const files = [];
   if (!node || !node.children) return files;
   for (const child of node.children) {
     const p = prefix ? prefix + '/' + child.name : child.name;
-    if (child.type === 'dir') {
-      files.push(...getAllFiles(child, p));
-    } else {
-      files.push({ ...child, fullPath: p });
-    }
+    if (child.type === 'dir') files.push(...getAllFiles(child, p));
+    else files.push({ ...child, fullPath: p });
   }
   return files;
 }
 
-// Fixed bug: Doesn't throw error if snapshot root structure missing
 function countFiles(node) {
   if (!node) return 0;
   if (node.type === 'file') return 1;
-  if (!node.children) return 0;
-  return node.children.reduce((sum, c) => sum + countFiles(c), 0);
+  return (node.children || []).reduce((sum, child) => sum + countFiles(child), 0);
 }
 
-function escapeHtml(str) {
-  if (str == null) return '';
-  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-
-function buildTreeHTML(node, path, level) {
+function buildTreeHTML(node, path = '', level = 0) {
   if (!node || !node.children) return '';
-  let html = '';
-  const sorted = [...node.children].sort((a, b) => {
-    if (a.type === b.type) return a.name.localeCompare(b.name);
-    return a.type === 'dir' ? -1 : 1;
-  });
-  for (const child of sorted) {
+  const sorted = [...node.children].sort(sortDirsFirst);
+  return sorted.map(child => {
     const childPath = path ? path + '/' + child.name : child.name;
     const isDir = child.type === 'dir';
     const icon = getIcon(child);
     const isExpanded = expandedDirs.has(childPath);
     const isActive = currentPath === childPath || (currentPath && currentPath.startsWith(childPath + '/'));
     const indent = level * 16;
+    let html = `<div class="tree-item" data-path="${escapeHtml(childPath)}" data-type="${child.type}" style="padding-left:${indent + 8}px" title="${escapeHtml(child.name)}">`;
+    html += isDir ? `<span class="tree-toggle" data-path="${escapeHtml(childPath)}">${isExpanded ? '▼' : '▶'}</span>` : '<span class="tree-spacer"></span>';
+    html += `<span class="tree-icon" style="color:${icon.color}">${icon.char}</span>`;
+    html += `<span class="tree-label${isActive ? ' active' : ''}">${escapeHtml(child.name)}</span></div>`;
+    if (isDir && isExpanded) html += buildTreeHTML(child, childPath, level + 1);
+    return html;
+  }).join('');
+}
 
-    html += '<div class="tree-item" data-path="' + escapeHtml(childPath) + '" data-type="' + child.type + '" style="padding-left:' + (indent + 8) + 'px" title="' + escapeHtml(child.name) + '">';
-    if (isDir) {
-      html += '<span class="tree-toggle" data-path="' + escapeHtml(childPath) + '">' + (isExpanded ? '\u25BC' : '\u25B6') + '</span>';
-    } else {
-      html += '<span class="tree-spacer"></span>';
-    }
-    html += '<span class="tree-icon" style="color:' + icon.color + '">' + icon.char + '</span>';
-    html += '<span class="tree-label' + (isActive ? ' active' : '') + '">' + escapeHtml(child.name) + '</span>';
-    html += '</div>';
-    if (isDir && isExpanded) {
-      html += buildTreeHTML(child, childPath, level + 1);
-    }
+function sortDirsFirst(a, b) {
+  if (a.type === b.type) return a.name.localeCompare(b.name);
+  return a.type === 'dir' ? -1 : 1;
+}
+
+function actionButtons(item, path, isDir) {
+  if (isDir) {
+    return `<a class="mini-btn primary btn-open" href="#" data-action="open-folder">Open</a><a class="mini-btn" href="${escapeHtml(item.html_url || getGitHubUrl(path, 'dir'))}" target="_blank" rel="noopener" data-action="external">GitHub</a>`;
   }
-  return html;
+  const raw = item.download_url || getRawUrl(path);
+  const gh = item.html_url || getGitHubUrl(path, 'file');
+  const site = getPagesUrl(path);
+  const htmlSite = isHtmlFile(item) ? `<a class="mini-btn primary" href="${escapeHtml(site)}" target="_blank" rel="noopener" data-action="external">Site</a>` : '';
+  return `${htmlSite}<a class="mini-btn" href="#" data-action="preview">Preview</a><a class="mini-btn" href="${escapeHtml(gh)}" target="_blank" rel="noopener" data-action="external">GitHub</a><a class="mini-btn" href="${escapeHtml(raw)}" target="_blank" rel="noopener" download data-action="external">Raw</a>`;
 }
 
 function render() {
@@ -325,23 +607,22 @@ function render() {
   const breadcrumb = document.getElementById('breadcrumb');
   const badge = document.getElementById('fileCountBadge');
   const treeEl = document.getElementById('tree');
+  const modeBadge = document.getElementById('currentModeBadge');
 
   treeEl.innerHTML = buildTreeHTML(SNAPSHOT, '', 0);
   treeEl.querySelectorAll('.tree-item').forEach(el => {
-    el.addEventListener('click', (e) => {
+    el.addEventListener('click', e => {
       const path = el.dataset.path;
       const type = el.dataset.type;
       if (type === 'dir') {
         if (e.target.classList.contains('tree-toggle')) {
           e.stopPropagation();
-          if (expandedDirs.has(path)) { expandedDirs.delete(path); } else { expandedDirs.add(path); }
+          expandedDirs.has(path) ? expandedDirs.delete(path) : expandedDirs.add(path);
           render();
-        } else {
-          navigateTo(path);
-        }
+        } else navigateTo(path);
       } else {
         const node = findNode(path);
-        if (node) previewFile(node);
+        if (node) handleFileOpen(node, path);
       }
     });
   });
@@ -349,98 +630,97 @@ function render() {
   const parts = currentPath ? currentPath.split('/').filter(Boolean) : [];
   let bcHtml = '<span class="bc-root" data-path="">mxsynry.github.io</span>';
   let acc = '';
-  for (let i = 0; i < parts.length; i++) {
-    acc = acc ? acc + '/' + parts[i] : parts[i];
+  parts.forEach((part, i) => {
+    acc = acc ? acc + '/' + part : part;
     bcHtml += '<span class="bc-sep">/</span>';
-    if (i === parts.length - 1) {
-      bcHtml += '<span class="bc-current">' + escapeHtml(parts[i]) + '</span>';
-    } else {
-      bcHtml += '<span class="bc-part" data-path="' + escapeHtml(acc) + '">' + escapeHtml(parts[i]) + '</span>';
-    }
-  }
-  breadcrumb.innerHTML = bcHtml;
-
-  breadcrumb.querySelectorAll('.bc-root, .bc-part').forEach(el => {
-    el.addEventListener('click', () => navigateTo(el.dataset.path || ''));
+    bcHtml += i === parts.length - 1 ? `<span class="bc-current">${escapeHtml(part)}</span>` : `<span class="bc-part" data-path="${escapeHtml(acc)}">${escapeHtml(part)}</span>`;
   });
+  breadcrumb.innerHTML = bcHtml;
+  breadcrumb.querySelectorAll('.bc-root, .bc-part').forEach(el => el.addEventListener('click', () => navigateTo(el.dataset.path || '')));
 
-  let items = [];
+  let items;
+  let noteText;
   if (searchQuery) {
-    const all = getAllFiles(SNAPSHOT, '');
     const q = searchQuery.toLowerCase();
-    items = all.filter(f => f.name.toLowerCase().includes(q) || f.fullPath.toLowerCase().includes(q));
-    items.sort((a, b) => a.fullPath.localeCompare(b.fullPath));
+    items = getAllFiles(SNAPSHOT).filter(f => f.name.toLowerCase().includes(q) || f.fullPath.toLowerCase().includes(q)).sort((a, b) => a.fullPath.localeCompare(b.fullPath));
+    noteText = `<strong>Search:</strong> ${escapeHtml(searchQuery)} · ${items.length} result${items.length === 1 ? '' : 's'}`;
   } else {
     const node = findNode(currentPath) || SNAPSHOT;
-    items = node.children || [];
-    items = [...items].sort((a, b) => {
-      if (a.type === b.type) return a.name.localeCompare(b.name);
-      return a.type === 'dir' ? -1 : 1;
-    });
+    items = [...(node.children || [])].sort(sortDirsFirst);
+    noteText = `<strong>${escapeHtml(currentPath || 'Root')}</strong> · ${items.length} item${items.length === 1 ? '' : 's'}`;
   }
 
   badge.textContent = countFiles(SNAPSHOT) + ' files';
+  modeBadge.textContent = 'HTML opens: ' + ({pages:'Site path', preview:'Preview', github:'GitHub', raw:'Raw'}[htmlOpenMode] || 'Site path');
 
-  if (items.length === 0) {
-    main.innerHTML = '<div class="empty">No files found.</div>';
+  if (!items.length) {
+    main.innerHTML = '<div class="empty"><div><strong>No files found.</strong><br>Try a different search term or folder.</div></div>';
     return;
   }
 
-  if (viewMode === 'grid') {
-    main.innerHTML = '<div class="file-grid" id="fileGrid"></div>';
-    const grid = document.getElementById('fileGrid');
-    for (const item of items) {
-      const icon = getIcon(item);
-      const isDir = item.type === 'dir';
-      const path = searchQuery ? item.fullPath : (currentPath ? currentPath + '/' + item.name : item.name);
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.dataset.path = path;
-      card.dataset.type = item.type;
-      card.innerHTML = '<div class="icon" style="color:' + icon.color + '">' + icon.char + '</div>' +
-        '<div class="name" title="' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + '</div>' +
-        '<div class="meta"><span>' + (isDir ? (item.children ? item.children.length + ' items' : 'dir') : formatSize(item.size)) + '</span>' +
-        '<span>' + (isDir ? 'folder' : (item.name.split('.').pop() || 'file')) + '</span></div>' +
-        '<div class="actions">' +
-        (isDir ? '<a class="btn-open">Open</a>' : '<a class="btn-dl" href="' + escapeHtml(item.download_url) + '" target="_blank" download>Download</a>') +
-        '<a class="btn-gh" href="' + escapeHtml(item.html_url) + '" target="_blank">GitHub</a></div>';
-      card.addEventListener('click', (e) => {
-        if (e.target.classList.contains('btn-gh') || e.target.classList.contains('btn-dl')) return;
-        if (isDir) navigateTo(path);
-        else previewFile(item);
-      });
-      grid.appendChild(card);
-    }
-  } else {
-    main.innerHTML = '<div class="file-list" id="fileList"></div>';
-    const list = document.getElementById('fileList');
-    for (const item of items) {
-      const icon = getIcon(item);
-      const isDir = item.type === 'dir';
-      const path = searchQuery ? item.fullPath : (currentPath ? currentPath + '/' + item.name : item.name);
-      const row = document.createElement('div');
-      row.className = 'file-row';
-      row.dataset.path = path;
-      row.dataset.type = item.type;
-      row.innerHTML = '<span class="icon" style="color:' + icon.color + '">' + icon.char + '</span>' +
-        '<span class="name" title="' + escapeHtml(item.name) + '">' + escapeHtml(item.name) + '</span>' +
-        '<span class="size">' + (isDir ? '' : formatSize(item.size)) + '</span>' +
-        '<div class="actions">' +
-        (isDir ? '<a class="btn-open">Open</a>' : '<a class="btn-dl" href="' + escapeHtml(item.download_url) + '" target="_blank" download>Download</a>') +
-        '<a class="btn-gh" href="' + escapeHtml(item.html_url) + '" target="_blank">GitHub</a></div>';
-      row.addEventListener('click', (e) => {
-        if (e.target.tagName === 'A') return;
-        if (isDir) { navigateTo(path); } else { previewFile(item); }
-      });
-      list.appendChild(row);
-    }
+  const note = `<div class="path-note"><span>${noteText}</span><span>HTML files include a <strong>Site</strong> button for ${CONFIG.pagesOrigin}</span></div>`;
+  if (viewMode === 'grid') renderGrid(main, items, note);
+  else renderList(main, items, note);
+}
+
+function renderGrid(main, items, note) {
+  main.innerHTML = note + '<div class="file-grid" id="fileGrid"></div>';
+  const grid = document.getElementById('fileGrid');
+  for (const item of items) {
+    const isDir = item.type === 'dir';
+    const path = searchQuery ? item.fullPath : (currentPath ? currentPath + '/' + item.name : item.name);
+    const icon = getIcon(item);
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.dataset.path = path;
+    card.dataset.type = item.type;
+    card.innerHTML = `
+      <div class="icon" style="color:${icon.color}">${icon.char}</div>
+      <div class="name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
+      <div class="path" title="${escapeHtml(path)}">${escapeHtml(path)}</div>
+      <div class="meta"><span>${isDir ? ((item.children || []).length + ' items') : formatSize(item.size)}</span><span>${isDir ? 'folder' : extOf(item.name) || 'file'}</span></div>
+      <div class="actions">${actionButtons(item, path, isDir)}</div>`;
+    card.addEventListener('click', e => {
+      if (e.target.closest('a')) return;
+      isDir ? navigateTo(path) : handleFileOpen(item, path);
+    });
+    card.querySelector('[data-action="preview"]')?.addEventListener('click', e => { e.preventDefault(); previewFile(item, path); });
+    card.querySelector('[data-action="open-folder"]')?.addEventListener('click', e => { e.preventDefault(); navigateTo(path); });
+    grid.appendChild(card);
+  }
+}
+
+function renderList(main, items, note) {
+  main.innerHTML = note + '<div class="file-list" id="fileList"></div>';
+  const list = document.getElementById('fileList');
+  for (const item of items) {
+    const isDir = item.type === 'dir';
+    const path = searchQuery ? item.fullPath : (currentPath ? currentPath + '/' + item.name : item.name);
+    const icon = getIcon(item);
+    const row = document.createElement('div');
+    row.className = 'file-row';
+    row.dataset.path = path;
+    row.dataset.type = item.type;
+    row.innerHTML = `
+      <span class="icon" style="color:${icon.color}">${icon.char}</span>
+      <span><span class="name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span><div class="subpath" title="${escapeHtml(path)}">${escapeHtml(path)}</div></span>
+      <span class="size">${isDir ? ((item.children || []).length + ' items') : formatSize(item.size)}</span>
+      <div class="actions">${actionButtons(item, path, isDir)}</div>`;
+    row.addEventListener('click', e => {
+      if (e.target.closest('a')) return;
+      isDir ? navigateTo(path) : handleFileOpen(item, path);
+    });
+    row.querySelector('[data-action="preview"]')?.addEventListener('click', e => { e.preventDefault(); previewFile(item, path); });
+    row.querySelector('[data-action="open-folder"]')?.addEventListener('click', e => { e.preventDefault(); navigateTo(path); });
+    list.appendChild(row);
   }
 }
 
 function navigateTo(path) {
-  currentPath = path;
+  currentPath = path || '';
   searchQuery = '';
-  document.getElementById('search').value = '';
+  const search = document.getElementById('search');
+  if (search) search.value = '';
   if (path) {
     const parts = path.split('/').filter(Boolean);
     let acc = '';
@@ -452,90 +732,154 @@ function navigateTo(path) {
   render();
 }
 
-function previewFile(item) {
+function handleFileOpen(item, path) {
+  if (!isHtmlFile(item)) return previewFile(item, path);
+  if (htmlOpenMode === 'pages') window.open(getPagesUrl(path), '_blank', 'noopener');
+  else if (htmlOpenMode === 'github') window.open(item.html_url || getGitHubUrl(path, 'file'), '_blank', 'noopener');
+  else if (htmlOpenMode === 'raw') window.open(item.download_url || getRawUrl(path), '_blank', 'noopener');
+  else previewFile(item, path);
+}
+
+function openPreview() {
   const overlay = document.getElementById('previewOverlay');
+  overlay.classList.add('active');
+  overlay.setAttribute('aria-hidden', 'false');
+}
+function closePreview() {
+  const overlay = document.getElementById('previewOverlay');
+  overlay.classList.remove('active');
+  overlay.setAttribute('aria-hidden', 'true');
+}
+
+function previewFile(item, path) {
   const title = document.getElementById('previewTitle');
   const body = document.getElementById('previewBody');
   const actions = document.getElementById('previewActions');
+  const raw = item.download_url || getRawUrl(path);
+  const gh = item.html_url || getGitHubUrl(path, 'file');
+  const site = getPagesUrl(path);
   title.textContent = item.name;
-  body.innerHTML = '<div style="color:var(--text-dim);padding:40px;">Loading...</div>';
-  actions.innerHTML = '<a href="' + escapeHtml(item.download_url) + '" target="_blank" download>Download</a>' +
-    '<a href="' + item.html_url + '" target="_blank" rel="noopener">GitHub</a>' +
-    '<button id="previewCloseBtn">Close</button>';
-  overlay.classList.add('active');
+  body.innerHTML = '<div class="loading">Loading preview...</div>';
+  actions.innerHTML = `${isHtmlFile(item) ? `<a class="mini-btn primary" href="${escapeHtml(site)}" target="_blank" rel="noopener">Open on GitHub Pages</a>` : ''}<a class="mini-btn" href="${escapeHtml(raw)}" target="_blank" rel="noopener" download>Raw / Download</a><a class="mini-btn" href="${escapeHtml(gh)}" target="_blank" rel="noopener">GitHub</a><button class="mini-btn" id="previewCloseBtn" type="button">Close</button>`;
+  openPreview();
+  document.getElementById('previewCloseBtn').onclick = closePreview;
 
-  document.getElementById('previewCloseBtn').onclick = () => overlay.classList.remove('active');
-
-  const ext = (item.name.split('.').pop() || '').toLowerCase();
+  const ext = extOf(item.name);
   const isImage = ['png','jpg','jpeg','gif','ico','webp','svg'].includes(ext);
   const isVideo = ['mp4','webm','mov'].includes(ext);
-  const isText = ['html','htm','css','js','ts','lua','luau','md','json','yml','yaml','txt','rb','gemfile'].includes(ext) || (item.size && item.size < 500000);
-  if (isImage) {
-    body.innerHTML = '<img src="' + escapeHtml(item.download_url) + '" alt="' + escapeHtml(item.name) + '">';
-  } else if (isVideo) {
-    body.innerHTML = '<video controls src="' + escapeHtml(item.download_url) + '"></video>';
-  } else if (isText) {
-    fetch(item.download_url)
-      .then(r => r.text())
-      .then(text => { body.innerHTML = '<pre>' + escapeHtml(text) + '</pre>'; })
-      .catch(() => { body.innerHTML = '<div style="color:var(--text-dim)">Could not load preview.</div>'; });
+  const isText = ['html','htm','css','js','ts','lua','luau','md','json','yml','yaml','txt','rb'].includes(ext) || String(item.name).toLowerCase() === 'gemfile' || (item.size && item.size < 500000);
+
+  if (isImage) body.innerHTML = `<img src="${escapeHtml(raw)}" alt="${escapeHtml(item.name)}">`;
+  else if (isVideo) body.innerHTML = `<video controls src="${escapeHtml(raw)}"></video>`;
+  else if (isText) {
+    fetch(raw)
+      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
+      .then(text => { body.innerHTML = `<pre>${escapeHtml(text)}</pre>`; })
+      .catch(() => { body.innerHTML = '<div class="empty">Could not load preview.</div>'; });
   } else {
-    body.innerHTML = '<div style="color:var(--text-dim);text-align:center;padding:40px;">Preview not available for this file type.<br><br><a href="' + escapeHtml(item.download_url) + '" target="_blank" download style="color:var(--accent)">Download instead</a></div>';
+    body.innerHTML = `<div class="empty"><div><strong>Preview not available.</strong><br><br><a class="mini-btn primary" href="${escapeHtml(raw)}" target="_blank" rel="noopener" download>Download file</a></div></div>`;
   }
 }
 
-document.getElementById('search').addEventListener('input', e => {
-  searchQuery = e.target.value.trim();
-  render();
-});
-document.getElementById('btnGrid').addEventListener('click', () => {
-  viewMode = 'grid';
-  document.getElementById('btnGrid').classList.add('active');
-  document.getElementById('btnList').classList.remove('active');
-  render();
-});
-document.getElementById('btnList').addEventListener('click', () => {
-  viewMode = 'list';
-  document.getElementById('btnList').classList.add('active');
-  document.getElementById('btnGrid').classList.remove('active');
-  render();
-});
-document.getElementById('btnExpandAll').addEventListener('click', () => {
-  function collectDirs(node, prefix) {
-    if (!node || !node.children) return;
-    for (const child of node.children) {
-      if (child.type === 'dir') {
-        const p = prefix ? prefix + '/' + child.name : child.name;
-        expandedDirs.add(p);
-        collectDirs(child, p);
-      }
+function collectDirs(node, prefix = '') {
+  if (!node || !node.children) return;
+  for (const child of node.children) {
+    if (child.type === 'dir') {
+      const p = prefix ? prefix + '/' + child.name : child.name;
+      expandedDirs.add(p);
+      collectDirs(child, p);
     }
   }
-  collectDirs(SNAPSHOT, '');
-  render();
-});
-document.getElementById('btnCollapseAll').addEventListener('click', () => { expandedDirs.clear(); render(); });
-document.getElementById('btnRefresh').addEventListener('click', () => { location.reload(); });
-document.getElementById('previewClose').addEventListener('click', () => { document.getElementById('previewOverlay').classList.remove('active'); });
-document.getElementById('previewOverlay').addEventListener('click', e => {
-  if (e.target === document.getElementById('previewOverlay')) { document.getElementById('previewOverlay').classList.remove('active'); }
-});
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') { document.getElementById('previewOverlay').classList.remove('active'); }
-});
+}
 
-// New async Initializer function
-async function init() {
+function bindUi() {
+  const search = document.getElementById('search');
+  const modeSelect = document.getElementById('htmlOpenMode');
+  document.getElementById('btnGrid').classList.toggle('active', viewMode === 'grid');
+  document.getElementById('btnList').classList.toggle('active', viewMode === 'list');
+  modeSelect.value = htmlOpenMode;
+
+  search.addEventListener('input', e => { searchQuery = e.target.value.trim(); render(); });
+  search.addEventListener('keydown', e => { if (e.key === 'Escape') { search.value = ''; searchQuery = ''; render(); } });
+  document.getElementById('btnGrid').addEventListener('click', () => { viewMode = 'grid'; localStorage.setItem('mxsynry:viewMode', viewMode); document.getElementById('btnGrid').classList.add('active'); document.getElementById('btnList').classList.remove('active'); render(); });
+  document.getElementById('btnList').addEventListener('click', () => { viewMode = 'list'; localStorage.setItem('mxsynry:viewMode', viewMode); document.getElementById('btnList').classList.add('active'); document.getElementById('btnGrid').classList.remove('active'); render(); });
+  modeSelect.addEventListener('change', e => { htmlOpenMode = e.target.value; localStorage.setItem('mxsynry:htmlOpenMode', htmlOpenMode); render(); showToast('HTML open mode: ' + modeSelect.options[modeSelect.selectedIndex].text); });
+  document.getElementById('btnExpandAll').addEventListener('click', () => { collectDirs(SNAPSHOT); render(); });
+  document.getElementById('btnCollapseAll').addEventListener('click', () => { expandedDirs.clear(); render(); });
+  document.getElementById('btnRefresh').addEventListener('click', () => location.reload());
+  document.getElementById('previewClose').addEventListener('click', closePreview);
+  document.getElementById('previewOverlay').addEventListener('click', e => { if (e.target.id === 'previewOverlay') closePreview(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closePreview(); });
+}
+
+function buildSnapshotFromGitTree(tree) {
+  const root = { name: CONFIG.repo, type: 'dir', path: '', fullPath: '', children: [] };
+  const dirs = new Map([['', root]]);
+  const items = [...tree].sort((a, b) => a.path.localeCompare(b.path));
+  for (const item of items) {
+    const parts = item.path.split('/').filter(Boolean);
+    const name = parts.pop();
+    const parentPath = parts.join('/');
+    let parent = dirs.get(parentPath);
+    if (!parent) {
+      let acc = '';
+      parent = root;
+      for (const part of parts) {
+        const nextPath = acc ? acc + '/' + part : part;
+        let dir = dirs.get(nextPath);
+        if (!dir) {
+          dir = { name: part, type: 'dir', path: nextPath, fullPath: nextPath, children: [], html_url: getGitHubUrl(nextPath, 'dir') };
+          parent.children.push(dir);
+          dirs.set(nextPath, dir);
+        }
+        parent = dir;
+        acc = nextPath;
+      }
+    }
+    const fullPath = item.path;
+    if (item.type === 'tree') {
+      const dir = { name, type: 'dir', path: fullPath, fullPath, children: [], html_url: getGitHubUrl(fullPath, 'dir') };
+      parent.children.push(dir);
+      dirs.set(fullPath, dir);
+    } else if (item.type === 'blob') {
+      parent.children.push({ name, type: 'file', path: fullPath, fullPath, size: item.size, html_url: getGitHubUrl(fullPath, 'file'), download_url: getRawUrl(fullPath) });
+    }
+  }
+  return root;
+}
+
+async function fetchSnapshot() {
   try {
-    const res = await fetch('./tree.json');
-    if(!res.ok) throw new Error('Could not fetch tree.json configuration.');
-    SNAPSHOT = await res.json();
+    const local = await fetch('./tree.json', { cache: 'no-store' });
+    if (local.ok) return normalizeNode(await local.json());
+  } catch (_) {}
+
+  const branches = [CONFIG.branch, 'master'];
+  for (const branch of branches) {
+    try {
+      const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/git/trees/${branch}?recursive=1`;
+      const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github+json' } });
+      if (!res.ok) continue;
+      const data = await res.json();
+      CONFIG.branch = branch;
+      return buildSnapshotFromGitTree(data.tree || []);
+    } catch (_) {}
+  }
+  throw new Error('Failed to load tree.json and GitHub API fallback.');
+}
+
+async function init() {
+  bindUi();
+  document.getElementById('main').innerHTML = '<div class="empty"><div><strong>Loading repository index...</strong><br>Reading tree.json, then falling back to GitHub API if needed.</div></div>';
+  try {
+    SNAPSHOT = await fetchSnapshot();
     render();
-  } catch(e) {
-    console.error(e);
-    document.getElementById('main').innerHTML = '<div class="empty" style="color:#ff7b72;">Failed to load index. Make sure tree.json exists!</div>';
+  } catch (error) {
+    console.error(error);
+    document.getElementById('main').innerHTML = `<div class="empty" style="color:var(--danger)"><div><strong>Failed to load index.</strong><br>${escapeHtml(error.message)}<br><br>Make sure <code>tree.json</code> exists beside this HTML file, or allow GitHub API access.</div></div>`;
   }
 }
+
 init();
 </script>
 </body>
