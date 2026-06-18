@@ -8,12 +8,12 @@
     <link rel="icon" href="https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/globe.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
-    <meta property="og:title" content="Voxlis.NET + WEAO.xyz Dashboard">
+    <meta property="og:title" content="Synchrose">
     <meta property="og:description" content="Your exploits, your safety and knowledge.">
     <meta property="og:image" content="https://github.com/mxsynry/mxsynry.github.io/raw/main/Others/Voxlis.NET/TP.png">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
-    <title>Voxlis.NET + WEAO.xyz Dashboard</title>
+    <title>Synchrose</title>
     <style>
         :root {
             --bg: #0a0a0f;
@@ -2232,8 +2232,1234 @@
     </style>
 
 
+
+    <style id="synchrose-intro-v3-style">
+        /* ============================================================
+           Synchrose intro v3: Redliner-style terminal, horizontal split only
+        ============================================================ */
+        html.synchrose-scroll-locked,
+        body.synchrose-scroll-locked {
+            overflow: hidden !important;
+            height: 100% !important;
+        }
+
+        .scroll-indicator {
+            display: none !important;
+        }
+
+        .synchrose-main-title {
+            margin-bottom: 0.7rem;
+        }
+
+        .synchrose-title-gradient {
+            display: inline-block;
+            background: linear-gradient(105deg, #8b5cf6 0%, #c084fc 38%, #f472b6 70%, #ffffff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            text-shadow:
+                0 0 24px rgba(139,92,246,0.42),
+                0 0 48px rgba(236,72,153,0.20);
+            animation: synchroseTitleGlow 2.4s ease-in-out infinite;
+        }
+
+        @keyframes synchroseTitleGlow {
+            0%, 100% { filter: brightness(1); transform: translateZ(0); }
+            50% { filter: brightness(1.25); transform: translateY(-1px); }
+        }
+
+        /* Music disc starts offscreen and pops in only after intro. */
+        .mx-music-player {
+            transform: translateY(-150px) scale(0.72);
+            opacity: 0;
+            pointer-events: none;
+            transition:
+                transform 0.68s cubic-bezier(.16,.95,.18,1.22),
+                opacity 0.38s ease,
+                width 0.34s cubic-bezier(.2,.8,.2,1),
+                height 0.34s cubic-bezier(.2,.8,.2,1),
+                border-radius 0.34s cubic-bezier(.2,.8,.2,1) !important;
+        }
+
+        body.synchrose-intro-done .mx-music-player {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Auto-close music menu when the pointer leaves. */
+        .mx-music-player:not(:hover):not(:focus-within) {
+            width: 74px !important;
+            height: 74px !important;
+            border-radius: 999px !important;
+        }
+
+        .mx-music-player:not(:hover):not(:focus-within)::before {
+            border-radius: 999px !important;
+            clip-path: circle(37px at 37px 37px) !important;
+            transition-delay: 0s !important;
+        }
+
+        .mx-music-player:not(:hover):not(:focus-within) .mx-music-shell {
+            grid-template-columns: 74px 0 !important;
+        }
+
+        .mx-music-player:not(:hover):not(:focus-within) .mx-music-panel {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transform: translateX(-22px) !important;
+            transition-delay: 0s !important;
+        }
+
+        .synchrose-v3-intro {
+            --intro-bg: #000;
+            --term-w: min(1180px, calc(100vw - 7vw));
+            --term-h: min(660px, calc(100vh - 16vh));
+            --term-left: 50%;
+            --term-top: 50%;
+            --terminal-text: #cfcfd4;
+            --terminal-dim: #85858e;
+            --terminal-hot: #f1f1f4;
+            --terminal-purple: #a78bfa;
+            --terminal-pink: #f472b6;
+
+            position: fixed;
+            inset: 0;
+            z-index: 99999;
+            overflow: hidden;
+            background:
+                radial-gradient(circle at 14% 10%, rgba(124,58,237,0.18), transparent 30%),
+                radial-gradient(circle at 84% 82%, rgba(236,72,153,0.13), transparent 33%),
+                #000;
+            color: var(--terminal-text);
+            font-family: "Cascadia Code", "Fira Code", "JetBrains Mono", "SFMono-Regular", Consolas, "Courier New", monospace;
+            user-select: none;
+            cursor: pointer;
+        }
+
+        .synchrose-v3-intro.is-hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.42s ease, visibility 0.42s ease;
+        }
+
+        .synchrose-v3-terminal,
+        .synchrose-v3-slices {
+            position: absolute;
+            left: var(--term-left);
+            top: var(--term-top);
+            width: 100vw;
+            height: 100vh;
+            transform: translate(-50%, -50%);
+        }
+
+        .synchrose-v3-terminal {
+            background: #000;
+            border: 0;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+            overflow: hidden;
+            transform-origin: center;
+        }
+
+        .synchrose-v3-intro.stage-shrink .synchrose-v3-terminal {
+            animation: terminalToMiddle 0.42s cubic-bezier(.18,.92,.2,1) forwards;
+        }
+
+        @keyframes terminalToMiddle {
+            0% {
+                width: 100vw;
+                height: 100vh;
+                transform: translate(-50%, -50%) scale(1);
+                box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+            }
+            100% {
+                width: var(--term-w);
+                height: var(--term-h);
+                transform: translate(-50%, -50%) scale(1);
+                box-shadow:
+                    0 35px 120px rgba(0,0,0,0.8),
+                    0 0 64px rgba(124,58,237,0.16),
+                    0 0 52px rgba(236,72,153,0.10),
+                    inset 0 0 0 1px rgba(255,255,255,0.14);
+            }
+        }
+
+        .synchrose-v3-intro.stage-split .synchrose-v3-terminal {
+            opacity: 0;
+            transition: opacity 0.08s linear;
+        }
+
+        .synchrose-v3-slices {
+            width: var(--term-w);
+            height: var(--term-h);
+            opacity: 0;
+            pointer-events: none;
+            filter: drop-shadow(0 36px 84px rgba(0,0,0,0.72));
+        }
+
+        .synchrose-v3-slice-line {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            height: 2px;
+            transform: translateY(-50%) scaleX(0);
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.95), transparent);
+            box-shadow:
+                0 0 18px rgba(255,255,255,0.9),
+                0 0 32px rgba(236,72,153,0.35);
+            z-index: 4;
+            opacity: 0;
+        }
+
+        .synchrose-v3-intro.stage-split .synchrose-v3-slice-line {
+            animation: sliceLineZap 0.22s cubic-bezier(.2,.9,.2,1) forwards;
+        }
+
+        @keyframes sliceLineZap {
+            0% { opacity: 0; transform: translateY(-50%) scaleX(0); }
+            32% { opacity: 1; transform: translateY(-50%) scaleX(1); }
+            100% { opacity: 0; transform: translateY(-50%) scaleX(1); }
+        }
+
+        .synchrose-v3-piece {
+            position: absolute;
+            left: 0;
+            width: 100%;
+            height: 50%;
+            overflow: hidden;
+            background: #000;
+            border: 1px solid rgba(255,255,255,0.12);
+            box-shadow:
+                inset 0 0 0 1px rgba(255,255,255,0.045),
+                0 0 42px rgba(124,58,237,0.09);
+            will-change: transform, filter, opacity;
+        }
+
+        .synchrose-v3-piece::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: #fff;
+            opacity: 0;
+            z-index: 5;
+        }
+
+        .synchrose-v3-piece-top {
+            top: 0;
+            transform-origin: bottom center;
+        }
+
+        .synchrose-v3-piece-bottom {
+            top: 50%;
+            transform-origin: top center;
+        }
+
+        .synchrose-v3-piece-content {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: var(--term-w);
+            height: var(--term-h);
+            background: #000;
+        }
+
+        .synchrose-v3-piece-bottom .synchrose-v3-piece-content {
+            top: calc(-0.5 * var(--term-h));
+        }
+
+        .synchrose-v3-intro.stage-split .synchrose-v3-slices {
+            opacity: 1;
+            transition: opacity 0.02s linear 0.20s;
+        }
+
+        .synchrose-v3-intro.stage-split .synchrose-v3-piece-top {
+            animation: topPieceSplit 0.34s cubic-bezier(.18,1.25,.18,1) forwards 0.20s;
+        }
+
+        .synchrose-v3-intro.stage-split .synchrose-v3-piece-bottom {
+            animation: bottomPieceSplit 0.34s cubic-bezier(.18,1.25,.18,1) forwards 0.20s;
+        }
+
+        @keyframes topPieceSplit {
+            0% { transform: translate(0, 0) rotateX(0deg); }
+            64% { transform: translate(-7.8vw, -16px) rotateZ(-0.5deg); }
+            100% { transform: translate(-6.4vw, -10px) rotateZ(-0.2deg); }
+        }
+
+        @keyframes bottomPieceSplit {
+            0% { transform: translate(0, 0) rotateX(0deg); }
+            64% { transform: translate(7.8vw, 16px) rotateZ(0.5deg); }
+            100% { transform: translate(6.4vw, 10px) rotateZ(0.2deg); }
+        }
+
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece-top {
+            animation: topPieceExit 0.52s cubic-bezier(.72,0,.18,1) forwards;
+        }
+
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece-bottom {
+            animation: bottomPieceExit 0.58s cubic-bezier(.72,0,.18,1) forwards 0.44s;
+        }
+
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece::after {
+            animation: pieceWhitePulse 0.74s ease forwards 0.24s;
+        }
+
+        @keyframes topPieceExit {
+            0% { transform: translate(-6.4vw, -10px) rotateZ(-0.2deg); opacity: 1; }
+            100% { transform: translate(-6.4vw, -122vh) rotateZ(-2deg) scaleY(1.04); opacity: 1; }
+        }
+
+        @keyframes bottomPieceExit {
+            0% { transform: translate(6.4vw, 10px) rotateZ(0.2deg); opacity: 1; }
+            100% { transform: translate(6.4vw, -122vh) rotateZ(2deg) scaleY(1.04); opacity: 1; }
+        }
+
+        @keyframes pieceWhitePulse {
+            0% { opacity: 0; }
+            26% { opacity: 0.96; }
+            58% { opacity: 0.72; }
+            100% { opacity: 0; }
+        }
+
+        .synchrose-v3-white-flash {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: #fff;
+            opacity: 0;
+            z-index: 8;
+        }
+
+        .synchrose-v3-intro.stage-title .synchrose-v3-white-flash {
+            animation: screenWhiteFlash 0.52s ease forwards;
+        }
+
+        @keyframes screenWhiteFlash {
+            0% { opacity: 0; }
+            28% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        .synchrose-v3-final-title {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            z-index: 9;
+            transform: translate(-50%, -50%) scale(0.92);
+            opacity: 0;
+            font-size: clamp(3.4rem, 12vw, 10.5rem);
+            font-weight: 1000;
+            letter-spacing: -0.095em;
+            line-height: 0.95;
+            background: linear-gradient(105deg, #8b5cf6 0%, #c084fc 38%, #f472b6 72%, #ffffff 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            -webkit-text-fill-color: transparent;
+            text-shadow:
+                0 0 34px rgba(139,92,246,0.48),
+                0 0 84px rgba(236,72,153,0.30);
+            filter: blur(3px);
+        }
+
+        .synchrose-v3-intro.stage-title .synchrose-v3-final-title {
+            animation: finalTitleClickIn 0.62s cubic-bezier(.18,1.18,.16,1) forwards 0.20s;
+        }
+
+        @keyframes finalTitleClickIn {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.72); filter: blur(12px) brightness(2.5); }
+            66% { opacity: 1; transform: translate(-50%, -50%) scale(1.035); filter: blur(0) brightness(1.32); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); filter: blur(0) brightness(1); }
+        }
+
+        .synchrose-v3-hint {
+            position: absolute;
+            left: 50%;
+            bottom: clamp(1.2rem, 4vh, 2.5rem);
+            transform: translateX(-50%);
+            color: rgba(214,214,224,0.72);
+            font-size: clamp(0.72rem, 1vw, 0.95rem);
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            z-index: 12;
+            animation: v3HintPulse 1.1s ease-in-out infinite;
+            text-align: center;
+        }
+
+        @keyframes v3HintPulse {
+            0%, 100% { opacity: 0.38; }
+            50% { opacity: 1; }
+        }
+
+        .synchrose-v3-topbar {
+            height: 33px;
+            display: flex;
+            align-items: center;
+            gap: 1.15rem;
+            padding: 0 1rem;
+            color: #151515;
+            background:
+                repeating-linear-gradient(to bottom, #f2f2f2 0 2px, #b7b7b7 3px 5px, #efefef 6px 8px);
+            border-bottom: 1px solid #777;
+            font-size: clamp(0.82rem, 1.8vw, 1.45rem);
+            font-style: italic;
+            letter-spacing: 0.08em;
+            white-space: nowrap;
+            overflow: hidden;
+        }
+
+        .synchrose-v3-term-body {
+            position: absolute;
+            inset: 33px 0 0 0;
+            padding: clamp(1.1rem, 2.3vw, 2.1rem);
+            font-size: clamp(0.78rem, 1.55vw, 1.35rem);
+            line-height: 1.55;
+            color: var(--terminal-text);
+            text-shadow:
+                0 0 8px rgba(255,255,255,0.18),
+                0 0 14px rgba(167,139,250,0.10);
+            overflow: hidden;
+        }
+
+        .synchrose-v3-term-body::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.36;
+            background: repeating-linear-gradient(
+                to bottom,
+                transparent 0 2px,
+                rgba(255,255,255,0.045) 3px,
+                transparent 4px
+            );
+            mix-blend-mode: screen;
+        }
+
+        .synchrose-v3-line {
+            position: relative;
+            display: block;
+            white-space: pre-wrap;
+            opacity: 0;
+            transform: translateY(7px);
+            animation: v3LineIn 0.18s ease forwards;
+        }
+
+        .synchrose-v3-line:nth-child(1) { animation-delay: 0.08s; }
+        .synchrose-v3-line:nth-child(2) { animation-delay: 0.18s; }
+        .synchrose-v3-line:nth-child(3) { animation-delay: 0.28s; }
+        .synchrose-v3-line:nth-child(4) { animation-delay: 0.38s; }
+        .synchrose-v3-line:nth-child(5) { animation-delay: 0.48s; }
+
+        @keyframes v3LineIn {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .synchrose-v3-ascii {
+            position: absolute;
+            left: clamp(0.9rem, 4vw, 3rem);
+            bottom: clamp(3rem, 8vh, 5.2rem);
+            margin: 0;
+            color: #bdbdc4;
+            text-shadow:
+                0 0 10px rgba(255,255,255,0.22),
+                0 0 20px rgba(167,139,250,0.10);
+            font-size: clamp(0.31rem, 0.83vw, 0.72rem);
+            line-height: 1.02;
+            letter-spacing: 0.015em;
+            opacity: 0.86;
+        }
+
+        .synchrose-v3-statusbar {
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            height: 34px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0 1rem;
+            border-top: 1px solid rgba(255,255,255,0.38);
+            color: #d6d6de;
+            font-size: clamp(0.72rem, 1.7vw, 1.35rem);
+            font-style: italic;
+            white-space: nowrap;
+        }
+
+        .synchrose-v3-hot {
+            color: var(--terminal-hot);
+        }
+
+        .synchrose-v3-purple {
+            color: var(--terminal-purple);
+        }
+
+        .synchrose-v3-pink {
+            color: var(--terminal-pink);
+        }
+
+        @media (max-width: 760px) {
+            .synchrose-v3-intro {
+                --term-w: min(94vw, 980px);
+                --term-h: min(68vh, 620px);
+            }
+
+            .synchrose-v3-ascii {
+                font-size: clamp(0.22rem, 1.05vw, 0.45rem);
+                bottom: 4rem;
+            }
+
+            .synchrose-v3-topbar {
+                font-size: 0.82rem;
+            }
+
+            .synchrose-v3-term-body {
+                font-size: 0.76rem;
+            }
+
+            @keyframes topPieceSplit {
+                0% { transform: translate(0, 0); }
+                100% { transform: translate(-3vw, -9px); }
+            }
+
+            @keyframes bottomPieceSplit {
+                0% { transform: translate(0, 0); }
+                100% { transform: translate(3vw, 9px); }
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .synchrose-v3-terminal,
+            .synchrose-v3-piece,
+            .synchrose-v3-piece::after,
+            .synchrose-v3-white-flash,
+            .synchrose-v3-final-title,
+            .synchrose-v3-hint,
+            .synchrose-v3-line {
+                animation: none !important;
+                transition: none !important;
+            }
+        }
+    </style>
+
+
+    <style id="synchrose-intro-v4-fixes">
+        /* ============================================================
+           PATCH v4: simultaneous exit + Synchrose title clicks into hero
+        ============================================================ */
+
+        /* The two sliced halves now leave at the same time. */
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece-top,
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece-bottom {
+            animation-duration: 0.72s !important;
+            animation-delay: 0s !important;
+            animation-timing-function: cubic-bezier(.76,0,.14,1) !important;
+            animation-fill-mode: forwards !important;
+        }
+
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece::after {
+            animation: pieceWhitePulse 0.44s ease forwards 0.06s !important;
+        }
+
+        @keyframes topPieceExit {
+            0% {
+                transform: translate(-6.4vw, -10px) rotateZ(-0.2deg);
+                opacity: 1;
+                filter: brightness(1);
+            }
+            26% {
+                transform: translate(-6.4vw, -10px) rotateZ(-0.2deg);
+                opacity: 1;
+                filter: brightness(4.2);
+            }
+            100% {
+                transform: translate(-6.4vw, -124vh) rotateZ(-1.8deg) scaleY(1.03);
+                opacity: 1;
+                filter: brightness(1.2);
+            }
+        }
+
+        @keyframes bottomPieceExit {
+            0% {
+                transform: translate(6.4vw, 10px) rotateZ(0.2deg);
+                opacity: 1;
+                filter: brightness(1);
+            }
+            26% {
+                transform: translate(6.4vw, 10px) rotateZ(0.2deg);
+                opacity: 1;
+                filter: brightness(4.2);
+            }
+            100% {
+                transform: translate(6.4vw, -124vh) rotateZ(1.8deg) scaleY(1.03);
+                opacity: 1;
+                filter: brightness(1.2);
+            }
+        }
+
+        /* Reuse the actual page title style/font instead of a random outro style. */
+        .synchrose-v3-final-title {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+            font-weight: 800 !important;
+            letter-spacing: -0.02em !important;
+            line-height: 1.05 !important;
+            background: linear-gradient(105deg, #8b5cf6 0%, #c084fc 38%, #f472b6 72%, #ffffff 100%) !important;
+            -webkit-background-clip: text !important;
+            background-clip: text !important;
+            color: transparent !important;
+            -webkit-text-fill-color: transparent !important;
+            text-shadow:
+                0 0 24px rgba(139,92,246,0.42),
+                0 0 48px rgba(236,72,153,0.20) !important;
+            white-space: nowrap;
+            will-change: left, top, transform, opacity, filter, font-size;
+        }
+
+        /* Disable old center-only outro animation. JS controls the click-into-place now. */
+        .synchrose-v3-intro.stage-title .synchrose-v3-final-title {
+            animation: none !important;
+        }
+
+        .synchrose-v3-intro.stage-title .synchrose-v3-white-flash {
+            animation: screenWhiteFlash 0.42s ease forwards !important;
+        }
+
+        .synchrose-v3-final-title.is-title-flight {
+            opacity: 1 !important;
+        }
+
+        .synchrose-v3-final-title.is-title-locked {
+            opacity: 1 !important;
+            filter: blur(0) brightness(1) !important;
+        }
+
+        .synchrose-v3-hint {
+            transition: opacity 0.18s ease;
+        }
+
+        .synchrose-v3-intro.stage-title .synchrose-v3-hint {
+            opacity: 0 !important;
+            animation: none !important;
+        }
+    </style>
+
+
+    <style id="synchrose-intro-v5-request-fixes">
+        /* ============================================================
+           PATCH v5: requested split/motion/music/hero effects
+        ============================================================ */
+
+        /* Hero text effects restored. */
+        .hero-tagline .highlight,
+        .hero-tagline .highlight.hero-bright {
+            display: inline-block;
+            color: #ffffff !important;
+            font-weight: 850 !important;
+            text-shadow:
+                0 0 10px rgba(255, 255, 255, 0.68),
+                0 0 22px rgba(168, 85, 247, 0.88),
+                0 0 42px rgba(236, 72, 153, 0.52) !important;
+            animation: heroTinyHorizontalShake 0.062s steps(2, end) infinite !important;
+            will-change: transform;
+        }
+
+        .synchrose-title-gradient {
+            display: inline-block;
+            will-change: transform, filter;
+            animation: synchroseTitleGlow 2.25s ease-in-out infinite !important;
+        }
+
+        .synchrose-main-title:hover .synchrose-title-gradient,
+        .synchrose-main-title:focus-within .synchrose-title-gradient {
+            animation:
+                synchroseTitleGlow 2.25s ease-in-out infinite,
+                heroBigHorizontalShake 0.055s linear infinite !important;
+        }
+
+        @keyframes heroTinyHorizontalShake {
+            0%, 100% { transform: translate3d(0,0,0); }
+            25% { transform: translate3d(0.5px,0,0); }
+            50% { transform: translate3d(-0.5px,0,0); }
+            75% { transform: translate3d(0.5px,0,0); }
+        }
+
+        @keyframes heroBigHorizontalShake {
+            0%, 100% { transform: translate3d(0,0,0); }
+            25% { transform: translate3d(2px,0,0); }
+            50% { transform: translate3d(-2px,0,0); }
+            75% { transform: translate3d(2px,0,0); }
+        }
+
+        /* One guide only. */
+        .synchrose-v3-hint {
+            font-weight: 800;
+            letter-spacing: 0.18em;
+            text-shadow:
+                0 0 12px rgba(255,255,255,0.35),
+                0 0 24px rgba(168,85,247,0.22);
+        }
+
+        /* News-channel ticker title bar. */
+        .synchrose-v3-topbar {
+            position: relative;
+            gap: 0;
+            overflow: hidden !important;
+        }
+
+        .synchrose-v3-marquee {
+            display: inline-block;
+            min-width: max-content;
+            padding-left: 100%;
+            white-space: nowrap;
+            animation: synchroseTickerRightToLeft 12s linear infinite;
+        }
+
+        @keyframes synchroseTickerRightToLeft {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-100%); }
+        }
+
+        /* After-click system message. Hidden until the first interaction. */
+        .synchrose-v3-after-click-line {
+            display: none;
+            color: #f4efff;
+            text-shadow:
+                0 0 12px rgba(168,85,247,0.6),
+                0 0 26px rgba(236,72,153,0.32);
+        }
+
+        .synchrose-v3-intro.stage-shrink .synchrose-v3-after-click-line,
+        .synchrose-v3-intro.stage-split .synchrose-v3-after-click-line,
+        .synchrose-v3-intro.stage-release .synchrose-v3-after-click-line {
+            display: block;
+            animation: v3LineIn 0.15s ease forwards, heroTinyHorizontalShake 0.07s steps(2, end) infinite;
+        }
+
+        /* CLI loading bar. */
+        .synchrose-v3-cli-bar {
+            display: flex !important;
+            align-items: center;
+            gap: 0.55rem;
+            margin-top: 0.25rem;
+        }
+
+        .synchrose-v3-bar-shell {
+            width: min(320px, 38vw);
+            height: 1em;
+            border: 1px solid rgba(255,255,255,0.54);
+            background: rgba(255,255,255,0.05);
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 0 12px rgba(255,255,255,0.08);
+        }
+
+        .synchrose-v3-bar-fill {
+            position: absolute;
+            inset: 0 auto 0 0;
+            width: 20%;
+            background:
+                repeating-linear-gradient(
+                    90deg,
+                    rgba(255,255,255,0.92) 0 8px,
+                    rgba(167,139,250,0.82) 8px 16px,
+                    rgba(244,114,182,0.82) 16px 24px
+                );
+            animation: synchroseCliFill 1.1s steps(10, end) infinite;
+        }
+
+        .synchrose-v3-bar-label {
+            color: #f4efff;
+            font-style: italic;
+        }
+
+        @keyframes synchroseCliFill {
+            0% { width: 6%; }
+            60% { width: 100%; }
+            100% { width: 100%; }
+        }
+
+        /* SPLIT: horizontal movement ONLY, no vertical movement, no rotation. */
+        .synchrose-v3-intro.stage-split .synchrose-v3-piece-top {
+            animation: topPieceSplitFlat 0.30s cubic-bezier(.16,1.2,.16,1) forwards 0.20s !important;
+        }
+
+        .synchrose-v3-intro.stage-split .synchrose-v3-piece-bottom {
+            animation: bottomPieceSplitFlat 0.30s cubic-bezier(.16,1.2,.16,1) forwards 0.20s !important;
+        }
+
+        @keyframes topPieceSplitFlat {
+            0% { transform: translateX(0); }
+            68% { transform: translateX(-8.3vw); }
+            100% { transform: translateX(-7.2vw); }
+        }
+
+        @keyframes bottomPieceSplitFlat {
+            0% { transform: translateX(0); }
+            68% { transform: translateX(8.3vw); }
+            100% { transform: translateX(7.2vw); }
+        }
+
+        /* RELEASE: pieces go white, stretch upward offscreen, then withdraw up. */
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece-top,
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece-bottom {
+            animation-duration: 0.92s !important;
+            animation-delay: 0s !important;
+            animation-timing-function: cubic-bezier(.74,0,.16,1) !important;
+            animation-fill-mode: forwards !important;
+            background: #fff !important;
+            border-color: rgba(255,255,255,0.96) !important;
+            box-shadow:
+                0 0 44px rgba(255,255,255,0.76),
+                0 0 92px rgba(168,85,247,0.38),
+                0 0 120px rgba(236,72,153,0.24) !important;
+        }
+
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece-top {
+            transform-origin: bottom center !important;
+            animation-name: topPieceExpandWithdraw !important;
+        }
+
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece-bottom {
+            transform-origin: top center !important;
+            animation-name: bottomPieceExpandWithdraw !important;
+        }
+
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece-content {
+            filter: brightness(0) invert(1) !important;
+            opacity: 0.10 !important;
+        }
+
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece::after {
+            opacity: 1 !important;
+            animation: none !important;
+            background: #fff !important;
+        }
+
+        @keyframes topPieceExpandWithdraw {
+            0% {
+                transform: translateX(-7.2vw) translateY(0) scaleY(1);
+                opacity: 1;
+                filter: brightness(1);
+            }
+            34% {
+                transform: translateX(-7.2vw) translateY(-46vh) scaleY(2.15);
+                opacity: 1;
+                filter: brightness(3);
+            }
+            100% {
+                transform: translateX(-7.2vw) translateY(-132vh) scaleY(0.04);
+                opacity: 1;
+                filter: brightness(1.4);
+            }
+        }
+
+        @keyframes bottomPieceExpandWithdraw {
+            0% {
+                transform: translateX(7.2vw) translateY(0) scaleY(1);
+                opacity: 1;
+                filter: brightness(1);
+            }
+            34% {
+                transform: translateX(7.2vw) translateY(-46vh) scaleY(2.15);
+                opacity: 1;
+                filter: brightness(3);
+            }
+            100% {
+                transform: translateX(7.2vw) translateY(-132vh) scaleY(0.04);
+                opacity: 1;
+                filter: brightness(1.4);
+            }
+        }
+
+        .synchrose-v3-intro.stage-title .synchrose-v3-white-flash {
+            animation: screenWhiteFlash 0.56s ease forwards !important;
+        }
+
+        /* Make mobile tap/click opening possible; hover-only CSS was blocking touch. */
+        .mx-music-player.is-open,
+        .mx-music-player.is-selector {
+            width: min(456px, calc(100vw - 2rem)) !important;
+            height: auto !important;
+            border-radius: 22px !important;
+        }
+
+        .mx-music-player.is-open .mx-music-shell,
+        .mx-music-player.is-selector .mx-music-shell {
+            grid-template-columns: 74px minmax(0, 1fr) !important;
+        }
+
+        .mx-music-player.is-open .mx-music-panel,
+        .mx-music-player.is-selector .mx-music-panel {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            transform: translateX(0) !important;
+        }
+
+        .mx-music-player.is-open::before,
+        .mx-music-player.is-selector::before {
+            border-radius: 22px !important;
+            clip-path: inset(0 round 22px) !important;
+            transition-delay: 0.08s !important;
+        }
+
+        @media (max-width: 720px) {
+            .mx-music-player.is-open,
+            .mx-music-player.is-selector {
+                width: calc(100vw - 1.5rem) !important;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .hero-tagline .highlight,
+            .synchrose-main-title:hover .synchrose-title-gradient,
+            .synchrose-v3-marquee,
+            .synchrose-v3-bar-fill {
+                animation: none !important;
+            }
+        }
+    </style>
+
+
+    <style id="synchrose-intro-v6-refine">
+        /* ============================================================
+           PATCH v6: smoother unmaximize, non-loop bar, slower ticker, impact frame
+        ============================================================ */
+
+        /* Keep fullscreen detail crisp, then "unmaximize" via clipping instead of compressing content. */
+        .synchrose-v3-terminal {
+            width: 100vw !important;
+            height: 100vh !important;
+            will-change: clip-path, box-shadow, filter;
+            clip-path: inset(0 0 0 0);
+            transform: translate(-50%, -50%) !important;
+            image-rendering: auto;
+            backface-visibility: hidden;
+        }
+
+        .synchrose-v3-intro.stage-shrink .synchrose-v3-terminal {
+            animation: terminalUnmaximizeClip 0.78s cubic-bezier(.16,.88,.18,1) forwards !important;
+        }
+
+        @keyframes terminalUnmaximizeClip {
+            0% {
+                clip-path: inset(0 0 0 0);
+                box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
+                filter: brightness(1);
+            }
+            38% {
+                clip-path: inset(calc((100vh - var(--term-h))/4) calc((100vw - var(--term-w))/4));
+                box-shadow:
+                    0 12px 44px rgba(0,0,0,0.48),
+                    0 0 24px rgba(124,58,237,0.08),
+                    inset 0 0 0 1px rgba(255,255,255,0.1);
+            }
+            100% {
+                clip-path: inset(calc((100vh - var(--term-h))/2) calc((100vw - var(--term-w))/2));
+                box-shadow:
+                    0 35px 120px rgba(0,0,0,0.80),
+                    0 0 44px rgba(124,58,237,0.15),
+                    0 0 36px rgba(236,72,153,0.08),
+                    inset 0 0 0 1px rgba(255,255,255,0.14);
+                filter: brightness(1);
+            }
+        }
+
+        /* Slow down the ticker so it is actually readable. */
+        .synchrose-v3-marquee {
+            animation-duration: 24s !important;
+        }
+
+        /* Loading bar: all white, one-shot, no loop. */
+        .synchrose-v3-bar-shell {
+            border-color: rgba(255,255,255,0.88) !important;
+            background: rgba(255,255,255,0.06) !important;
+            box-shadow:
+                inset 0 0 0 1px rgba(255,255,255,0.12),
+                0 0 12px rgba(255,255,255,0.10) !important;
+        }
+
+        .synchrose-v3-bar-fill {
+            background: #ffffff !important;
+            box-shadow:
+                0 0 12px rgba(255,255,255,0.75),
+                0 0 28px rgba(255,255,255,0.35) !important;
+            animation: synchroseCliFillOnce 2.8s steps(28, end) 1 forwards !important;
+            width: 0;
+        }
+
+        .synchrose-v3-bar-label {
+            color: #ffffff !important;
+        }
+
+        @keyframes synchroseCliFillOnce {
+            0%   { width: 0%; }
+            100% { width: 100%; }
+        }
+
+        /* Split is horizontal only. Keep it perfectly flat. */
+        .synchrose-v3-intro.stage-split .synchrose-v3-piece-top {
+            animation: topPieceSplitHorizontalOnly 0.28s cubic-bezier(.16,1.15,.18,1) forwards 0.10s !important;
+        }
+
+        .synchrose-v3-intro.stage-split .synchrose-v3-piece-bottom {
+            animation: bottomPieceSplitHorizontalOnly 0.28s cubic-bezier(.16,1.15,.18,1) forwards 0.10s !important;
+        }
+
+        @keyframes topPieceSplitHorizontalOnly {
+            0%   { transform: translateX(0); }
+            72%  { transform: translateX(-8vw); }
+            100% { transform: translateX(-7.4vw); }
+        }
+
+        @keyframes bottomPieceSplitHorizontalOnly {
+            0%   { transform: translateX(0); }
+            72%  { transform: translateX(8vw); }
+            100% { transform: translateX(7.4vw); }
+        }
+
+        /* Make the two halves go away faster and more aligned. */
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece-top,
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece-bottom {
+            animation-duration: 0.60s !important;
+            animation-delay: 0s !important;
+            animation-fill-mode: forwards !important;
+            animation-timing-function: cubic-bezier(.74,0,.16,1) !important;
+            background: #fff !important;
+            border-color: rgba(255,255,255,1) !important;
+        }
+
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece-top {
+            animation-name: topPieceAlignedExit !important;
+            transform-origin: bottom center !important;
+        }
+
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece-bottom {
+            animation-name: bottomPieceAlignedExit !important;
+            transform-origin: top center !important;
+        }
+
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece::after {
+            opacity: 1 !important;
+            background: #fff !important;
+            animation: none !important;
+        }
+
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece-content {
+            filter: brightness(0) invert(1) !important;
+            opacity: 0.08 !important;
+        }
+
+        @keyframes topPieceAlignedExit {
+            0% {
+                transform: translateX(-7.4vw) translateY(0) scaleY(1);
+            }
+            42% {
+                transform: translateX(-7.4vw) translateY(-44vh) scaleY(2.05);
+            }
+            100% {
+                transform: translateX(-7.4vw) translateY(-132vh) scaleY(0.06);
+            }
+        }
+
+        @keyframes bottomPieceAlignedExit {
+            0% {
+                transform: translateX(7.4vw) translateY(0) scaleY(1);
+            }
+            42% {
+                transform: translateX(7.4vw) translateY(-44vh) scaleY(2.05);
+            }
+            100% {
+                transform: translateX(7.4vw) translateY(-132vh) scaleY(0.06);
+            }
+        }
+
+        /* Remove the old white flash. */
+        .synchrose-v3-white-flash {
+            display: none !important;
+        }
+
+        /* Impact frame appears when Synchrose lands in place. */
+        .synchrose-v3-impact-frame {
+            position: absolute;
+            left: var(--impact-x, 50%);
+            top: var(--impact-y, 50%);
+            width: min(56vw, 560px);
+            height: min(24vw, 220px);
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            opacity: 0;
+            z-index: 11;
+        }
+
+        .synchrose-v3-impact-frame::before,
+        .synchrose-v3-impact-frame::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg,
+                    transparent 0 6%,
+                    rgba(255,255,255,0.96) 6% 22%,
+                    transparent 22% 28%,
+                    rgba(255,255,255,0.96) 28% 60%,
+                    transparent 60% 68%,
+                    rgba(255,255,255,0.96) 68% 92%,
+                    transparent 92% 100%);
+            filter:
+                drop-shadow(0 0 10px rgba(255,255,255,0.65))
+                drop-shadow(0 0 22px rgba(168,85,247,0.22));
+            opacity: 0;
+        }
+
+        .synchrose-v3-impact-frame::after {
+            inset: 14% -6% -14% -6%;
+            background:
+                linear-gradient(180deg,
+                    transparent 0 12%,
+                    rgba(255,255,255,0.90) 12% 28%,
+                    transparent 28% 38%,
+                    rgba(255,255,255,0.90) 38% 74%,
+                    transparent 74% 82%,
+                    rgba(255,255,255,0.90) 82% 100%);
+        }
+
+        .synchrose-v3-impact-frame.is-active {
+            animation: impactFrameBurst 0.36s ease forwards;
+        }
+
+        .synchrose-v3-impact-frame.is-active::before {
+            animation: impactRectsA 0.34s cubic-bezier(.16,1,.2,1) forwards;
+        }
+
+        .synchrose-v3-impact-frame.is-active::after {
+            animation: impactRectsB 0.34s cubic-bezier(.16,1,.2,1) forwards;
+        }
+
+        @keyframes impactFrameBurst {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.7); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.12); }
+        }
+
+        @keyframes impactRectsA {
+            0% { opacity: 0.95; transform: scaleX(0.56) scaleY(1.18); }
+            100% { opacity: 0; transform: scaleX(1.14) scaleY(0.82); }
+        }
+
+        @keyframes impactRectsB {
+            0% { opacity: 0.92; transform: scaleX(1.22) scaleY(0.46); }
+            100% { opacity: 0; transform: scaleX(0.84) scaleY(1.2); }
+        }
+
+        /* Let the title flight land cleanly after the impact. */
+        .synchrose-v3-final-title {
+            z-index: 12 !important;
+        }
+    </style>
+
 </head>
 <body>
+
+    <div id="synchroseIntroV3" class="synchrose-v3-intro" role="dialog" aria-modal="true" aria-label="Synchrose boot intro">
+        <div class="synchrose-v3-terminal" aria-hidden="true">
+
+            <div class="synchrose-v3-topbar" aria-label="loading ticker">
+                    <span class="synchrose-v3-marquee">LOADING... PLEASE WAIT　読み込み中... 待って下さい　// SYNCHROSE BOOT CHANNEL　// VOXLIS.NET + WEAO.xyz BRIDGE ONLINE　// YOUR EXPLOITS, YOUR SAFETY AND KNOWLEDGE　// PRESS TO SKIP　// </span>
+                </div>
+            <div class="synchrose-v3-term-body">
+                <span class="synchrose-v3-line">▶ AWAITING ASSETS...</span>
+                <span class="synchrose-v3-line">▼ LOADING SYNCHROSE</span>
+                <span class="synchrose-v3-line"> </span>
+                <span class="synchrose-v3-line">[SYS] (00:00:00) ELAPSED</span>
+                <span class="synchrose-v3-line">[NET] <span class="synchrose-v3-purple">Voxlis.NET</span> / <span class="synchrose-v3-pink">WEAO.xyz</span> bridge prepared</span>
+                <span class="synchrose-v3-line synchrose-v3-after-click-line">[SYS] the system is yours</span>
+                <span class="synchrose-v3-line synchrose-v3-cli-bar">[LOAD] <span class="synchrose-v3-bar-shell"><span class="synchrose-v3-bar-fill"></span></span> <span class="synchrose-v3-bar-label">SYNCING</span></span>
+                <pre class="synchrose-v3-ascii">   ███████╗██╗   ██╗███╗   ██╗ ██████╗██╗  ██╗██████╗  ██████╗ ███████╗███████╗
+   ██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝██║  ██║██╔══██╗██╔═══██╗██╔════╝██╔════╝
+   ███████╗ ╚████╔╝ ██╔██╗ ██║██║     ███████║██████╔╝██║   ██║███████╗█████╗  
+   ╚════██║  ╚██╔╝  ██║╚██╗██║██║     ██╔══██║██╔══██╗██║   ██║╚════██║██╔══╝  
+   ███████║   ██║   ██║ ╚████║╚██████╗██║  ██║██║  ██║╚██████╔╝███████║███████╗
+   ╚══════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝</pre>
+                <div class="synchrose-v3-statusbar">
+                    <span>❖ You are entering <span class="synchrose-v3-hot">SYNCHROSE</span></span>
+                    <span>「SYNCHROSE」をプレイ中</span>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="synchrose-v3-slices" aria-hidden="true">
+            <div class="synchrose-v3-slice-line"></div>
+            <div class="synchrose-v3-piece synchrose-v3-piece-top">
+                <div class="synchrose-v3-piece-content">
+
+            <div class="synchrose-v3-topbar" aria-label="loading ticker">
+                    <span class="synchrose-v3-marquee">LOADING... PLEASE WAIT　読み込み中... 待って下さい　// SYNCHROSE BOOT CHANNEL　// VOXLIS.NET + WEAO.xyz BRIDGE ONLINE　// YOUR EXPLOITS, YOUR SAFETY AND KNOWLEDGE　// PRESS TO SKIP　// </span>
+                </div>
+            <div class="synchrose-v3-term-body">
+                <span class="synchrose-v3-line">▶ AWAITING ASSETS...</span>
+                <span class="synchrose-v3-line">▼ LOADING SYNCHROSE</span>
+                <span class="synchrose-v3-line"> </span>
+                <span class="synchrose-v3-line">[SYS] (00:00:00) ELAPSED</span>
+                <span class="synchrose-v3-line">[NET] <span class="synchrose-v3-purple">Voxlis.NET</span> / <span class="synchrose-v3-pink">WEAO.xyz</span> bridge prepared</span>
+                <span class="synchrose-v3-line synchrose-v3-after-click-line">[SYS] the system is yours</span>
+                <span class="synchrose-v3-line synchrose-v3-cli-bar">[LOAD] <span class="synchrose-v3-bar-shell"><span class="synchrose-v3-bar-fill"></span></span> <span class="synchrose-v3-bar-label">SYNCING</span></span>
+                <pre class="synchrose-v3-ascii">   ███████╗██╗   ██╗███╗   ██╗ ██████╗██╗  ██╗██████╗  ██████╗ ███████╗███████╗
+   ██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝██║  ██║██╔══██╗██╔═══██╗██╔════╝██╔════╝
+   ███████╗ ╚████╔╝ ██╔██╗ ██║██║     ███████║██████╔╝██║   ██║███████╗█████╗  
+   ╚════██║  ╚██╔╝  ██║╚██╗██║██║     ██╔══██║██╔══██╗██║   ██║╚════██║██╔══╝  
+   ███████║   ██║   ██║ ╚████║╚██████╗██║  ██║██║  ██║╚██████╔╝███████║███████╗
+   ╚══════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝</pre>
+                <div class="synchrose-v3-statusbar">
+                    <span>❖ You are entering <span class="synchrose-v3-hot">SYNCHROSE</span></span>
+                    <span>「SYNCHROSE」をプレイ中</span>
+                </div>
+            </div>
+
+                </div>
+            </div>
+            <div class="synchrose-v3-piece synchrose-v3-piece-bottom">
+                <div class="synchrose-v3-piece-content">
+
+            <div class="synchrose-v3-topbar" aria-label="loading ticker">
+                    <span class="synchrose-v3-marquee">LOADING... PLEASE WAIT　読み込み中... 待って下さい　// SYNCHROSE BOOT CHANNEL　// VOXLIS.NET + WEAO.xyz BRIDGE ONLINE　// YOUR EXPLOITS, YOUR SAFETY AND KNOWLEDGE　// PRESS TO SKIP　// </span>
+                </div>
+            <div class="synchrose-v3-term-body">
+                <span class="synchrose-v3-line">▶ AWAITING ASSETS...</span>
+                <span class="synchrose-v3-line">▼ LOADING SYNCHROSE</span>
+                <span class="synchrose-v3-line"> </span>
+                <span class="synchrose-v3-line">[SYS] (00:00:00) ELAPSED</span>
+                <span class="synchrose-v3-line">[NET] <span class="synchrose-v3-purple">Voxlis.NET</span> / <span class="synchrose-v3-pink">WEAO.xyz</span> bridge prepared</span>
+                <span class="synchrose-v3-line synchrose-v3-after-click-line">[SYS] the system is yours</span>
+                <span class="synchrose-v3-line synchrose-v3-cli-bar">[LOAD] <span class="synchrose-v3-bar-shell"><span class="synchrose-v3-bar-fill"></span></span> <span class="synchrose-v3-bar-label">SYNCING</span></span>
+                <pre class="synchrose-v3-ascii">   ███████╗██╗   ██╗███╗   ██╗ ██████╗██╗  ██╗██████╗  ██████╗ ███████╗███████╗
+   ██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝██║  ██║██╔══██╗██╔═══██╗██╔════╝██╔════╝
+   ███████╗ ╚████╔╝ ██╔██╗ ██║██║     ███████║██████╔╝██║   ██║███████╗█████╗  
+   ╚════██║  ╚██╔╝  ██║╚██╗██║██║     ██╔══██║██╔══██╗██║   ██║╚════██║██╔══╝  
+   ███████║   ██║   ██║ ╚████║╚██████╗██║  ██║██║  ██║╚██████╔╝███████║███████╗
+   ╚══════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝</pre>
+                <div class="synchrose-v3-statusbar">
+                    <span>❖ You are entering <span class="synchrose-v3-hot">SYNCHROSE</span></span>
+                    <span>「SYNCHROSE」をプレイ中</span>
+                </div>
+            </div>
+
+                </div>
+            </div>
+        </div>
+
+        <div class="synchrose-v3-white-flash" aria-hidden="true"></div>
+        <div class="synchrose-v3-final-title" aria-hidden="true">Synchrose</div>
+        <div class="synchrose-v3-hint" id="synchroseIntroV3Hint">CLICK / PRESS ANY KEY TO SKIP</div>
+    </div>
+    <!-- /synchrose-intro-v3 -->
+
 
     <div class="mx-music-player is-empty" id="mxMusicPlayer" aria-label="MP3 music player">
         <div class="mx-music-shell">
@@ -2305,13 +3531,13 @@
         <div class="hero-overlay"></div>
 
         <div class="hero-content">
-            <a href="#dashboard" class="hero-title">
-                <span class="voxlis">Voxlis.NET</span>
-                <span class="plus">+</span>
-                <span class="weao">WEAO.xyz</span>
-            </a>
+            
+                
+                <div class="hero-title synchrose-main-title" aria-label="Synchrose">
+                    <span class="synchrose-title-gradient">Synchrose</span>
+                </div>
             <p class="hero-tagline">
-                Your <span class="highlight">exploits</span>, your <span class="highlight">safety</span> and <span class="highlight">knowledge</span>.
+                Your <span class="highlight hero-word-shake hero-bright">exploits</span>, your <span class="highlight hero-word-shake hero-bright">safety</span> and <span class="highlight hero-word-shake hero-bright">knowledge</span>.
             </p>
             <a href="#dashboard" class="hero-btn">
                 <span>Enter Dashboard</span>
@@ -2320,14 +3546,7 @@
                 </svg>
             </a>
         </div>
-
-        <a href="#dashboard" class="scroll-indicator">
-            <span>Scroll to explore</span>
-            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                <path d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
-            </svg>
-        </a>
-    </section>
+</section>
 
     <!-- ============================================================
          DASHBOARD SECTION
@@ -4955,10 +6174,15 @@
                 const candidates = [];
 
                 try {
-                    candidates.push(await fetchJson(MUSIC_CONFIG.treeJson, { cache: 'no-store' }));
+                    const rootTree = await fetchJson(MUSIC_CONFIG.treeJson, { cache: 'no-store' });
+                    if (rootTree) candidates.push(rootTree);
                 } catch (error) {
                     console.warn('Root tree.json failed:', error);
                 }
+
+                // If tree.json exists, do not immediately hit GitHub API.
+                // This avoids rate-limit noise and restores the local tree.json workflow.
+                if (candidates.length) return candidates;
 
                 try {
                     const api = `https://api.github.com/repos/${MUSIC_CONFIG.owner}/${MUSIC_CONFIG.repo}/git/trees/${MUSIC_CONFIG.branch}?recursive=1`;
@@ -5434,6 +6658,494 @@
 
             updatePlayState(false);
             initMusic();
+        })();
+    </script>
+
+
+    
+    <script id="synchrose-intro-v4-fixes">
+        (() => {
+            const intro = document.getElementById('synchroseIntroV3');
+            if (!intro) return;
+
+            const finalTitle = intro.querySelector('.synchrose-v3-final-title');
+            const heroTitle = document.querySelector('.synchrose-main-title, .hero-title');
+            const heroText = document.querySelector('.synchrose-title-gradient') || heroTitle;
+
+            function getHeroTarget() {
+                const fallback = {
+                    left: window.innerWidth / 2,
+                    top: window.innerHeight / 2,
+                    fontSize: Math.max(44, Math.min(96, window.innerWidth * 0.08))
+                };
+
+                const target = heroText || heroTitle;
+                if (!target) return fallback;
+
+                const rect = target.getBoundingClientRect();
+                const style = window.getComputedStyle(target);
+                return {
+                    left: rect.left + rect.width / 2,
+                    top: rect.top + rect.height / 2,
+                    fontSize: parseFloat(style.fontSize) || fallback.fontSize
+                };
+            }
+
+            function animateSynchroseTitleIntoHero() {
+                if (!finalTitle) return Promise.resolve();
+
+                const target = getHeroTarget();
+                const startSize = Math.min(window.innerWidth * 0.18, 190);
+                const midSize = Math.max(target.fontSize * 1.9, startSize * 0.72);
+
+                finalTitle.textContent = 'Synchrose';
+                finalTitle.classList.add('is-title-flight');
+
+                finalTitle.style.left = '50%';
+                finalTitle.style.top = '50%';
+                finalTitle.style.fontSize = `${startSize}px`;
+                finalTitle.style.opacity = '0';
+                finalTitle.style.filter = 'blur(12px) brightness(3)';
+                finalTitle.style.transform = 'translate(-50%, -50%) scale(1.25)';
+
+                const animation = finalTitle.animate([
+                    {
+                        left: '50%',
+                        top: '50%',
+                        fontSize: `${startSize}px`,
+                        opacity: 0,
+                        filter: 'blur(14px) brightness(3.2)',
+                        transform: 'translate(-50%, -50%) scale(1.35)'
+                    },
+                    {
+                        left: '50%',
+                        top: '50%',
+                        fontSize: `${midSize}px`,
+                        opacity: 1,
+                        filter: 'blur(0px) brightness(1.55)',
+                        transform: 'translate(-50%, -50%) scale(1.02)',
+                        offset: 0.36
+                    },
+                    {
+                        left: `${target.left}px`,
+                        top: `${target.top}px`,
+                        fontSize: `${target.fontSize}px`,
+                        opacity: 1,
+                        filter: 'blur(0px) brightness(1.12)',
+                        transform: 'translate(-50%, -50%) scale(1.08)',
+                        offset: 0.82
+                    },
+                    {
+                        left: `${target.left}px`,
+                        top: `${target.top}px`,
+                        fontSize: `${target.fontSize}px`,
+                        opacity: 1,
+                        filter: 'blur(0px) brightness(1)',
+                        transform: 'translate(-50%, -50%) scale(1)'
+                    }
+                ], {
+                    duration: 940,
+                    easing: 'cubic-bezier(.16,1.08,.14,1)',
+                    fill: 'forwards'
+                });
+
+                return animation.finished.catch(() => {}).then(() => {
+                    finalTitle.classList.add('is-title-locked');
+                    finalTitle.style.left = `${target.left}px`;
+                    finalTitle.style.top = `${target.top}px`;
+                    finalTitle.style.fontSize = `${target.fontSize}px`;
+                    finalTitle.style.opacity = '1';
+                    finalTitle.style.filter = 'blur(0px) brightness(1)';
+                    finalTitle.style.transform = 'translate(-50%, -50%) scale(1)';
+                });
+            }
+
+            window.synchroseV4TitleFlight = animateSynchroseTitleIntoHero;
+        })();
+    </script>
+
+    <script id="synchrose-intro-v3-script">
+        (() => {
+            const intro = document.getElementById('synchroseIntroV3');
+            if (!intro) return;
+
+            const hint = document.getElementById('synchroseIntroV3Hint');
+            const root = document.documentElement;
+            let stage = 0;
+            let finished = false;
+            let lockedUntilDashboard = true;
+
+            function lockScroll() {
+                root.classList.add('synchrose-scroll-locked');
+                document.body.classList.add('synchrose-scroll-locked');
+            }
+
+            function unlockScroll() {
+                root.classList.remove('synchrose-scroll-locked');
+                document.body.classList.remove('synchrose-scroll-locked');
+                lockedUntilDashboard = false;
+            }
+
+            lockScroll();
+
+            function closeMusicMenu() {
+                const player = document.getElementById('mxMusicPlayer');
+                const expand = document.getElementById('mxMusicExpand');
+                if (!player) return;
+                player.classList.remove('is-open', 'is-selector');
+                expand?.classList.remove('is-active');
+            }
+
+            function tryStartMusic(reason = 'intro') {
+                const audio = document.getElementById('mxMusicAudio');
+                const playButton = document.getElementById('mxMusicPlay');
+                if (!audio || !playButton || !audio.paused) return;
+
+                try { playButton.click(); } catch {}
+
+                if (audio.paused && typeof audio.play === 'function') {
+                    const promise = audio.play();
+                    if (promise && typeof promise.catch === 'function') {
+                        promise.catch(error => console.warn(`Music start after ${reason} was blocked:`, error));
+                    }
+                }
+            }
+
+            function revealHeroAndDisc() {
+                document.body.classList.add('synchrose-intro-done');
+                tryStartMusic('intro');
+            }
+
+            function finishIntro() {
+                if (finished) return;
+                finished = true;
+
+                intro.classList.add('stage-title');
+                if (hint) hint.textContent = 'CLICK / PRESS ANY KEY TO SKIP';
+
+                setTimeout(() => {
+                    const titleFlight = typeof window.synchroseV4TitleFlight === 'function'
+                        ? window.synchroseV4TitleFlight()
+                        : Promise.resolve();
+
+                    titleFlight.then(() => {
+                        revealHeroAndDisc();
+
+                        // Hide only after the clone has clicked into the real hero title.
+                        setTimeout(() => {
+                            intro.classList.add('is-hidden');
+                            lockScroll();
+                        }, 180);
+                    });
+                }, 180);
+            }
+
+            function advanceIntro() {
+                if (finished) return;
+
+                if (stage === 0) {
+                    stage = 1;
+                    intro.classList.add('stage-shrink');
+                    if (hint) hint.textContent = 'CLICK / PRESS ANY KEY TO SKIP';
+
+                    setTimeout(() => {
+                        intro.classList.add('stage-split');
+                    }, 780);
+                    return;
+                }
+
+                if (stage === 1) {
+                    stage = 2;
+                    intro.classList.add('stage-release');
+                    if (hint) hint.textContent = 'CLICK / PRESS ANY KEY TO SKIP';
+                    setTimeout(finishIntro, 1050);
+                }
+            }
+
+            function enterDashboard() {
+                unlockScroll();
+                const dashboard = document.getElementById('dashboard');
+                if (dashboard) {
+                    dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+                }
+                tryStartMusic('Enter Dashboard');
+            }
+
+            window.synchroseIntroStartMusic = tryStartMusic;
+            window.scrollToDashboard = function scrollToDashboardPatched() {
+                if (!finished) {
+                    finishIntro();
+                    setTimeout(enterDashboard, 1480);
+                } else {
+                    enterDashboard();
+                }
+            };
+
+            document.addEventListener('keydown', event => {
+                if (!finished) {
+                    event.preventDefault();
+                    advanceIntro();
+                }
+            }, { capture: true });
+
+            intro.addEventListener('pointerdown', event => {
+                if (!finished) {
+                    event.preventDefault();
+                    advanceIntro();
+                }
+            }, { capture: true });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                document.querySelector('.scroll-indicator')?.remove();
+
+                const player = document.getElementById('mxMusicPlayer');
+                if (player) {
+                    player.addEventListener('mouseleave', closeMusicMenu);
+                    player.addEventListener('pointerleave', closeMusicMenu);
+                    player.addEventListener('focusout', () => {
+                        setTimeout(() => {
+                            if (!player.matches(':hover') && !player.contains(document.activeElement)) {
+                                closeMusicMenu();
+                            }
+                        }, 50);
+                    });
+                }
+
+                const enterButton = document.querySelector('.hero-btn');
+                if (enterButton) {
+                    enterButton.addEventListener('click', event => {
+                        event.preventDefault();
+                        if (!finished) {
+                            finishIntro();
+                            setTimeout(enterDashboard, 1480);
+                        } else {
+                            enterDashboard();
+                        }
+                    }, { capture: true });
+                }
+            });
+
+            // Prevent wheel/touch scrolling after intro until Enter Dashboard.
+            window.addEventListener('wheel', event => {
+                if (lockedUntilDashboard) event.preventDefault();
+            }, { passive: false, capture: true });
+
+            window.addEventListener('touchmove', event => {
+                if (lockedUntilDashboard) event.preventDefault();
+            }, { passive: false, capture: true });
+        })();
+    </script>
+
+
+    <script id="synchrose-intro-v5-request-fixes">
+        (() => {
+            function closeMusicMenu() {
+                const player = document.getElementById('mxMusicPlayer');
+                const expand = document.getElementById('mxMusicExpand');
+                if (!player) return;
+                player.classList.remove('is-open', 'is-selector');
+                expand?.classList.remove('is-active');
+            }
+
+            function openMusicMenu() {
+                const player = document.getElementById('mxMusicPlayer');
+                if (!player) return;
+                player.classList.add('is-open');
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const intro = document.getElementById('synchroseIntroV3');
+                const hint = document.getElementById('synchroseIntroV3Hint');
+                if (hint) hint.textContent = 'CLICK / PRESS ANY KEY TO SKIP';
+
+                // Keep the guide singular across the whole intro.
+                const keepOneGuide = () => {
+                    if (hint) hint.textContent = 'CLICK / PRESS ANY KEY TO SKIP';
+                };
+                intro?.addEventListener('transitionend', keepOneGuide);
+                intro?.addEventListener('animationend', keepOneGuide);
+
+                // Terminal content click/first advance reveals "the system is yours".
+                intro?.addEventListener('pointerdown', () => {
+                    intro.classList.add('stage-clicked-content');
+                    keepOneGuide();
+                }, { capture: true });
+
+                document.addEventListener('keydown', () => {
+                    intro?.classList.add('stage-clicked-content');
+                    keepOneGuide();
+                }, { capture: true });
+
+                // Mobile disc support: tap the disc to open/close the panel.
+                const hotspot = document.getElementById('mxMusicHotspot');
+                const player = document.getElementById('mxMusicPlayer');
+                if (hotspot && player) {
+                    hotspot.addEventListener('click', event => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        if (player.classList.contains('is-open') || player.classList.contains('is-selector')) {
+                            closeMusicMenu();
+                        } else {
+                            openMusicMenu();
+                        }
+                    }, { passive: false });
+
+                    hotspot.addEventListener('touchend', event => {
+                        event.preventDefault();
+                        if (player.classList.contains('is-open') || player.classList.contains('is-selector')) {
+                            closeMusicMenu();
+                        } else {
+                            openMusicMenu();
+                        }
+                    }, { passive: false });
+                }
+
+                document.addEventListener('pointerdown', event => {
+                    const player = document.getElementById('mxMusicPlayer');
+                    if (!player || player.contains(event.target)) return;
+                    closeMusicMenu();
+                });
+
+                // Auto close when unhovered/unfocused.
+                if (player) {
+                    player.addEventListener('mouseleave', closeMusicMenu);
+                    player.addEventListener('pointerleave', closeMusicMenu);
+                    player.addEventListener('focusout', () => {
+                        setTimeout(() => {
+                            if (!player.matches(':hover') && !player.contains(document.activeElement)) {
+                                closeMusicMenu();
+                            }
+                        }, 50);
+                    });
+                }
+            });
+        })();
+    </script>
+
+
+    <script id="synchrose-intro-v6-refine">
+        (() => {
+            // Override title flight with an impact-frame landing version.
+            window.synchroseV4TitleFlight = function synchroseV6TitleFlight() {
+                const intro = document.getElementById('synchroseIntroV3');
+                const finalTitle = intro?.querySelector('.synchrose-v3-final-title');
+                const heroTitle = document.querySelector('.synchrose-main-title, .hero-title');
+                const heroText = document.querySelector('.synchrose-title-gradient') || heroTitle;
+                if (!intro || !finalTitle) return Promise.resolve();
+
+                let impact = intro.querySelector('.synchrose-v3-impact-frame');
+                if (!impact) {
+                    impact = document.createElement('div');
+                    impact.className = 'synchrose-v3-impact-frame';
+                    intro.appendChild(impact);
+                }
+
+                const fallback = {
+                    left: window.innerWidth / 2,
+                    top: window.innerHeight / 2,
+                    fontSize: Math.max(44, Math.min(96, window.innerWidth * 0.08))
+                };
+
+                const targetNode = heroText || heroTitle;
+                const rect = targetNode ? targetNode.getBoundingClientRect() : null;
+                const style = targetNode ? window.getComputedStyle(targetNode) : null;
+                const target = rect ? {
+                    left: rect.left + rect.width / 2,
+                    top: rect.top + rect.height / 2,
+                    fontSize: parseFloat(style.fontSize) || fallback.fontSize
+                } : fallback;
+
+                finalTitle.textContent = 'Synchrose';
+                finalTitle.classList.add('is-title-flight');
+                finalTitle.style.left = '50%';
+                finalTitle.style.top = '50%';
+                finalTitle.style.fontSize = `${Math.min(window.innerWidth * 0.17, 180)}px`;
+                finalTitle.style.opacity = '0';
+                finalTitle.style.transform = 'translate(-50%, -50%) scale(1.08)';
+                finalTitle.style.filter = 'blur(10px) brightness(2.6)';
+
+                const anim = finalTitle.animate([
+                    {
+                        left: '50%',
+                        top: '50%',
+                        fontSize: `${Math.min(window.innerWidth * 0.17, 180)}px`,
+                        opacity: 0,
+                        filter: 'blur(12px) brightness(3)',
+                        transform: 'translate(-50%, -50%) scale(1.15)'
+                    },
+                    {
+                        left: '50%',
+                        top: '50%',
+                        fontSize: `${Math.max(target.fontSize * 1.65, 128)}px`,
+                        opacity: 1,
+                        filter: 'blur(0px) brightness(1.35)',
+                        transform: 'translate(-50%, -50%) scale(1.04)',
+                        offset: 0.36
+                    },
+                    {
+                        left: `${target.left}px`,
+                        top: `${target.top}px`,
+                        fontSize: `${target.fontSize}px`,
+                        opacity: 1,
+                        filter: 'blur(0px) brightness(1.15)',
+                        transform: 'translate(-50%, -50%) scale(1.09)',
+                        offset: 0.82
+                    },
+                    {
+                        left: `${target.left}px`,
+                        top: `${target.top}px`,
+                        fontSize: `${target.fontSize}px`,
+                        opacity: 1,
+                        filter: 'blur(0px) brightness(1)',
+                        transform: 'translate(-50%, -50%) scale(1)',
+                        offset: 1
+                    }
+                ], {
+                    duration: 880,
+                    easing: 'cubic-bezier(.15,1.05,.14,1)',
+                    fill: 'forwards'
+                });
+
+                return anim.finished.catch(() => {}).then(() => {
+                    intro.style.setProperty('--impact-x', `${target.left}px`);
+                    intro.style.setProperty('--impact-y', `${target.top}px`);
+                    impact.classList.remove('is-active');
+                    void impact.offsetWidth;
+                    impact.classList.add('is-active');
+
+                    finalTitle.classList.add('is-title-locked');
+                    finalTitle.style.left = `${target.left}px`;
+                    finalTitle.style.top = `${target.top}px`;
+                    finalTitle.style.fontSize = `${target.fontSize}px`;
+                    finalTitle.style.opacity = '1';
+                    finalTitle.style.filter = 'blur(0px) brightness(1)';
+                    finalTitle.style.transform = 'translate(-50%, -50%) scale(1)';
+
+                    setTimeout(() => impact.classList.remove('is-active'), 380);
+                });
+            };
+
+            document.addEventListener('DOMContentLoaded', () => {
+                // Mobile/touch fix: tapping the disc itself should open/close the panel.
+                const player = document.getElementById('mxMusicPlayer');
+                const hotspot = document.getElementById('mxMusicHotspot');
+                if (player && hotspot) {
+                    const togglePlayer = (event) => {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        if (player.classList.contains('is-open') || player.classList.contains('is-selector')) {
+                            player.classList.remove('is-open', 'is-selector');
+                        } else {
+                            player.classList.add('is-open');
+                        }
+                    };
+
+                    hotspot.addEventListener('pointerup', togglePlayer, { passive: false });
+                    hotspot.addEventListener('click', togglePlayer, { passive: false });
+                }
+            });
         })();
     </script>
 
