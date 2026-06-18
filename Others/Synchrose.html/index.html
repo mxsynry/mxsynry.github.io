@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="Ready to win?">
-    <link rel="icon" href="https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/globe.ico" type="image/x-icon">
+    <link rel="icon" href="https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose.html/globe.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <meta property="og:title" content="Synchrose">
     <meta property="og:description" content="Your exploits, your safety and knowledge.">
-    <meta property="og:image" content="https://github.com/mxsynry/mxsynry.github.io/raw/main/Others/Voxlis.NET/TP.png">
+    <meta property="og:image" content="https://github.com/mxsynry/mxsynry.github.io/raw/main/Others/Synchrose.html/image.png">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <title>Synchrose</title>
@@ -3819,7 +3819,7 @@
 
                 <div class="mx-music-selector" id="mxMusicSelector">
                     <div class="mx-music-selector-head">
-                        <div class="mx-music-selector-title">Songs from /Others/Voxlis.NET</div>
+                        <div class="mx-music-selector-title">Songs from /Others/Synchrose.html</div>
                         <button class="mx-music-btn mx-music-btn-wide" id="mxMusicReshuffle" type="button">Reshuffle</button>
                     </div>
                     <div class="mx-music-song-list" id="mxMusicSongList"></div>
@@ -6361,7 +6361,7 @@
                 branch: 'main',
                 pagesOrigin: 'https://mxsynry.github.io',
                 treeJson: '/tree.json',
-                musicFolder: 'Others/Voxlis.NET',
+                musicFolder: 'Others/Synchrose.html',
                 manifestName: 'music.json',
                 // No hardcoded song list. Songs are discovered from tree.json / GitHub.
                 knownMp3s: []
@@ -6740,7 +6740,7 @@
                     navigator.mediaSession.metadata = new MediaMetadata({
                         title: track.title,
                         artist: 'mxsynry.github.io',
-                        album: 'Others/Voxlis.NET'
+                        album: 'Others/Synchrose.html'
                     });
                 }
 
@@ -7601,7 +7601,7 @@
 
             function isMusicPath(path = '') {
                 const p = normalizePath(path).toLowerCase();
-                return p.startsWith('others/voxlis.net/') && p.endsWith('.mp3');
+                return p.startsWith('Others/Synchrose.html/') && p.endsWith('.mp3');
             }
 
             function collectMp3PathsFromTreePayload(payload) {
@@ -7734,7 +7734,7 @@
                 if (!paths.length) {
                     setTitle('Music not found');
                     setDescription('');
-                    setStatus('tree.json loaded, but no MP3 paths were found under Others/Voxlis.NET.');
+                    setStatus('tree.json loaded, but no MP3 paths were found under Others/Synchrose.html.');
                     return;
                 }
 
@@ -7746,7 +7746,7 @@
                 const next = document.getElementById('mxMusicNext');
 
                 function switchTo(delta) {
-                    const currentPath = normalizePath(audio.src).replace(/^.*?Others\/Voxlis\.NET\//i, 'Others/Voxlis.NET/');
+                    const currentPath = normalizePath(audio.src).replace(/^.*?Others\/Voxlis\.NET\//i, 'Others/Synchrose.html/');
                     let currentIndex = paths.findIndex(path => path === currentPath || audio.src.endsWith('/' + path));
                     if (currentIndex < 0) currentIndex = index;
                     const nextIndex = (currentIndex + delta + paths.length) % paths.length;
