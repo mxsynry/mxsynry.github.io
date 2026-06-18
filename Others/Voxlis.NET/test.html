@@ -1555,10 +1555,747 @@
             user-select: none;
         }
 
+    
+        /* ============================================================
+           PATCH: compact 100% sUNC circle + cadence-aware price colors
+        ============================================================ */
+        .score-circle {
+            font-size: 0.68rem !important;
+            letter-spacing: -0.035em;
+            line-height: 1;
+            text-align: center;
+        }
+
+        .price-value {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            max-width: 100%;
+            padding: 0.18rem 0.48rem;
+            border-radius: 999px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+            font-weight: 800;
+            line-height: 1.15;
+            text-align: right;
+            white-space: normal;
+            word-break: break-word;
+        }
+
+        .price-free,
+        .price-good {
+            color: var(--success);
+            border-color: rgba(16,185,129,0.34);
+            background: rgba(16,185,129,0.11);
+            box-shadow: 0 0 14px rgba(16,185,129,0.08);
+        }
+
+        .price-fair {
+            color: var(--warning);
+            border-color: rgba(245,158,11,0.34);
+            background: rgba(245,158,11,0.11);
+            box-shadow: 0 0 14px rgba(245,158,11,0.08);
+        }
+
+        .price-expensive {
+            color: var(--danger);
+            border-color: rgba(239,68,68,0.40);
+            background: rgba(239,68,68,0.12);
+            box-shadow: 0 0 16px rgba(239,68,68,0.10);
+        }
+
+        .price-unknown {
+            color: var(--text-muted);
+            border-color: rgba(255,255,255,0.10);
+        }
+
+</style>
+
+    <style id="mx-music-player-style">
+        /* ============================================================
+           PATCH: aligned circular top-right MP3 music player
+           Behavior:
+           [disc only] -> hover -> [full icon controls] -> menu -> [wide selector]
+        ============================================================ */
+        .mx-music-player {
+            --mxmp-bg: rgba(10, 10, 17, 0.90);
+            --mxmp-panel: rgba(15, 15, 25, 0.96);
+            --mxmp-border: rgba(236, 72, 153, 0.28);
+            --mxmp-text: #f7f2ff;
+            --mxmp-muted: #aaa3bf;
+            --mxmp-dim: #79718e;
+            --mxmp-purple: #7c3aed;
+            --mxmp-purple2: #a855f7;
+            --mxmp-pink: #ec4899;
+            --mxmp-gradient: linear-gradient(135deg, #7c3aed 0%, #a855f7 48%, #ec4899 100%);
+
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 2500;
+
+            width: 74px;
+            height: 74px;
+            min-width: 74px;
+            min-height: 74px;
+            max-width: calc(100vw - 2rem);
+            border-radius: 999px;
+            overflow: hidden;
+
+            color: var(--mxmp-text);
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            background:
+                radial-gradient(circle at 20% 0%, rgba(124,58,237,0.28), transparent 34%),
+                radial-gradient(circle at 100% 20%, rgba(236,72,153,0.22), transparent 32%),
+                var(--mxmp-bg);
+            border: 1px solid rgba(255,255,255,0.10);
+            box-shadow:
+                0 18px 55px rgba(0,0,0,0.38),
+                0 0 28px rgba(124,58,237,0.18),
+                0 0 18px rgba(236,72,153,0.10);
+            backdrop-filter: blur(14px);
+            transform-origin: top right;
+            transition:
+                width 0.34s cubic-bezier(.2,.8,.2,1),
+                height 0.34s cubic-bezier(.2,.8,.2,1),
+                border-radius 0.34s cubic-bezier(.2,.8,.2,1),
+                box-shadow 0.25s ease,
+                transform 0.25s ease;
+        }
+
+        /* Hard collapsed state. This prevents first-load panel/disc misalignment. */
+        .mx-music-player:not(:hover):not(:focus-within):not(.is-open):not(.is-selector) {
+            width: 74px !important;
+            height: 74px !important;
+            border-radius: 999px !important;
+        }
+
+        .mx-music-player:hover,
+        .mx-music-player:focus-within,
+        .mx-music-player.is-open {
+            width: min(456px, calc(100vw - 2rem));
+            height: auto;
+            border-radius: 22px;
+            box-shadow:
+                0 24px 70px rgba(0,0,0,0.45),
+                0 0 36px rgba(124,58,237,0.22),
+                0 0 26px rgba(236,72,153,0.14);
+        }
+
+        .mx-music-player.is-selector {
+            width: min(720px, calc(100vw - 2rem));
+            height: auto;
+            border-radius: 24px;
+        }
+
+        .mx-music-shell {
+            display: grid;
+            grid-template-columns: 74px 0;
+            align-items: start;
+            min-height: 74px;
+            width: 100%;
+        }
+
+        .mx-music-player:hover .mx-music-shell,
+        .mx-music-player:focus-within .mx-music-shell,
+        .mx-music-player.is-open .mx-music-shell,
+        .mx-music-player.is-selector .mx-music-shell {
+            grid-template-columns: 74px minmax(0, 1fr);
+        }
+
+        .mx-music-disc-zone {
+            width: 74px;
+            height: 74px;
+            min-width: 74px;
+            min-height: 74px;
+            display: grid;
+            place-items: center;
+            cursor: pointer;
+            position: relative;
+            z-index: 3;
+        }
+
+        .mx-music-disc-zone::after {
+            content: "";
+            position: absolute;
+            inset: 7px;
+            border-radius: 50%;
+            border: 1px solid rgba(236,72,153,0.22);
+            pointer-events: none;
+        }
+
+        .mx-music-disc {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            position: relative;
+            background:
+                radial-gradient(circle at center, #08080d 0 12%, #f7f2ff 13% 16%, #0c0c14 17% 27%, transparent 28%),
+                repeating-radial-gradient(circle at center, transparent 0 6px, rgba(255,255,255,0.05) 7px 8px),
+                conic-gradient(from 0deg, #0f0f18, #2b2141, #11111d, #6d28d9, #ec4899, #11111d, #0f0f18);
+            border: 1px solid rgba(255,255,255,0.16);
+            box-shadow:
+                inset 0 0 14px rgba(255,255,255,0.06),
+                0 0 20px rgba(124,58,237,0.24);
+        }
+
+        .mx-music-disc::after {
+            content: "";
+            position: absolute;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: var(--mxmp-gradient);
+            box-shadow: 0 0 12px rgba(236,72,153,0.35);
+        }
+
+        .mx-music-player.is-playing .mx-music-disc {
+            animation: mxDiscSpin 2.8s linear infinite;
+        }
+
+        @keyframes mxDiscSpin {
+            to { transform: rotate(360deg); }
+        }
+
+        .mx-music-panel {
+            min-width: 0;
+            width: 100%;
+            padding: 0.72rem 0.9rem 0.78rem 0.92rem;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateX(22px);
+            transition:
+                opacity 0.22s ease,
+                transform 0.28s ease;
+        }
+
+        .mx-music-player:hover .mx-music-panel,
+        .mx-music-player:focus-within .mx-music-panel,
+        .mx-music-player.is-open .mx-music-panel,
+        .mx-music-player.is-selector .mx-music-panel {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateX(0);
+        }
+
+        .mx-music-main-row {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) auto;
+            gap: 0.72rem;
+            align-items: center;
+        }
+
+        .mx-music-track-meta {
+            min-width: 0;
+            padding-left: 0;
+        }
+
+        .mx-music-track-meta.is-animating {
+            animation: mxTrackSlide 5.2s ease both;
+        }
+
+        @keyframes mxTrackSlide {
+            0% { opacity: 0; transform: translateX(18px); }
+            10% { opacity: 1; transform: translateX(0); }
+            86% { opacity: 1; transform: translateX(0); }
+            100% { opacity: 0.88; transform: translateX(-6px); }
+        }
+
+        .mx-music-title {
+            font-weight: 850;
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: #fff;
+            line-height: 1.16;
+        }
+
+        .mx-music-description {
+            margin-top: 0.16rem;
+            color: var(--mxmp-muted);
+            font-size: 0.78rem;
+            line-height: 1.35;
+            max-height: 2.7em;
+            overflow: hidden;
+        }
+
+        .mx-music-description:empty {
+            display: none;
+        }
+
+        .mx-music-icon-row {
+            display: flex;
+            align-items: center;
+            gap: 0.36rem;
+            justify-content: flex-end;
+        }
+
+        .mx-music-btn {
+            border: 1px solid rgba(255,255,255,0.10);
+            background: rgba(255,255,255,0.050);
+            color: var(--mxmp-text);
+            width: 36px;
+            height: 36px;
+            padding: 0;
+            border-radius: 999px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 800;
+            display: inline-grid;
+            place-items: center;
+            line-height: 1;
+            transition:
+                transform 0.18s ease,
+                background 0.18s ease,
+                border-color 0.18s ease,
+                box-shadow 0.18s ease,
+                color 0.18s ease;
+        }
+
+        .mx-music-btn svg {
+            width: 17px;
+            height: 17px;
+            fill: currentColor;
+            stroke: currentColor;
+            stroke-width: 0;
+        }
+
+        .mx-music-btn:hover {
+            transform: translateY(-1px);
+            border-color: rgba(236,72,153,0.46);
+            background: rgba(124,58,237,0.16);
+            box-shadow: 0 0 18px rgba(124,58,237,0.16);
+        }
+
+        .mx-music-btn.is-active,
+        .mx-music-btn-primary {
+            color: #fff;
+            border-color: transparent;
+            background: var(--mxmp-gradient);
+            box-shadow:
+                0 0 18px rgba(124,58,237,0.25),
+                0 0 14px rgba(236,72,153,0.16);
+        }
+
+        .mx-music-btn-wide {
+            width: auto;
+            padding: 0 0.76rem;
+            font-size: 0.76rem;
+        }
+
+        /* Timestamp/progress bar alignment anchor.
+           The title starts at the same x-position as this bar. */
+        .mx-music-progress {
+            height: 6px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            overflow: hidden;
+            margin-top: 0.64rem;
+            cursor: pointer;
+        }
+
+        .mx-music-progress-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: inherit;
+            background: var(--mxmp-gradient);
+            box-shadow: 0 0 12px rgba(236,72,153,0.28);
+        }
+
+        .mx-music-bottom-row {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto;
+            gap: 0.58rem;
+            align-items: center;
+            margin-top: 0.64rem;
+        }
+
+        .mx-music-time {
+            color: var(--mxmp-dim);
+            font-size: 0.72rem;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+
+        .mx-music-status {
+            color: var(--mxmp-muted);
+            font-size: 0.72rem;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .mx-music-selector {
+            max-height: 0;
+            overflow: hidden;
+            opacity: 0;
+            transition:
+                max-height 0.34s cubic-bezier(.2,.8,.2,1),
+                opacity 0.2s ease,
+                margin-top 0.28s ease;
+        }
+
+        .mx-music-player.is-selector .mx-music-selector {
+            max-height: 430px;
+            opacity: 1;
+            margin-top: 0.82rem;
+        }
+
+        .mx-music-selector-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.55rem;
+        }
+
+        .mx-music-selector-title {
+            color: var(--mxmp-muted);
+            font-size: 0.76rem;
+            font-weight: 850;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        /* One song per row. This avoids clipped text in the selector. */
+        .mx-music-song-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.45rem;
+            max-height: 320px;
+            overflow: auto;
+            padding-right: 0.2rem;
+        }
+
+        .mx-music-song {
+            display: grid;
+            grid-template-columns: 30px minmax(0, 1fr) auto;
+            gap: 0.58rem;
+            align-items: center;
+            width: 100%;
+            text-align: left;
+            padding: 0.62rem 0.68rem;
+            border-radius: 13px;
+            border: 1px solid rgba(255,255,255,0.08);
+            background: rgba(255,255,255,0.04);
+            color: var(--mxmp-text);
+            cursor: pointer;
+            transition:
+                transform 0.18s ease,
+                border-color 0.18s ease,
+                background 0.18s ease;
+        }
+
+        .mx-music-song:hover {
+            transform: translateX(2px);
+            border-color: rgba(236,72,153,0.36);
+            background: rgba(124,58,237,0.13);
+        }
+
+        .mx-music-song.is-active {
+            border-color: rgba(236,72,153,0.60);
+            background: linear-gradient(135deg, rgba(124,58,237,0.21), rgba(236,72,153,0.14));
+        }
+
+        .mx-music-song-index {
+            width: 26px;
+            height: 26px;
+            border-radius: 999px;
+            display: grid;
+            place-items: center;
+            background: rgba(255,255,255,0.08);
+            color: var(--mxmp-muted);
+            font-size: 0.68rem;
+            font-weight: 850;
+        }
+
+        .mx-music-song-body {
+            min-width: 0;
+        }
+
+        .mx-music-song-title {
+            display: block;
+            min-width: 0;
+            overflow: visible;
+            white-space: normal;
+            text-overflow: clip;
+            font-size: 0.84rem;
+            font-weight: 800;
+            line-height: 1.22;
+            word-break: break-word;
+        }
+
+        .mx-music-song-desc {
+            display: block;
+            color: var(--mxmp-dim);
+            font-size: 0.72rem;
+            line-height: 1.35;
+            margin-top: 0.10rem;
+            white-space: normal;
+            overflow: visible;
+            text-overflow: clip;
+            word-break: break-word;
+        }
+
+        .mx-music-song-desc:empty {
+            display: none;
+        }
+
+        .mx-music-song-duration {
+            color: var(--mxmp-dim);
+            font-size: 0.70rem;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+            align-self: start;
+            padding-top: 0.15rem;
+        }
+
+        .mx-music-player.is-empty .mx-music-disc {
+            opacity: 0.62;
+            filter: grayscale(0.4);
+        }
+
+        @media (max-width: 720px) {
+            .mx-music-player {
+                top: 0.75rem;
+                right: 0.75rem;
+            }
+
+            .mx-music-player:hover,
+            .mx-music-player:focus-within,
+            .mx-music-player.is-open,
+            .mx-music-player.is-selector {
+                width: calc(100vw - 1.5rem);
+            }
+
+            .mx-music-bottom-row {
+                grid-template-columns: 1fr;
+            }
+
+            .mx-music-icon-row {
+                justify-content: flex-start;
+                flex-wrap: wrap;
+            }
+
+            .mx-music-song {
+                grid-template-columns: 28px minmax(0, 1fr);
+            }
+
+            .mx-music-song-duration {
+                grid-column: 2 / -1;
+                padding-top: 0;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .mx-music-player,
+            .mx-music-panel,
+            .mx-music-selector,
+            .mx-music-track-meta,
+            .mx-music-disc {
+                transition: none !important;
+                animation: none !important;
+            }
+        }
+    
+
+        /* ============================================================
+           PATCH: disc hover effect should stay circular until panel reveal
+           This keeps the visual glow/background clipped to the disc while
+           the outer hitbox expands, then reveals the full panel background.
+        ============================================================ */
+        .mx-music-player {
+            background: transparent !important;
+            border-color: transparent !important;
+            box-shadow: none !important;
+            backdrop-filter: none !important;
+        }
+
+        .mx-music-player::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            border-radius: 999px;
+            background:
+                radial-gradient(circle at 20% 0%, rgba(124,58,237,0.28), transparent 34%),
+                radial-gradient(circle at 100% 20%, rgba(236,72,153,0.22), transparent 32%),
+                rgba(10, 10, 17, 0.90);
+            border: 1px solid rgba(255,255,255,0.10);
+            box-shadow:
+                0 18px 55px rgba(0,0,0,0.38),
+                0 0 28px rgba(124,58,237,0.18),
+                0 0 18px rgba(236,72,153,0.10);
+            backdrop-filter: blur(14px);
+            clip-path: circle(37px at 37px 37px);
+            transition:
+                clip-path 0.28s cubic-bezier(.2,.8,.2,1),
+                border-radius 0.28s cubic-bezier(.2,.8,.2,1),
+                box-shadow 0.25s ease;
+        }
+
+        .mx-music-player:hover::before,
+        .mx-music-player:focus-within::before,
+        .mx-music-player.is-open::before {
+            border-radius: 22px;
+            clip-path: inset(0 round 22px);
+            box-shadow:
+                0 24px 70px rgba(0,0,0,0.45),
+                0 0 36px rgba(124,58,237,0.22),
+                0 0 26px rgba(236,72,153,0.14);
+            transition-delay: 0.14s;
+        }
+
+        .mx-music-player.is-selector::before {
+            border-radius: 24px;
+            clip-path: inset(0 round 24px);
+            transition-delay: 0s;
+        }
+
+        .mx-music-player:not(:hover):not(:focus-within):not(.is-open):not(.is-selector)::before {
+            border-radius: 999px;
+            clip-path: circle(37px at 37px 37px);
+            transition-delay: 0s;
+        }
+
+        .mx-music-shell {
+            position: relative;
+            z-index: 1;
+        }
+
+        .mx-music-panel {
+            transition-delay: 0s;
+        }
+
+        .mx-music-player:hover .mx-music-panel,
+        .mx-music-player:focus-within .mx-music-panel,
+        .mx-music-player.is-open .mx-music-panel,
+        .mx-music-player.is-selector .mx-music-panel {
+            transition-delay: 0.12s;
+        }
+
+        .mx-music-player:not(:hover):not(:focus-within):not(.is-open):not(.is-selector) .mx-music-panel {
+            opacity: 0 !important;
+            pointer-events: none !important;
+            transform: translateX(22px) !important;
+            transition-delay: 0s !important;
+        }
+
+</style>
+
+    <style id="mx-music-left-mirror-patch">
+        /* ============================================================
+           PATCH: move music player to the left side
+           This keeps the disc as the hover hotspot and expands the menu
+           to the right, so it no longer covers the mobile filter close button.
+        ============================================================ */
+        .mx-music-player {
+            left: 1rem !important;
+            right: auto !important;
+            transform-origin: top left !important;
+        }
+
+        .mx-music-player::before {
+            transform-origin: top left !important;
+        }
+
+        .mx-music-shell {
+            transform-origin: top left !important;
+        }
+
+        .mx-music-panel {
+            transform: translateX(-22px);
+        }
+
+        .mx-music-player:hover .mx-music-panel,
+        .mx-music-player:focus-within .mx-music-panel,
+        .mx-music-player.is-open .mx-music-panel,
+        .mx-music-player.is-selector .mx-music-panel {
+            transform: translateX(0);
+        }
+
+        .mx-music-player:not(:hover):not(:focus-within):not(.is-open):not(.is-selector) .mx-music-panel {
+            transform: translateX(-22px) !important;
+        }
+
+        @media (max-width: 720px) {
+            .mx-music-player {
+                left: 0.75rem !important;
+                right: auto !important;
+            }
+        }
     </style>
+
+
 </head>
 <body>
-    <!-- ============================================================
+
+    <div class="mx-music-player is-empty" id="mxMusicPlayer" aria-label="MP3 music player">
+        <div class="mx-music-shell">
+            <div class="mx-music-disc-zone" id="mxMusicHotspot" title="Hover for music controls">
+                <div class="mx-music-disc" aria-hidden="true"></div>
+            </div>
+
+            <div class="mx-music-panel">
+                <div class="mx-music-main-row">
+                    <div class="mx-music-track-meta" id="mxMusicMeta">
+                        <div class="mx-music-title" id="mxMusicTitle">Loading music...</div>
+                        <div class="mx-music-description" id="mxMusicDescription"></div>
+                    </div>
+
+                    <div class="mx-music-icon-row">
+                        <button class="mx-music-btn" id="mxMusicShuffle" type="button" title="Shuffle" aria-label="Shuffle">
+                            <svg viewBox="0 0 24 24"><path d="M17 3h4v4h-2V6.4l-3.9 3.9-1.4-1.4L17.6 5H17V3ZM4 7h3.1c1.3 0 2.5.5 3.4 1.4l6.5 6.5V13h2v5h-5v-2h1.6l-6.5-6.5C8.5 9 7.8 9 7.1 9H4V7Zm0 8h3.1c.7 0 1.4-.3 1.9-.8l1.1-1.1 1.4 1.4-1.1 1.1c-.9.9-2.1 1.4-3.4 1.4H4v-2Z"/></svg>
+                        </button>
+                        <button class="mx-music-btn" id="mxMusicRepeat" type="button" title="Repeat" aria-label="Repeat">
+                            <svg viewBox="0 0 24 24"><path d="M7 7h9.2l-1.6-1.6L16 4l4 4-4 4-1.4-1.4L16.2 9H7c-1.1 0-2 .9-2 2v1H3v-1c0-2.2 1.8-4 4-4Zm10 10H7.8l1.6 1.6L8 20l-4-4 4-4 1.4 1.4L7.8 15H17c1.1 0 2-.9 2-2v-1h2v1c0 2.2-1.8 4-4 4Z"/></svg>
+                        </button>
+                        <button class="mx-music-btn mx-music-btn-primary" id="mxMusicExpand" type="button" title="Song menu" aria-label="Song menu">
+                            <svg viewBox="0 0 24 24"><path d="M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h16v2H4v-2Z"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mx-music-progress" id="mxMusicProgress" title="Seek">
+                    <div class="mx-music-progress-fill" id="mxMusicProgressFill"></div>
+                </div>
+
+                <div class="mx-music-bottom-row">
+                    <div class="mx-music-icon-row">
+                        <button class="mx-music-btn" id="mxMusicPrev" type="button" title="Previous song" aria-label="Previous song">
+                            <svg viewBox="0 0 24 24"><path d="M6 5h2v14H6V5Zm3 7 9-7v14l-9-7Z"/></svg>
+                        </button>
+                        <button class="mx-music-btn mx-music-btn-primary" id="mxMusicPlay" type="button" title="Play / pause" aria-label="Play / pause">
+                            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7L8 5Z"/></svg>
+                        </button>
+                        <button class="mx-music-btn" id="mxMusicNext" type="button" title="Next song" aria-label="Next song">
+                            <svg viewBox="0 0 24 24"><path d="M16 5h2v14h-2V5ZM6 5l9 7-9 7V5Z"/></svg>
+                        </button>
+                    </div>
+
+                    <div class="mx-music-status" id="mxMusicStatus">Scanning for MP3 files...</div>
+                    <div class="mx-music-time" id="mxMusicTime">0:00 / 0:00</div>
+                </div>
+
+                <div class="mx-music-selector" id="mxMusicSelector">
+                    <div class="mx-music-selector-head">
+                        <div class="mx-music-selector-title">Songs from /Others/Voxlis.NET</div>
+                        <button class="mx-music-btn mx-music-btn-wide" id="mxMusicReshuffle" type="button">Reshuffle</button>
+                    </div>
+                    <div class="mx-music-song-list" id="mxMusicSongList"></div>
+                </div>
+            </div>
+        </div>
+
+        <audio id="mxMusicAudio" preload="metadata"></audio>
+    </div>
+
+<!-- ============================================================
          HERO / LANDING SECTION
     ============================================================ -->
     <section class="hero-section" id="hero">
@@ -1670,7 +2407,7 @@
                     <div class="filter-panel-header">
                         <div>
                             <div class="filter-panel-title">Filters</div>
-                            <div class="filter-summary-text" style="font-size:0.85rem;">Voxlis-style filter drawer</div>
+                            <div class="filter-summary-text" style="font-size:0.85rem;">Take your pick!</div>
                         </div>
                         <button class="btn" type="button" onclick="closeFilterDrawer()">Close</button>
                     </div>
@@ -1684,6 +2421,7 @@
                                 <option value="updated-first">Updated First</option>
                                 <option value="name-asc">Name A-Z</option>
                                 <option value="price-asc">Price Low-High</option>
+                                <option value="value-best">Best Value</option>
                                 <option value="sunc-desc">sUNC High-Low</option>
                             </select>
                         </div>
@@ -1714,6 +2452,16 @@
                                 <button class="filter-chip active" data-segment="price" data-value="all">All</button>
                                 <button class="filter-chip" data-segment="price" data-value="free">Free</button>
                                 <button class="filter-chip" data-segment="price" data-value="paid">Paid</button>
+                            </div>
+                        </div>
+
+                        <div class="filter-section">
+                            <div class="filter-section-title">Value</div>
+                            <div class="segmented-control" data-segment-group="valueRating">
+                                <button class="filter-chip active" data-segment="valueRating" data-value="all">All</button>
+                                <button class="filter-chip" data-segment="valueRating" data-value="good">Good</button>
+                                <button class="filter-chip" data-segment="valueRating" data-value="fair">Fair</button>
+                                <button class="filter-chip" data-segment="valueRating" data-value="expensive">Expensive</button>
                             </div>
                         </div>
 
@@ -1926,6 +2674,7 @@
             if (catalogFilters.source !== 'all') count++;
             if (catalogFilters.platforms.length) count++;
             if (catalogFilters.price !== 'all') count++;
+            if (catalogFilters.valueRating !== 'all') count++;
             if (catalogFilters.type !== 'all') count++;
             if (catalogFilters.updatedState !== 'all') count++;
             if (catalogFilters.detectionState !== 'all') count++;
@@ -2781,6 +3530,92 @@
             return { text: 'Unknown', dot: 'warning', color: 'var(--warning)' };
         }
 
+        function parsePriceAmounts(priceText = '') {
+            const text = String(priceText || '').replace(/,/g, '');
+            const matches = [...text.matchAll(/\$?\s*(\d+(?:\.\d+)?)/g)]
+                .map(match => Number(match[1]))
+                .filter(number => Number.isFinite(number));
+            return matches;
+        }
+
+        function getPriceCadence(priceText = '') {
+            const text = String(priceText || '').toLowerCase();
+            if (/week|weekly|\/wk|\bwk\b/.test(text)) return 'weekly';
+            if (/month|monthly|\/mo|\bmo\b|30\s*days?|30d/.test(text)) return 'monthly';
+            if (/life|lifetime|permanent|one\s*time|onetime/.test(text)) return 'lifetime';
+            if (/day|daily/.test(text)) return 'daily';
+            return 'unknown';
+        }
+
+        function getPriceUi(priceText = '') {
+            const raw = String(priceText || '').trim();
+            const text = raw.toLowerCase();
+            const amounts = parsePriceAmounts(raw);
+            const amount = amounts.length ? Math.max(...amounts) : null;
+            const hasFree = /\bfree\b/.test(text);
+            const cadence = getPriceCadence(raw);
+
+            if (hasFree && amount === null) {
+                return {
+                    rating: 'good',
+                    className: 'price-value price-free',
+                    title: 'Free'
+                };
+            }
+
+            if (amount === null) {
+                return {
+                    rating: 'unknown',
+                    className: 'price-value price-unknown',
+                    title: 'No numeric price found'
+                };
+            }
+
+            let rating = 'fair';
+            let reason = '';
+
+            if (cadence === 'daily') {
+                rating = amount <= 0.50 ? 'fair' : 'expensive';
+                reason = `Daily pricing is usually expensive. Listed: $${amount}/day.`;
+            } else if (cadence === 'weekly') {
+                // Weekly pricing gets expensive fast, so judge it more harshly.
+                if (amount <= 2.99) rating = 'good';
+                else if (amount <= 4.99) rating = 'fair';
+                else rating = 'expensive';
+                reason = `Weekly price. Approx monthly cost: $${(amount * 4.33).toFixed(2)}.`;
+            } else if (cadence === 'monthly') {
+                if (amount <= 5) rating = 'good';
+                else if (amount <= 10) rating = 'fair';
+                else rating = 'expensive';
+                reason = `Monthly/30-day price: $${amount}.`;
+            } else if (cadence === 'lifetime') {
+                if (amount <= 10) rating = 'good';
+                else if (amount <= 20) rating = 'fair';
+                else rating = 'expensive';
+                reason = `Lifetime price: $${amount}.`;
+            } else {
+                if (amount < 5) rating = 'good';
+                else if (amount <= 10) rating = 'fair';
+                else rating = 'expensive';
+                reason = `Unclear billing period. Judged by listed amount: $${amount}.`;
+            }
+
+            // If a free option exists, do not punish it as hard, but still flag bad recurring paid tiers.
+            if (hasFree && rating === 'expensive' && cadence !== 'weekly') rating = 'fair';
+            if (hasFree && rating === 'fair' && amount <= 8) rating = 'good';
+
+            return {
+                rating,
+                className: `price-value price-${rating}`,
+                title: reason + (hasFree ? ' Free option is also listed.' : '')
+            };
+        }
+
+        function renderPrice(priceText = '') {
+            const priceUi = getPriceUi(priceText);
+            return `<span class="${priceUi.className}" title="${escapeHtml(priceUi.title)}">${escapeHtml(priceText || 'Unknown')}</span>`;
+        }
+
         function hasNumber(value) {
             return value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
         }
@@ -2795,7 +3630,7 @@
 
             return `
                 <div class="sunc-score">
-                    <div class="score-circle" style="background: ${suncColor}20; color: ${suncColor}; border: 2px solid ${suncColor};">
+                    <div class="score-circle ${score >= 100 ? 'score-circle-max' : ''}" style="background: ${suncColor}20; color: ${suncColor}; border: 2px solid ${suncColor};" title="${score}%">
                         ${score}%
                     </div>
                     <div style="flex: 1;">
@@ -3002,7 +3837,7 @@
 
                             <div class="info-row">
                                 <span class="info-label">Price</span>
-                                <span class="info-value">${escapeHtml(item.price)}</span>
+                                <span class="info-value">${renderPrice(item.price)}</span>
                             </div>
 
                             <div class="info-row">
@@ -3114,7 +3949,7 @@
                             </span>
                         </td>
                         <td>${escapeHtml(item.platformDisplay)}</td>
-                        <td>${escapeHtml(item.price)}</td>
+                        <td>${renderPrice(item.price)}</td>
                         <td>${sunc}</td>
                         <td>${unc}</td>
                         <td>${escapeHtml(item.version)}</td>
@@ -3205,6 +4040,7 @@
             sort: 'most-popular',
             platforms: [],
             price: 'all',
+            valueRating: 'all',
             type: 'all',
             updatedState: 'all',
             detectionState: 'all',
@@ -3316,6 +4152,7 @@
             catalogFilters.sort = 'most-popular';
             catalogFilters.platforms = [];
             catalogFilters.price = 'all';
+            catalogFilters.valueRating = 'all';
             catalogFilters.type = 'all';
             catalogFilters.updatedState = 'all';
             catalogFilters.detectionState = 'all';
@@ -3362,6 +4199,7 @@
                 if (catalogFilters.source !== 'all') activeBits.push(`Source: ${catalogFilters.source}`);
                 if (catalogFilters.platforms.length) activeBits.push(`Platforms: ${catalogFilters.platforms.map(displayPlatform).join(', ')}`);
                 if (catalogFilters.price !== 'all') activeBits.push(`Price: ${catalogFilters.price}`);
+                if (catalogFilters.valueRating !== 'all') activeBits.push(`Value: ${catalogFilters.valueRating}`);
                 if (catalogFilters.type !== 'all') activeBits.push(`Type: ${catalogFilters.type}`);
                 if (catalogFilters.updatedState !== 'all') activeBits.push(`Updated: ${catalogFilters.updatedState}`);
                 if (catalogFilters.detectionState !== 'all') activeBits.push(`Detection: ${catalogFilters.detectionState}`);
@@ -3628,6 +4466,8 @@
                 if (filters.price === 'free' && item.free !== true) return false;
                 if (filters.price === 'paid' && item.free !== false) return false;
 
+                if (filters.valueRating !== 'all' && getPriceUi(item.price).rating !== filters.valueRating) return false;
+
                 if (!itemMatchesType(item, filters.type)) return false;
 
                 if (filters.updatedState === 'yes' && item.updateStatus !== true) return false;
@@ -3673,6 +4513,10 @@
             if (sortValue === 'price-asc') {
                 return list.sort((a, b) => getSortablePrice(a) - getSortablePrice(b) || a.name.localeCompare(b.name));
             }
+            if (sortValue === 'value-best') {
+                const valueRank = item => ({ good: 0, fair: 1, expensive: 2, unknown: 3 }[getPriceUi(item.price).rating] ?? 3);
+                return list.sort((a, b) => valueRank(a) - valueRank(b) || getSortablePrice(a) - getSortablePrice(b) || a.name.localeCompare(b.name));
+            }
             if (sortValue === 'sunc-desc') {
                 return list.sort((a, b) => (Number(b.suncPercentage) || -1) - (Number(a.suncPercentage) || -1) || a.name.localeCompare(b.name));
             }
@@ -3690,6 +4534,7 @@
             if (catalogFilters.source !== 'all') activeBits.push(`Source: ${catalogFilters.source}`);
             if (catalogFilters.platforms.length) activeBits.push(`Platforms: ${catalogFilters.platforms.map(displayPlatform).join(', ')}`);
             if (catalogFilters.price !== 'all') activeBits.push(`Price: ${catalogFilters.price}`);
+            if (catalogFilters.valueRating !== 'all') activeBits.push(`Value: ${catalogFilters.valueRating}`);
             if (catalogFilters.type !== 'all') activeBits.push(`Type: ${catalogFilters.type}`);
             if (catalogFilters.updatedState !== 'all') activeBits.push(`Updated: ${catalogFilters.updatedState}`);
             if (catalogFilters.detectionState !== 'all') activeBits.push(`Detection: ${catalogFilters.detectionState}`);
@@ -3706,6 +4551,74 @@
             if (badge) badge.textContent = String(countActiveFilters());
         }
 
+
+        // ============================================================
+        // PATCH: quiet optional Voxlis modals.json loading
+        // Most Voxlis folders do not include modals.json. Fetching it blindly
+        // works logically with allow404, but Chrome still prints noisy 404s.
+        // This uses the GitHub tree once, then only requests modals.json when it exists.
+        // ============================================================
+        function voxlisRepoPath(folderName, filename) {
+            return `public/data/roblox/${folderName}/${filename}`;
+        }
+
+        async function fetchVoxlisFileSet() {
+            try {
+                const treeUrl = `https://api.github.com/repos/localscripts/voxlis.NET/git/trees/${CONFIG.voxlis.ref}?recursive=1`;
+                const data = await fetchJson(treeUrl, { cacheBust: false });
+                const files = new Set();
+
+                for (const item of data.tree || []) {
+                    if (item.type === 'blob' && item.path && item.path.startsWith('public/data/roblox/')) {
+                        files.add(item.path);
+                    }
+                }
+
+                return files;
+            } catch (error) {
+                console.warn('Could not preload Voxlis file list; optional modals.json files will be skipped to avoid console 404 spam.', error);
+                return new Set();
+            }
+        }
+
+        async function fetchVoxlisExecutors() {
+            const [folders, prices, apiStatus] = await Promise.all([
+                fetchVoxlisFolders(),
+                fetchJson(CONFIG.voxlis.prices).catch(error => {
+                    console.warn('Voxlis prices failed:', error);
+                    return {};
+                }),
+                fetchVoxlisApiStatus()
+            ]);
+
+            const availableFiles = await fetchVoxlisFileSet();
+
+            const rows = await Promise.all(
+                folders.map(folder => fetchVoxlisExecutorFolder(folder, prices, apiStatus, availableFiles)
+                    .catch(error => {
+                        console.warn(`Skipping Voxlis folder ${folder}:`, error);
+                        return null;
+                    }))
+            );
+
+            return rows.filter(Boolean);
+        }
+
+        async function fetchVoxlisExecutorFolder(folderName, prices, apiStatus, availableFiles = new Set()) {
+            const hasModals = availableFiles.has(voxlisRepoPath(folderName, 'modals.json'));
+
+            const [info, points, review, modals] = await Promise.all([
+                fetchJson(rawVoxlisUrl(folderName, 'info.json'), { allow404: true }),
+                fetchJson(rawVoxlisUrl(folderName, 'points.json'), { allow404: true }),
+                fetchText(rawVoxlisUrl(folderName, 'review.md'), { allow404: true }),
+                hasModals ? fetchJson(rawVoxlisUrl(folderName, 'modals.json'), { allow404: true }).catch(() => null) : Promise.resolve(null)
+            ]);
+
+            if (!info || info.hidden === true) return null;
+            return normalizeVoxlisExecutorData(folderName, info, points || {}, review || '', prices || {}, apiStatus, modals || {});
+        }
+
+
         // ============================================================
         // AUTO REFRESH
         // ============================================================
@@ -3716,5 +4629,617 @@
         }, 300000);
 
     </script>
+
+    <script id="mx-music-player-script">
+        (() => {
+            const MUSIC_CONFIG = {
+                owner: 'mxsynry',
+                repo: 'mxsynry.github.io',
+                branch: 'main',
+                pagesOrigin: 'https://mxsynry.github.io',
+                treeJson: '/tree.json',
+                musicFolder: 'Others/Voxlis.NET',
+                manifestName: 'music.json',
+                knownMp3s: ['Others/Voxlis.NET/binary.mp3']
+            };
+
+            const player = document.getElementById('mxMusicPlayer');
+            if (!player) return;
+
+            const audio = document.getElementById('mxMusicAudio');
+            const titleEl = document.getElementById('mxMusicTitle');
+            const descEl = document.getElementById('mxMusicDescription');
+            const metaEl = document.getElementById('mxMusicMeta');
+            const statusEl = document.getElementById('mxMusicStatus');
+            const timeEl = document.getElementById('mxMusicTime');
+            const progress = document.getElementById('mxMusicProgress');
+            const progressFill = document.getElementById('mxMusicProgressFill');
+            const playBtn = document.getElementById('mxMusicPlay');
+            const prevBtn = document.getElementById('mxMusicPrev');
+            const nextBtn = document.getElementById('mxMusicNext');
+            const shuffleBtn = document.getElementById('mxMusicShuffle');
+            const repeatBtn = document.getElementById('mxMusicRepeat');
+            const expandBtn = document.getElementById('mxMusicExpand');
+            const reshuffleBtn = document.getElementById('mxMusicReshuffle');
+            const songListEl = document.getElementById('mxMusicSongList');
+
+            const ICON_PLAY = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7L8 5Z"/></svg>';
+            const ICON_PAUSE = '<svg viewBox="0 0 24 24"><path d="M7 5h4v14H7V5Zm6 0h4v14h-4V5Z"/></svg>';
+
+            const state = {
+                tracks: [],
+                order: [],
+                orderIndex: 0,
+                currentIndex: -1,
+                sourceIndex: 0,
+                shuffle: true,
+                repeat: 'off',
+                userStarted: false,
+                loading: false
+            };
+
+            function encodeRepoPath(path = '') {
+                return String(path).split('/').filter(Boolean).map(encodeURIComponent).join('/');
+            }
+
+            function normalizePath(path = '') {
+                return String(path).replace(/^\/+/, '').replace(/\\/g, '/');
+            }
+
+            function pageUrl(path = '') {
+                return `${MUSIC_CONFIG.pagesOrigin.replace(/\/$/, '')}/${encodeRepoPath(path)}`;
+            }
+
+            function rawUrl(path = '') {
+                return `https://raw.githubusercontent.com/${MUSIC_CONFIG.owner}/${MUSIC_CONFIG.repo}/${MUSIC_CONFIG.branch}/${encodeRepoPath(path)}`;
+            }
+
+            function fileNameFromPath(path = '') {
+                return normalizePath(path).split('/').pop() || path;
+            }
+
+            function fileStem(path = '') {
+                return fileNameFromPath(path).replace(/\.[^.]+$/, '');
+            }
+
+            function prettyTitle(path = '') {
+                return fileStem(path)
+                    .replace(/[_-]+/g, ' ')
+                    .replace(/\s+/g, ' ')
+                    .trim()
+                    .replace(/\b\w/g, char => char.toUpperCase()) || 'Untitled MP3';
+            }
+
+            function isMp3Path(path = '') {
+                return normalizePath(path).toLowerCase().endsWith('.mp3');
+            }
+
+            function isInsideMusicFolder(path = '') {
+                const normalized = normalizePath(path);
+                const folder = normalizePath(MUSIC_CONFIG.musicFolder).replace(/\/$/, '');
+                return normalized === folder || normalized.startsWith(`${folder}/`);
+            }
+
+            function formatTime(seconds) {
+                if (!Number.isFinite(seconds) || seconds < 0) return '0:00';
+                const mins = Math.floor(seconds / 60);
+                const secs = Math.floor(seconds % 60);
+                return `${mins}:${String(secs).padStart(2, '0')}`;
+            }
+
+            function escapeHtml(value) {
+                return String(value ?? '').replace(/[&<>"']/g, char => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    '"': '&quot;',
+                    "'": '&#39;'
+                }[char]));
+            }
+
+            function setStatus(text) {
+                statusEl.textContent = text || '';
+            }
+
+            async function fetchJson(url, options = {}) {
+                const response = await fetch(url, {
+                    cache: options.cache || 'no-store',
+                    headers: { 'Accept': 'application/json, text/plain, */*' }
+                });
+
+                if (options.allow404 && response.status === 404) return null;
+                if (!response.ok) throw new Error(`${url} failed with HTTP ${response.status}`);
+
+                const text = await response.text();
+                if (!text.trim()) return null;
+                return JSON.parse(text);
+            }
+
+            async function loadTreeCandidates() {
+                const candidates = [];
+
+                try {
+                    candidates.push(await fetchJson(MUSIC_CONFIG.treeJson, { cache: 'no-store' }));
+                } catch (error) {
+                    console.warn('Root tree.json failed:', error);
+                }
+
+                try {
+                    const api = `https://api.github.com/repos/${MUSIC_CONFIG.owner}/${MUSIC_CONFIG.repo}/git/trees/${MUSIC_CONFIG.branch}?recursive=1`;
+                    candidates.push(await fetchJson(api, { cache: 'no-store' }));
+                } catch (error) {
+                    console.warn('GitHub recursive tree API failed:', error);
+                }
+
+                return candidates.filter(Boolean);
+            }
+
+            function collectFilesFromTreeShape(treeData) {
+                const files = [];
+
+                function addFile(path, node = {}) {
+                    const cleanPath = normalizePath(path);
+                    if (!cleanPath) return;
+                    files.push({
+                        path: cleanPath,
+                        name: node.name || fileNameFromPath(cleanPath),
+                        size: node.size,
+                        download_url: node.download_url || node.downloadUrl || '',
+                        description: node.description || node.desc || ''
+                    });
+                }
+
+                function walkNode(node, prefix = '') {
+                    if (!node) return;
+
+                    if (Array.isArray(node)) {
+                        node.forEach(child => walkNode(child, prefix));
+                        return;
+                    }
+
+                    const nodePath = normalizePath(
+                        node.fullPath ||
+                        node.path ||
+                        (prefix && node.name ? `${prefix}/${node.name}` : node.name || '')
+                    );
+                    const type = node.type === 'blob' ? 'file' : node.type === 'tree' ? 'dir' : node.type;
+
+                    if (type === 'file' || type === 'blob') {
+                        addFile(nodePath, node);
+                        return;
+                    }
+
+                    if (Array.isArray(node.children)) {
+                        const nextPrefix = nodePath && nodePath !== MUSIC_CONFIG.repo ? nodePath : prefix;
+                        node.children.forEach(child => walkNode(child, nextPrefix));
+                    }
+
+                    if (Array.isArray(node.tree)) {
+                        node.tree.forEach(child => walkNode(child, ''));
+                    }
+                }
+
+                if (treeData?.tree && Array.isArray(treeData.tree)) {
+                    treeData.tree.forEach(item => {
+                        if (item.type === 'blob' || item.type === 'file') addFile(item.path, item);
+                    });
+                } else {
+                    walkNode(treeData, '');
+                }
+
+                return files;
+            }
+
+            async function loadFolderFromContentsApi() {
+                const url = `https://api.github.com/repos/${MUSIC_CONFIG.owner}/${MUSIC_CONFIG.repo}/contents/${encodeRepoPath(MUSIC_CONFIG.musicFolder)}?ref=${MUSIC_CONFIG.branch}`;
+                const entries = await fetchJson(url, { cache: 'no-store' });
+                if (!Array.isArray(entries)) return [];
+
+                return entries
+                    .filter(entry => entry.type === 'file')
+                    .map(entry => ({
+                        path: normalizePath(entry.path),
+                        name: entry.name,
+                        size: entry.size,
+                        download_url: entry.download_url || ''
+                    }));
+            }
+
+            async function loadMusicFiles() {
+                const found = new Map();
+
+                function add(file) {
+                    if (!file || !isMp3Path(file.path) || !isInsideMusicFolder(file.path)) return;
+                    found.set(normalizePath(file.path).toLowerCase(), file);
+                }
+
+                const treeCandidates = await loadTreeCandidates();
+                treeCandidates.flatMap(collectFilesFromTreeShape).forEach(add);
+
+                if (!found.size) {
+                    try {
+                        (await loadFolderFromContentsApi()).forEach(add);
+                    } catch (error) {
+                        console.warn('GitHub contents API music folder fallback failed:', error);
+                    }
+                }
+
+                for (const path of MUSIC_CONFIG.knownMp3s) {
+                    add({ path });
+                }
+
+                return [...found.values()];
+            }
+
+            function normalizeManifest(rawManifest) {
+                const map = new Map();
+                if (!rawManifest) return map;
+
+                function put(key, value = {}) {
+                    if (!key) return;
+                    const clean = normalizePath(key);
+                    const file = fileNameFromPath(clean);
+                    const stem = fileStem(clean).toLowerCase();
+                    const meta = {
+                        title: value.title || value.name || '',
+                        description: value.description || value.desc || value.summary || '',
+                        order: value.order,
+                        duration: value.duration || value.length || '',
+                        hidden: value.hidden === true
+                    };
+
+                    map.set(clean.toLowerCase(), meta);
+                    map.set(file.toLowerCase(), meta);
+                    map.set(stem, meta);
+                }
+
+                if (Array.isArray(rawManifest)) {
+                    rawManifest.forEach(item => put(item.path || item.file || item.src || item.name, item));
+                } else if (rawManifest.tracks && Array.isArray(rawManifest.tracks)) {
+                    rawManifest.tracks.forEach(item => put(item.path || item.file || item.src || item.name, item));
+                } else if (typeof rawManifest === 'object') {
+                    Object.entries(rawManifest).forEach(([key, value]) => {
+                        if (value && typeof value === 'object') put(key, value);
+                        else put(key, { title: key, description: String(value || '') });
+                    });
+                }
+
+                return map;
+            }
+
+            async function loadManifestIfPresent() {
+                const manifestPath = `${normalizePath(MUSIC_CONFIG.musicFolder)}/${MUSIC_CONFIG.manifestName}`;
+
+                try {
+                    return normalizeManifest(await fetchJson(pageUrl(manifestPath), { cache: 'no-store', allow404: true }));
+                } catch (pageError) {
+                    try {
+                        return normalizeManifest(await fetchJson(rawUrl(manifestPath), { cache: 'no-store', allow404: true }));
+                    } catch (rawError) {
+                        console.warn('Music manifest failed:', pageError, rawError);
+                        return new Map();
+                    }
+                }
+            }
+
+            function getTrackMeta(file, manifest) {
+                const path = normalizePath(file.path);
+                const fileName = fileNameFromPath(path);
+                const stem = fileStem(path).toLowerCase();
+
+                const meta =
+                    manifest.get(path.toLowerCase()) ||
+                    manifest.get(fileName.toLowerCase()) ||
+                    manifest.get(stem) ||
+                    {};
+
+                const sources = [
+                    pageUrl(path),
+                    file.download_url,
+                    rawUrl(path)
+                ].filter(Boolean);
+
+                return {
+                    path,
+                    sources: [...new Set(sources)],
+                    title: meta.title || prettyTitle(path),
+                    description: meta.description || file.description || '',
+                    durationLabel: meta.duration || '',
+                    order: Number.isFinite(Number(meta.order)) ? Number(meta.order) : null,
+                    hidden: meta.hidden === true
+                };
+            }
+
+            function shuffleArray(values) {
+                const array = [...values];
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]];
+                }
+                return array;
+            }
+
+            function rebuildOrder(keepCurrent = true) {
+                const indices = state.tracks.map((_, index) => index);
+                const current = state.currentIndex;
+                state.order = state.shuffle ? shuffleArray(indices) : indices;
+
+                if (keepCurrent && current >= 0) {
+                    const found = state.order.indexOf(current);
+                    if (found > 0) {
+                        state.order.splice(found, 1);
+                        state.order.unshift(current);
+                        state.orderIndex = 0;
+                    } else {
+                        state.orderIndex = Math.max(0, found);
+                    }
+                } else {
+                    state.orderIndex = 0;
+                }
+            }
+
+            function animateMeta() {
+                metaEl.classList.remove('is-animating');
+                void metaEl.offsetWidth;
+                metaEl.classList.add('is-animating');
+            }
+
+            function loadSourceForTrack(track, sourceIndex = 0) {
+                state.sourceIndex = sourceIndex;
+                audio.src = track.sources[sourceIndex];
+                audio.dataset.sourceIndex = String(sourceIndex);
+                audio.load();
+            }
+
+            function setCurrentTrack(index, shouldPlay = false) {
+                if (!state.tracks.length) return;
+                const bounded = ((index % state.tracks.length) + state.tracks.length) % state.tracks.length;
+                state.currentIndex = bounded;
+                const track = state.tracks[bounded];
+
+                loadSourceForTrack(track, 0);
+
+                titleEl.textContent = track.title;
+                descEl.textContent = track.description || '';
+                player.classList.remove('is-empty');
+                animateMeta();
+                renderSongList();
+                updatePlayState(false);
+                setStatus(`${bounded + 1} of ${state.tracks.length} · ${track.path}`);
+
+                if ('mediaSession' in navigator) {
+                    navigator.mediaSession.metadata = new MediaMetadata({
+                        title: track.title,
+                        artist: 'mxsynry.github.io',
+                        album: 'Others/Voxlis.NET'
+                    });
+                }
+
+                if (shouldPlay) playCurrent();
+            }
+
+            async function playCurrent() {
+                if (!state.tracks.length) return;
+                state.userStarted = true;
+
+                try {
+                    await audio.play();
+                    updatePlayState(true);
+                } catch (error) {
+                    setStatus('Click play once to allow browser audio playback.');
+                    console.warn('Audio play was blocked or failed:', error);
+                    updatePlayState(false);
+                }
+            }
+
+            function updatePlayState(isPlaying = !audio.paused) {
+                player.classList.toggle('is-playing', Boolean(isPlaying));
+                playBtn.innerHTML = isPlaying ? ICON_PAUSE : ICON_PLAY;
+                playBtn.title = isPlaying ? 'Pause' : 'Play';
+            }
+
+            function setShuffle(enabled) {
+                state.shuffle = Boolean(enabled);
+                shuffleBtn.classList.toggle('is-active', state.shuffle);
+                rebuildOrder(true);
+                setStatus(state.shuffle ? 'Shuffle enabled.' : 'Shuffle disabled.');
+            }
+
+            function cycleRepeat() {
+                state.repeat = state.repeat === 'off' ? 'all' : state.repeat === 'all' ? 'one' : 'off';
+                repeatBtn.classList.toggle('is-active', state.repeat !== 'off');
+                repeatBtn.title = state.repeat === 'one' ? 'Repeat one' : state.repeat === 'all' ? 'Repeat all' : 'Repeat off';
+                setStatus(`Repeat: ${state.repeat}`);
+            }
+
+            function nextTrack(force = false) {
+                if (!state.tracks.length) return;
+
+                if (!force && state.repeat === 'one') {
+                    audio.currentTime = 0;
+                    playCurrent();
+                    return;
+                }
+
+                const currentOrderPosition = state.order.indexOf(state.currentIndex);
+                state.orderIndex = currentOrderPosition >= 0 ? currentOrderPosition + 1 : state.orderIndex + 1;
+
+                if (state.orderIndex >= state.order.length) {
+                    if (state.repeat === 'all' || state.shuffle) {
+                        rebuildOrder(false);
+                    } else {
+                        state.orderIndex = state.order.length - 1;
+                        updatePlayState(false);
+                        return;
+                    }
+                }
+
+                setCurrentTrack(state.order[state.orderIndex] ?? 0, state.userStarted);
+            }
+
+            function prevTrack() {
+                if (!state.tracks.length) return;
+
+                if (audio.currentTime > 3) {
+                    audio.currentTime = 0;
+                    return;
+                }
+
+                const currentOrderPosition = state.order.indexOf(state.currentIndex);
+                state.orderIndex = currentOrderPosition >= 0 ? currentOrderPosition - 1 : state.orderIndex - 1;
+
+                if (state.orderIndex < 0) {
+                    state.orderIndex = state.repeat === 'all' ? state.order.length - 1 : 0;
+                }
+
+                setCurrentTrack(state.order[state.orderIndex] ?? 0, state.userStarted);
+            }
+
+            function renderSongList() {
+                if (!songListEl) return;
+
+                if (!state.tracks.length) {
+                    songListEl.innerHTML = `<div class="mx-music-status">No MP3 files found in /${MUSIC_CONFIG.musicFolder}</div>`;
+                    return;
+                }
+
+                songListEl.innerHTML = state.tracks.map((track, index) => `
+                    <button class="mx-music-song ${index === state.currentIndex ? 'is-active' : ''}" type="button" data-song-index="${index}" title="${escapeHtml(track.path)}">
+                        <span class="mx-music-song-index">${index + 1}</span>
+                        <span class="mx-music-song-body">
+                            <span class="mx-music-song-title">${escapeHtml(track.title)}</span>
+                            <span class="mx-music-song-desc">${escapeHtml(track.description || '')}</span>
+                        </span>
+                        <span class="mx-music-song-duration">${escapeHtml(track.durationLabel || '')}</span>
+                    </button>
+                `).join('');
+
+                songListEl.querySelectorAll('[data-song-index]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const index = Number(button.dataset.songIndex);
+                        const orderPos = state.order.indexOf(index);
+                        state.orderIndex = orderPos >= 0 ? orderPos : 0;
+                        setCurrentTrack(index, true);
+                    });
+                });
+            }
+
+            function updateTime() {
+                const duration = audio.duration || 0;
+                const current = audio.currentTime || 0;
+                const percent = duration ? Math.max(0, Math.min(100, (current / duration) * 100)) : 0;
+                progressFill.style.width = `${percent}%`;
+                timeEl.textContent = `${formatTime(current)} / ${formatTime(duration)}`;
+            }
+
+            async function initMusic() {
+                if (state.loading) return;
+                state.loading = true;
+
+                try {
+                    setStatus(`Scanning /${MUSIC_CONFIG.musicFolder} for MP3 files...`);
+                    const files = await loadMusicFiles();
+                    const manifest = await loadManifestIfPresent();
+
+                    state.tracks = files
+                        .map(file => getTrackMeta(file, manifest))
+                        .filter(track => !track.hidden)
+                        .sort((a, b) => {
+                            if (a.order !== null || b.order !== null) {
+                                return (a.order ?? 999999) - (b.order ?? 999999) || a.title.localeCompare(b.title);
+                            }
+                            return a.title.localeCompare(b.title);
+                        });
+
+                    if (!state.tracks.length) {
+                        player.classList.add('is-empty');
+                        titleEl.textContent = 'No MP3 files found';
+                        descEl.textContent = '';
+                        setStatus(`No .mp3 files were found in /${MUSIC_CONFIG.musicFolder}`);
+                        renderSongList();
+                        return;
+                    }
+
+                    setShuffle(true);
+                    setCurrentTrack(state.order[0] ?? 0, false);
+                    setStatus(`Loaded ${state.tracks.length} song${state.tracks.length === 1 ? '' : 's'} from /${MUSIC_CONFIG.musicFolder}`);
+                } catch (error) {
+                    player.classList.add('is-empty');
+                    titleEl.textContent = 'Music failed to load';
+                    descEl.textContent = '';
+                    setStatus(error.message || 'Could not load music.');
+                    console.error('Music player failed:', error);
+                } finally {
+                    state.loading = false;
+                }
+            }
+
+            playBtn.addEventListener('click', () => {
+                if (!state.tracks.length) return;
+                audio.paused ? playCurrent() : audio.pause();
+            });
+
+            prevBtn.addEventListener('click', prevTrack);
+            nextBtn.addEventListener('click', () => nextTrack(true));
+            shuffleBtn.addEventListener('click', () => setShuffle(!state.shuffle));
+            repeatBtn.addEventListener('click', cycleRepeat);
+
+            expandBtn.addEventListener('click', () => {
+                player.classList.toggle('is-selector');
+                player.classList.add('is-open');
+                expandBtn.classList.toggle('is-active', player.classList.contains('is-selector'));
+            });
+
+            reshuffleBtn.addEventListener('click', () => {
+                setShuffle(true);
+                rebuildOrder(true);
+                setStatus('Playlist reshuffled.');
+            });
+
+            progress.addEventListener('click', event => {
+                if (!audio.duration) return;
+                const rect = progress.getBoundingClientRect();
+                const ratio = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
+                audio.currentTime = ratio * audio.duration;
+                updateTime();
+            });
+
+            audio.addEventListener('play', () => updatePlayState(true));
+            audio.addEventListener('pause', () => updatePlayState(false));
+            audio.addEventListener('timeupdate', updateTime);
+            audio.addEventListener('loadedmetadata', updateTime);
+            audio.addEventListener('ended', () => nextTrack(false));
+            audio.addEventListener('error', () => {
+                const track = state.tracks[state.currentIndex];
+                if (!track) return;
+
+                const nextSource = state.sourceIndex + 1;
+                if (nextSource < track.sources.length) {
+                    setStatus(`Trying backup audio source for ${track.title}...`);
+                    loadSourceForTrack(track, nextSource);
+                    if (state.userStarted) playCurrent();
+                } else {
+                    setStatus(`Could not play ${track.title}. Skipping...`);
+                    setTimeout(() => nextTrack(true), 700);
+                }
+            });
+
+            player.addEventListener('mouseenter', () => player.classList.add('is-open'));
+            player.addEventListener('mouseleave', () => {
+                if (!player.classList.contains('is-selector')) player.classList.remove('is-open');
+            });
+
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.setActionHandler('play', playCurrent);
+                navigator.mediaSession.setActionHandler('pause', () => audio.pause());
+                navigator.mediaSession.setActionHandler('previoustrack', prevTrack);
+                navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack(true));
+            }
+
+            updatePlayState(false);
+            initMusic();
+        })();
+    </script>
+
 </body>
 </html>
