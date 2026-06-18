@@ -3658,6 +3658,20 @@
         }
     </style>
 
+
+    <style id="synchrose-dashboard-softlock-v10-style">
+        /* ============================================================
+           PATCH v10: prevent Enter Dashboard softlock during intro
+        ============================================================ */
+        body.synchrose-scroll-locked:not(.synchrose-intro-done) .hero-btn {
+            pointer-events: none !important;
+        }
+
+        #synchroseIntroV3:not(.is-hidden) {
+            pointer-events: auto !important;
+        }
+    </style>
+
 </head>
 <body>
 
@@ -7796,6 +7810,72 @@
                 setTimeout(repairMusicFromTreeJson, 2400);
                 setTimeout(repairMusicFromTreeJson, 5000);
             });
+        })();
+    </script>
+
+
+    <script id="synchrose-dashboard-softlock-v10">
+        (() => {
+            function introActive() {
+                const intro = document.getElementById('synchroseIntroV3');
+                return Boolean(intro && !intro.classList.contains('is-hidden'));
+            }
+
+            function scrollLocked() {
+                return document.documentElement.classList.contains('synchrose-scroll-locked') ||
+                    document.body.classList.contains('synchrose-scroll-locked');
+            }
+
+            function restoreHeroPosition() {
+                if (!introActive()) return;
+
+                if (location.hash === '#dashboard') {
+                    history.replaceState(null, '', location.pathname + location.search);
+                }
+
+                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+            }
+
+            // Hard-block Enter Dashboard while the intro overlay is still active.
+            // This prevents the href="#dashboard" default scroll from firing before
+            // the real scroll unlock logic is ready.
+            document.addEventListener('click', event => {
+                const enterButton = event.target.closest?.('.hero-btn[href="#dashboard"], .hero-btn');
+                if (!enterButton) return;
+
+                if (introActive()) {
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    restoreHeroPosition();
+
+                    // Treat the attempted button click as an intro click instead.
+                    const intro = document.getElementById('synchroseIntroV3');
+                    intro?.dispatchEvent(new PointerEvent('pointerdown', {
+                        bubbles: true,
+                        cancelable: true,
+                        pointerType: 'mouse'
+                    }));
+                }
+            }, { capture: true });
+
+            // If any earlier inline/default anchor handler still changes the hash,
+            // immediately undo it while the intro is active.
+            window.addEventListener('hashchange', restoreHeroPosition, { capture: true });
+
+            // If we are locked and the intro is still on, never allow the page to remain
+            // scrolled to the dashboard behind the overlay.
+            window.addEventListener('scroll', () => {
+                if (introActive() && scrollLocked() && window.scrollY > 8) {
+                    restoreHeroPosition();
+                }
+            }, { passive: true, capture: true });
+
+            document.addEventListener('DOMContentLoaded', () => {
+                restoreHeroPosition();
+            });
+
+            setTimeout(restoreHeroPosition, 50);
+            setTimeout(restoreHeroPosition, 450);
         })();
     </script>
 
