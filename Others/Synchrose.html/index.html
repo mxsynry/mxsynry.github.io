@@ -5,12 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="Ready to win?">
-    <link rel="icon" href="https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose.html/globe.ico" type="image/x-icon">
+    <link rel="icon" href="https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Voxlis.NET/globe.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <meta property="og:title" content="Synchrose">
     <meta property="og:description" content="Your exploits, your safety and knowledge.">
-    <meta property="og:image" content="https://github.com/mxsynry/mxsynry.github.io/raw/main/Others/Synchrose.html/image.png">
+    <meta property="og:image" content="https://github.com/mxsynry/mxsynry.github.io/raw/main/Others/Voxlis.NET/TP.png">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <title>Synchrose</title>
@@ -3377,298 +3377,196 @@
     </style>
 
 
-    <style id="synchrose-impact-v8-contrast">
+    <style id="synchrose-intro-v8-impact-contrast">
         /* ============================================================
-           PATCH v8: true high-contrast impact frame
-           White frame, dark/inverted content versions of title/tagline/disc.
+           PATCH v8: real inverse-color impact frame
+           White frame/windows + high-contrast dark content.
         ============================================================ */
 
         .synchrose-v3-impact-frame {
-            position: absolute !important;
-            inset: 0 !important;
-            left: auto !important;
-            top: auto !important;
-            width: 100% !important;
-            height: 100% !important;
-            transform: none !important;
-            pointer-events: none;
-            opacity: 0;
-            z-index: 20 !important;
+            width: min(64vw, 720px) !important;
+            height: min(28vw, 260px) !important;
+            isolation: isolate;
             mix-blend-mode: normal;
         }
 
-        .synchrose-v3-impact-frame::before,
+        .synchrose-v3-impact-frame::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background:
+                linear-gradient(90deg,
+                    transparent 0 3%,
+                    #ffffff 3% 18%,
+                    transparent 18% 23%,
+                    #ffffff 23% 54%,
+                    transparent 54% 62%,
+                    #ffffff 62% 96%,
+                    transparent 96% 100%);
+            opacity: 0;
+            filter:
+                drop-shadow(0 0 12px rgba(255,255,255,0.80))
+                drop-shadow(0 0 34px rgba(255,255,255,0.38));
+        }
+
         .synchrose-v3-impact-frame::after {
-            display: none !important;
+            content: attr(data-impact-text);
+            position: absolute;
+            inset: 0;
+            display: grid;
+            place-items: center;
+            color: #120016;
+            -webkit-text-fill-color: #120016;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-size: clamp(2.2rem, 8vw, 7rem);
+            font-weight: 1000;
+            letter-spacing: -0.09em;
+            line-height: 0.9;
+            text-transform: none;
+            text-shadow:
+                2px 0 0 #3f001c,
+                -2px 0 0 #1b003f,
+                0 0 1px #000;
+            opacity: 0;
+            filter: contrast(1.5);
+            z-index: 2;
+        }
+
+        .synchrose-impact-cut {
+            position: absolute;
+            background: #fff;
+            opacity: 0;
+            z-index: 1;
+            box-shadow:
+                0 0 18px rgba(255,255,255,0.75),
+                0 0 38px rgba(124,58,237,0.20);
+        }
+
+        .synchrose-impact-cut.cut-1 {
+            left: 6%;
+            top: 12%;
+            width: 34%;
+            height: 20%;
+        }
+
+        .synchrose-impact-cut.cut-2 {
+            right: 3%;
+            top: 30%;
+            width: 46%;
+            height: 18%;
+        }
+
+        .synchrose-impact-cut.cut-3 {
+            left: 16%;
+            bottom: 16%;
+            width: 62%;
+            height: 22%;
+        }
+
+        .synchrose-impact-cut.cut-4 {
+            left: 0;
+            top: 52%;
+            width: 18%;
+            height: 34%;
         }
 
         .synchrose-v3-impact-frame.is-active {
-            animation: impactFrameWholeV8 0.34s steps(2, end) forwards !important;
+            animation: impactFrameContainerV8 0.42s steps(2, end) forwards !important;
         }
 
-        .synchrose-impact-v8-rect {
-            position: absolute;
-            background: #ffffff;
-            border: 2px solid #ffffff;
-            color: #0a0010;
-            overflow: hidden;
-            opacity: 0;
-            box-shadow:
-                0 0 0 2px rgba(255,255,255,0.88),
-                0 0 28px rgba(255,255,255,0.82),
-                0 0 70px rgba(255,255,255,0.40);
-            filter: contrast(1.6) brightness(1.12);
+        .synchrose-v3-impact-frame.is-active::before {
+            animation: impactWhiteWindowsV8 0.40s steps(2, end) forwards !important;
         }
 
-        .synchrose-v3-impact-frame.is-active .synchrose-impact-v8-rect {
-            animation: impactRectPunchV8 0.32s steps(2, end) forwards;
+        .synchrose-v3-impact-frame.is-active::after {
+            animation: impactDarkContentV8 0.40s steps(2, end) forwards !important;
         }
 
-        .synchrose-impact-v8-title {
-            left: calc(var(--impact-title-x, 50vw) - min(42vw, 520px) / 2);
-            top: calc(var(--impact-title-y, 48vh) - min(14vw, 150px) / 2);
-            width: min(42vw, 520px);
-            height: min(14vw, 150px);
-            display: grid;
-            place-items: center;
-            transform: scaleX(0.88) scaleY(1.18);
+        .synchrose-v3-impact-frame.is-active .synchrose-impact-cut.cut-1 {
+            animation: impactCutV8A 0.34s steps(2, end) forwards 0.02s;
         }
 
-        .synchrose-impact-v8-title span {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            font-size: clamp(2.4rem, 7vw, 6.4rem);
-            font-weight: 1000;
-            letter-spacing: -0.08em;
-            line-height: 0.9;
-            color: #120019;
-            text-shadow:
-                3px 0 #3b001d,
-                -3px 0 #1b0035,
-                0 0 1px #000;
-            transform: scaleY(1.25);
+        .synchrose-v3-impact-frame.is-active .synchrose-impact-cut.cut-2 {
+            animation: impactCutV8B 0.34s steps(2, end) forwards 0.04s;
         }
 
-        .synchrose-impact-v8-small {
-            left: calc(var(--impact-title-x, 50vw) - min(52vw, 660px) / 2);
-            top: calc(var(--impact-title-y, 48vh) + min(10vw, 116px));
-            width: min(52vw, 660px);
-            min-height: 54px;
-            padding: 0.55rem 0.85rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: clamp(0.5rem, 1.7vw, 1.25rem);
-            transform: skewX(-4deg);
+        .synchrose-v3-impact-frame.is-active .synchrose-impact-cut.cut-3 {
+            animation: impactCutV8C 0.34s steps(2, end) forwards 0.01s;
         }
 
-        .synchrose-impact-v8-small span {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            font-weight: 950;
-            font-size: clamp(1rem, 2.4vw, 2rem);
-            text-transform: lowercase;
-            letter-spacing: -0.05em;
-            color: #1a001f;
+        .synchrose-v3-impact-frame.is-active .synchrose-impact-cut.cut-4 {
+            animation: impactCutV8D 0.34s steps(2, end) forwards 0.06s;
         }
 
-        .synchrose-impact-v8-small span:nth-child(1) {
-            color: #330006;
-        }
-
-        .synchrose-impact-v8-small span:nth-child(2) {
-            color: #160029;
-        }
-
-        .synchrose-impact-v8-small span:nth-child(3) {
-            color: #070707;
-        }
-
-        .synchrose-impact-v8-disc {
-            left: calc(var(--impact-disc-x, 5rem) - 58px);
-            top: calc(var(--impact-disc-y, 5rem) - 58px);
-            width: 116px;
-            height: 116px;
-            display: grid;
-            place-items: center;
-            border-radius: 0;
-            transform: rotate(-3deg) scale(1.08);
-        }
-
-        .synchrose-impact-v8-disc-shape {
-            width: 76px;
-            height: 76px;
-            border-radius: 50%;
-            background:
-                radial-gradient(circle at center, #ffffff 0 9%, #120019 10% 17%, #ffffff 18% 21%, transparent 22%),
-                repeating-radial-gradient(circle at center, transparent 0 7px, rgba(10,0,16,0.92) 8px 9px),
-                conic-gradient(from 0deg, #090009, #2d001f, #090009, #1b0035, #320016, #090009);
-            border: 3px solid #0a0010;
-            box-shadow:
-                inset 0 0 0 3px rgba(255,255,255,0.28),
-                0 0 0 6px #ffffff;
-            filter: contrast(1.8);
-        }
-
-        .synchrose-impact-v8-shard {
-            position: absolute;
-            background: #ffffff;
-            opacity: 0;
-            box-shadow: 0 0 26px rgba(255,255,255,0.8);
-        }
-
-        .synchrose-v3-impact-frame.is-active .synchrose-impact-v8-shard {
-            animation: impactShardV8 0.28s steps(2, end) forwards;
-        }
-
-        .synchrose-impact-v8-shard.s1 {
-            left: 9vw;
-            top: 18vh;
-            width: 18vw;
-            height: 5vh;
-            transform: skewX(-18deg);
-        }
-
-        .synchrose-impact-v8-shard.s2 {
-            right: 11vw;
-            top: 21vh;
-            width: 14vw;
-            height: 7vh;
-            transform: skewX(12deg);
-        }
-
-        .synchrose-impact-v8-shard.s3 {
-            left: 13vw;
-            bottom: 19vh;
-            width: 24vw;
-            height: 8vh;
-            transform: skewX(16deg);
-        }
-
-        .synchrose-impact-v8-shard.s4 {
-            right: 8vw;
-            bottom: 15vh;
-            width: 20vw;
-            height: 5vh;
-            transform: skewX(-14deg);
-        }
-
-        @keyframes impactFrameWholeV8 {
-            0% { opacity: 0; filter: invert(0); }
-            18% { opacity: 1; filter: invert(0) contrast(1.65); }
-            42% { opacity: 1; filter: invert(0) contrast(1.9); }
-            100% { opacity: 0; filter: invert(0) contrast(1.2); }
-        }
-
-        @keyframes impactRectPunchV8 {
+        @keyframes impactFrameContainerV8 {
             0% {
-                opacity: 0;
-                transform: translateY(8px) scaleX(0.76) scaleY(1.22);
-            }
-            22% {
                 opacity: 1;
-                transform: translateY(0) scaleX(1.08) scaleY(0.92);
+                transform: translate(-50%, -50%) scale(0.76) skewX(-2deg);
             }
-            55% {
+            45% {
                 opacity: 1;
-                transform: translateY(0) scaleX(1) scaleY(1);
+                transform: translate(-50%, -50%) scale(1.03) skewX(1deg);
             }
             100% {
                 opacity: 0;
-                transform: translateY(-7px) scaleX(1.16) scaleY(0.72);
+                transform: translate(-50%, -50%) scale(1.16) skewX(0deg);
             }
         }
 
-        @keyframes impactShardV8 {
-            0% { opacity: 0; transform: scaleX(0.35) scaleY(1.2); }
-            28% { opacity: 1; }
-            100% { opacity: 0; transform: scaleX(1.12) scaleY(0.65); }
-        }
-
-        @media (max-width: 720px) {
-            .synchrose-impact-v8-title {
-                width: 84vw;
-                height: 110px;
-                left: 8vw;
+        @keyframes impactWhiteWindowsV8 {
+            0% {
+                opacity: 1;
+                transform: scaleX(0.62) scaleY(1.22);
             }
-
-            .synchrose-impact-v8-small {
-                width: 86vw;
-                left: 7vw;
+            45% {
+                opacity: 1;
+                transform: scaleX(1.06) scaleY(0.95);
             }
-
-            .synchrose-impact-v8-disc {
-                width: 92px;
-                height: 92px;
-                left: calc(var(--impact-disc-x, 3.5rem) - 46px);
-                top: calc(var(--impact-disc-y, 3.5rem) - 46px);
-            }
-
-            .synchrose-impact-v8-disc-shape {
-                width: 60px;
-                height: 60px;
+            100% {
+                opacity: 0;
+                transform: scaleX(1.18) scaleY(0.78);
             }
         }
-    </style>
 
-
-    <style id="synchrose-music-hotfix-v9-style">
-        /* ============================================================
-           PATCH v9: music player interaction/visibility hotfix
-        ============================================================ */
-        .mx-music-disc-zone,
-        .mx-music-disc {
-            touch-action: manipulation;
-        }
-
-        .mx-music-player.is-open,
-        .mx-music-player.is-selector {
-            width: min(456px, calc(100vw - 2rem)) !important;
-            height: auto !important;
-            border-radius: 22px !important;
-            pointer-events: auto !important;
-        }
-
-        .mx-music-player.is-selector {
-            width: min(720px, calc(100vw - 2rem)) !important;
-        }
-
-        .mx-music-player.is-open .mx-music-shell,
-        .mx-music-player.is-selector .mx-music-shell {
-            grid-template-columns: 74px minmax(0, 1fr) !important;
-        }
-
-        .mx-music-player.is-open .mx-music-panel,
-        .mx-music-player.is-selector .mx-music-panel {
-            opacity: 1 !important;
-            pointer-events: auto !important;
-            transform: translateX(0) !important;
-        }
-
-        .mx-music-player.is-open::before,
-        .mx-music-player.is-selector::before {
-            border-radius: 22px !important;
-            clip-path: inset(0 round 22px) !important;
-            transition-delay: 0.06s !important;
-        }
-
-        @media (max-width: 720px) {
-            .mx-music-player.is-open,
-            .mx-music-player.is-selector {
-                width: calc(100vw - 1.5rem) !important;
+        @keyframes impactDarkContentV8 {
+            0% {
+                opacity: 1;
+                transform: translateX(-12px) scale(1.08);
+                color: #080008;
+                -webkit-text-fill-color: #080008;
+            }
+            45% {
+                opacity: 1;
+                transform: translateX(8px) scale(0.98);
+                color: #3b001d;
+                -webkit-text-fill-color: #3b001d;
+            }
+            100% {
+                opacity: 0;
+                transform: translateX(0) scale(0.92);
+                color: #100020;
+                -webkit-text-fill-color: #100020;
             }
         }
-    </style>
 
-
-    <style id="synchrose-dashboard-softlock-v10-style">
-        /* ============================================================
-           PATCH v10: prevent Enter Dashboard softlock during intro
-        ============================================================ */
-        body.synchrose-scroll-locked:not(.synchrose-intro-done) .hero-btn {
-            pointer-events: none !important;
+        @keyframes impactCutV8A {
+            0% { opacity: 1; transform: translate(-18px, 8px) scaleX(0.62); }
+            100% { opacity: 0; transform: translate(34px, -10px) scaleX(1.18); }
         }
 
-        #synchroseIntroV3:not(.is-hidden) {
-            pointer-events: auto !important;
+        @keyframes impactCutV8B {
+            0% { opacity: 1; transform: translate(18px, -6px) scaleX(0.74); }
+            100% { opacity: 0; transform: translate(-42px, 12px) scaleX(1.25); }
+        }
+
+        @keyframes impactCutV8C {
+            0% { opacity: 1; transform: translate(0, 14px) scaleX(0.58); }
+            100% { opacity: 0; transform: translate(18px, -18px) scaleX(1.16); }
+        }
+
+        @keyframes impactCutV8D {
+            0% { opacity: 1; transform: translate(-10px, -18px) scaleY(0.72); }
+            100% { opacity: 0; transform: translate(26px, 22px) scaleY(1.22); }
         }
     </style>
 
@@ -3819,7 +3717,7 @@
 
                 <div class="mx-music-selector" id="mxMusicSelector">
                     <div class="mx-music-selector-head">
-                        <div class="mx-music-selector-title">Songs from /Others/Synchrose.html</div>
+                        <div class="mx-music-selector-title">Songs from /Others/Voxlis.NET</div>
                         <button class="mx-music-btn mx-music-btn-wide" id="mxMusicReshuffle" type="button">Reshuffle</button>
                     </div>
                     <div class="mx-music-song-list" id="mxMusicSongList"></div>
@@ -6361,7 +6259,7 @@
                 branch: 'main',
                 pagesOrigin: 'https://mxsynry.github.io',
                 treeJson: '/tree.json',
-                musicFolder: 'Others/Synchrose.html',
+                musicFolder: 'Others/Voxlis.NET',
                 manifestName: 'music.json',
                 // No hardcoded song list. Songs are discovered from tree.json / GitHub.
                 knownMp3s: []
@@ -6740,7 +6638,7 @@
                     navigator.mediaSession.metadata = new MediaMetadata({
                         title: track.title,
                         artist: 'mxsynry.github.io',
-                        album: 'Others/Synchrose.html'
+                        album: 'Others/Voxlis.NET'
                     });
                 }
 
@@ -7455,427 +7353,56 @@
     </script>
 
 
-    <script id="synchrose-impact-v8-contrast">
+    <script id="synchrose-intro-v8-impact-contrast">
         (() => {
-            window.synchroseV4TitleFlight = function synchroseV8TitleFlight() {
-                const intro = document.getElementById('synchroseIntroV3');
-                const finalTitle = intro?.querySelector('.synchrose-v3-final-title');
-                const heroTitle = document.querySelector('.synchrose-main-title, .hero-title');
-                const heroText = document.querySelector('.synchrose-title-gradient') || heroTitle;
-                if (!intro || !finalTitle) return Promise.resolve();
-
-                let impact = intro.querySelector('.synchrose-v3-impact-frame');
-                if (!impact) {
-                    impact = document.createElement('div');
-                    impact.className = 'synchrose-v3-impact-frame';
-                    intro.appendChild(impact);
+            function ensureImpactCuts(impact) {
+                if (!impact || impact.querySelector('.synchrose-impact-cut')) return;
+                for (let i = 1; i <= 4; i++) {
+                    const cut = document.createElement('span');
+                    cut.className = `synchrose-impact-cut cut-${i}`;
+                    impact.appendChild(cut);
                 }
-
-                impact.innerHTML = `
-                    <div class="synchrose-impact-v8-shard s1"></div>
-                    <div class="synchrose-impact-v8-shard s2"></div>
-                    <div class="synchrose-impact-v8-shard s3"></div>
-                    <div class="synchrose-impact-v8-shard s4"></div>
-                    <div class="synchrose-impact-v8-rect synchrose-impact-v8-title"><span>Synchrose</span></div>
-                    <div class="synchrose-impact-v8-rect synchrose-impact-v8-small">
-                        <span>exploits</span>
-                        <span>safety</span>
-                        <span>knowledge</span>
-                    </div>
-                    <div class="synchrose-impact-v8-rect synchrose-impact-v8-disc">
-                        <span class="synchrose-impact-v8-disc-shape"></span>
-                    </div>
-                `;
-
-                const fallback = {
-                    left: window.innerWidth / 2,
-                    top: window.innerHeight / 2,
-                    fontSize: Math.max(44, Math.min(96, window.innerWidth * 0.08))
-                };
-
-                const rect = heroText ? heroText.getBoundingClientRect() : null;
-                const style = heroText ? window.getComputedStyle(heroText) : null;
-                const target = rect ? {
-                    left: rect.left + rect.width / 2,
-                    top: rect.top + rect.height / 2,
-                    fontSize: parseFloat(style.fontSize) || fallback.fontSize
-                } : fallback;
-
-                const discRect = document.getElementById('mxMusicHotspot')?.getBoundingClientRect();
-                const discCenter = discRect ? {
-                    x: discRect.left + discRect.width / 2,
-                    y: discRect.top + discRect.height / 2
-                } : {
-                    x: window.innerWidth - 52,
-                    y: 52
-                };
-
-                intro.style.setProperty('--impact-title-x', `${target.left}px`);
-                intro.style.setProperty('--impact-title-y', `${target.top}px`);
-                intro.style.setProperty('--impact-disc-x', `${discCenter.x}px`);
-                intro.style.setProperty('--impact-disc-y', `${discCenter.y}px`);
-
-                finalTitle.textContent = 'Synchrose';
-                finalTitle.classList.add('is-title-flight');
-                finalTitle.style.left = '50%';
-                finalTitle.style.top = '50%';
-                finalTitle.style.fontSize = `${Math.min(window.innerWidth * 0.17, 180)}px`;
-                finalTitle.style.opacity = '0';
-                finalTitle.style.transform = 'translate(-50%, -50%) scale(1.08)';
-                finalTitle.style.filter = 'blur(10px) brightness(2.6)';
-
-                const anim = finalTitle.animate([
-                    {
-                        left: '50%',
-                        top: '50%',
-                        fontSize: `${Math.min(window.innerWidth * 0.17, 180)}px`,
-                        opacity: 0,
-                        filter: 'blur(12px) brightness(3)',
-                        transform: 'translate(-50%, -50%) scale(1.15)'
-                    },
-                    {
-                        left: '50%',
-                        top: '50%',
-                        fontSize: `${Math.max(target.fontSize * 1.65, 128)}px`,
-                        opacity: 1,
-                        filter: 'blur(0px) brightness(1.35)',
-                        transform: 'translate(-50%, -50%) scale(1.04)',
-                        offset: 0.36
-                    },
-                    {
-                        left: `${target.left}px`,
-                        top: `${target.top}px`,
-                        fontSize: `${target.fontSize}px`,
-                        opacity: 1,
-                        filter: 'blur(0px) brightness(1.16)',
-                        transform: 'translate(-50%, -50%) scale(1.09)',
-                        offset: 0.80
-                    },
-                    {
-                        left: `${target.left}px`,
-                        top: `${target.top}px`,
-                        fontSize: `${target.fontSize}px`,
-                        opacity: 1,
-                        filter: 'blur(0px) brightness(1)',
-                        transform: 'translate(-50%, -50%) scale(1)'
-                    }
-                ], {
-                    duration: 860,
-                    easing: 'cubic-bezier(.15,1.05,.14,1)',
-                    fill: 'forwards'
-                });
-
-                return anim.finished.catch(() => {}).then(() => {
-                    impact.classList.remove('is-active');
-                    void impact.offsetWidth;
-                    impact.classList.add('is-active');
-
-                    finalTitle.classList.add('is-title-locked');
-                    finalTitle.style.left = `${target.left}px`;
-                    finalTitle.style.top = `${target.top}px`;
-                    finalTitle.style.fontSize = `${target.fontSize}px`;
-                    finalTitle.style.opacity = '1';
-                    finalTitle.style.filter = 'blur(0px) brightness(1)';
-                    finalTitle.style.transform = 'translate(-50%, -50%) scale(1)';
-
-                    setTimeout(() => {
-                        impact.classList.remove('is-active');
-                        impact.innerHTML = '';
-                    }, 420);
-                });
-            };
-        })();
-    </script>
-
-
-    <script id="synchrose-music-hotfix-v9">
-        (() => {
-            const TREE_JSON_URLS = ['/tree.json', './tree.json'];
-
-            function normalizePath(path = '') {
-                return String(path || '')
-                    .replace(/^https?:\/\/[^/]+/i, '')
-                    .replace(/^\/+/, '')
-                    .replace(/^\.\//, '');
             }
 
-            function isMusicPath(path = '') {
-                const p = normalizePath(path).toLowerCase();
-                return p.startsWith('Others/Synchrose.html/') && p.endsWith('.mp3');
-            }
+            document.addEventListener('DOMContentLoaded', () => {
+                const intro = document.getElementById('synchroseIntroV3');
+                if (!intro) return;
 
-            function collectMp3PathsFromTreePayload(payload) {
-                const out = new Set();
+                const observer = new MutationObserver(() => {
+                    const impact = intro.querySelector('.synchrose-v3-impact-frame');
+                    if (!impact) return;
+                    impact.dataset.impactText = 'Synchrose';
+                    ensureImpactCuts(impact);
+                });
 
-                function walk(value) {
-                    if (!value) return;
+                observer.observe(intro, { childList: true, subtree: true });
 
-                    if (typeof value === 'string') {
-                        if (isMusicPath(value)) out.add(normalizePath(value));
-                        return;
-                    }
+                const existing = intro.querySelector('.synchrose-v3-impact-frame');
+                if (existing) {
+                    existing.dataset.impactText = 'Synchrose';
+                    ensureImpactCuts(existing);
+                }
+            });
 
-                    if (Array.isArray(value)) {
-                        value.forEach(walk);
-                        return;
-                    }
+            // Patch the title-flight function so the impact frame is prepared exactly
+            // when it lands, even if the frame is created later by the older script.
+            const oldFlight = window.synchroseV4TitleFlight;
+            if (typeof oldFlight === 'function') {
+                window.synchroseV4TitleFlight = function synchroseV8TitleFlight() {
+                    const intro = document.getElementById('synchroseIntroV3');
+                    const result = oldFlight.apply(this, arguments);
 
-                    if (typeof value !== 'object') return;
-
-                    const candidates = [
-                        value.path,
-                        value.name,
-                        value.fullPath,
-                        value.file,
-                        value.urlPath,
-                        value.download_url,
-                        value.url
-                    ];
-
-                    candidates.forEach(candidate => {
-                        if (candidate && isMusicPath(candidate)) out.add(normalizePath(candidate));
+                    Promise.resolve(result).then(() => {
+                        const impact = intro?.querySelector('.synchrose-v3-impact-frame');
+                        if (impact) {
+                            impact.dataset.impactText = 'Synchrose';
+                            ensureImpactCuts(impact);
+                        }
                     });
 
-                    walk(value.tree);
-                    walk(value.files);
-                    walk(value.children);
-                    walk(value.items);
-                    walk(value.entries);
-                }
-
-                walk(payload);
-                return [...out].sort((a, b) => a.localeCompare(b));
+                    return result;
+                };
             }
-
-            function decodeTrackTitle(path) {
-                const filename = decodeURIComponent(String(path).split('/').pop() || 'Unknown track');
-                return filename.replace(/\.mp3$/i, '').replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim() || filename;
-            }
-
-            async function fetchTreeJsonMusicPaths() {
-                for (const url of TREE_JSON_URLS) {
-                    try {
-                        const response = await fetch(url, { cache: 'no-store' });
-                        if (!response.ok) continue;
-                        const payload = await response.json();
-                        const paths = collectMp3PathsFromTreePayload(payload);
-                        if (paths.length) return paths;
-                    } catch (error) {
-                        console.warn('tree.json music scan failed:', url, error);
-                    }
-                }
-                return [];
-            }
-
-            function setStatus(text) {
-                const status = document.getElementById('mxMusicStatus');
-                if (status) status.textContent = text;
-            }
-
-            function setTitle(text) {
-                const title = document.getElementById('mxMusicTitle');
-                if (title) title.textContent = text;
-            }
-
-            function setDescription(text) {
-                const desc = document.getElementById('mxMusicDescription');
-                if (desc) desc.textContent = text;
-            }
-
-            function setAudioSourceFromPath(path) {
-                const audio = document.getElementById('mxMusicAudio');
-                const player = document.getElementById('mxMusicPlayer');
-                const playButton = document.getElementById('mxMusicPlay');
-                if (!audio || !path) return false;
-
-                const src = '/' + normalizePath(path);
-                if (!audio.src || !audio.src.endsWith(src)) {
-                    audio.src = src;
-                    audio.load();
-                }
-
-                player?.classList.remove('is-empty');
-                setTitle(decodeTrackTitle(path));
-                setDescription('Loaded from tree.json');
-                setStatus(`Ready: ${decodeTrackTitle(path)}`);
-
-                // Make original play button work even if the original playlist failed.
-                if (playButton && !playButton.dataset.treeFallbackBound) {
-                    playButton.dataset.treeFallbackBound = '1';
-                    playButton.addEventListener('click', () => {
-                        if (!audio.src && path) audio.src = src;
-                        if (audio.paused) {
-                            const promise = audio.play();
-                            if (promise?.catch) {
-                                promise.catch(error => {
-                                    console.warn('Tree fallback music play blocked:', error);
-                                    setStatus('Tap play again if the browser blocked autoplay.');
-                                });
-                            }
-                        } else {
-                            audio.pause();
-                        }
-                    }, { capture: true });
-                }
-
-                return true;
-            }
-
-            async function repairMusicFromTreeJson() {
-                const audio = document.getElementById('mxMusicAudio');
-                const title = document.getElementById('mxMusicTitle');
-                const player = document.getElementById('mxMusicPlayer');
-                if (!audio || !player) return;
-
-                // If original player already loaded a source, do not interfere.
-                if (audio.currentSrc || audio.src) return;
-
-                const paths = await fetchTreeJsonMusicPaths();
-                if (!paths.length) {
-                    setTitle('Music not found');
-                    setDescription('');
-                    setStatus('tree.json loaded, but no MP3 paths were found under Others/Synchrose.html.');
-                    return;
-                }
-
-                const savedIndex = Number(localStorage.getItem('mxMusicFallbackIndex') || '0') || 0;
-                const index = Math.max(0, Math.min(paths.length - 1, savedIndex % paths.length));
-                setAudioSourceFromPath(paths[index]);
-
-                const prev = document.getElementById('mxMusicPrev');
-                const next = document.getElementById('mxMusicNext');
-
-                function switchTo(delta) {
-                    const currentPath = normalizePath(audio.src).replace(/^.*?Others\/Voxlis\.NET\//i, 'Others/Synchrose.html/');
-                    let currentIndex = paths.findIndex(path => path === currentPath || audio.src.endsWith('/' + path));
-                    if (currentIndex < 0) currentIndex = index;
-                    const nextIndex = (currentIndex + delta + paths.length) % paths.length;
-                    localStorage.setItem('mxMusicFallbackIndex', String(nextIndex));
-                    setAudioSourceFromPath(paths[nextIndex]);
-                    const promise = audio.play();
-                    if (promise?.catch) {
-                        promise.catch(error => {
-                            console.warn('Fallback next/prev play blocked:', error);
-                            setStatus('Track selected. Tap play if audio is blocked.');
-                        });
-                    }
-                }
-
-                if (prev && !prev.dataset.treeFallbackBound) {
-                    prev.dataset.treeFallbackBound = '1';
-                    prev.addEventListener('click', event => {
-                        event.stopPropagation();
-                        switchTo(-1);
-                    }, { capture: true });
-                }
-
-                if (next && !next.dataset.treeFallbackBound) {
-                    next.dataset.treeFallbackBound = '1';
-                    next.addEventListener('click', event => {
-                        event.stopPropagation();
-                        switchTo(1);
-                    }, { capture: true });
-                }
-            }
-
-            document.addEventListener('DOMContentLoaded', () => {
-                const player = document.getElementById('mxMusicPlayer');
-                const hotspot = document.getElementById('mxMusicHotspot');
-
-                if (player && hotspot) {
-                    let lastPointerToggle = 0;
-
-                    function togglePanel(event) {
-                        event.preventDefault();
-                        event.stopImmediatePropagation();
-                        const now = Date.now();
-
-                        // Prevent pointerup + synthetic click double-toggle on mobile.
-                        if (event.type === 'click' && now - lastPointerToggle < 450) return;
-                        if (event.type === 'pointerup' || event.type === 'touchend') lastPointerToggle = now;
-
-                        if (player.classList.contains('is-open') || player.classList.contains('is-selector')) {
-                            player.classList.remove('is-open', 'is-selector');
-                            document.getElementById('mxMusicExpand')?.classList.remove('is-active');
-                        } else {
-                            player.classList.add('is-open');
-                        }
-                    }
-
-                    hotspot.addEventListener('pointerup', togglePanel, { capture: true, passive: false });
-                    hotspot.addEventListener('click', togglePanel, { capture: true, passive: false });
-                }
-
-                setTimeout(repairMusicFromTreeJson, 900);
-                setTimeout(repairMusicFromTreeJson, 2400);
-                setTimeout(repairMusicFromTreeJson, 5000);
-            });
-        })();
-    </script>
-
-
-    <script id="synchrose-dashboard-softlock-v10">
-        (() => {
-            function introActive() {
-                const intro = document.getElementById('synchroseIntroV3');
-                return Boolean(intro && !intro.classList.contains('is-hidden'));
-            }
-
-            function scrollLocked() {
-                return document.documentElement.classList.contains('synchrose-scroll-locked') ||
-                    document.body.classList.contains('synchrose-scroll-locked');
-            }
-
-            function restoreHeroPosition() {
-                if (!introActive()) return;
-
-                if (location.hash === '#dashboard') {
-                    history.replaceState(null, '', location.pathname + location.search);
-                }
-
-                window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
-            }
-
-            // Hard-block Enter Dashboard while the intro overlay is still active.
-            // This prevents the href="#dashboard" default scroll from firing before
-            // the real scroll unlock logic is ready.
-            document.addEventListener('click', event => {
-                const enterButton = event.target.closest?.('.hero-btn[href="#dashboard"], .hero-btn');
-                if (!enterButton) return;
-
-                if (introActive()) {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                    restoreHeroPosition();
-
-                    // Treat the attempted button click as an intro click instead.
-                    const intro = document.getElementById('synchroseIntroV3');
-                    intro?.dispatchEvent(new PointerEvent('pointerdown', {
-                        bubbles: true,
-                        cancelable: true,
-                        pointerType: 'mouse'
-                    }));
-                }
-            }, { capture: true });
-
-            // If any earlier inline/default anchor handler still changes the hash,
-            // immediately undo it while the intro is active.
-            window.addEventListener('hashchange', restoreHeroPosition, { capture: true });
-
-            // If we are locked and the intro is still on, never allow the page to remain
-            // scrolled to the dashboard behind the overlay.
-            window.addEventListener('scroll', () => {
-                if (introActive() && scrollLocked() && window.scrollY > 8) {
-                    restoreHeroPosition();
-                }
-            }, { passive: true, capture: true });
-
-            document.addEventListener('DOMContentLoaded', () => {
-                restoreHeroPosition();
-            });
-
-            setTimeout(restoreHeroPosition, 50);
-            setTimeout(restoreHeroPosition, 450);
         })();
     </script>
 
