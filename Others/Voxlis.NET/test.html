@@ -991,7 +991,7 @@
 
 
 
-        /* Voxlis-style filter panel */
+        /* Voxlis filter panel */
         .controls-stack {
             display: flex;
             flex-direction: column;
@@ -2619,13 +2619,6 @@
             }
         };
 
-        const KNOWN_VOXLIS_FOLDERS = [
-            'Aimmy', 'Arceus X', 'Bunni', 'Codex', 'Cosmic', 'Cryptic',
-            'Delta', 'Exoliner', 'Hydrogen', 'Isaeva', 'Macsploit', 'Madium',
-            'Matcha', 'Matrix', 'Milkers', 'Potassium', 'Real', 'Ronin',
-            'Seliware', 'Serotonin', 'Severe', 'SirHurt', 'Solara', 'Tomato',
-            'Vega X', 'Velocity', 'Volcano', 'Volt', 'Wave', 'Xeno', 'Yerba', 'YuB-x'
-        ];
 
         const PRICE_ALIASES = {
             arceusx: 'arceusx',
@@ -2951,22 +2944,148 @@
         // ============================================================
         // VOXLIS FETCHING + NORMALIZATION
         // ============================================================
-        async function fetchVoxlisFolders() {
-            try {
-                const entries = await fetchJson(CONFIG.voxlis.contents);
-                if (!Array.isArray(entries)) throw new Error('GitHub contents response was not an array');
+        function getVoxlisFolderFromRepoPath(path = '') {
+            const prefix = 'public/data/roblox/';
+            const normalizedPath = String(path || '').replace(/^\/+/, '');
 
-                const folders = entries
-                    .filter(entry => entry.type === 'dir')
-                    .map(entry => entry.name)
-                    .filter(Boolean);
+            if (!normalizedPath.startsWith(prefix)) return null;
 
-                if (folders.length) return folders;
-                throw new Error('No Voxlis folders returned by GitHub contents API');
-            } catch (error) {
-                console.warn('Voxlis folder API failed; using known folder fallback:', error);
-                return KNOWN_VOXLIS_FOLDERS;
+            const rest = normalizedPath.slice(prefix.length);
+            const parts = rest.split('/').filter(Boolean);
+            const filename = String(parts[1] || '').toLowerCase();
+
+            // We only want executor folders that contain real Voxlis data files,
+            // not top-level files like prices.json.
+            if (parts.length >= 2 && ['info.json', 'points.json', 'review.md', 'modals.json'].includes(filename)) {
+                return decodeURIComponent(parts[0]);
             }
+
+            return null;
+        }
+
+        function addVoxlisFolderFromPath(folderSet, path) {
+            const folder = getVoxlisFolderFromRepoPath(path);
+            if (folder) folderSet.add(folder);
+        }
+
+        function collectVoxlisFoldersFromTreePayload(payload) {
+            const folderSet = new Set();
+
+            function walk(value) {
+                if (!value) return;
+
+                if (Array.isArray(value)) {
+                    value.forEach(walk);
+                    return;
+                }
+
+                if (typeof value !== 'object') return;
+
+                // GitHub tree API: { tree: [{ path, type }] }
+                // jsDelivr flat API: { files: [{ name, type }] }
+                // Other tree.json shapes: { children: [...] }
+                const path =
+                    value.path ||
+                    value.name ||
+                    value.fullPath ||
+                    value.file ||
+                    value.urlPath ||
+                    '';
+
+                if (path) addVoxlisFolderFromPath(folderSet, path);
+
+                if (Array.isArray(value.tree)) walk(value.tree);
+                if (Array.isArray(value.files)) walk(value.files);
+                if (Array.isArray(value.children)) walk(value.children);
+            }
+
+            walk(payload);
+            return folderSet;
+        }
+
+        function readCachedVoxlisFolders() {
+            try {
+                const cached = JSON.parse(localStorage.getItem('voxlisFolders:dynamic:v1') || '[]');
+                return Array.isArray(cached) ? cached.filter(Boolean) : [];
+            } catch {
+                return [];
+            }
+        }
+
+        function writeCachedVoxlisFolders(folders) {
+            try {
+                if (Array.isArray(folders) && folders.length) {
+                    localStorage.setItem('voxlisFolders:dynamic:v1', JSON.stringify(folders));
+                }
+            } catch {
+                // localStorage can be blocked in private browsing; ignore.
+            }
+        }
+
+        async function fetchVoxlisFolders() {
+            const folderSet = new Set();
+
+            async function tryEndpoint(label, url, parser) {
+                try {
+                    const payload = await fetchJson(url, { cacheBust: false });
+                    parser(payload, folderSet);
+
+                    if (folderSet.size) {
+                        const folders = [...folderSet].sort((a, b) => a.localeCompare(b));
+                        writeCachedVoxlisFolders(folders);
+                        console.info(`Voxlis folders discovered using ${label}:`, folders.length);
+                        return folders;
+                    }
+                } catch (error) {
+                    console.warn(`Voxlis folder discovery failed via ${label}:`, error);
+                }
+
+                return null;
+            }
+
+            // 1) GitHub contents API for the exact directory.
+            const contentsResult = await tryEndpoint(
+                'GitHub contents API',
+                CONFIG.voxlis.contents,
+                (entries, set) => {
+                    if (!Array.isArray(entries)) return;
+                    entries
+                        .filter(entry => entry.type === 'dir' && entry.name)
+                        .forEach(entry => set.add(entry.name));
+                }
+            );
+            if (contentsResult) return contentsResult;
+
+            // 2) GitHub recursive tree API.
+            const githubTreeUrl = `https://api.github.com/repos/localscripts/voxlis.NET/git/trees/${CONFIG.voxlis.ref}?recursive=1`;
+            const githubTreeResult = await tryEndpoint(
+                'GitHub recursive tree API',
+                githubTreeUrl,
+                (payload, set) => {
+                    collectVoxlisFoldersFromTreePayload(payload).forEach(folder => set.add(folder));
+                }
+            );
+            if (githubTreeResult) return githubTreeResult;
+
+            // 3) jsDelivr data API. Still dynamic, but avoids GitHub API rate-limit/CORS weirdness.
+            const jsdelivrFlatUrl = `https://data.jsdelivr.com/v1/package/gh/localscripts/voxlis.NET@${CONFIG.voxlis.ref}/flat`;
+            const jsdelivrResult = await tryEndpoint(
+                'jsDelivr flat API',
+                jsdelivrFlatUrl,
+                (payload, set) => {
+                    collectVoxlisFoldersFromTreePayload(payload).forEach(folder => set.add(folder));
+                }
+            );
+            if (jsdelivrResult) return jsdelivrResult;
+
+            // 4) Runtime cache from a previous successful discovery.
+            const cached = readCachedVoxlisFolders();
+            if (cached.length) {
+                console.warn('Using cached dynamic Voxlis folders because live discovery failed.');
+                return cached;
+            }
+
+            throw new Error('Could not dynamically discover Voxlis executor folders. GitHub API and jsDelivr discovery both failed.');
         }
 
         async function fetchVoxlisApiStatus() {
@@ -3311,7 +3430,10 @@
                 beta: Boolean(weao.beta || voxlis.beta),
                 elementCertified: Boolean(weao.elementCertified || voxlis.elementCertified),
                 longestRunning: Boolean(weao.longestRunning || voxlis.longestRunning),
-                hasIssues: Boolean(weao.hasIssues || voxlis.hasIssues),
+                hasIssues: Boolean(weao.hasIssues || voxlis.hasIssues || voxlis.warning),
+                warning: Boolean(weao.warning || voxlis.warning || weao.hasIssues || voxlis.hasIssues),
+                insecure: Boolean(weao.insecure || voxlis.insecure || voxlis.warning || voxlis.hasIssues),
+                inviteOnly: Boolean(weao.inviteOnly || voxlis.inviteOnly),
                 detectionReason: chooseValue(weao.detectionReason, voxlis.detectionReason),
                 description: chooseBetterText(weao.description, voxlis.description),
                 logo: chooseValue(weao.logo, voxlis.logo),
@@ -3780,7 +3902,7 @@
             if (filteredData.length === 0) {
                 container.innerHTML = `
                     <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-muted);">
-                        <p style="font-size: 1.25rem; margin-bottom: 0.5rem;">No executors found</p>
+                        <p style="font-size: 1.25rem; margin-bottom: 0.5rem;">No exploits found</p>
                         <p>Try adjusting your filters or search terms</p>
                     </div>
                 `;
@@ -4235,16 +4357,33 @@
             return toArray(tags).some(tag => normalizeTagKey(tag) === needle);
         }
 
+        function itemHasWarning(item) {
+            const modalWarning = Boolean(
+                item.raw?.voxlis?.modals?.warning?.enabled ||
+                item.raw?.voxlis?.modals?.warningred?.enabled ||
+                item.raw?.modals?.warning?.enabled ||
+                item.raw?.modals?.warningred?.enabled
+            );
+
+            return Boolean(
+                item.warning === true ||
+                item.hasIssues === true ||
+                hasTagValue(item.badges, 'warning') ||
+                hasTagValue(item.badges, 'warningred') ||
+                hasTagValue(item.tags, 'warning') ||
+                hasTagValue(item.tags, 'warningred') ||
+                modalWarning
+            );
+        }
+
         function itemIsInsecure(item) {
-            return hasTagValue(item.tags, 'insecure') || item.insecure === true;
+            // Voxlis hides warning/risky cards behind insecure mode. Treat warning cards
+            // as insecure too so "Insecure mode + Warning only" matches Voxlis behavior.
+            return hasTagValue(item.tags, 'insecure') || item.insecure === true || itemHasWarning(item);
         }
 
         function itemIsInviteOnly(item) {
             return hasTagValue(item.tags, 'inviteonly') || item.inviteOnly === true;
-        }
-
-        function itemHasWarning(item) {
-            return item.warning === true || hasTagValue(item.badges, 'warning') || hasTagValue(item.badges, 'warningred') || Boolean(item.raw?.voxlis?.modals?.warning?.enabled || item.raw?.voxlis?.modals?.warningred?.enabled || item.raw?.modals?.warning?.enabled || item.raw?.modals?.warningred?.enabled);
         }
 
         function itemIsVerified(item) {
@@ -4562,23 +4701,77 @@
             return `public/data/roblox/${folderName}/${filename}`;
         }
 
-        async function fetchVoxlisFileSet() {
-            try {
-                const treeUrl = `https://api.github.com/repos/localscripts/voxlis.NET/git/trees/${CONFIG.voxlis.ref}?recursive=1`;
-                const data = await fetchJson(treeUrl, { cacheBust: false });
-                const files = new Set();
+        function addVoxlisFilePath(files, path) {
+            const cleanPath = String(path || '').replace(/^\/+/, '');
+            if (cleanPath.startsWith('public/data/roblox/')) {
+                files.add(cleanPath);
+            }
+        }
 
-                for (const item of data.tree || []) {
-                    if (item.type === 'blob' && item.path && item.path.startsWith('public/data/roblox/')) {
-                        files.add(item.path);
-                    }
+        function collectVoxlisFilePaths(payload) {
+            const files = new Set();
+
+            function walk(value) {
+                if (!value) return;
+
+                if (Array.isArray(value)) {
+                    value.forEach(walk);
+                    return;
                 }
 
-                return files;
-            } catch (error) {
-                console.warn('Could not preload Voxlis file list; optional modals.json files will be skipped to avoid console 404 spam.', error);
-                return new Set();
+                if (typeof value !== 'object') return;
+
+                const path =
+                    value.path ||
+                    value.name ||
+                    value.fullPath ||
+                    value.file ||
+                    value.urlPath ||
+                    '';
+
+                if (path) addVoxlisFilePath(files, path);
+
+                if (Array.isArray(value.tree)) walk(value.tree);
+                if (Array.isArray(value.files)) walk(value.files);
+                if (Array.isArray(value.children)) walk(value.children);
             }
+
+            walk(payload);
+            return files;
+        }
+
+        async function fetchVoxlisFileSet() {
+            const files = new Set();
+
+            async function tryFileIndex(label, url) {
+                try {
+                    const payload = await fetchJson(url, { cacheBust: false });
+                    collectVoxlisFilePaths(payload).forEach(path => files.add(path));
+                    if (files.size) console.info(`Voxlis file index loaded from ${label}:`, files.size);
+                } catch (error) {
+                    console.warn(`Voxlis file index failed from ${label}:`, error);
+                }
+            }
+
+            // Try GitHub first.
+            await tryFileIndex(
+                'GitHub recursive tree API',
+                `https://api.github.com/repos/localscripts/voxlis.NET/git/trees/${CONFIG.voxlis.ref}?recursive=1`
+            );
+
+            // If GitHub fails/rate-limits, use jsDelivr's flat file index.
+            if (!files.size) {
+                await tryFileIndex(
+                    'jsDelivr flat API',
+                    `https://data.jsdelivr.com/v1/package/gh/localscripts/voxlis.NET@${CONFIG.voxlis.ref}/flat`
+                );
+            }
+
+            if (!files.size) {
+                console.warn('Could not preload Voxlis file list. Optional modals.json files will be fetched directly only when warning filter is active.');
+            }
+
+            return files;
         }
 
         async function fetchVoxlisExecutors() {
@@ -4605,7 +4798,9 @@
         }
 
         async function fetchVoxlisExecutorFolder(folderName, prices, apiStatus, availableFiles = new Set()) {
-            const hasModals = availableFiles.has(voxlisRepoPath(folderName, 'modals.json'));
+            const modalPath = voxlisRepoPath(folderName, 'modals.json');
+            const hasFileIndex = availableFiles && availableFiles.size > 0;
+            const hasModals = hasFileIndex ? availableFiles.has(modalPath) : true;
 
             const [info, points, review, modals] = await Promise.all([
                 fetchJson(rawVoxlisUrl(folderName, 'info.json'), { allow404: true }),
@@ -4640,7 +4835,8 @@
                 treeJson: '/tree.json',
                 musicFolder: 'Others/Voxlis.NET',
                 manifestName: 'music.json',
-                knownMp3s: ['Others/Voxlis.NET/binary.mp3']
+                // No hardcoded song list. Songs are discovered from tree.json / GitHub.
+                knownMp3s: []
             };
 
             const player = document.getElementById('mxMusicPlayer');
