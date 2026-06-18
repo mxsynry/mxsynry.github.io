@@ -1,10 +1,6 @@
-<html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Solara Code Editor</title>
-    <meta name="description" content="basically Solara's Code Editor but in your browser - i thought it might be useful for myself">
-    <link rel="icon" href="data:image/png;base64,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" type="image/png">
+<!DOCTYPE html>
+
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
 
 <head>
 	<link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,79 +30,61 @@
 			color: white;
 			min-width: 100px;
 			text-align: start !important;
-			
-			transition: all 0.3s;
-		}
-
-		.btn_tabusing {
-			border: 1px solid rgb(20, 11, 32);
-			background-color: rgb(7, 5, 8);
-			border-radius: 8px;
-			color: white;
-			width: 150px;
-			text-align: start !important;
-			transition: all 0.3s;
 		}
 
 		.btn_tabadd {
-			border: none;
-			background-color: black;
+			border: 1px solid rgb(15, 0, 34);
+			background-color: rgb(7, 5, 8);
+			border-radius: 5px;
 			color: white;
-			font-size: 13px;
-			text-align: center !important;
+			width: 25px;
+			text-align: start !important;
 		}
 
 		.btn_intab {
 			border: none;
 			background-color: transparent;
 			color: white;
-			font-family: "Kanit", sans-serif;
-  			font-weight: 300;
-			font-size: 15px;
-			white-space: nowrap;
-			overflow: hidden;
-			text-overflow: ellipsis;
-			transition: all 0.3s;
+	
 		}
 
 
 		::-webkit-scrollbar {
 			width: 3px;
-			height: 4px;
+			height: 3px;
 			background-color: black;
 		}
 
 		::-webkit-scrollbar-thumb {
 			background-color: white;
-			max-height: 6px;
+			max-height: 2px;
 			border-radius: 10px;
 		}
 
 		.grid-tab {
 			display: grid;
-			grid-template-columns: auto 30px;
-    		gap: 10px;
+			grid-template-columns: auto 20px;
+    		gap: 0px;
 		}
 		.grid-tabcon {
 			display: grid;
 			grid-template-columns: auto 30px;
 		}
 		.bg-black {
-			background-color: black;
+			background-color: rgb(6, 0, 10);
 		}
 		.bg-modal {
-			border-radius: 10px !important;
-			border: 1px solid rgb(49, 49, 49) !important;
-			background-color: rgb(12, 12, 12) !important;
+			border: none;
+			
+			background-color: rgb(6, 0, 10) !important;
 			color: white !important;
 		}
 		.btnm {
-			border-radius: 5px;
-			border: 1px solid rgb(49, 49, 49);
-			background-color: rgb(12, 12, 12);
+			border: none;
+			
+			background-color: rgb(6, 0, 10);
 			color: white;
-			font-family: "Kanit", sans-serif;
-  			font-weight: 300;
+			
 			font-size: 15px;
 
 		}
@@ -115,7 +93,7 @@
         }
 	</style>
 	<meta charset="utf-8" />
-	<title></title>
+	<title>Luau Editor</title>
 	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
 	<link href="https://kit-pro.fontawesome.com/releases/v6.2.0/css/pro.min.css" rel="stylesheet">
@@ -151,251 +129,605 @@
 		<div id="tabcon" class="d-flex overflow-auto px-2">
 			<!-- <div class="grid-tab btn_tab px-1 mx-1"> <button class="text-start btn_intab">test1.lua</button> <button class="btn_intab">X</button> </div> -->
 			
-			
+
 		</div>
-		
-		
+		<button class="btn_tabadd m-1" id="open_addtab">+</button>
 	</div>
 	<script>
-		let tab_editing = "";
-		let first_tab = "main.lua";
+/*
+  LuauEditorTools
+  - Persistent Monaco tabs with backend fallback to localStorage
+  - Dynamic Luau autocomplete for variables and table fields
 
+  Usage after Monaco editor creation:
+    LuauEditorTools.init({ editor, monaco, staticProposals: () => Proposals });
+*/
+(function () {
+  'use strict';
 
+  const DEFAULTS = {
+    apiBase: 'http://localhost:9911',
+    storageKey: 'mxsynry:luau-editor-tabs:v2',
+    firstTabName: 'main.lua',
+    tabContainerId: 'tabcon',
+    addButtonId: 'open_addtab',
+    tabNameInputId: 'tabname',
+    modalId: 'addtab',
+    saveDebounceMs: 450,
+    apiTimeoutMs: 900,
+    useApi: true
+  };
 
+  function joinUrl(base, path) {
+    return String(base || '').replace(/\/$/, '') + '/' + String(path || '').replace(/^\//, '');
+  }
 
-        async function start() {
-			opentab(first_tab);
-			changetabanim(first_tab);
+  function escapeHtml(value) {
+    return String(value ?? '').replace(/[&<>"']/g, ch => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[ch]));
+  }
 
-			console.log(first_tab);
-			
-		}
-		async function loadtab(first, addtab) {
-			try {
-				document.getElementById("tabcon").innerHTML = "";
-				const response = await fetch('http://localhost:9911/files');
-				const files = await response.json();
-				const tabcon = document.getElementById('tabcon');
-				let lastcreate = "main.lua";
+  function safeFileName(name) {
+    const cleaned = String(name || '').trim().replace(/[\\/:*?"<>|]/g, '_');
+    if (!cleaned) return '';
+    return /\.(lua|luau|txt)$/i.test(cleaned) ? cleaned : cleaned + '.lua';
+  }
 
-				files.forEach(file => {
-					if (file.name !== "undefined") {
-						
-						const tabButton = document.createElement('div');
-						tabButton.classList.add('grid-tab', 'btn_tab', 'mb-2', 'px-1', 'mx-1');
-						if (first_tab === "") {
-							tabButton.innerHTML = `
-								<button class="text-start btn_intab" onclick="opentab('${file.name}')" data-file="${file.name}" id="first_tab">${file.name}</button>
-								<button class="btn_intab" onclick="deltab('${file.name}')"><i class="fa-solid fa-circle-xmark" style="margin-top: 5px !important;"></i></button>
-							`;
-							first_tab = file.name;
-						} else {
-							tabButton.innerHTML = `
-								<button class="text-start btn_intab" onclick="opentab('${file.name}')" data-file="${file.name}">${file.name}</button>
-								<button class="btn_intab" onclick="deltab('${file.name}')"><i class="fa-solid fa-xmark" style="margin-top: 5px !important;"></i></button>
-							`;
-						}
-						lastcreate = file.name;
-						tabcon.appendChild(tabButton);
-						
-					}
-					
-				});
+  function toast(ok, message) {
+    if (typeof window.Toastify === 'function') {
+      window.Toastify({
+        text: message,
+        duration: 2200,
+        gravity: 'top',
+        position: 'right',
+        close: true,
+        stopOnFocus: true,
+        style: { background: ok ? 'linear-gradient(135deg,#16a34a,#22c55e)' : 'linear-gradient(135deg,#dc2626,#ef4444)' }
+      }).showToast();
+      return;
+    }
+    (ok ? console.log : console.warn)(message);
+  }
 
-				if (addtab) {
-					opentab(lastcreate);
-				}
+  function createApiClient(options) {
+    let apiOnline = null;
 
-				document.getElementById("tabcon").insertAdjacentHTML('beforeend', '<button class="btn_tabadd mb-2" id="open_addtab"><i class="fa-solid fa-plus"></i></button>');
+    async function request(path, init = {}) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), options.apiTimeoutMs);
+      try {
+        const response = await fetch(joinUrl(options.apiBase, path), {
+          ...init,
+          signal: controller.signal
+        });
+        if (!response.ok) {
+          const msg = await response.text().catch(() => response.statusText);
+          throw new Error(msg || `HTTP ${response.status}`);
+        }
+        return response;
+      } finally {
+        clearTimeout(timer);
+      }
+    }
 
-				$("#open_addtab").click(function(){
-					const myModal = new bootstrap.Modal('#addtab', {keyboard: false}); 
-					myModal.show();
-				});
+    async function isOnline() {
+      if (!options.useApi) return false;
+      if (apiOnline !== null) return apiOnline;
+      try {
+        await request('/files');
+        apiOnline = true;
+      } catch {
+        apiOnline = false;
+      }
+      return apiOnline;
+    }
 
-				if (first === true) {
-					start();
-				}
-			} catch (error) {
-				console.error('Error fetching files:', error);
-			}
-		}
+    function markOffline() {
+      apiOnline = false;
+    }
 
+    return { request, isOnline, markOffline };
+  }
 
-		
-		async function addtab() {
-			try {
-				const filename = $("#tabname").val()
-				if (filename !== "") {
-					const response = await fetch(`http://localhost:9911/addtab/${filename}`, {
-						method: 'POST',
-					});
+  function createStorage(options, api) {
+    function localRead() {
+      try {
+        const raw = localStorage.getItem(options.storageKey);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed.tabs)) return null;
+        return parsed;
+      } catch {
+        return null;
+      }
+    }
 
-					if (response.ok) {
-						$('#addtab').modal('hide')
-						loadtab(false, true);
-					} else if (response.status === 409) {
-						al(false, `${filename} already exists.`);
-					} else {
-						al(false, 'Failed to create tab.');
-					}
-				} else {
-					al(false, "Please enter tab name.")
-				}
-			} catch (error) {
-				console.error('Error adding tab:', error);
-				al(false, 'Error adding tab: ' + error);
-			}
-		}
+    function localWrite(state) {
+      const serializable = {
+        activeName: state.activeName,
+        tabs: state.tabs.map(tab => ({ name: tab.name, content: tab.content || '', updatedAt: tab.updatedAt || Date.now() }))
+      };
+      localStorage.setItem(options.storageKey, JSON.stringify(serializable));
+    }
 
-		function changetabanim(activeTab) {
-            const tabs = document.querySelectorAll('.grid-tab button[data-file]');
-            tabs.forEach(tab => {
-                const tabContainer = tab.closest('.grid-tab');
-                if (tab.dataset.file === activeTab) {
-                    tabContainer.classList.remove('btn_tab');
-                    tabContainer.classList.add('btn_tabusing');
-                } else {
-                    tabContainer.classList.remove('btn_tabusing');
-                    tabContainer.classList.add('btn_tab');
-                }
-            });
+    async function loadFromApi() {
+      if (!(await api.isOnline())) return null;
+      const filesResponse = await api.request('/files');
+      const files = await filesResponse.json();
+      if (!Array.isArray(files)) return null;
+
+      const tabs = [];
+      for (const file of files) {
+        const name = safeFileName(file && file.name);
+        if (!name || name === 'undefined') continue;
+        try {
+          const response = await api.request('/opentab/' + encodeURIComponent(name));
+          tabs.push({ name, content: await response.text(), updatedAt: Date.now() });
+        } catch {
+          tabs.push({ name, content: '', updatedAt: Date.now() });
+        }
+      }
+      return tabs.length ? { activeName: tabs[0].name, tabs } : null;
+    }
+
+    async function saveToApi(tab) {
+      if (!(await api.isOnline())) return false;
+      try {
+        await api.request('/savetab/' + encodeURIComponent(tab.name), {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain' },
+          body: tab.content || ''
+        });
+        return true;
+      } catch (error) {
+        api.markOffline();
+        console.warn('API save failed; using localStorage fallback:', error);
+        return false;
+      }
+    }
+
+    async function createOnApi(name) {
+      if (!(await api.isOnline())) return false;
+      try {
+        await api.request('/addtab/' + encodeURIComponent(name), { method: 'POST' });
+        return true;
+      } catch (error) {
+        api.markOffline();
+        console.warn('API add failed; using localStorage fallback:', error);
+        return false;
+      }
+    }
+
+    async function deleteOnApi(name) {
+      if (!(await api.isOnline())) return false;
+      try {
+        await api.request('/delete/' + encodeURIComponent(name), { method: 'DELETE' });
+        return true;
+      } catch (error) {
+        api.markOffline();
+        console.warn('API delete failed; using localStorage fallback:', error);
+        return false;
+      }
+    }
+
+    return { localRead, localWrite, loadFromApi, saveToApi, createOnApi, deleteOnApi };
+  }
+
+  function stripCommentsAndStrings(code) {
+    return String(code || '')
+      .replace(/--\[\[[\s\S]*?\]\]/g, ' ')
+      .replace(/--[^\n]*/g, ' ')
+      .replace(/\[\[[\s\S]*?\]\]/g, ' ')
+      .replace(/"(?:\\.|[^"\\])*"/g, '""')
+      .replace(/'(?:\\.|[^'\\])*'/g, "''");
+  }
+
+  function addName(map, name, kind, detail) {
+    if (!name || /^(and|break|do|else|elseif|end|false|for|function|if|in|local|nil|not|or|repeat|return|then|true|until|while)$/i.test(name)) return;
+    if (!/^[A-Za-z_]\w*$/.test(name)) return;
+    if (!map.has(name)) map.set(name, { name, kind, detail });
+  }
+
+  function splitIdentifiers(list) {
+    return String(list || '')
+      .split(',')
+      .map(part => part.trim())
+      .filter(part => /^[A-Za-z_]\w*$/.test(part));
+  }
+
+  function collectTableFields(text, objectName, body, fields) {
+    if (!fields.has(objectName)) fields.set(objectName, new Map());
+    const fieldMap = fields.get(objectName);
+    const addField = (field, kind = 'Field') => {
+      if (!field || !/^[A-Za-z_]\w*$/.test(field)) return;
+      if (!fieldMap.has(field)) fieldMap.set(field, { name: field, kind, detail: `${objectName}.${field}` });
+    };
+
+    let match;
+    const namedField = /(?:^|[,\n;])\s*([A-Za-z_]\w*)\s*=/g;
+    while ((match = namedField.exec(body))) addField(match[1]);
+
+    const quotedField = /\[\s*["']([A-Za-z_]\w*)["']\s*\]\s*=/g;
+    while ((match = quotedField.exec(body))) addField(match[1]);
+
+    const methodField = /(?:^|[,\n;])\s*([A-Za-z_]\w*)\s*=\s*function\b/g;
+    while ((match = methodField.exec(body))) addField(match[1], 'Method');
+  }
+
+  function analyzeLuau(code) {
+    const cleaned = stripCommentsAndStrings(code);
+    const variables = new Map();
+    const fields = new Map();
+    let match;
+
+    const localVars = /\blocal\s+(?!function\b)([A-Za-z_]\w*(?:\s*,\s*[A-Za-z_]\w*)*)\s*(?==|\n|$)/g;
+    while ((match = localVars.exec(cleaned))) {
+      for (const name of splitIdentifiers(match[1])) addName(variables, name, 'Variable', 'local variable');
+    }
+
+    const localFunctions = /\blocal\s+function\s+([A-Za-z_]\w*)\s*\(([^)]*)\)/g;
+    while ((match = localFunctions.exec(cleaned))) {
+      addName(variables, match[1], 'Function', 'local function');
+      for (const param of splitIdentifiers(match[2])) addName(variables, param, 'Variable', 'function parameter');
+    }
+
+    const functions = /\bfunction\s+([A-Za-z_]\w*)(?:([.:])([A-Za-z_]\w*))?\s*\(([^)]*)\)/g;
+    while ((match = functions.exec(cleaned))) {
+      if (match[3]) {
+        const obj = match[1];
+        addName(variables, obj, 'Variable', 'table/object');
+        if (!fields.has(obj)) fields.set(obj, new Map());
+        fields.get(obj).set(match[3], { name: match[3], kind: match[2] === ':' ? 'Method' : 'Function', detail: `${obj}${match[2]}${match[3]}` });
+      } else {
+        addName(variables, match[1], 'Function', 'function');
+      }
+      for (const param of splitIdentifiers(match[4])) addName(variables, param, 'Variable', 'function parameter');
+    }
+
+    const genericFor = /\bfor\s+([A-Za-z_]\w*(?:\s*,\s*[A-Za-z_]\w*)*)\s+in\b/g;
+    while ((match = genericFor.exec(cleaned))) {
+      for (const name of splitIdentifiers(match[1])) addName(variables, name, 'Variable', 'for-loop variable');
+    }
+
+    const numericFor = /\bfor\s+([A-Za-z_]\w*)\s*=/g;
+    while ((match = numericFor.exec(cleaned))) addName(variables, match[1], 'Variable', 'numeric for-loop variable');
+
+    const globals = /^\s*([A-Za-z_]\w*)\s*=/gm;
+    while ((match = globals.exec(cleaned))) addName(variables, match[1], 'Variable', 'script variable');
+
+    const tableDecl = /\b(?:local\s+)?([A-Za-z_]\w*)\s*=\s*\{([\s\S]*?)\}/g;
+    while ((match = tableDecl.exec(cleaned))) {
+      addName(variables, match[1], 'Variable', 'table');
+      collectTableFields(cleaned, match[1], match[2], fields);
+    }
+
+    const dottedAssignment = /\b([A-Za-z_]\w*)\.([A-Za-z_]\w*)\s*=/g;
+    while ((match = dottedAssignment.exec(cleaned))) {
+      addName(variables, match[1], 'Variable', 'table/object');
+      if (!fields.has(match[1])) fields.set(match[1], new Map());
+      fields.get(match[1]).set(match[2], { name: match[2], kind: 'Field', detail: `${match[1]}.${match[2]}` });
+    }
+
+    return { variables, fields };
+  }
+
+  function completionKind(monaco, kind) {
+    const K = monaco.languages.CompletionItemKind;
+    return K[kind] || K.Variable;
+  }
+
+  function getReplaceRange(model, position) {
+    const word = model.getWordUntilPosition(position);
+    return new monaco.Range(position.lineNumber, word.startColumn, position.lineNumber, word.endColumn);
+  }
+
+  function installDynamicIntellisense(monaco, editor) {
+    let analysis = analyzeLuau(editor.getValue());
+    let timer = null;
+
+    const refresh = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        analysis = analyzeLuau(editor.getValue());
+      }, 120);
+    };
+
+    editor.onDidChangeModelContent(refresh);
+    refresh();
+
+    const provider = {
+      triggerCharacters: ['.', ':'],
+      provideCompletionItems(model, position) {
+        analysis = analyzeLuau(model.getValue());
+        const range = getReplaceRange(model, position);
+        const line = model.getValueInRange({
+          startLineNumber: position.lineNumber,
+          startColumn: 1,
+          endLineNumber: position.lineNumber,
+          endColumn: position.column
+        });
+
+        const memberMatch = line.match(/([A-Za-z_]\w*)\s*([.:])\s*[A-Za-z_]*$/);
+        if (memberMatch) {
+          const objectName = memberMatch[1];
+          const objectFields = analysis.fields.get(objectName);
+          if (!objectFields) return { suggestions: [] };
+          return {
+            suggestions: [...objectFields.values()].map(field => ({
+              label: field.name,
+              kind: completionKind(monaco, field.kind),
+              detail: field.detail || 'detected table field',
+              insertText: field.name,
+              range
+            }))
+          };
         }
 
-        async function opentab(filename) {
-			if (filename !== 'undefined') {
-				if (tab_editing !== "") {
-					await savetab(tab_editing);
-				}
-				try {
-					const response = await fetch(`http://localhost:9911/opentab/${filename}`);
-					const data = await response.text();
-						
-					monaco.editor.getModels()[0].setValue(data);
-					tab_editing = filename;
-					changetabanim(filename);
-				} catch (error) {
-					console.error('Error opening tab:', error);
-				}
-			}
-		}
-
-
-		async function deltab(filename) {
-            if (filename !== "main.lua") {
-                try {
-                    const response = await fetch(`http://localhost:9911/delete/${filename}`, { method: 'DELETE' });
-                    const message = await response.text();
-                    console.log(message);
-                    await loadtab(false);
-                    if (tab_editing === filename) {
-                        opentab("main.lua");
-                    }
-                    const response2 = await fetch(`http://localhost:9911/delete/${filename}`, { method: 'DELETE' });
-                    const message2 = await response2.text();
-                    console.log(message);
-                } catch (error) {
-                    console.error('Error deleting file:', error);
-                }
-            } else {
-                al(false, "Cannot delete main.lua!")
-            }
-		}
-
-		async function savetab(filename) {
-			if (filename !== 'undefined') {
-				const data = editor.getValue();
-				try {
-					const response = await fetch(`http://localhost:9911/savetab/${filename}`, {
-						method: 'POST',
-						headers: {
-							'Content-Type': 'text/plain'
-						},
-						body: data
-					});
-					const result = await response.text();
-					console.log(`${result} (${filename})`);
-				} catch (error) {
-					console.error('Error saving file:', error);
-				}
-			}
-		}
-
-
-        
-
-		
-
-		function al(status, text) {
-			if (status === true) { 
-				Toastify({
-					text: text,
-					duration: 2000,
-					destination: "https://github.com/apvarun/toastify-js",
-					newWindow: true,
-					close: true,
-					gravity: "top", // `top` or `bottom`
-					position: "right", // `left`, `center` or `right`
-					stopOnFocus: true, // Prevents dismissing of toast on hover
-					style: {
-						
-						background: "Green",
-					},
-				onClick: function(){} // Callback after click
-				}).showToast();
-			} else {
-				Toastify({
-					text: text,
-					duration: 2000,
-					destination: "https://github.com/apvarun/toastify-js",
-					newWindow: true,
-					close: true,
-					gravity: "top", // `top` or `bottom`
-					position: "right", // `left`, `center` or `right`
-					stopOnFocus: true, // Prevents dismissing of toast on hover
-					style: {
-						
-						background: "Red",
-					},
-				onClick: function(){} // Callback after click
-				}).showToast();
-			}
-		}
-		$("#open_addtab").click(function(){
-            const myModal = new bootstrap.Modal('#addtab', {keyboard: false}); myModal.show();
-        });
-		
-
-		
-
-
-
-
-        loadtab(true);
-
-        window.onbeforeunload = function() {
-            savetab(editing_tab);
+        return {
+          suggestions: [...analysis.variables.values()].map(variable => ({
+            label: variable.name,
+            kind: completionKind(monaco, variable.kind),
+            detail: variable.detail || 'detected variable',
+            insertText: variable.name,
+            range
+          }))
         };
-		
-		
+      }
+    };
 
-  	</script>
-	<script>
-		let time;
-		const waittime = 0;
+    const disposables = [
+      monaco.languages.registerCompletionItemProvider('lua', provider)
+    ];
 
-		function keyPressHandler(event) {
-			clearTimeout(time);
-			time = setTimeout(function() {
-				savetab(tab_editing);
-			}, waittime);
-		}
+    try {
+      monaco.languages.register({ id: 'luau' });
+      disposables.push(monaco.languages.registerCompletionItemProvider('luau', provider));
+    } catch {}
 
-		document.addEventListener('keydown', keyPressHandler);
+    return {
+      refresh: () => { analysis = analyzeLuau(editor.getValue()); },
+      dispose: () => disposables.forEach(item => item.dispose && item.dispose())
+    };
+  }
+
+  function init(userOptions) {
+    const options = { ...DEFAULTS, ...(userOptions || {}) };
+    const editor = options.editor || window.editor || window.editorInstance;
+    const monaco = options.monaco || window.monaco;
+    if (!editor || !monaco) throw new Error('LuauEditorTools.init requires Monaco editor and monaco.');
+
+    injectStyles();
+
+    const api = createApiClient(options);
+    const storage = createStorage(options, api);
+    const state = {
+      tabs: [],
+      activeName: '',
+      isApplyingEditorValue: false,
+      saveTimer: null
+    };
+
+    function getTab(name = state.activeName) {
+      return state.tabs.find(tab => tab.name === name) || null;
+    }
+
+    function ensureMainTab() {
+      if (!state.tabs.length) {
+        state.tabs.push({ name: options.firstTabName, content: '', updatedAt: Date.now() });
+        state.activeName = options.firstTabName;
+      }
+      if (!state.activeName || !getTab(state.activeName)) state.activeName = state.tabs[0].name;
+    }
+
+    function persistLocal() {
+      storage.localWrite(state);
+    }
+
+    async function persistActiveToApi() {
+      const tab = getTab();
+      if (!tab) return;
+      await storage.saveToApi(tab);
+    }
+
+    function syncActiveFromEditor() {
+      const tab = getTab();
+      if (!tab || !editor) return;
+      tab.content = editor.getValue();
+      tab.updatedAt = Date.now();
+    }
+
+    function scheduleSave() {
+      if (state.isApplyingEditorValue) return;
+      syncActiveFromEditor();
+      persistLocal();
+      clearTimeout(state.saveTimer);
+      state.saveTimer = setTimeout(() => persistActiveToApi(), options.saveDebounceMs);
+    }
+
+    function renderTabs() {
+      const tabcon = document.getElementById(options.tabContainerId);
+      if (!tabcon) return;
+      tabcon.innerHTML = '';
+
+      state.tabs.forEach(tab => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'grid-tab btn_tab px-1 mx-1' + (tab.name === state.activeName ? ' active-tab' : '');
+        wrapper.dataset.file = tab.name;
+
+        const openBtn = document.createElement('button');
+        openBtn.className = 'text-start btn_intab tab-title';
+        openBtn.textContent = tab.name;
+        openBtn.title = tab.name;
+        openBtn.addEventListener('click', () => openTab(tab.name));
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'btn_intab tab-close';
+        closeBtn.type = 'button';
+        closeBtn.textContent = '×';
+        closeBtn.title = 'Close tab';
+        closeBtn.addEventListener('click', event => {
+          event.stopPropagation();
+          deleteTab(tab.name);
+        });
+
+        wrapper.append(openBtn, closeBtn);
+        tabcon.appendChild(wrapper);
+      });
+    }
+
+    function applyEditorValue(value) {
+      state.isApplyingEditorValue = true;
+      editor.setValue(value || '');
+      state.isApplyingEditorValue = false;
+      editor.focus();
+    }
+
+    async function openTab(name) {
+      name = safeFileName(name);
+      if (!name) return;
+      syncActiveFromEditor();
+      persistLocal();
+      await persistActiveToApi();
+
+      let tab = getTab(name);
+      if (!tab) {
+        tab = { name, content: '', updatedAt: Date.now() };
+        state.tabs.push(tab);
+      }
+
+      state.activeName = name;
+      applyEditorValue(tab.content);
+      renderTabs();
+      persistLocal();
+    }
+
+    async function addTab(name) {
+      name = safeFileName(name || document.getElementById(options.tabNameInputId)?.value);
+      if (!name) return toast(false, 'Please enter a tab name.');
+      if (getTab(name)) return toast(false, `${name} already exists.`);
+
+      syncActiveFromEditor();
+      await storage.createOnApi(name);
+      state.tabs.push({ name, content: '', updatedAt: Date.now() });
+      state.activeName = name;
+      applyEditorValue('');
+      renderTabs();
+      persistLocal();
+
+      const input = document.getElementById(options.tabNameInputId);
+      if (input) input.value = '';
+      const modalEl = document.getElementById(options.modalId);
+      if (modalEl && window.bootstrap) {
+        const modal = window.bootstrap.Modal.getInstance(modalEl) || new window.bootstrap.Modal(modalEl);
+        modal.hide();
+      }
+      toast(true, `Created ${name}`);
+    }
+
+    async function deleteTab(name) {
+      name = safeFileName(name);
+      if (!name) return;
+      if (name === options.firstTabName) return toast(false, `Cannot delete ${options.firstTabName}.`);
+
+      state.tabs = state.tabs.filter(tab => tab.name !== name);
+      await storage.deleteOnApi(name);
+      ensureMainTab();
+      if (state.activeName === name || !getTab(state.activeName)) {
+        state.activeName = state.tabs[0].name;
+        applyEditorValue(getTab().content);
+      }
+      renderTabs();
+      persistLocal();
+      toast(true, `Deleted ${name}`);
+    }
+
+    async function saveTab(name = state.activeName) {
+      const tab = getTab(name);
+      if (!tab) return;
+      if (name === state.activeName) syncActiveFromEditor();
+      persistLocal();
+      await storage.saveToApi(tab);
+    }
+
+    async function loadTabs(first = true) {
+      const apiState = await storage.loadFromApi().catch(error => {
+        console.warn('Tab API unavailable, using localStorage:', error);
+        return null;
+      });
+      const localState = storage.localRead();
+      const loaded = apiState || localState || null;
+
+      state.tabs = loaded?.tabs?.map(tab => ({
+        name: safeFileName(tab.name),
+        content: String(tab.content || ''),
+        updatedAt: tab.updatedAt || Date.now()
+      })).filter(tab => tab.name) || [];
+      state.activeName = safeFileName(loaded?.activeName) || options.firstTabName;
+      ensureMainTab();
+      renderTabs();
+      persistLocal();
+
+      if (first) applyEditorValue(getTab(state.activeName)?.content || '');
+    }
+
+    editor.onDidChangeModelContent(() => {
+      scheduleSave();
+      const value = editor.getValue();
+      if (window.chrome?.webview?.postMessage) {
+        try { window.chrome.webview.postMessage(value); } catch {}
+      }
+    });
+
+    window.addEventListener('beforeunload', () => {
+      syncActiveFromEditor();
+      persistLocal();
+    });
+
+    document.getElementById(options.addButtonId)?.addEventListener('click', () => {
+      const modalEl = document.getElementById(options.modalId);
+      if (modalEl && window.bootstrap) new window.bootstrap.Modal(modalEl, { keyboard: false }).show();
+      else {
+        const name = prompt('Tab name');
+        if (name) addTab(name);
+      }
+    });
+
+    // Compatibility with your old inline onclick handlers.
+    window.addtab = () => addTab();
+    window.opentab = openTab;
+    window.deltab = deleteTab;
+    window.savetab = saveTab;
+    window.loadtab = loadTabs;
+    window.LuauTabs = { state, addTab, openTab, deleteTab, saveTab, loadTabs };
+
+    const intellisense = installDynamicIntellisense(monaco, editor);
+    window.LuauDynamicIntellisense = intellisense;
+
+    loadTabs(true);
+    return { state, addTab, openTab, deleteTab, saveTab, loadTabs, intellisense };
+  }
+
+  function injectStyles() {
+    if (document.getElementById('luau-editor-tools-style')) return;
+    const style = document.createElement('style');
+    style.id = 'luau-editor-tools-style';
+    style.textContent = `
+      .btn_tab { position: relative; overflow: hidden; transition: border-color .15s ease, background .15s ease; }
+      .btn_tab.active-tab { border-color: #8b5cf6 !important; background: linear-gradient(135deg, rgba(124,58,237,.32), rgba(236,72,153,.18)) !important; }
+      .btn_tab.active-tab::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 2px; background: linear-gradient(90deg,#7c3aed,#ec4899); }
+      .tab-title { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .tab-close { opacity: .7; font-weight: 700; }
+      .tab-close:hover { opacity: 1; color: #f472b6; }
+    `;
+    document.head.appendChild(style);
+  }
+
+  window.LuauEditorTools = { init, analyzeLuau };
+})();
+
 	</script>
-	
-	
-	<div style="width: 100%; height: 10px; background-color: black;"></div>
+
 	<div id="container" style="width:100%;height:100%;"></div>
 	
 	<script src="vs/loader.js"></script>
@@ -424,8 +756,6 @@
 			function getDependencyProposals() {
 				return Proposals;
 			}
-
-			
 
 			monaco.languages.registerCompletionItemProvider('lua', {
 				provideCompletionItems: function (model, position) {
@@ -529,7 +859,9 @@
 
 
 			editor.onDidChangeModelContent(function (e) {
-				window.chrome.webview.postMessage(editor.getValue())
+				if (window.chrome && window.chrome.webview && typeof window.chrome.webview.postMessage === 'function') {
+					window.chrome.webview.postMessage(editor.getValue());
+				}
 			});
 
 			GetText = function () {
@@ -621,21 +953,20 @@
 					  }
 				}
 
-				for (const Key of ["_G", "_VERSION", "Enum", "game", "plugin", "shared", "script", "workspace", "DebuggerManager", "elapsedTime", "LoadLibrary", "PluginManager", "settings", "tick", "time", "typeof", "UserSettings", "HumanoidRootPart"])
-					AddIntellisense(Key, "Keyword", Key, Key);
+				for (const Key of ["_G", "_VERSION", "Enum", "game", "plugin", "shared", "script", "workspace", "DebuggerManager", "elapsedTime", "LoadLibrary", "PluginManager", "settings", "tick", "time", "typeof", "UserSettings"])
+                    AddIntellisense(Key, "Keyword", Key, Key);
 
 				for (const Key of ["and", "break", "do", "else", "elseif", "end", "false", "for", "function", "if", "in", "local", "nil", "not", "or", "repeat", "return", "then", "true", "until", "while"])
-					AddIntellisense(Key, "Variable", Key, Key);
+                    AddIntellisense(Key, "Variable", Key, Key);
 
-				for (const Key of ["math.abs", "math.acos", "math.asin", "math.atan", "math.atan2", "math.ceil", "math.cos", "math.cosh", "math.deg", "math.exp", "math.floor", "math.fmod", "math.frexp", "math.huge", "math.ldexp", "math.log", "math.max", "math.min", "math.modf", "math.pi", "math.pow", "math.rad", "math.random", "math.randomseed", "math.sin", "math.sinh", "math.sqrt", "math.tan", "math.tanh", "table.concat", "table.foreach", "table.foreachi", "table.sort", "table.insert", "table.remove", "Color3.new", "Instance.new", "BrickColor.new", "Vector3.new", "Vector2.new", "debug.gethook", "debug.getinfo", "debug.getlocal", "debug.getmetatable", "debug.getregistry", "debug.getupvalue", "debug.getuservalue", "debug.sethook", "debug.setlocal", "debug.setmetatable", "debug.setupvalue", "debug.setuservalue", "debug.traceback", "debug.upvalueid", "debug.upvaluejoin", "string.byte", "string.char", "string.dump", "string.find", "string.format", "string.gmatch", "string.gsub", "string.len", "string.lower", "string.match", "string.rep", "string.reverse", "string.sub", "string.upper", "coroutine.create", "coroutine.resume", "coroutine.running", "coroutine.status", "coroutine.wrap", "coroutine.yield"])
+                for (const Key of ["math.abs", "math.acos", "math.asin", "math.atan", "math.atan2", "math.ceil", "math.cos", "math.cosh", "math.deg", "math.exp", "math.floor", "math.fmod", "math.frexp", "math.huge", "math.ldexp", "math.log", "math.max", "math.min", "math.modf", "math.pi", "math.pow", "math.rad", "math.random", "math.randomseed", "math.sin", "math.sinh", "math.sqrt", "math.tan", "math.tanh", "table.concat", "table.foreach", "table.foreachi", "table.sort", "table.insert", "table.remove", "Color3.new", "Instance.new", "BrickColor.new", "Vector3.new", "Vector2.new", "debug.gethook", "debug.getinfo", "debug.getlocal", "debug.getmetatable", "debug.getregistry", "debug.getupvalue", "debug.getuservalue", "debug.sethook", "debug.setlocal", "debug.setmetatable", "debug.setupvalue", "debug.setuservalue", "debug.traceback", "debug.upvalueid", "debug.upvaluejoin", "string.byte", "string.char", "string.dump", "string.find", "string.format", "string.gmatch", "string.gsub", "string.len", "string.lower", "string.match", "string.rep", "string.reverse", "string.sub", "string.upper", "coroutine.create", "coroutine.resume", "coroutine.running", "coroutine.status", "coroutine.wrap", "coroutine.yield"])
 					AddIntellisense(Key, "Method", Key, Key);
 
-				for (const Key of ["Drawing", "debug", "Instance", "Color3", "Vector3", "Vector2", "BrickColor", "math", "table", "string", "coroutine", "Humanoid", "ClickDetector", "LocalScript", "Model", "ModuleScript", "Mouse", "Part", "Script", "Tool", "RunService", "UserInputService", "Workspace", "ReplicatedFirst", "SoundService", "Character", "CoreGui", "ReplicatedStorage", "Lighting", "Players", "PlayerGui", "PlayerScript", "Localplayer", "Parent"])
+				for (const Key of ["Drawing", "debug", "Instance", "Color3", "Vector3", "Vector2", "BrickColor", "math", "table", "string", "coroutine", "Humanoid", "ClickDetector", "LocalScript", "Model", "ModuleScript", "Mouse", "Part", "Player", "Script", "Tool", "RunService", "UserInputService", "Workspace"])
 					AddIntellisense(Key, "Class", Key, Key);
 
-				for (const Key of ["print", "warn", "wait", "info", "printidentity", "assert", "collectgarbage", "error", "getfenv", "getmetatable", "setmetatable", "ipairs", "loadfile", "loadstring", "newproxy", "next", "pairs", "pcall", "spawn", "rawequal","rawget", "rawset", "select", "tonumber", "tostring", "type", "unpack", "xpcall", "delay", "stats", ":Remove()", ":BreakJoints()", ":GetChildren()", ":FindFirstChild()", ":FireServer()", ":InvokeServer()", ":ClearAllChildren()", ":Clone()", ":Destroy()", ":FindFirstAncestor()", ":FindFirstAncestorOfClass()", ":FindFirstAncestorWhichIsA()", ":FindFirstChildOfClass()", ":FindFirstChildWhichIsA()", ":GetDebugId()", ":GetDescendants()", ":GetFullName()", ":IsA()", ":GetPropertyChangedSignal()", ":IsAncestorOf()", ":IsDescendantOf()", ":WaitForChild()", ":Connect()", ":AncestryChanged()", ":Changed()", ":ChildAdded()", ":ChildRemoved()", ":DescendantAdded()", ":DescendantRemoving()", ":GetService()", ":GetObjects()", ":HttpGet()", ":Wait()"])
-					AddIntellisense(Key, "Function", Key, Key.includes(":") ? Key.substring(1, Key.length) : Key);
-
+				for (const Key of ["print", "warn", "wait", "info", "printidentity", "assert", "collectgarbage", "error", "getfenv", "getmetatable", "setmetatable", "ipairs", "loadfile", "loadstring", "newproxy", "next", "pairs", "pcall", "spawn", "rawequal", "rawget", "rawset", "select", "tonumber", "tostring", "type", "unpack", "xpcall", "delay", "stats", ":Remove()", ":BreakJoints()", ":GetChildren()", ":FindFirstChild()", ":FireServer()", ":InvokeServer()", ":ClearAllChildren()", ":Clone()", ":Destroy()", ":FindFirstAncestor()", ":FindFirstAncestorOfClass()", ":FindFirstAncestorWhichIsA()", ":FindFirstChildOfClass()", ":FindFirstChildWhichIsA()", ":GetDebugId()", ":GetDescendants()", ":GetFullName()", ":IsA()", ":GetPropertyChangedSignal()", ":IsAncestorOf()", ":IsDescendantOf()", ":WaitForChild()", ":Connect()", ":AncestryChanged()", ":Changed()", ":ChildAdded()", ":ChildRemoved()", ":DescendantAdded()", ":DescendantRemoving()", ":GetService()", ":GetObjects()", ":HttpGet()", ":Wait()"])
+                    AddIntellisense(Key, "Function", Key, Key.includes(":") ? Key.substring(1, Key.length) : Key);
 
                 for (const Key of ["Visible", "Color", "Transparency", "Thickness", "From", "To", "Text", "Size", "Center", "Outline", "OutlineColor", "Position", "TextBounds", "Font", "Data", "Rounding", "NumSides", "Radius", "Filled", "PointA", "PointB", "PointC", "PointD"])
 					AddIntellisense(Key, "Property", "Property for Drawing Library", Key);
@@ -652,6 +983,13 @@
 			
 			window.editorInstance = editor;
 
+			window.LuauEditorTools.init({
+				editor: editor,
+				monaco: monaco,
+				apiBase: 'http://localhost:9911',
+				firstTabName: 'main.lua'
+			});
+
 			// Modify this method
 			editor.getEditorValue = function() {
 				var value = editor.getValue();
@@ -662,27 +1000,6 @@
 </body>
 
 </html>
-<script>
-  (function () {
-    function changeTitle(newTitle) {
-      document.title = newTitle;
-    }
-
-    const originalConsoleLog = console.log;
-
-    console.log = function (input) {
-      const match = input.match(/^title\s+"(.+)"$/);
-
-      if (match) {
-        const newTitle = match[1];
-        changeTitle(newTitle);
-      } else {
-        originalConsoleLog.apply(console, arguments);
-      }
-    };
-  })();
-</script>
-
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
 <script>
