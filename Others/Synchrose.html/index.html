@@ -10,7 +10,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <meta property="og:title" content="Synchrose">
     <meta property="og:description" content="Your exploits, your safety and knowledge.">
-    <meta property="og:image" content="https://github.com/mxsynry/mxsynry.github.io/raw/main/Others/Synchrose.html/image.png">
+    <meta property="og:image" content="https://github.com/mxsynry/mxsynry.github.io/raw/main/Others/Synchrose.html/TP.png">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary_large_image">
     <title>Synchrose</title>
@@ -2233,9 +2233,9 @@
 
 
 
-    <style id="synchrose-intro-style">
+    <style id="synchrose-intro-v3-style">
         /* ============================================================
-           Synchrose intro : Redliner-style terminal, horizontal split only
+           Synchrose intro: Redliner-style terminal, horizontal split only
         ============================================================ */
         html.synchrose-scroll-locked,
         body.synchrose-scroll-locked {
@@ -2586,11 +2586,11 @@
             letter-spacing: 0.22em;
             text-transform: uppercase;
             z-index: 12;
-            animation: HintPulse 1.1s ease-in-out infinite;
+            animation: v3HintPulse 1.1s ease-in-out infinite;
             text-align: center;
         }
 
-        @keyframes HintPulse {
+        @keyframes v3HintPulse {
             0%, 100% { opacity: 0.38; }
             50% { opacity: 1; }
         }
@@ -2646,7 +2646,7 @@
             white-space: pre-wrap;
             opacity: 0;
             transform: translateY(7px);
-            animation: LineIn 0.18s ease forwards;
+            animation: v3LineIn 0.18s ease forwards;
         }
 
         .synchrose-line:nth-child(1) { animation-delay: 0.08s; }
@@ -2655,7 +2655,7 @@
         .synchrose-line:nth-child(4) { animation-delay: 0.38s; }
         .synchrose-line:nth-child(5) { animation-delay: 0.48s; }
 
-        @keyframes LineIn {
+        @keyframes v3LineIn {
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -2749,9 +2749,9 @@
     </style>
 
 
-    <style id="synchrose-intro-v4-fixes">
+    <style id="synchrose-title-landing">
         /* ============================================================
-           PATCH v4: simultaneous exit + Synchrose title clicks into hero
+           PATCH: simultaneous exit + Synchrose title clicks into hero
         ============================================================ */
 
         /* The two sliced halves now leave at the same time. */
@@ -2850,9 +2850,9 @@
     </style>
 
 
-    <style id="synchrose-intro-v5-request-fixes">
+    <style id="synchrose-motion-and-music">
         /* ============================================================
-           PATCH v5: requested split/motion/music/hero effects
+           PATCH: requested split/motion/music/hero effects
         ============================================================ */
 
         /* Hero text effects restored. */
@@ -2938,7 +2938,7 @@
         .synchrose-intro.stage-split .synchrose-after-click-line,
         .synchrose-intro.stage-release .synchrose-after-click-line {
             display: block;
-            animation: LineIn 0.15s ease forwards, heroTinyHorizontalShake 0.07s steps(2, end) infinite;
+            animation: v3LineIn 0.15s ease forwards, heroTinyHorizontalShake 0.07s steps(2, end) infinite;
         }
 
         /* CLI loading bar. */
@@ -3126,9 +3126,9 @@
         }
     </style>
 
-    <style id="synchrose-intro-v7-uncrop">
+    <style id="synchrose-unmaximize">
         /* ============================================================
-           PATCH v7: unmaximize without crop/scale, cleaner aligned exit
+           PATCH: unmaximize without crop/scale, cleaner aligned exit
         ============================================================ */
 
         /* Do not crop or scale the terminal content during unmaximize.
@@ -3200,7 +3200,7 @@
             box-shadow:
                 0 0 12px rgba(255,255,255,0.75),
                 0 0 28px rgba(255,255,255,0.35) !important;
-            animation: synchroseCliFillOnceV7 2.9s steps(30, end) 1 forwards !important;
+            animation: synchroseCliFillOnce 2.9s steps(30, end) 1 forwards !important;
             width: 0%;
         }
 
@@ -3208,27 +3208,27 @@
             color: #ffffff !important;
         }
 
-        @keyframes synchroseCliFillOnceV7 {
+        @keyframes synchroseCliFillOnce {
             from { width: 0%; }
             to { width: 100%; }
         }
 
         /* Split movement is horizontal ONLY. No vertical movement. No rotation. */
         .synchrose-intro.stage-split .synchrose-piece-top {
-            animation: topPieceSplitHorizontalOnlyV7 0.28s cubic-bezier(.16,1.15,.18,1) forwards 0.10s !important;
+            animation: topPieceSplitHorizontalOnly 0.28s cubic-bezier(.16,1.15,.18,1) forwards 0.10s !important;
         }
 
         .synchrose-intro.stage-split .synchrose-piece-bottom {
-            animation: bottomPieceSplitHorizontalOnlyV7 0.28s cubic-bezier(.16,1.15,.18,1) forwards 0.10s !important;
+            animation: bottomPieceSplitHorizontalOnly 0.28s cubic-bezier(.16,1.15,.18,1) forwards 0.10s !important;
         }
 
-        @keyframes topPieceSplitHorizontalOnlyV7 {
+        @keyframes topPieceSplitHorizontalOnly {
             0% { transform: translateX(0); }
             72% { transform: translateX(-8vw); }
             100% { transform: translateX(-7.4vw); }
         }
 
-        @keyframes bottomPieceSplitHorizontalOnlyV7 {
+        @keyframes bottomPieceSplitHorizontalOnly {
             0% { transform: translateX(0); }
             72% { transform: translateX(8vw); }
             100% { transform: translateX(7.4vw); }
@@ -3251,12 +3251,12 @@
         }
 
         .synchrose-intro.stage-release .synchrose-piece-top {
-            animation-name: topPieceAlignedWhiteExitV7 !important;
+            animation-name: topPieceAlignedWhiteExit !important;
             transform-origin: bottom center !important;
         }
 
         .synchrose-intro.stage-release .synchrose-piece-bottom {
-            animation-name: bottomPieceAlignedWhiteExitV7 !important;
+            animation-name: bottomPieceAlignedWhiteExit !important;
             transform-origin: top center !important;
         }
 
@@ -3271,7 +3271,7 @@
             animation: none !important;
         }
 
-        @keyframes topPieceAlignedWhiteExitV7 {
+        @keyframes topPieceAlignedWhiteExit {
             0% {
                 transform: translateX(-7.4vw) translateY(0) scaleY(1);
             }
@@ -3283,7 +3283,7 @@
             }
         }
 
-        @keyframes bottomPieceAlignedWhiteExitV7 {
+        @keyframes bottomPieceAlignedWhiteExit {
             0% {
                 transform: translateX(7.4vw) translateY(0) scaleY(1);
             }
@@ -3345,28 +3345,28 @@
         }
 
         .synchrose-impact-frame.is-active {
-            animation: impactFrameBurstV7 0.34s ease forwards;
+            animation: impactFrameBurst 0.34s ease forwards;
         }
 
         .synchrose-impact-frame.is-active::before {
-            animation: impactRectsAV7 0.32s cubic-bezier(.16,1,.2,1) forwards;
+            animation: impactRectsA 0.32s cubic-bezier(.16,1,.2,1) forwards;
         }
 
         .synchrose-impact-frame.is-active::after {
-            animation: impactRectsBV7 0.32s cubic-bezier(.16,1,.2,1) forwards;
+            animation: impactRectsB 0.32s cubic-bezier(.16,1,.2,1) forwards;
         }
 
-        @keyframes impactFrameBurstV7 {
+        @keyframes impactFrameBurst {
             0% { opacity: 1; transform: translate(-50%, -50%) scale(0.68); }
             100% { opacity: 0; transform: translate(-50%, -50%) scale(1.14); }
         }
 
-        @keyframes impactRectsAV7 {
+        @keyframes impactRectsA {
             0% { opacity: 0.96; transform: scaleX(0.55) scaleY(1.18); }
             100% { opacity: 0; transform: scaleX(1.16) scaleY(0.82); }
         }
 
-        @keyframes impactRectsBV7 {
+        @keyframes impactRectsB {
             0% { opacity: 0.94; transform: scaleX(1.22) scaleY(0.46); }
             100% { opacity: 0; transform: scaleX(0.84) scaleY(1.2); }
         }
@@ -3377,9 +3377,9 @@
     </style>
 
 
-    <style id="synchrose-intro-v8-impact-contrast">
+    <style id="synchrose-impact-contrast">
         /* ============================================================
-           PATCH v8: real inverse-color impact frame
+           PATCH: real inverse-color impact frame
            White frame/windows + high-contrast dark content.
         ============================================================ */
 
@@ -3471,15 +3471,15 @@
         }
 
         .synchrose-impact-frame.is-active {
-            animation: impactFrameContainerV8 0.42s steps(2, end) forwards !important;
+            animation: impactFrameContainer 0.42s steps(2, end) forwards !important;
         }
 
         .synchrose-impact-frame.is-active::before {
-            animation: impactWhiteWindowsV8 0.40s steps(2, end) forwards !important;
+            animation: impactWhiteWindows 0.40s steps(2, end) forwards !important;
         }
 
         .synchrose-impact-frame.is-active::after {
-            animation: impactDarkContentV8 0.40s steps(2, end) forwards !important;
+            animation: impactDarkContent 0.40s steps(2, end) forwards !important;
         }
 
         .synchrose-impact-frame.is-active .synchrose-impact-cut.cut-1 {
@@ -3498,7 +3498,7 @@
             animation: impactCutV8D 0.34s steps(2, end) forwards 0.06s;
         }
 
-        @keyframes impactFrameContainerV8 {
+        @keyframes impactFrameContainer {
             0% {
                 opacity: 1;
                 transform: translate(-50%, -50%) scale(0.76) skewX(-2deg);
@@ -3513,7 +3513,7 @@
             }
         }
 
-        @keyframes impactWhiteWindowsV8 {
+        @keyframes impactWhiteWindows {
             0% {
                 opacity: 1;
                 transform: scaleX(0.62) scaleY(1.22);
@@ -3528,7 +3528,7 @@
             }
         }
 
-        @keyframes impactDarkContentV8 {
+        @keyframes impactDarkContent {
             0% {
                 opacity: 1;
                 transform: translateX(-12px) scale(1.08);
@@ -3571,20 +3571,101 @@
     </style>
 
 
-    <style id="synchrose-intro-button-lock">
+    <style id="synchrose-dashboard-button-lock">
+        /* While the intro is active, the dashboard button underneath cannot be used. */
         body:not(.synchrose-intro-done) .hero-btn {
             pointer-events: none !important;
-            opacity: 0.72;
-            filter: saturate(0.82);
+            user-select: none !important;
+        }
+    </style>
+
+
+    <style id="synchrose-music-open-size">
+        /* Music player should become large again when opened. */
+        .mx-music-player.is-open:not(.is-selector) {
+            width: min(456px, calc(100vw - 2rem)) !important;
+            height: auto !important;
+            border-radius: 22px !important;
         }
 
-        .synchrose-intro:not(.is-hidden) {
+        .mx-music-player.is-selector {
+            width: min(720px, calc(100vw - 2rem)) !important;
+            height: auto !important;
+            border-radius: 24px !important;
+        }
+
+        .mx-music-player.is-open .mx-music-shell,
+        .mx-music-player.is-selector .mx-music-shell {
+            grid-template-columns: 74px minmax(0, 1fr) !important;
+        }
+
+        .mx-music-player.is-open .mx-music-panel,
+        .mx-music-player.is-selector .mx-music-panel {
+            opacity: 1 !important;
             pointer-events: auto !important;
+            transform: translateX(0) !important;
+        }
+
+        .mx-music-player.is-open::before {
+            border-radius: 22px !important;
+            clip-path: inset(0 round 22px) !important;
+        }
+
+        .mx-music-player.is-selector::before {
+            border-radius: 24px !important;
+            clip-path: inset(0 round 24px) !important;
+        }
+
+        @media (max-width: 720px) {
+            .mx-music-player.is-open,
+            .mx-music-player.is-selector {
+                width: calc(100vw - 1.5rem) !important;
+            }
         }
     </style>
 
 </head>
 <body>
+
+    <script id="synchrose-dashboard-button-lock">
+        (() => {
+            function introIsStillActive() {
+                const intro = document.getElementById('synchroseIntro');
+                return Boolean(
+                    intro &&
+                    !intro.classList.contains('is-hidden') &&
+                    !document.body.classList.contains('synchrose-intro-done')
+                );
+            }
+
+            function blockDashboardButtonDuringIntro(event) {
+                const target = event.target;
+                if (!target?.closest) return;
+
+                const button = target.closest('.hero-btn');
+                if (!button || !introIsStillActive()) return;
+
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+
+                // Treat the click as an intro click instead of entering the dashboard.
+                document.getElementById('synchroseIntro')?.dispatchEvent(
+                    new PointerEvent('pointerdown', {
+                        bubbles: true,
+                        cancelable: true,
+                        pointerType: 'mouse'
+                    })
+                );
+            }
+
+            // Capture early and hard-block the button while the intro overlay is alive.
+            window.addEventListener('click', blockDashboardButtonDuringIntro, true);
+            window.addEventListener('pointerdown', blockDashboardButtonDuringIntro, true);
+            window.addEventListener('touchstart', blockDashboardButtonDuringIntro, { capture: true, passive: false });
+        })();
+    </script>
+
 
     <div id="synchroseIntro" class="synchrose-intro" role="dialog" aria-modal="true" aria-label="Synchrose boot intro">
         <div class="synchrose-terminal" aria-hidden="true">
@@ -3678,7 +3759,7 @@
         <div class="synchrose-final-title" aria-hidden="true">Synchrose</div>
         <div class="synchrose-hint" id="synchroseIntroHint">CLICK / PRESS ANY KEY TO SKIP</div>
     </div>
-    <!-- /synchrose-intro -->
+    <!-- /synchrose-intro-v3 -->
 
 
     <div class="mx-music-player is-empty" id="mxMusicPlayer" aria-label="MP3 music player">
@@ -3696,7 +3777,7 @@
 
                     <div class="mx-music-icon-row">
                         <button class="mx-music-btn" id="mxMusicShuffle" type="button" title="Shuffle" aria-label="Shuffle">
-                            <svg viewBox="0 0 24 24"><path d="M17 3h4v4h-2V6.4l-3.9 3.9-1.4-1.4L17.6 5H17ZM4 7h3.1c1.3 0 2.5.5 3.4 1.4l6.5 6.5V13h2v5h-5v-2h1.6l-6.5-6.5C8.5 9 7.8 9 7.1 9H4V7Zm0 8h3.1c.7 0 1.4-.3 1.9-.8l1.1-1.1 1.4 1.4-1.1 1.1c-.9.9-2.1 1.4-3.4 1.4H4v-2Z"/></svg>
+                            <svg viewBox="0 0 24 24"><path d="M17 3h4v4h-2V6.4l-3.9 3.9-1.4-1.4L17.6 5H17V3ZM4 7h3.1c1.3 0 2.5.5 3.4 1.4l6.5 6.5V13h2v5h-5v-2h1.6l-6.5-6.5C8.5 9 7.8 9 7.1 9H4V7Zm0 8h3.1c.7 0 1.4-.3 1.9-.8l1.1-1.1 1.4 1.4-1.1 1.1c-.9.9-2.1 1.4-3.4 1.4H4v-2Z"/></svg>
                         </button>
                         <button class="mx-music-btn" id="mxMusicRepeat" type="button" title="Repeat" aria-label="Repeat">
                             <svg viewBox="0 0 24 24"><path d="M7 7h9.2l-1.6-1.6L16 4l4 4-4 4-1.4-1.4L16.2 9H7c-1.1 0-2 .9-2 2v1H3v-1c0-2.2 1.8-4 4-4Zm10 10H7.8l1.6 1.6L8 20l-4-4 4-4 1.4 1.4L7.8 15H17c1.1 0 2-.9 2-2v-1h2v1c0 2.2-1.8 4-4 4Z"/></svg>
@@ -3762,7 +3843,7 @@
             <a href="#dashboard" class="hero-btn">
                 <span>Enter Dashboard</span>
                 <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                    <path d="M19 14l-7 7m0 0l-7-7m7 7"/>
+                    <path d="M19 14l-7 7m0 0l-7-7m7 7V3"/>
                 </svg>
             </a>
         </div>
@@ -6130,6 +6211,12 @@
         }
 
 
+        // ============================================================
+        // PATCH: quiet optional Voxlis modals.json loading
+        // Most Voxlis folders do not include modals.json. Fetching it blindly
+        // works logically with allow404, but Chrome still prints noisy 404s.
+        // This uses the GitHub tree once, then only requests modals.json when it exists.
+        // ============================================================
         function voxlisRepoPath(folderName, filename) {
             return `public/data/roblox/${folderName}/${filename}`;
         }
@@ -6877,7 +6964,7 @@
 
 
     
-    <script id="synchrose-intro-v4-fixes">
+    <script id="synchrose-title-landing">
         (() => {
             const intro = document.getElementById('synchroseIntro');
             if (!intro) return;
@@ -6905,7 +6992,7 @@
                 };
             }
 
-            function animateSynchroseTitleIntoHero() {
+            function animateSynchroseTitleLanding() {
                 if (!finalTitle) return Promise.resolve();
 
                 const target = getHeroTarget();
@@ -6974,11 +7061,11 @@
                 });
             }
 
-            window.synchroseV4TitleFlight = animateSynchroseTitleIntoHero;
+            window.synchroseTitleFlight = animateSynchroseTitleLanding;
         })();
     </script>
 
-    <script id="synchrose-intro-script">
+    <script id="synchrose-intro-v3-script">
         (() => {
             const intro = document.getElementById('synchroseIntro');
             if (!intro) return;
@@ -7038,8 +7125,8 @@
                 if (hint) hint.textContent = 'CLICK / PRESS ANY KEY TO SKIP';
 
                 setTimeout(() => {
-                    const titleFlight = typeof window.synchroseV4TitleFlight === 'function'
-                        ? window.synchroseV4TitleFlight()
+                    const titleFlight = typeof window.synchroseTitleFlight === 'function'
+                        ? window.synchroseTitleFlight()
                         : Promise.resolve();
 
                     titleFlight.then(() => {
@@ -7130,16 +7217,13 @@
                 const enterButton = document.querySelector('.hero-btn');
                 if (enterButton) {
                     enterButton.addEventListener('click', event => {
-                        const introStillActive = !intro.classList.contains('is-hidden');
-
-                        if (!finished || introStillActive) {
-                            event.preventDefault();
-                            event.stopImmediatePropagation();
-                            return;
-                        }
-
                         event.preventDefault();
-                        enterDashboard();
+                        if (!finished) {
+                            finishIntro();
+                            setTimeout(enterDashboard, 1480);
+                        } else {
+                            enterDashboard();
+                        }
                     }, { capture: true });
                 }
             });
@@ -7156,7 +7240,7 @@
     </script>
 
 
-    <script id="synchrose-intro-v5-request-fixes">
+    <script id="synchrose-motion-and-music">
         (() => {
             function closeMusicMenu() {
                 const player = document.getElementById('mxMusicPlayer');
@@ -7241,10 +7325,10 @@
         })();
     </script>
 
-    <script id="synchrose-intro-v7-uncrop">
+    <script id="synchrose-unmaximize">
         (() => {
             // Title landing with impact frame instead of white flash.
-            window.synchroseV4TitleFlight = function synchroseV7TitleFlight() {
+            window.synchroseTitleFlight = function synchroseTitleFlight() {
                 const intro = document.getElementById('synchroseIntro');
                 const finalTitle = intro?.querySelector('.synchrose-final-title');
                 const heroTitle = document.querySelector('.synchrose-main-title, .hero-title');
@@ -7363,7 +7447,7 @@
     </script>
 
 
-    <script id="synchrose-intro-v8-impact-contrast">
+    <script id="synchrose-impact-contrast">
         (() => {
             function ensureImpactCuts(impact) {
                 if (!impact || impact.querySelector('.synchrose-impact-cut')) return;
@@ -7396,9 +7480,9 @@
 
             // Patch the title-flight function so the impact frame is prepared exactly
             // when it lands, even if the frame is created later by the older script.
-            const oldFlight = window.synchroseV4TitleFlight;
+            const oldFlight = window.synchroseTitleFlight;
             if (typeof oldFlight === 'function') {
-                window.synchroseV4TitleFlight = function synchroseV8TitleFlight() {
+                window.synchroseTitleFlight = function synchroseTitleFlight() {
                     const intro = document.getElementById('synchroseIntro');
                     const result = oldFlight.apply(this, arguments);
 
@@ -7413,26 +7497,6 @@
                     return result;
                 };
             }
-        })();
-    </script>
-
-
-    <script id="synchrose-intro-button-lock">
-        (() => {
-            // Hard guard: while the intro overlay is still active, the dashboard button
-            // cannot be used or accidentally triggered by click/tap bubbling.
-            document.addEventListener('click', event => {
-                const button = event.target.closest?.('.hero-btn');
-                if (!button) return;
-
-                const intro = document.getElementById('synchroseIntro');
-                const introActive = intro && !intro.classList.contains('is-hidden');
-
-                if (introActive || !document.body.classList.contains('synchrose-intro-done')) {
-                    event.preventDefault();
-                    event.stopImmediatePropagation();
-                }
-            }, { capture: true });
         })();
     </script>
 
