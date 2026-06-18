@@ -3126,42 +3126,47 @@
         }
     </style>
 
-
-    <style id="synchrose-intro-v6-refine">
+    <style id="synchrose-intro-v7-uncrop">
         /* ============================================================
-           PATCH v6: smoother unmaximize, non-loop bar, slower ticker, impact frame
+           PATCH v7: unmaximize without crop/scale, cleaner aligned exit
         ============================================================ */
 
-        /* Keep fullscreen detail crisp, then "unmaximize" via clipping instead of compressing content. */
+        /* Do not crop or scale the terminal content during unmaximize.
+           Width/height animate directly so the text stays crisp. */
         .synchrose-v3-terminal {
-            width: 100vw !important;
-            height: 100vh !important;
-            will-change: clip-path, box-shadow, filter;
-            clip-path: inset(0 0 0 0);
+            width: 100vw;
+            height: 100vh;
+            clip-path: none !important;
             transform: translate(-50%, -50%) !important;
+            transform-origin: center center;
+            will-change: width, height, box-shadow, filter;
             image-rendering: auto;
             backface-visibility: hidden;
         }
 
         .synchrose-v3-intro.stage-shrink .synchrose-v3-terminal {
-            animation: terminalUnmaximizeClip 0.78s cubic-bezier(.16,.88,.18,1) forwards !important;
+            animation: terminalUnmaximizeNoCrop 0.86s cubic-bezier(.16,.92,.18,1) forwards !important;
         }
 
-        @keyframes terminalUnmaximizeClip {
+        @keyframes terminalUnmaximizeNoCrop {
             0% {
-                clip-path: inset(0 0 0 0);
+                width: 100vw;
+                height: 100vh;
                 box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
                 filter: brightness(1);
             }
-            38% {
-                clip-path: inset(calc((100vh - var(--term-h))/4) calc((100vw - var(--term-w))/4));
+            54% {
+                width: calc(var(--term-w) + 13vw);
+                height: calc(var(--term-h) + 10vh);
                 box-shadow:
-                    0 12px 44px rgba(0,0,0,0.48),
-                    0 0 24px rgba(124,58,237,0.08),
-                    inset 0 0 0 1px rgba(255,255,255,0.1);
+                    0 18px 70px rgba(0,0,0,0.56),
+                    0 0 28px rgba(124,58,237,0.10),
+                    inset 0 0 0 1px rgba(255,255,255,0.12);
+                filter: brightness(1.04);
             }
             100% {
-                clip-path: inset(calc((100vh - var(--term-h))/2) calc((100vw - var(--term-w))/2));
+                width: var(--term-w);
+                height: var(--term-h);
                 box-shadow:
                     0 35px 120px rgba(0,0,0,0.80),
                     0 0 44px rgba(124,58,237,0.15),
@@ -3171,12 +3176,17 @@
             }
         }
 
-        /* Slow down the ticker so it is actually readable. */
-        .synchrose-v3-marquee {
-            animation-duration: 24s !important;
+        /* Wait for the unmaximize to complete, then slice. */
+        .synchrose-v3-intro.stage-split .synchrose-v3-slices {
+            transition-delay: 0s !important;
         }
 
-        /* Loading bar: all white, one-shot, no loop. */
+        /* Slow enough to read. */
+        .synchrose-v3-marquee {
+            animation-duration: 26s !important;
+        }
+
+        /* Loading bar: all white, one-shot, not looping. */
         .synchrose-v3-bar-shell {
             border-color: rgba(255,255,255,0.88) !important;
             background: rgba(255,255,255,0.06) !important;
@@ -3190,59 +3200,69 @@
             box-shadow:
                 0 0 12px rgba(255,255,255,0.75),
                 0 0 28px rgba(255,255,255,0.35) !important;
-            animation: synchroseCliFillOnce 2.8s steps(28, end) 1 forwards !important;
-            width: 0;
+            animation: synchroseCliFillOnceV7 2.9s steps(30, end) 1 forwards !important;
+            width: 0%;
         }
 
         .synchrose-v3-bar-label {
             color: #ffffff !important;
         }
 
-        @keyframes synchroseCliFillOnce {
-            0%   { width: 0%; }
-            100% { width: 100%; }
+        @keyframes synchroseCliFillOnceV7 {
+            from { width: 0%; }
+            to { width: 100%; }
         }
 
-        /* Split is horizontal only. Keep it perfectly flat. */
+        /* Split movement is horizontal ONLY. No vertical movement. No rotation. */
         .synchrose-v3-intro.stage-split .synchrose-v3-piece-top {
-            animation: topPieceSplitHorizontalOnly 0.28s cubic-bezier(.16,1.15,.18,1) forwards 0.10s !important;
+            animation: topPieceSplitHorizontalOnlyV7 0.28s cubic-bezier(.16,1.15,.18,1) forwards 0.10s !important;
         }
 
         .synchrose-v3-intro.stage-split .synchrose-v3-piece-bottom {
-            animation: bottomPieceSplitHorizontalOnly 0.28s cubic-bezier(.16,1.15,.18,1) forwards 0.10s !important;
+            animation: bottomPieceSplitHorizontalOnlyV7 0.28s cubic-bezier(.16,1.15,.18,1) forwards 0.10s !important;
         }
 
-        @keyframes topPieceSplitHorizontalOnly {
-            0%   { transform: translateX(0); }
-            72%  { transform: translateX(-8vw); }
+        @keyframes topPieceSplitHorizontalOnlyV7 {
+            0% { transform: translateX(0); }
+            72% { transform: translateX(-8vw); }
             100% { transform: translateX(-7.4vw); }
         }
 
-        @keyframes bottomPieceSplitHorizontalOnly {
-            0%   { transform: translateX(0); }
-            72%  { transform: translateX(8vw); }
+        @keyframes bottomPieceSplitHorizontalOnlyV7 {
+            0% { transform: translateX(0); }
+            72% { transform: translateX(8vw); }
             100% { transform: translateX(7.4vw); }
         }
 
-        /* Make the two halves go away faster and more aligned. */
+        /* Exit: both halves go up faster and stay aligned.
+           They become fully white while their size is modified. */
         .synchrose-v3-intro.stage-release .synchrose-v3-piece-top,
         .synchrose-v3-intro.stage-release .synchrose-v3-piece-bottom {
-            animation-duration: 0.60s !important;
+            animation-duration: 0.56s !important;
             animation-delay: 0s !important;
             animation-fill-mode: forwards !important;
             animation-timing-function: cubic-bezier(.74,0,.16,1) !important;
             background: #fff !important;
-            border-color: rgba(255,255,255,1) !important;
+            border-color: #fff !important;
+            box-shadow:
+                0 0 42px rgba(255,255,255,0.72),
+                0 0 88px rgba(168,85,247,0.34),
+                0 0 110px rgba(236,72,153,0.22) !important;
         }
 
         .synchrose-v3-intro.stage-release .synchrose-v3-piece-top {
-            animation-name: topPieceAlignedExit !important;
+            animation-name: topPieceAlignedWhiteExitV7 !important;
             transform-origin: bottom center !important;
         }
 
         .synchrose-v3-intro.stage-release .synchrose-v3-piece-bottom {
-            animation-name: bottomPieceAlignedExit !important;
+            animation-name: bottomPieceAlignedWhiteExitV7 !important;
             transform-origin: top center !important;
+        }
+
+        .synchrose-v3-intro.stage-release .synchrose-v3-piece-content {
+            filter: brightness(0) invert(1) !important;
+            opacity: 0.06 !important;
         }
 
         .synchrose-v3-intro.stage-release .synchrose-v3-piece::after {
@@ -3251,47 +3271,41 @@
             animation: none !important;
         }
 
-        .synchrose-v3-intro.stage-release .synchrose-v3-piece-content {
-            filter: brightness(0) invert(1) !important;
-            opacity: 0.08 !important;
-        }
-
-        @keyframes topPieceAlignedExit {
+        @keyframes topPieceAlignedWhiteExitV7 {
             0% {
                 transform: translateX(-7.4vw) translateY(0) scaleY(1);
             }
-            42% {
-                transform: translateX(-7.4vw) translateY(-44vh) scaleY(2.05);
+            36% {
+                transform: translateX(-7.4vw) translateY(-48vh) scaleY(2.18);
             }
             100% {
-                transform: translateX(-7.4vw) translateY(-132vh) scaleY(0.06);
+                transform: translateX(-7.4vw) translateY(-135vh) scaleY(0.04);
             }
         }
 
-        @keyframes bottomPieceAlignedExit {
+        @keyframes bottomPieceAlignedWhiteExitV7 {
             0% {
                 transform: translateX(7.4vw) translateY(0) scaleY(1);
             }
-            42% {
-                transform: translateX(7.4vw) translateY(-44vh) scaleY(2.05);
+            36% {
+                transform: translateX(7.4vw) translateY(-48vh) scaleY(2.18);
             }
             100% {
-                transform: translateX(7.4vw) translateY(-132vh) scaleY(0.06);
+                transform: translateX(7.4vw) translateY(-135vh) scaleY(0.04);
             }
         }
 
-        /* Remove the old white flash. */
+        /* No white screen flash. The hit gets an impact frame instead. */
         .synchrose-v3-white-flash {
             display: none !important;
         }
 
-        /* Impact frame appears when Synchrose lands in place. */
         .synchrose-v3-impact-frame {
             position: absolute;
             left: var(--impact-x, 50%);
             top: var(--impact-y, 50%);
-            width: min(56vw, 560px);
-            height: min(24vw, 220px);
+            width: min(58vw, 600px);
+            height: min(26vw, 230px);
             transform: translate(-50%, -50%);
             pointer-events: none;
             opacity: 0;
@@ -3312,54 +3326,335 @@
                     transparent 60% 68%,
                     rgba(255,255,255,0.96) 68% 92%,
                     transparent 92% 100%);
+            opacity: 0;
             filter:
                 drop-shadow(0 0 10px rgba(255,255,255,0.65))
                 drop-shadow(0 0 22px rgba(168,85,247,0.22));
-            opacity: 0;
         }
 
         .synchrose-v3-impact-frame::after {
-            inset: 14% -6% -14% -6%;
+            inset: 12% -8% -12% -8%;
             background:
                 linear-gradient(180deg,
                     transparent 0 12%,
-                    rgba(255,255,255,0.90) 12% 28%,
+                    rgba(255,255,255,0.92) 12% 28%,
                     transparent 28% 38%,
-                    rgba(255,255,255,0.90) 38% 74%,
+                    rgba(255,255,255,0.92) 38% 74%,
                     transparent 74% 82%,
-                    rgba(255,255,255,0.90) 82% 100%);
+                    rgba(255,255,255,0.92) 82% 100%);
         }
 
         .synchrose-v3-impact-frame.is-active {
-            animation: impactFrameBurst 0.36s ease forwards;
+            animation: impactFrameBurstV7 0.34s ease forwards;
         }
 
         .synchrose-v3-impact-frame.is-active::before {
-            animation: impactRectsA 0.34s cubic-bezier(.16,1,.2,1) forwards;
+            animation: impactRectsAV7 0.32s cubic-bezier(.16,1,.2,1) forwards;
         }
 
         .synchrose-v3-impact-frame.is-active::after {
-            animation: impactRectsB 0.34s cubic-bezier(.16,1,.2,1) forwards;
+            animation: impactRectsBV7 0.32s cubic-bezier(.16,1,.2,1) forwards;
         }
 
-        @keyframes impactFrameBurst {
-            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.7); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.12); }
+        @keyframes impactFrameBurstV7 {
+            0% { opacity: 1; transform: translate(-50%, -50%) scale(0.68); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1.14); }
         }
 
-        @keyframes impactRectsA {
-            0% { opacity: 0.95; transform: scaleX(0.56) scaleY(1.18); }
-            100% { opacity: 0; transform: scaleX(1.14) scaleY(0.82); }
+        @keyframes impactRectsAV7 {
+            0% { opacity: 0.96; transform: scaleX(0.55) scaleY(1.18); }
+            100% { opacity: 0; transform: scaleX(1.16) scaleY(0.82); }
         }
 
-        @keyframes impactRectsB {
-            0% { opacity: 0.92; transform: scaleX(1.22) scaleY(0.46); }
+        @keyframes impactRectsBV7 {
+            0% { opacity: 0.94; transform: scaleX(1.22) scaleY(0.46); }
             100% { opacity: 0; transform: scaleX(0.84) scaleY(1.2); }
         }
 
-        /* Let the title flight land cleanly after the impact. */
         .synchrose-v3-final-title {
             z-index: 12 !important;
+        }
+    </style>
+
+
+    <style id="synchrose-impact-v8-contrast">
+        /* ============================================================
+           PATCH v8: true high-contrast impact frame
+           White frame, dark/inverted content versions of title/tagline/disc.
+        ============================================================ */
+
+        .synchrose-v3-impact-frame {
+            position: absolute !important;
+            inset: 0 !important;
+            left: auto !important;
+            top: auto !important;
+            width: 100% !important;
+            height: 100% !important;
+            transform: none !important;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 20 !important;
+            mix-blend-mode: normal;
+        }
+
+        .synchrose-v3-impact-frame::before,
+        .synchrose-v3-impact-frame::after {
+            display: none !important;
+        }
+
+        .synchrose-v3-impact-frame.is-active {
+            animation: impactFrameWholeV8 0.34s steps(2, end) forwards !important;
+        }
+
+        .synchrose-impact-v8-rect {
+            position: absolute;
+            background: #ffffff;
+            border: 2px solid #ffffff;
+            color: #0a0010;
+            overflow: hidden;
+            opacity: 0;
+            box-shadow:
+                0 0 0 2px rgba(255,255,255,0.88),
+                0 0 28px rgba(255,255,255,0.82),
+                0 0 70px rgba(255,255,255,0.40);
+            filter: contrast(1.6) brightness(1.12);
+        }
+
+        .synchrose-v3-impact-frame.is-active .synchrose-impact-v8-rect {
+            animation: impactRectPunchV8 0.32s steps(2, end) forwards;
+        }
+
+        .synchrose-impact-v8-title {
+            left: calc(var(--impact-title-x, 50vw) - min(42vw, 520px) / 2);
+            top: calc(var(--impact-title-y, 48vh) - min(14vw, 150px) / 2);
+            width: min(42vw, 520px);
+            height: min(14vw, 150px);
+            display: grid;
+            place-items: center;
+            transform: scaleX(0.88) scaleY(1.18);
+        }
+
+        .synchrose-impact-v8-title span {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-size: clamp(2.4rem, 7vw, 6.4rem);
+            font-weight: 1000;
+            letter-spacing: -0.08em;
+            line-height: 0.9;
+            color: #120019;
+            text-shadow:
+                3px 0 #3b001d,
+                -3px 0 #1b0035,
+                0 0 1px #000;
+            transform: scaleY(1.25);
+        }
+
+        .synchrose-impact-v8-small {
+            left: calc(var(--impact-title-x, 50vw) - min(52vw, 660px) / 2);
+            top: calc(var(--impact-title-y, 48vh) + min(10vw, 116px));
+            width: min(52vw, 660px);
+            min-height: 54px;
+            padding: 0.55rem 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: clamp(0.5rem, 1.7vw, 1.25rem);
+            transform: skewX(-4deg);
+        }
+
+        .synchrose-impact-v8-small span {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            font-weight: 950;
+            font-size: clamp(1rem, 2.4vw, 2rem);
+            text-transform: lowercase;
+            letter-spacing: -0.05em;
+            color: #1a001f;
+        }
+
+        .synchrose-impact-v8-small span:nth-child(1) {
+            color: #330006;
+        }
+
+        .synchrose-impact-v8-small span:nth-child(2) {
+            color: #160029;
+        }
+
+        .synchrose-impact-v8-small span:nth-child(3) {
+            color: #070707;
+        }
+
+        .synchrose-impact-v8-disc {
+            left: calc(var(--impact-disc-x, 5rem) - 58px);
+            top: calc(var(--impact-disc-y, 5rem) - 58px);
+            width: 116px;
+            height: 116px;
+            display: grid;
+            place-items: center;
+            border-radius: 0;
+            transform: rotate(-3deg) scale(1.08);
+        }
+
+        .synchrose-impact-v8-disc-shape {
+            width: 76px;
+            height: 76px;
+            border-radius: 50%;
+            background:
+                radial-gradient(circle at center, #ffffff 0 9%, #120019 10% 17%, #ffffff 18% 21%, transparent 22%),
+                repeating-radial-gradient(circle at center, transparent 0 7px, rgba(10,0,16,0.92) 8px 9px),
+                conic-gradient(from 0deg, #090009, #2d001f, #090009, #1b0035, #320016, #090009);
+            border: 3px solid #0a0010;
+            box-shadow:
+                inset 0 0 0 3px rgba(255,255,255,0.28),
+                0 0 0 6px #ffffff;
+            filter: contrast(1.8);
+        }
+
+        .synchrose-impact-v8-shard {
+            position: absolute;
+            background: #ffffff;
+            opacity: 0;
+            box-shadow: 0 0 26px rgba(255,255,255,0.8);
+        }
+
+        .synchrose-v3-impact-frame.is-active .synchrose-impact-v8-shard {
+            animation: impactShardV8 0.28s steps(2, end) forwards;
+        }
+
+        .synchrose-impact-v8-shard.s1 {
+            left: 9vw;
+            top: 18vh;
+            width: 18vw;
+            height: 5vh;
+            transform: skewX(-18deg);
+        }
+
+        .synchrose-impact-v8-shard.s2 {
+            right: 11vw;
+            top: 21vh;
+            width: 14vw;
+            height: 7vh;
+            transform: skewX(12deg);
+        }
+
+        .synchrose-impact-v8-shard.s3 {
+            left: 13vw;
+            bottom: 19vh;
+            width: 24vw;
+            height: 8vh;
+            transform: skewX(16deg);
+        }
+
+        .synchrose-impact-v8-shard.s4 {
+            right: 8vw;
+            bottom: 15vh;
+            width: 20vw;
+            height: 5vh;
+            transform: skewX(-14deg);
+        }
+
+        @keyframes impactFrameWholeV8 {
+            0% { opacity: 0; filter: invert(0); }
+            18% { opacity: 1; filter: invert(0) contrast(1.65); }
+            42% { opacity: 1; filter: invert(0) contrast(1.9); }
+            100% { opacity: 0; filter: invert(0) contrast(1.2); }
+        }
+
+        @keyframes impactRectPunchV8 {
+            0% {
+                opacity: 0;
+                transform: translateY(8px) scaleX(0.76) scaleY(1.22);
+            }
+            22% {
+                opacity: 1;
+                transform: translateY(0) scaleX(1.08) scaleY(0.92);
+            }
+            55% {
+                opacity: 1;
+                transform: translateY(0) scaleX(1) scaleY(1);
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-7px) scaleX(1.16) scaleY(0.72);
+            }
+        }
+
+        @keyframes impactShardV8 {
+            0% { opacity: 0; transform: scaleX(0.35) scaleY(1.2); }
+            28% { opacity: 1; }
+            100% { opacity: 0; transform: scaleX(1.12) scaleY(0.65); }
+        }
+
+        @media (max-width: 720px) {
+            .synchrose-impact-v8-title {
+                width: 84vw;
+                height: 110px;
+                left: 8vw;
+            }
+
+            .synchrose-impact-v8-small {
+                width: 86vw;
+                left: 7vw;
+            }
+
+            .synchrose-impact-v8-disc {
+                width: 92px;
+                height: 92px;
+                left: calc(var(--impact-disc-x, 3.5rem) - 46px);
+                top: calc(var(--impact-disc-y, 3.5rem) - 46px);
+            }
+
+            .synchrose-impact-v8-disc-shape {
+                width: 60px;
+                height: 60px;
+            }
+        }
+    </style>
+
+
+    <style id="synchrose-music-hotfix-v9-style">
+        /* ============================================================
+           PATCH v9: music player interaction/visibility hotfix
+        ============================================================ */
+        .mx-music-disc-zone,
+        .mx-music-disc {
+            touch-action: manipulation;
+        }
+
+        .mx-music-player.is-open,
+        .mx-music-player.is-selector {
+            width: min(456px, calc(100vw - 2rem)) !important;
+            height: auto !important;
+            border-radius: 22px !important;
+            pointer-events: auto !important;
+        }
+
+        .mx-music-player.is-selector {
+            width: min(720px, calc(100vw - 2rem)) !important;
+        }
+
+        .mx-music-player.is-open .mx-music-shell,
+        .mx-music-player.is-selector .mx-music-shell {
+            grid-template-columns: 74px minmax(0, 1fr) !important;
+        }
+
+        .mx-music-player.is-open .mx-music-panel,
+        .mx-music-player.is-selector .mx-music-panel {
+            opacity: 1 !important;
+            pointer-events: auto !important;
+            transform: translateX(0) !important;
+        }
+
+        .mx-music-player.is-open::before,
+        .mx-music-player.is-selector::before {
+            border-radius: 22px !important;
+            clip-path: inset(0 round 22px) !important;
+            transition-delay: 0.06s !important;
+        }
+
+        @media (max-width: 720px) {
+            .mx-music-player.is-open,
+            .mx-music-player.is-selector {
+                width: calc(100vw - 1.5rem) !important;
+            }
         }
     </style>
 
@@ -6850,7 +7145,7 @@
 
                     setTimeout(() => {
                         intro.classList.add('stage-split');
-                    }, 780);
+                    }, 860);
                     return;
                 }
 
@@ -7024,11 +7319,10 @@
         })();
     </script>
 
-
-    <script id="synchrose-intro-v6-refine">
+    <script id="synchrose-intro-v7-uncrop">
         (() => {
-            // Override title flight with an impact-frame landing version.
-            window.synchroseV4TitleFlight = function synchroseV6TitleFlight() {
+            // Title landing with impact frame instead of white flash.
+            window.synchroseV4TitleFlight = function synchroseV7TitleFlight() {
                 const intro = document.getElementById('synchroseIntroV3');
                 const finalTitle = intro?.querySelector('.synchrose-v3-final-title');
                 const heroTitle = document.querySelector('.synchrose-main-title, .hero-title');
@@ -7048,9 +7342,8 @@
                     fontSize: Math.max(44, Math.min(96, window.innerWidth * 0.08))
                 };
 
-                const targetNode = heroText || heroTitle;
-                const rect = targetNode ? targetNode.getBoundingClientRect() : null;
-                const style = targetNode ? window.getComputedStyle(targetNode) : null;
+                const rect = heroText ? heroText.getBoundingClientRect() : null;
+                const style = heroText ? window.getComputedStyle(heroText) : null;
                 const target = rect ? {
                     left: rect.left + rect.width / 2,
                     top: rect.top + rect.height / 2,
@@ -7089,7 +7382,7 @@
                         top: `${target.top}px`,
                         fontSize: `${target.fontSize}px`,
                         opacity: 1,
-                        filter: 'blur(0px) brightness(1.15)',
+                        filter: 'blur(0px) brightness(1.16)',
                         transform: 'translate(-50%, -50%) scale(1.09)',
                         offset: 0.82
                     },
@@ -7099,11 +7392,10 @@
                         fontSize: `${target.fontSize}px`,
                         opacity: 1,
                         filter: 'blur(0px) brightness(1)',
-                        transform: 'translate(-50%, -50%) scale(1)',
-                        offset: 1
+                        transform: 'translate(-50%, -50%) scale(1)'
                     }
                 ], {
-                    duration: 880,
+                    duration: 860,
                     easing: 'cubic-bezier(.15,1.05,.14,1)',
                     fill: 'forwards'
                 });
@@ -7123,28 +7415,386 @@
                     finalTitle.style.filter = 'blur(0px) brightness(1)';
                     finalTitle.style.transform = 'translate(-50%, -50%) scale(1)';
 
-                    setTimeout(() => impact.classList.remove('is-active'), 380);
+                    setTimeout(() => impact.classList.remove('is-active'), 360);
                 });
             };
 
             document.addEventListener('DOMContentLoaded', () => {
-                // Mobile/touch fix: tapping the disc itself should open/close the panel.
                 const player = document.getElementById('mxMusicPlayer');
                 const hotspot = document.getElementById('mxMusicHotspot');
-                if (player && hotspot) {
-                    const togglePlayer = (event) => {
-                        event.preventDefault();
+                if (!player || !hotspot) return;
+
+                const togglePlayer = event => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (player.classList.contains('is-open') || player.classList.contains('is-selector')) {
+                        player.classList.remove('is-open', 'is-selector');
+                    } else {
+                        player.classList.add('is-open');
+                    }
+                };
+
+                hotspot.addEventListener('pointerup', togglePlayer, { passive: false });
+                hotspot.addEventListener('click', togglePlayer, { passive: false });
+            });
+        })();
+    </script>
+
+
+    <script id="synchrose-impact-v8-contrast">
+        (() => {
+            window.synchroseV4TitleFlight = function synchroseV8TitleFlight() {
+                const intro = document.getElementById('synchroseIntroV3');
+                const finalTitle = intro?.querySelector('.synchrose-v3-final-title');
+                const heroTitle = document.querySelector('.synchrose-main-title, .hero-title');
+                const heroText = document.querySelector('.synchrose-title-gradient') || heroTitle;
+                if (!intro || !finalTitle) return Promise.resolve();
+
+                let impact = intro.querySelector('.synchrose-v3-impact-frame');
+                if (!impact) {
+                    impact = document.createElement('div');
+                    impact.className = 'synchrose-v3-impact-frame';
+                    intro.appendChild(impact);
+                }
+
+                impact.innerHTML = `
+                    <div class="synchrose-impact-v8-shard s1"></div>
+                    <div class="synchrose-impact-v8-shard s2"></div>
+                    <div class="synchrose-impact-v8-shard s3"></div>
+                    <div class="synchrose-impact-v8-shard s4"></div>
+                    <div class="synchrose-impact-v8-rect synchrose-impact-v8-title"><span>Synchrose</span></div>
+                    <div class="synchrose-impact-v8-rect synchrose-impact-v8-small">
+                        <span>exploits</span>
+                        <span>safety</span>
+                        <span>knowledge</span>
+                    </div>
+                    <div class="synchrose-impact-v8-rect synchrose-impact-v8-disc">
+                        <span class="synchrose-impact-v8-disc-shape"></span>
+                    </div>
+                `;
+
+                const fallback = {
+                    left: window.innerWidth / 2,
+                    top: window.innerHeight / 2,
+                    fontSize: Math.max(44, Math.min(96, window.innerWidth * 0.08))
+                };
+
+                const rect = heroText ? heroText.getBoundingClientRect() : null;
+                const style = heroText ? window.getComputedStyle(heroText) : null;
+                const target = rect ? {
+                    left: rect.left + rect.width / 2,
+                    top: rect.top + rect.height / 2,
+                    fontSize: parseFloat(style.fontSize) || fallback.fontSize
+                } : fallback;
+
+                const discRect = document.getElementById('mxMusicHotspot')?.getBoundingClientRect();
+                const discCenter = discRect ? {
+                    x: discRect.left + discRect.width / 2,
+                    y: discRect.top + discRect.height / 2
+                } : {
+                    x: window.innerWidth - 52,
+                    y: 52
+                };
+
+                intro.style.setProperty('--impact-title-x', `${target.left}px`);
+                intro.style.setProperty('--impact-title-y', `${target.top}px`);
+                intro.style.setProperty('--impact-disc-x', `${discCenter.x}px`);
+                intro.style.setProperty('--impact-disc-y', `${discCenter.y}px`);
+
+                finalTitle.textContent = 'Synchrose';
+                finalTitle.classList.add('is-title-flight');
+                finalTitle.style.left = '50%';
+                finalTitle.style.top = '50%';
+                finalTitle.style.fontSize = `${Math.min(window.innerWidth * 0.17, 180)}px`;
+                finalTitle.style.opacity = '0';
+                finalTitle.style.transform = 'translate(-50%, -50%) scale(1.08)';
+                finalTitle.style.filter = 'blur(10px) brightness(2.6)';
+
+                const anim = finalTitle.animate([
+                    {
+                        left: '50%',
+                        top: '50%',
+                        fontSize: `${Math.min(window.innerWidth * 0.17, 180)}px`,
+                        opacity: 0,
+                        filter: 'blur(12px) brightness(3)',
+                        transform: 'translate(-50%, -50%) scale(1.15)'
+                    },
+                    {
+                        left: '50%',
+                        top: '50%',
+                        fontSize: `${Math.max(target.fontSize * 1.65, 128)}px`,
+                        opacity: 1,
+                        filter: 'blur(0px) brightness(1.35)',
+                        transform: 'translate(-50%, -50%) scale(1.04)',
+                        offset: 0.36
+                    },
+                    {
+                        left: `${target.left}px`,
+                        top: `${target.top}px`,
+                        fontSize: `${target.fontSize}px`,
+                        opacity: 1,
+                        filter: 'blur(0px) brightness(1.16)',
+                        transform: 'translate(-50%, -50%) scale(1.09)',
+                        offset: 0.80
+                    },
+                    {
+                        left: `${target.left}px`,
+                        top: `${target.top}px`,
+                        fontSize: `${target.fontSize}px`,
+                        opacity: 1,
+                        filter: 'blur(0px) brightness(1)',
+                        transform: 'translate(-50%, -50%) scale(1)'
+                    }
+                ], {
+                    duration: 860,
+                    easing: 'cubic-bezier(.15,1.05,.14,1)',
+                    fill: 'forwards'
+                });
+
+                return anim.finished.catch(() => {}).then(() => {
+                    impact.classList.remove('is-active');
+                    void impact.offsetWidth;
+                    impact.classList.add('is-active');
+
+                    finalTitle.classList.add('is-title-locked');
+                    finalTitle.style.left = `${target.left}px`;
+                    finalTitle.style.top = `${target.top}px`;
+                    finalTitle.style.fontSize = `${target.fontSize}px`;
+                    finalTitle.style.opacity = '1';
+                    finalTitle.style.filter = 'blur(0px) brightness(1)';
+                    finalTitle.style.transform = 'translate(-50%, -50%) scale(1)';
+
+                    setTimeout(() => {
+                        impact.classList.remove('is-active');
+                        impact.innerHTML = '';
+                    }, 420);
+                });
+            };
+        })();
+    </script>
+
+
+    <script id="synchrose-music-hotfix-v9">
+        (() => {
+            const TREE_JSON_URLS = ['/tree.json', './tree.json'];
+
+            function normalizePath(path = '') {
+                return String(path || '')
+                    .replace(/^https?:\/\/[^/]+/i, '')
+                    .replace(/^\/+/, '')
+                    .replace(/^\.\//, '');
+            }
+
+            function isMusicPath(path = '') {
+                const p = normalizePath(path).toLowerCase();
+                return p.startsWith('others/voxlis.net/') && p.endsWith('.mp3');
+            }
+
+            function collectMp3PathsFromTreePayload(payload) {
+                const out = new Set();
+
+                function walk(value) {
+                    if (!value) return;
+
+                    if (typeof value === 'string') {
+                        if (isMusicPath(value)) out.add(normalizePath(value));
+                        return;
+                    }
+
+                    if (Array.isArray(value)) {
+                        value.forEach(walk);
+                        return;
+                    }
+
+                    if (typeof value !== 'object') return;
+
+                    const candidates = [
+                        value.path,
+                        value.name,
+                        value.fullPath,
+                        value.file,
+                        value.urlPath,
+                        value.download_url,
+                        value.url
+                    ];
+
+                    candidates.forEach(candidate => {
+                        if (candidate && isMusicPath(candidate)) out.add(normalizePath(candidate));
+                    });
+
+                    walk(value.tree);
+                    walk(value.files);
+                    walk(value.children);
+                    walk(value.items);
+                    walk(value.entries);
+                }
+
+                walk(payload);
+                return [...out].sort((a, b) => a.localeCompare(b));
+            }
+
+            function decodeTrackTitle(path) {
+                const filename = decodeURIComponent(String(path).split('/').pop() || 'Unknown track');
+                return filename.replace(/\.mp3$/i, '').replace(/[-_]+/g, ' ').replace(/\s+/g, ' ').trim() || filename;
+            }
+
+            async function fetchTreeJsonMusicPaths() {
+                for (const url of TREE_JSON_URLS) {
+                    try {
+                        const response = await fetch(url, { cache: 'no-store' });
+                        if (!response.ok) continue;
+                        const payload = await response.json();
+                        const paths = collectMp3PathsFromTreePayload(payload);
+                        if (paths.length) return paths;
+                    } catch (error) {
+                        console.warn('tree.json music scan failed:', url, error);
+                    }
+                }
+                return [];
+            }
+
+            function setStatus(text) {
+                const status = document.getElementById('mxMusicStatus');
+                if (status) status.textContent = text;
+            }
+
+            function setTitle(text) {
+                const title = document.getElementById('mxMusicTitle');
+                if (title) title.textContent = text;
+            }
+
+            function setDescription(text) {
+                const desc = document.getElementById('mxMusicDescription');
+                if (desc) desc.textContent = text;
+            }
+
+            function setAudioSourceFromPath(path) {
+                const audio = document.getElementById('mxMusicAudio');
+                const player = document.getElementById('mxMusicPlayer');
+                const playButton = document.getElementById('mxMusicPlay');
+                if (!audio || !path) return false;
+
+                const src = '/' + normalizePath(path);
+                if (!audio.src || !audio.src.endsWith(src)) {
+                    audio.src = src;
+                    audio.load();
+                }
+
+                player?.classList.remove('is-empty');
+                setTitle(decodeTrackTitle(path));
+                setDescription('Loaded from tree.json');
+                setStatus(`Ready: ${decodeTrackTitle(path)}`);
+
+                // Make original play button work even if the original playlist failed.
+                if (playButton && !playButton.dataset.treeFallbackBound) {
+                    playButton.dataset.treeFallbackBound = '1';
+                    playButton.addEventListener('click', () => {
+                        if (!audio.src && path) audio.src = src;
+                        if (audio.paused) {
+                            const promise = audio.play();
+                            if (promise?.catch) {
+                                promise.catch(error => {
+                                    console.warn('Tree fallback music play blocked:', error);
+                                    setStatus('Tap play again if the browser blocked autoplay.');
+                                });
+                            }
+                        } else {
+                            audio.pause();
+                        }
+                    }, { capture: true });
+                }
+
+                return true;
+            }
+
+            async function repairMusicFromTreeJson() {
+                const audio = document.getElementById('mxMusicAudio');
+                const title = document.getElementById('mxMusicTitle');
+                const player = document.getElementById('mxMusicPlayer');
+                if (!audio || !player) return;
+
+                // If original player already loaded a source, do not interfere.
+                if (audio.currentSrc || audio.src) return;
+
+                const paths = await fetchTreeJsonMusicPaths();
+                if (!paths.length) {
+                    setTitle('Music not found');
+                    setDescription('');
+                    setStatus('tree.json loaded, but no MP3 paths were found under Others/Voxlis.NET.');
+                    return;
+                }
+
+                const savedIndex = Number(localStorage.getItem('mxMusicFallbackIndex') || '0') || 0;
+                const index = Math.max(0, Math.min(paths.length - 1, savedIndex % paths.length));
+                setAudioSourceFromPath(paths[index]);
+
+                const prev = document.getElementById('mxMusicPrev');
+                const next = document.getElementById('mxMusicNext');
+
+                function switchTo(delta) {
+                    const currentPath = normalizePath(audio.src).replace(/^.*?Others\/Voxlis\.NET\//i, 'Others/Voxlis.NET/');
+                    let currentIndex = paths.findIndex(path => path === currentPath || audio.src.endsWith('/' + path));
+                    if (currentIndex < 0) currentIndex = index;
+                    const nextIndex = (currentIndex + delta + paths.length) % paths.length;
+                    localStorage.setItem('mxMusicFallbackIndex', String(nextIndex));
+                    setAudioSourceFromPath(paths[nextIndex]);
+                    const promise = audio.play();
+                    if (promise?.catch) {
+                        promise.catch(error => {
+                            console.warn('Fallback next/prev play blocked:', error);
+                            setStatus('Track selected. Tap play if audio is blocked.');
+                        });
+                    }
+                }
+
+                if (prev && !prev.dataset.treeFallbackBound) {
+                    prev.dataset.treeFallbackBound = '1';
+                    prev.addEventListener('click', event => {
                         event.stopPropagation();
+                        switchTo(-1);
+                    }, { capture: true });
+                }
+
+                if (next && !next.dataset.treeFallbackBound) {
+                    next.dataset.treeFallbackBound = '1';
+                    next.addEventListener('click', event => {
+                        event.stopPropagation();
+                        switchTo(1);
+                    }, { capture: true });
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', () => {
+                const player = document.getElementById('mxMusicPlayer');
+                const hotspot = document.getElementById('mxMusicHotspot');
+
+                if (player && hotspot) {
+                    let lastPointerToggle = 0;
+
+                    function togglePanel(event) {
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                        const now = Date.now();
+
+                        // Prevent pointerup + synthetic click double-toggle on mobile.
+                        if (event.type === 'click' && now - lastPointerToggle < 450) return;
+                        if (event.type === 'pointerup' || event.type === 'touchend') lastPointerToggle = now;
+
                         if (player.classList.contains('is-open') || player.classList.contains('is-selector')) {
                             player.classList.remove('is-open', 'is-selector');
+                            document.getElementById('mxMusicExpand')?.classList.remove('is-active');
                         } else {
                             player.classList.add('is-open');
                         }
-                    };
+                    }
 
-                    hotspot.addEventListener('pointerup', togglePlayer, { passive: false });
-                    hotspot.addEventListener('click', togglePlayer, { passive: false });
+                    hotspot.addEventListener('pointerup', togglePanel, { capture: true, passive: false });
+                    hotspot.addEventListener('click', togglePanel, { capture: true, passive: false });
                 }
+
+                setTimeout(repairMusicFromTreeJson, 900);
+                setTimeout(repairMusicFromTreeJson, 2400);
+                setTimeout(repairMusicFromTreeJson, 5000);
             });
         })();
     </script>
