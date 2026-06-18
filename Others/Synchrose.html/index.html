@@ -5174,28 +5174,72 @@
 
         function parsePriceAmounts(priceText = '') {
             const text = String(priceText || '').replace(/,/g, '');
-            const matches = [...text.matchAll(/\$?\s*(\d+(?:\.\d+)?)/g)]
+
+            // Prefer actual currency amounts so strings like "$8 for 30 days"
+            // read as 8, not 30.
+            const currencyMatches = [
+                ...text.matchAll(/(?:[$€£¥]\s*)(\d+(?:\.\d+)?)/g),
+                ...text.matchAll(/(\d+(?:\.\d+)?)\s*(?:usd|eur|gbp|jpy|cad|aud)\b/gi)
+            ]
                 .map(match => Number(match[1]))
                 .filter(number => Number.isFinite(number));
-            return matches;
+
+            if (currencyMatches.length) return currencyMatches;
+
+            // Fallback for price strings without a currency symbol.
+            // Ignore numbers that are clearly billing durations.
+            const fallbackMatches = [...text.matchAll(/\b(\d+(?:\.\d+)?)\b/g)]
+                .filter(match => {
+                    const after = text.slice(match.index + match[0].length, match.index + match[0].length + 16).toLowerCase();
+                    return !/^\s*(?:days?|d\b|weeks?|wks?|\bwk\b|months?|mos?|\bmo\b|years?|yrs?|\byr\b)/.test(after);
+                })
+                .map(match => Number(match[1]))
+                .filter(number => Number.isFinite(number));
+
+            return fallbackMatches;
         }
 
         function getPriceCadence(priceText = '') {
             const text = String(priceText || '').toLowerCase();
+            if (/life|lifetime|permanent|one\s*time|onetime/.test(text)) return 'lifetime';
             if (/week|weekly|\/wk|\bwk\b/.test(text)) return 'weekly';
             if (/month|monthly|\/mo|\bmo\b|30\s*days?|30d/.test(text)) return 'monthly';
-            if (/life|lifetime|permanent|one\s*time|onetime/.test(text)) return 'lifetime';
             if (/day|daily/.test(text)) return 'daily';
             return 'unknown';
+        }
+
+        function getPriceAmount(priceText = '') {
+            const amounts = parsePriceAmounts(priceText);
+            if (!amounts.length) return null;
+
+            // Use the cheapest visible paid tier, not the largest number in the string.
+            // Example: "FREE or from $8 for 30 days" should use 8.
+            return Math.min(...amounts);
+        }
+
+        function getMonthlyEquivalentPrice(priceText = '') {
+            const amount = getPriceAmount(priceText);
+            if (amount === null) return null;
+
+            const cadence = getPriceCadence(priceText);
+            if (cadence === 'daily') return amount * 30;
+            if (cadence === 'weekly') return amount * 4.33;
+            if (cadence === 'monthly') return amount;
+
+            // Lifetime is a one-time purchase; rank it as if it were spread over one year.
+            // This makes "$22.99 Lifetime" correctly look better than "$5/week".
+            if (cadence === 'lifetime') return amount / 12;
+
+            return amount;
         }
 
         function getPriceUi(priceText = '') {
             const raw = String(priceText || '').trim();
             const text = raw.toLowerCase();
-            const amounts = parsePriceAmounts(raw);
-            const amount = amounts.length ? Math.max(...amounts) : null;
+            const amount = getPriceAmount(raw);
             const hasFree = /\bfree\b/.test(text);
             const cadence = getPriceCadence(raw);
+            const monthlyEquivalent = getMonthlyEquivalentPrice(raw);
 
             if (hasFree && amount === null) {
                 return {
@@ -5216,35 +5260,41 @@
             let rating = 'fair';
             let reason = '';
 
-            if (cadence === 'daily') {
-                rating = amount <= 0.50 ? 'fair' : 'expensive';
-                reason = `Daily pricing is usually expensive. Listed: $${amount}/day.`;
+            if (cadence === 'lifetime') {
+                if (amount <= 30) rating = 'good';
+                else if (amount <= 60) rating = 'fair';
+                else rating = 'expensive';
+
+                reason = `Lifetime one-time price: $${amount}. Estimated 12-month equivalent: $${(amount / 12).toFixed(2)}/month.`;
             } else if (cadence === 'weekly') {
-                // Weekly pricing gets expensive fast, so judge it more harshly.
-                if (amount <= 2.99) rating = 'good';
-                else if (amount <= 4.99) rating = 'fair';
+                if (monthlyEquivalent <= 10) rating = 'good';
+                else if (monthlyEquivalent <= 18) rating = 'fair';
                 else rating = 'expensive';
-                reason = `Weekly price. Approx monthly cost: $${(amount * 4.33).toFixed(2)}.`;
+
+                reason = `Weekly price. Approx monthly cost: $${monthlyEquivalent.toFixed(2)}.`;
             } else if (cadence === 'monthly') {
-                if (amount <= 5) rating = 'good';
-                else if (amount <= 10) rating = 'fair';
-                else rating = 'expensive';
-                reason = `Monthly/30-day price: $${amount}.`;
-            } else if (cadence === 'lifetime') {
                 if (amount <= 10) rating = 'good';
                 else if (amount <= 20) rating = 'fair';
                 else rating = 'expensive';
-                reason = `Lifetime price: $${amount}.`;
-            } else {
-                if (amount < 5) rating = 'good';
-                else if (amount <= 10) rating = 'fair';
+
+                reason = `Monthly/30-day price: $${amount}.`;
+            } else if (cadence === 'daily') {
+                if (monthlyEquivalent <= 10) rating = 'good';
+                else if (monthlyEquivalent <= 18) rating = 'fair';
                 else rating = 'expensive';
+
+                reason = `Daily price. Approx monthly cost: $${monthlyEquivalent.toFixed(2)}.`;
+            } else {
+                if (amount <= 10) rating = 'good';
+                else if (amount <= 30) rating = 'fair';
+                else rating = 'expensive';
+
                 reason = `Unclear billing period. Judged by listed amount: $${amount}.`;
             }
 
-            // If a free option exists, do not punish it as hard, but still flag bad recurring paid tiers.
-            if (hasFree && rating === 'expensive' && cadence !== 'weekly') rating = 'fair';
-            if (hasFree && rating === 'fair' && amount <= 8) rating = 'good';
+            // Free option exists, so the entry should never look worse than fair.
+            if (hasFree && rating === 'expensive') rating = 'fair';
+            if (hasFree && amount <= 10) rating = 'good';
 
             return {
                 rating,
@@ -5257,6 +5307,7 @@
             const priceUi = getPriceUi(priceText);
             return `<span class="${priceUi.className}" title="${escapeHtml(priceUi.title)}">${escapeHtml(priceText || 'Unknown')}</span>`;
         }
+
 
         function hasNumber(value) {
             return value !== null && value !== undefined && value !== '' && Number.isFinite(Number(value));
@@ -5942,8 +5993,12 @@
 
         function getSortablePrice(item) {
             if (item.free === true) return 0;
-            const price = String(item.price || '').match(/\d+(?:\.\d+)?/);
-            return price ? Number(price[0]) : Number.POSITIVE_INFINITY;
+
+            const raw = String(item.price || '');
+            if (/\bfree\b/i.test(raw)) return 0;
+
+            const score = getMonthlyEquivalentPrice(raw);
+            return score === null ? Number.POSITIVE_INFINITY : score;
         }
 
         function getPopularityRank(item) {
