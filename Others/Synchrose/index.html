@@ -2237,10 +2237,17 @@
         /* ============================================================
            Synchrose intro: Redliner-style terminal, horizontal split only
         ============================================================ */
+        /* Mobile-safe page scroll lock shared by the intro and filter drawer. */
         html.synchrose-scroll-locked,
-        body.synchrose-scroll-locked {
+        body.synchrose-scroll-locked,
+        html.page-scroll-locked,
+        body.page-scroll-locked {
             overflow: hidden !important;
-            height: 100% !important;
+            overscroll-behavior: none;
+        }
+
+        body.page-scroll-locked {
+            touch-action: none;
         }
 
         .scroll-indicator {
@@ -2865,7 +2872,7 @@
                 0 0 10px rgba(255, 255, 255, 0.68),
                 0 0 22px rgba(168, 85, 247, 0.88),
                 0 0 42px rgba(236, 72, 153, 0.52) !important;
-            animation: heroTinyHorizontalShake 0.062s steps(2, end) infinite !important;
+            animation: heroTinyHorizontalShake 0.038s steps(2, end) infinite !important;
             will-change: transform;
         }
 
@@ -2879,21 +2886,19 @@
         .synchrose-main-title:focus-within .synchrose-title-gradient {
             animation:
                 synchroseTitleGlow 2.25s ease-in-out infinite,
-                heroBigHorizontalShake 0.055s linear infinite !important;
+                heroBigHorizontalShake 0.034s linear infinite !important;
         }
 
         @keyframes heroTinyHorizontalShake {
             0%, 100% { transform: translate3d(0,0,0); }
-            25% { transform: translate3d(0.5px,0,0); }
-            50% { transform: translate3d(-0.5px,0,0); }
-            75% { transform: translate3d(0.5px,0,0); }
+            33% { transform: translate3d(1px,0,0); }
+            66% { transform: translate3d(-1px,0,0); }
         }
 
         @keyframes heroBigHorizontalShake {
             0%, 100% { transform: translate3d(0,0,0); }
-            25% { transform: translate3d(2px,0,0); }
-            50% { transform: translate3d(-2px,0,0); }
-            75% { transform: translate3d(2px,0,0); }
+            33% { transform: translate3d(3px,0,0); }
+            66% { transform: translate3d(-3px,0,0); }
         }
 
         /* One guide only. */
@@ -2938,7 +2943,7 @@
         .synchrose-intro.stage-split .synchrose-after-click-line,
         .synchrose-intro.stage-release .synchrose-after-click-line {
             display: block;
-            animation: v3LineIn 0.15s ease forwards, heroTinyHorizontalShake 0.07s steps(2, end) infinite;
+            animation: v3LineIn 0.15s ease forwards, heroTinyHorizontalShake 0.04s steps(2, end) infinite;
         }
 
         /* CLI loading bar. */
@@ -3624,6 +3629,387 @@
         }
     </style>
 
+
+    <style id="synchrose-optimized-motion-scroll-style">
+        /* ============================================================
+           PERFORMANCE PATCH: desktop-rich motion, fast preload
+           ============================================================ */
+
+        :root {
+            --fx-ease: cubic-bezier(.22, .78, .18, 1);
+            --fx-ease-out: cubic-bezier(.16, 1, .3, 1);
+            --fx-duration: 260ms;
+            --fx-card-duration: 180ms;
+            --fx-cursor-x: -9999px;
+            --fx-cursor-y: -9999px;
+            --fx-page-x: 50%;
+            --fx-page-y: 0%;
+            --fx-tilt-x: 0;
+            --fx-tilt-y: 0;
+        }
+
+        html,
+        html.fx-scroll-ready {
+            scroll-behavior: auto;
+        }
+
+        body.fx-motion-ready {
+            background:
+                radial-gradient(circle at var(--fx-page-x, 50%) var(--fx-page-y, 0%), rgba(168, 85, 247, 0.07), transparent 34rem),
+                radial-gradient(circle at 16% 16%, rgba(236, 72, 153, 0.05), transparent 30rem),
+                var(--bg);
+        }
+
+        body.fx-motion-ready::before,
+        body.fx-motion-ready::after {
+            content: "";
+            position: fixed;
+            inset: auto;
+            width: 34rem;
+            height: 34rem;
+            pointer-events: none;
+            z-index: 0;
+            border-radius: 999px;
+            opacity: 0.22;
+            filter: blur(28px);
+            transform: translate3d(0, 0, 0);
+            animation: fxAmbientDrift 14s ease-in-out infinite alternate;
+        }
+
+        body.fx-motion-ready::before {
+            left: -14rem;
+            top: 18vh;
+            background: radial-gradient(circle, rgba(124, 58, 237, 0.28), transparent 62%);
+        }
+
+        body.fx-motion-ready::after {
+            right: -15rem;
+            bottom: 7vh;
+            background: radial-gradient(circle, rgba(236, 72, 153, 0.20), transparent 64%);
+            animation-duration: 17s;
+            animation-direction: alternate-reverse;
+        }
+
+        @keyframes fxAmbientDrift {
+            from { transform: translate3d(0, -1.5rem, 0) scale(0.96); }
+            to { transform: translate3d(2.25rem, 2rem, 0) scale(1.05); }
+        }
+
+        .hero-section,
+        .dashboard-section,
+        .dashboard-container,
+        .executors-grid,
+        .versions-panel,
+        .comparison-table,
+        .compare-grid {
+            transform: translateZ(0);
+        }
+
+        .dashboard-section,
+        .versions-panel,
+        .executors-grid,
+        .compare-grid {
+            content-visibility: auto;
+            contain-intrinsic-size: 1px 900px;
+        }
+
+        .executor-card,
+        .stat-card,
+        .version-item,
+        .compare-card,
+        .filter-section {
+            contain: layout paint;
+            backface-visibility: hidden;
+        }
+
+        .hero-section {
+            isolation: isolate;
+        }
+
+        .hero-fx-canvas {
+            position: absolute;
+            inset: 0;
+            z-index: 1;
+            pointer-events: none;
+            opacity: 0.52;
+            mix-blend-mode: screen;
+            transform: translateZ(0);
+        }
+
+        body.fx-parallax-ready .hero-content {
+            transform:
+                perspective(1000px)
+                rotateX(calc(var(--fx-tilt-y, 0) * -0.8deg))
+                rotateY(calc(var(--fx-tilt-x, 0) * 0.8deg))
+                translate3d(calc(var(--fx-tilt-x, 0) * 0.18px), calc(var(--fx-tilt-y, 0) * 0.18px), 0);
+            transition: transform 120ms var(--fx-ease-out);
+            will-change: transform;
+        }
+
+        body.fx-parallax-ready .hero-video {
+            transform: translate3d(calc(var(--fx-tilt-x, 0) * -0.35px), calc(var(--fx-tilt-y, 0) * -0.35px), 0) scale(1.015);
+            transition: transform 160ms var(--fx-ease-out);
+            will-change: transform;
+        }
+
+        .fx-cursor-glow {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 15rem;
+            height: 15rem;
+            margin-left: -7.5rem;
+            margin-top: -7.5rem;
+            pointer-events: none;
+            z-index: 30;
+            border-radius: 999px;
+            opacity: 0;
+            background: radial-gradient(circle, rgba(168,85,247,0.18), rgba(236,72,153,0.08) 34%, transparent 70%);
+            filter: blur(10px);
+            transform: translate3d(-9999px, -9999px, 0) scale(0.9);
+            transition: opacity 90ms ease, transform 90ms var(--fx-ease-out);
+            mix-blend-mode: screen;
+        }
+
+        body.fx-cursor-active .fx-cursor-glow {
+            opacity: 1;
+        }
+
+        .fx-reveal {
+            opacity: 0;
+            transform:
+                perspective(var(--fx-perspective, 1000px))
+                translate3d(var(--fx-x, 0), var(--fx-y, 20px), 0)
+                scale(var(--fx-scale, 0.965))
+                rotateX(var(--fx-rotate-x, 0deg));
+            filter: blur(var(--fx-blur, 6px)) brightness(1.1);
+            transition: none;
+            backface-visibility: hidden;
+        }
+
+        .fx-reveal.fx-prearmed {
+            will-change: transform, opacity, filter;
+        }
+
+        .fx-reveal.is-visible {
+            animation: fxSpringAppear var(--fx-duration-local, var(--fx-duration)) var(--fx-ease-out) both;
+            animation-delay: var(--fx-delay, 0ms);
+        }
+
+        .fx-reveal.is-complete {
+            opacity: 1;
+            transform: none;
+            filter: none;
+            animation: none;
+            will-change: auto;
+        }
+
+        @keyframes fxSpringAppear {
+            0% {
+                opacity: 0;
+                transform:
+                    perspective(var(--fx-perspective, 1000px))
+                    translate3d(var(--fx-x, 0), var(--fx-y, 20px), 0)
+                    scale(var(--fx-scale, 0.965))
+                    rotateX(var(--fx-rotate-x, 0deg));
+                filter: blur(var(--fx-blur, 6px)) brightness(1.08);
+            }
+            72% {
+                opacity: 1;
+                transform: perspective(var(--fx-perspective, 1000px)) translate3d(0, -2px, 0) scale(1.004) rotateX(0deg);
+                filter: blur(0) brightness(1.02);
+            }
+            100% {
+                opacity: 1;
+                transform: perspective(var(--fx-perspective, 1000px)) translate3d(0, 0, 0) scale(1) rotateX(0deg);
+                filter: blur(0) brightness(1);
+            }
+        }
+
+        .hero-title.fx-reveal {
+            --fx-y: 20px;
+            --fx-scale: 0.94;
+            --fx-blur: 8px;
+            --fx-duration-local: 220ms;
+        }
+
+        .hero-tagline.fx-reveal,
+        .hero-btn.fx-reveal {
+            --fx-y: 15px;
+            --fx-scale: 0.97;
+            --fx-duration-local: 250ms;
+        }
+
+        .dashboard-header.fx-reveal,
+        .versions-panel.fx-reveal,
+        .controls.fx-reveal,
+        .filter-summary-bar.fx-reveal,
+        .compare-bar.fx-reveal {
+            --fx-y: 18px;
+            --fx-scale: 0.98;
+            --fx-duration-local: 230ms;
+        }
+
+        .stat-card.fx-reveal,
+        .version-item.fx-reveal,
+        .compare-card.fx-reveal {
+            --fx-y: 18px;
+            --fx-scale: 0.97;
+            --fx-duration-local: 220ms;
+        }
+
+        .executor-card.fx-reveal {
+            --fx-y: 18px;
+            --fx-scale: 0.975;
+            --fx-rotate-x: 2deg;
+            --fx-blur: 4px;
+            --fx-duration-local: var(--fx-card-duration);
+        }
+
+        .fx-depth-card {
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+
+        .fx-stroke-glow::before {
+            opacity: 0;
+            background:
+                radial-gradient(circle at var(--fx-card-x, 50%) -10%, rgba(168,85,247,0.18), transparent 34%),
+                linear-gradient(90deg, rgba(124,58,237,0.95), rgba(236,72,153,0.75));
+            transition: opacity 160ms ease;
+        }
+
+        .fx-stroke-glow:hover::before,
+        .fx-stroke-glow:focus-within::before {
+            opacity: 1;
+        }
+
+        .fx-depth-card:hover,
+        .fx-depth-card:focus-within {
+            transform: perspective(1000px) translate3d(0, -4px, 0) rotateX(0.5deg);
+            box-shadow:
+                0 16px 38px rgba(0,0,0,0.34),
+                0 0 26px rgba(124,58,237,0.15),
+                0 0 18px rgba(236,72,153,0.09);
+        }
+
+        .btn,
+        .btn-small,
+        .hero-btn {
+            position: relative;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .btn::after,
+        .btn-small::after,
+        .hero-btn::after {
+            content: "";
+            position: absolute;
+            inset: -55% -35%;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateX(-70%) rotate(16deg);
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.20), transparent);
+        }
+
+        .btn:hover::after,
+        .btn-small:hover::after,
+        .hero-btn:hover::after {
+            animation: fxButtonSweep 340ms var(--fx-ease) forwards;
+        }
+
+        @keyframes fxButtonSweep {
+            from { opacity: 0; transform: translateX(-70%) rotate(16deg); }
+            22% { opacity: 1; }
+            to { opacity: 0; transform: translateX(72%) rotate(16deg); }
+        }
+
+        .hero-tagline .hero-word-shake,
+        .hero-tagline .highlight.hero-bright {
+            transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
+            will-change: transform;
+            animation: heroTinyHorizontalShakeFast 52ms steps(2, end) infinite !important;
+        }
+
+        .synchrose-main-title:hover .synchrose-title-gradient,
+        .synchrose-main-title:focus-within .synchrose-title-gradient {
+            animation:
+                synchroseTitleGlow 2s ease-in-out infinite,
+                heroBigHorizontalShakeFast 48ms steps(2, end) infinite !important;
+        }
+
+        @keyframes heroTinyHorizontalShakeFast {
+            0%, 100% { transform: translate3d(0,0,0); }
+            50% { transform: translate3d(1px,0,0); }
+        }
+
+        @keyframes heroBigHorizontalShakeFast {
+            0%, 100% { transform: translate3d(0,0,0); }
+            50% { transform: translate3d(3px,0,0); }
+        }
+
+        @media (max-width: 768px), (pointer: coarse) {
+            body.fx-motion-ready::before,
+            body.fx-motion-ready::after,
+            .hero-fx-canvas,
+            .fx-cursor-glow {
+                display: none !important;
+            }
+
+            body.fx-parallax-ready .hero-content,
+            body.fx-parallax-ready .hero-video {
+                transform: none !important;
+                transition: none !important;
+                will-change: auto !important;
+            }
+
+            .dashboard-section,
+            .versions-panel,
+            .executors-grid,
+            .compare-grid {
+                content-visibility: visible;
+                contain-intrinsic-size: auto;
+            }
+
+            .fx-reveal,
+            .fx-reveal.is-visible,
+            .fx-reveal.is-complete {
+                opacity: 1 !important;
+                transform: none !important;
+                filter: none !important;
+                animation: none !important;
+                will-change: auto !important;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            html {
+                scroll-behavior: auto !important;
+            }
+
+            body.fx-motion-ready::before,
+            body.fx-motion-ready::after,
+            .hero-fx-canvas,
+            .fx-cursor-glow,
+            .fx-reveal,
+            .fx-reveal.is-visible,
+            .fx-reveal.is-complete,
+            .hero-tagline .highlight,
+            .hero-tagline .highlight.hero-bright,
+            .synchrose-title-gradient {
+                opacity: 1 !important;
+                transform: none !important;
+                filter: none !important;
+                transition: none !important;
+                animation: none !important;
+                will-change: auto !important;
+            }
+        }
+    </style>
+
 </head>
 <body>
 
@@ -4170,14 +4556,90 @@
         let versionsData = null;
         let selectedForCompare = new Set();
 
+        // ============================================================
+        // MOBILE-SAFE PAGE SCROLL LOCK
+        // Shared by the filter drawer and the intro sequence.
+        // This fixes iOS/Android cases where overflow:hidden alone fails.
+        // ============================================================
+        const pageScrollLocks = new Set();
+        let pageSavedScrollY = 0;
+
+        function isInsideAllowedScrollArea(target) {
+            return Boolean(target?.closest?.(
+                '.filter-panel, .mx-music-song-list, .mx-music-selector'
+            ));
+        }
+
+        function preventPageTouchMove(event) {
+            if (!pageScrollLocks.size) return;
+
+            if (isInsideAllowedScrollArea(event.target)) {
+                return;
+            }
+
+            event.preventDefault();
+        }
+
+        function disablePageScroll(lockKey = 'default') {
+            if (pageScrollLocks.has(lockKey)) return;
+
+            pageScrollLocks.add(lockKey);
+
+            if (pageScrollLocks.size > 1) return;
+
+            pageSavedScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+
+            document.documentElement.classList.add('page-scroll-locked');
+            document.body.classList.add('page-scroll-locked');
+
+            document.body.style.position = 'fixed';
+            document.body.style.top = `-${pageSavedScrollY}px`;
+            document.body.style.left = '0';
+            document.body.style.right = '0';
+            document.body.style.width = '100%';
+            document.body.style.overflow = 'hidden';
+
+            document.addEventListener('touchmove', preventPageTouchMove, {
+                passive: false,
+                capture: true
+            });
+        }
+
+        function enablePageScroll(lockKey = 'default') {
+            if (!pageScrollLocks.has(lockKey)) return;
+
+            pageScrollLocks.delete(lockKey);
+
+            if (pageScrollLocks.size > 0) return;
+
+            document.removeEventListener('touchmove', preventPageTouchMove, true);
+
+            document.documentElement.classList.remove('page-scroll-locked');
+            document.body.classList.remove('page-scroll-locked');
+
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.left = '';
+            document.body.style.right = '';
+            document.body.style.width = '';
+            document.body.style.overflow = '';
+
+            window.scrollTo(0, pageSavedScrollY);
+            window.resetSmoothScrollPosition?.(pageSavedScrollY);
+        }
+
         function openFilterDrawer() {
             document.body.classList.add('drawer-open');
+            disablePageScroll('drawer');
+
             const panel = document.getElementById('filterPanel');
             if (panel) panel.setAttribute('aria-hidden', 'false');
         }
 
         function closeFilterDrawer() {
             document.body.classList.remove('drawer-open');
+            enablePageScroll('drawer');
+
             const panel = document.getElementById('filterPanel');
             if (panel) panel.setAttribute('aria-hidden', 'true');
         }
@@ -4223,7 +4685,7 @@
                     if (!target) return;
 
                     event.preventDefault();
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    (window.smoothScrollToElement || ((el) => el.scrollIntoView({ behavior: 'smooth', block: 'start' })))(target);
                     history.replaceState(null, '', hash);
                 });
             });
@@ -5655,27 +6117,10 @@
                 `;
             }).join('');
         }
-
-
-        // Subtle card tilt. Safe because cards are re-rendered often.
+        // Card hover is handled in CSS only. Keeping this as a no-op avoids
+        // binding mousemove listeners to every re-rendered card.
         function bindCardTilt() {
-            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-            document.querySelectorAll('.executor-card').forEach(card => {
-                if (card.dataset.tiltBound === '1') return;
-                card.dataset.tiltBound = '1';
-
-                card.addEventListener('mousemove', event => {
-                    const rect = card.getBoundingClientRect();
-                    const x = (event.clientX - rect.left) / rect.width - 0.5;
-                    const y = (event.clientY - rect.top) / rect.height - 0.5;
-                    card.style.transform = `perspective(1100px) translateY(-5px) rotateX(${(-y * 1.8).toFixed(2)}deg) rotateY(${(x * 1.8).toFixed(2)}deg)`;
-                });
-
-                card.addEventListener('mouseleave', () => {
-                    card.style.transform = '';
-                });
-            });
+            return;
         }
 
         // ============================================================
@@ -5770,7 +6215,7 @@
                     const target = hash ? document.querySelector(hash) : null;
                     if (!target) return;
                     event.preventDefault();
-                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    (window.smoothScrollToElement || ((el) => el.scrollIntoView({ behavior: 'smooth', block: 'start' })))(target);
                     history.replaceState(null, '', hash);
                 });
             });
@@ -7132,14 +7577,25 @@
             let lockedUntilDashboard = true;
 
             function lockScroll() {
-                root.classList.add('synchrose-scroll-locked');
-                document.body.classList.add('synchrose-scroll-locked');
+                lockedUntilDashboard = true;
+
+                if (typeof disablePageScroll === 'function') {
+                    disablePageScroll('intro');
+                } else {
+                    root.classList.add('synchrose-scroll-locked');
+                    document.body.classList.add('synchrose-scroll-locked');
+                }
             }
 
             function unlockScroll() {
-                root.classList.remove('synchrose-scroll-locked');
-                document.body.classList.remove('synchrose-scroll-locked');
                 lockedUntilDashboard = false;
+
+                if (typeof enablePageScroll === 'function') {
+                    enablePageScroll('intro');
+                } else {
+                    root.classList.remove('synchrose-scroll-locked');
+                    document.body.classList.remove('synchrose-scroll-locked');
+                }
             }
 
             lockScroll();
@@ -7222,9 +7678,9 @@
                 unlockScroll();
                 const dashboard = document.getElementById('dashboard');
                 if (dashboard) {
-                    dashboard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    (window.smoothScrollToElement || ((el) => el.scrollIntoView({ behavior: 'smooth', block: 'start' })))(dashboard);
                 } else {
-                    window.scrollTo({ top: window.innerHeight, behavior: 'smooth' });
+                    (window.smoothScrollToY || ((y) => window.scrollTo({ top: y, behavior: 'smooth' })))(window.innerHeight);
                 }
                 tryStartMusic('Enter Dashboard');
             }
@@ -7283,12 +7739,9 @@
                 }
             });
 
-            // Prevent wheel/touch scrolling after intro until Enter Dashboard.
+            // Prevent desktop wheel scrolling after intro until Enter Dashboard.
+            // Mobile touch scrolling is handled by disablePageScroll()/enablePageScroll().
             window.addEventListener('wheel', event => {
-                if (lockedUntilDashboard) event.preventDefault();
-            }, { passive: false, capture: true });
-
-            window.addEventListener('touchmove', event => {
                 if (lockedUntilDashboard) event.preventDefault();
             }, { passive: false, capture: true });
         })();
@@ -7555,5 +8008,596 @@
         })();
     </script>
 
+
+    <script id="synchrose-optimized-motion-scroll-script">
+        (() => {
+            const doc = document;
+            const root = doc.documentElement;
+            const body = doc.body;
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const coarsePointer = window.matchMedia('(pointer: coarse)').matches;
+            const hoverCapable = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+            const scrollingElement = () => doc.scrollingElement || doc.documentElement;
+            const clamp = (value, min, max) => Math.max(min, Math.min(max, value));
+            const canUseRichFx = !reduceMotion && hoverCapable;
+
+            root.classList.add('fx-scroll-ready');
+            if (canUseRichFx) {
+                body.classList.add('fx-motion-ready');
+            }
+
+            let currentY = window.scrollY || root.scrollTop || 0;
+            let targetY = currentY;
+            let scrollFrame = 0;
+            let isAnimatingScroll = false;
+            let lastNativeSync = 0;
+
+            function maxScrollY() {
+                const el = scrollingElement();
+                return Math.max(0, el.scrollHeight - window.innerHeight);
+            }
+
+            function stopScrollAnimation() {
+                if (scrollFrame) cancelAnimationFrame(scrollFrame);
+                scrollFrame = 0;
+                isAnimatingScroll = false;
+            }
+
+            function syncToNativeScroll(y = window.scrollY || root.scrollTop || 0) {
+                currentY = y;
+                targetY = y;
+            }
+
+            window.resetSmoothScrollPosition = syncToNativeScroll;
+
+            function animateScroll() {
+                scrollFrame = 0;
+                const distance = targetY - currentY;
+                const step = distance * 0.20;
+
+                if (Math.abs(distance) <= 0.5) {
+                    currentY = targetY;
+                    window.scrollTo(0, Math.round(currentY));
+                    isAnimatingScroll = false;
+                    return;
+                }
+
+                currentY += step;
+                window.scrollTo(0, Math.round(currentY));
+                scrollFrame = requestAnimationFrame(animateScroll);
+            }
+
+            function requestSmoothFrame() {
+                if (!scrollFrame) scrollFrame = requestAnimationFrame(animateScroll);
+            }
+
+            function scrollToY(y, options = {}) {
+                const top = clamp(Number(y) || 0, 0, maxScrollY());
+
+                if (reduceMotion || options.immediate) {
+                    stopScrollAnimation();
+                    window.scrollTo(0, top);
+                    syncToNativeScroll(top);
+                    return;
+                }
+
+                currentY = window.scrollY || root.scrollTop || 0;
+                targetY = top;
+                isAnimatingScroll = true;
+                requestSmoothFrame();
+            }
+
+            function scrollToElement(element, options = {}) {
+                if (!element || typeof element.getBoundingClientRect !== 'function') return;
+                const offset = Number(options.offset || 0);
+                const top = element.getBoundingClientRect().top + (window.scrollY || root.scrollTop || 0) - offset;
+                scrollToY(top, options);
+            }
+
+            window.smoothScrollToY = scrollToY;
+            window.smoothScrollToElement = scrollToElement;
+
+            function isTextInput(target) {
+                return Boolean(target?.closest?.('input, textarea, select, [contenteditable="true"]'));
+            }
+
+            function isScrollLocked() {
+                return body.classList.contains('page-scroll-locked') || body.classList.contains('drawer-open');
+            }
+
+            function canScrollVertically(el, deltaY) {
+                if (!el || el === body || el === root) return false;
+                const style = getComputedStyle(el);
+                if (!/(auto|scroll|overlay)/.test(style.overflowY)) return false;
+                if (el.scrollHeight <= el.clientHeight + 1) return false;
+                if (deltaY > 0) return el.scrollTop + el.clientHeight < el.scrollHeight - 1;
+                if (deltaY < 0) return el.scrollTop > 1;
+                return false;
+            }
+
+            function findScrollableParent(target, deltaY) {
+                let el = target instanceof Element ? target : target?.parentElement;
+                while (el && el !== body && el !== root) {
+                    if (el.closest?.('.filter-panel, .mx-music-selector, .mx-music-song-list')) return el;
+                    if (canScrollVertically(el, deltaY)) return el;
+                    el = el.parentElement;
+                }
+                return null;
+            }
+
+            function normalizeWheelDelta(event) {
+                let delta = event.deltaY;
+                if (event.deltaMode === 1) delta *= 16;
+                if (event.deltaMode === 2) delta *= window.innerHeight;
+                return delta;
+            }
+
+            function onWheel(event) {
+                if (reduceMotion || coarsePointer || isScrollLocked() || isTextInput(event.target)) return;
+                if (event.ctrlKey || event.metaKey) return;
+
+                const delta = normalizeWheelDelta(event);
+                if (!delta || findScrollableParent(event.target, delta)) return;
+
+                event.preventDefault();
+                currentY = isAnimatingScroll ? currentY : (window.scrollY || root.scrollTop || 0);
+                targetY = clamp(targetY + delta, 0, maxScrollY());
+                isAnimatingScroll = true;
+                requestSmoothFrame();
+            }
+
+            window.addEventListener('wheel', onWheel, { passive: false });
+
+            window.addEventListener('scroll', () => {
+                const now = performance.now();
+                if (isAnimatingScroll) return;
+                if (now - lastNativeSync < 40) return;
+                lastNativeSync = now;
+                syncToNativeScroll();
+            }, { passive: true });
+
+            doc.addEventListener('click', event => {
+                const anchor = event.target.closest?.('a[href^="#"]');
+                if (!anchor) return;
+                const hash = anchor.getAttribute('href');
+                if (!hash || hash === '#') return;
+                const target = doc.querySelector(hash);
+                if (!target) return;
+
+                event.preventDefault();
+                scrollToElement(target);
+                history.replaceState(null, '', hash);
+            }, { capture: true });
+
+            function setStyle(el, name, value) {
+                if (value == null) return;
+                el.style.setProperty(name, String(value));
+            }
+
+            function markReveal(el, options = {}) {
+                if (!el || el.dataset.fxReady === '1') return false;
+                el.dataset.fxReady = '1';
+                el.classList.add('fx-reveal');
+                if (options.card) el.classList.add('fx-depth-card', 'fx-stroke-glow');
+                setStyle(el, '--fx-delay', `${options.delay || 0}ms`);
+                if (options.duration) setStyle(el, '--fx-duration-local', `${options.duration}ms`);
+                if (options.y != null) setStyle(el, '--fx-y', `${options.y}px`);
+                if (options.scale != null) setStyle(el, '--fx-scale', options.scale);
+                if (options.rotateX != null) setStyle(el, '--fx-rotate-x', `${options.rotateX}deg`);
+                return true;
+            }
+
+            function finishReveal(el, ms = 360) {
+                window.setTimeout(() => el.classList.add('is-complete'), ms);
+            }
+
+            function revealNow(el, delay = 0) {
+                if (!el || el.classList.contains('is-visible')) return;
+                el.classList.add('fx-prearmed');
+                el.style.setProperty('--fx-delay', `${delay}ms`);
+                requestAnimationFrame(() => {
+                    el.classList.add('is-visible');
+                    finishReveal(el, 300 + delay);
+                });
+            }
+
+            function decorateStaticReveal(scope = doc) {
+                const config = [
+                    ['.hero-title', { y: 18, scale: 0.95, duration: 310 }],
+                    ['.hero-tagline', { y: 14, scale: 0.975, duration: 250 }],
+                    ['.hero-btn', { y: 14, scale: 0.975, duration: 250 }],
+                    ['.dashboard-header', { y: 16, scale: 0.985, duration: 230 }],
+                    ['.controls', { y: 16, scale: 0.985, duration: 230 }],
+                    ['.filter-summary-bar', { y: 14, scale: 0.99, duration: 210 }],
+                    ['.stats-bar .stat-card', { y: 14, scale: 0.985, duration: 210 }],
+                    ['.versions-panel', { y: 16, scale: 0.985, duration: 230 }],
+                    ['.compare-card', { y: 16, scale: 0.985, duration: 220 }]
+                ];
+
+                const added = [];
+                config.forEach(([selector, options]) => {
+                    scope.querySelectorAll?.(selector).forEach((el, index) => {
+                        const opts = { ...options, delay: Math.min(index, 5) * 18 };
+                        if (markReveal(el, opts)) added.push(el);
+                    });
+                });
+                return added;
+            }
+
+            function decorateExecutorCards(scope = doc) {
+                const cards = Array.from(scope.querySelectorAll?.('.executor-card') || []);
+                cards.forEach(card => {
+                    markReveal(card, { card: true, duration: 180, y: 14, scale: 0.985, rotateX: 1.2 });
+                    card.classList.add('fx-prearmed');
+                });
+                return cards;
+            }
+
+            function setupReveal() {
+                const staticItems = decorateStaticReveal(doc);
+                decorateExecutorCards(doc);
+
+                if (reduceMotion || coarsePointer || !('IntersectionObserver' in window)) {
+                    doc.querySelectorAll('.fx-reveal').forEach(el => el.classList.add('is-visible', 'is-complete'));
+                    return;
+                }
+
+                const staticObserver = new IntersectionObserver(entries => {
+                    entries.forEach(entry => {
+                        if (!entry.isIntersecting) return;
+                        revealNow(entry.target, Number.parseFloat(entry.target.style.getPropertyValue('--fx-delay')) || 0);
+                        staticObserver.unobserve(entry.target);
+                    });
+                }, { rootMargin: '160px 0px 120px 0px', threshold: 0.01 });
+
+                staticItems.forEach(el => staticObserver.observe(el));
+
+                const grid = doc.querySelector('.executors-grid');
+                if (!grid) return;
+
+                let cardObserver;
+                let prearmObserver;
+
+                function visibleCards() {
+                    return Array.from(grid.querySelectorAll('.executor-card'));
+                }
+
+                function prearmAround(index, radius = 8) {
+                    const cards = visibleCards();
+                    const start = Math.max(0, index - 1);
+                    const end = Math.min(cards.length - 1, index + radius);
+                    for (let i = start; i <= end; i++) {
+                        cards[i]?.classList.add('fx-prearmed');
+                    }
+                }
+
+                function revealBatchFrom(card) {
+                    const cards = visibleCards();
+                    const index = cards.indexOf(card);
+                    if (index < 0) return;
+                    prearmAround(index, 10);
+
+                    const batch = 14;
+                    for (let offset = 0; offset < batch; offset++) {
+                        const target = cards[index + offset];
+                        if (!target || target.classList.contains('is-visible')) continue;
+                        revealNow(target, offset * 3);
+                        cardObserver?.unobserve(target);
+                    }
+                }
+
+                cardObserver = new IntersectionObserver(entries => {
+                    entries.forEach(entry => {
+                        if (!entry.isIntersecting) return;
+                        revealBatchFrom(entry.target);
+                    });
+                }, { rootMargin: '1100px 0px 900px 0px', threshold: 0.01 });
+
+                prearmObserver = new IntersectionObserver(entries => {
+                    entries.forEach(entry => {
+                        if (!entry.isIntersecting) return;
+                        const cards = visibleCards();
+                        const index = cards.indexOf(entry.target);
+                        if (index >= 0) prearmAround(index, 12);
+                        prearmObserver.unobserve(entry.target);
+                    });
+                }, { rootMargin: '1400px 0px 1100px 0px', threshold: 0.01 });
+
+                function observeNewCards(cards) {
+                    const freshCards = cards.filter(card => card && card.dataset.fxObserved !== '1');
+                    freshCards.forEach(card => {
+                        card.dataset.fxObserved = '1';
+                        cardObserver.observe(card);
+                        prearmObserver.observe(card);
+                    });
+
+                    const gridRect = grid.getBoundingClientRect();
+                    if (gridRect.top < window.innerHeight + 1100 && freshCards.length) {
+                        revealBatchFrom(freshCards[0]);
+                    }
+                }
+
+                observeNewCards(visibleCards());
+
+                if (!('MutationObserver' in window)) return;
+                let pending = false;
+                const mutationObserver = new MutationObserver(() => {
+                    if (pending) return;
+                    pending = true;
+                    requestAnimationFrame(() => {
+                        pending = false;
+                        observeNewCards(decorateExecutorCards(grid));
+                    });
+                });
+
+                mutationObserver.observe(grid, { childList: true });
+            }
+
+            function setupDelegatedCardGlow() {
+                if (!canUseRichFx) return;
+                const grid = doc.querySelector('.executors-grid');
+                if (!grid) return;
+
+                let activeCard = null;
+                let raf = 0;
+                let lastX = 50;
+
+                function flush() {
+                    raf = 0;
+                    if (activeCard) activeCard.style.setProperty('--fx-card-x', `${lastX}%`);
+                }
+
+                grid.addEventListener('pointermove', event => {
+                    const card = event.target.closest?.('.fx-stroke-glow');
+                    if (!card) return;
+                    activeCard = card;
+                    const rect = card.getBoundingClientRect();
+                    lastX = clamp(((event.clientX - rect.left) / rect.width) * 100, 0, 100);
+                    if (!raf) raf = requestAnimationFrame(flush);
+                }, { passive: true });
+
+                grid.addEventListener('pointerleave', () => {
+                    if (activeCard) activeCard.style.removeProperty('--fx-card-x');
+                    activeCard = null;
+                }, { passive: true });
+            }
+
+            function setupCursorGlow() {
+                if (!canUseRichFx) return;
+                const glow = doc.createElement('div');
+                glow.className = 'fx-cursor-glow';
+                glow.setAttribute('aria-hidden', 'true');
+                body.appendChild(glow);
+
+                let x = -9999;
+                let y = -9999;
+                let raf = 0;
+                let hideTimer = 0;
+
+                function flush() {
+                    raf = 0;
+                    glow.style.transform = `translate3d(${x}px, ${y}px, 0) scale(1)`;
+                    root.style.setProperty('--fx-page-x', `${x}px`);
+                    root.style.setProperty('--fx-page-y', `${y}px`);
+                }
+
+                window.addEventListener('pointermove', event => {
+                    if (event.pointerType && event.pointerType !== 'mouse') return;
+                    x = event.clientX;
+                    y = event.clientY;
+                    body.classList.add('fx-cursor-active');
+                    if (hideTimer) clearTimeout(hideTimer);
+                    hideTimer = setTimeout(() => body.classList.remove('fx-cursor-active'), 1500);
+                    if (!raf) raf = requestAnimationFrame(flush);
+                }, { passive: true });
+
+                window.addEventListener('pointerleave', () => {
+                    body.classList.remove('fx-cursor-active');
+                }, { passive: true });
+            }
+
+            function setupHeroParallax() {
+                if (!canUseRichFx) return;
+                const hero = doc.querySelector('.hero-section');
+                if (!hero || !('IntersectionObserver' in window)) return;
+
+                let active = false;
+                let hovering = false;
+                let targetX = 0;
+                let targetY = 0;
+                let currentX = 0;
+                let currentYLocal = 0;
+                let raf = 0;
+
+                function tick() {
+                    raf = 0;
+                    if (!active && !hovering && Math.abs(currentX) < 0.01 && Math.abs(currentYLocal) < 0.01) return;
+
+                    currentX += (targetX - currentX) * 0.18;
+                    currentYLocal += (targetY - currentYLocal) * 0.18;
+                    root.style.setProperty('--fx-tilt-x', currentX.toFixed(3));
+                    root.style.setProperty('--fx-tilt-y', currentYLocal.toFixed(3));
+
+                    if (hovering || Math.abs(targetX - currentX) > 0.02 || Math.abs(targetY - currentYLocal) > 0.02) {
+                        raf = requestAnimationFrame(tick);
+                    }
+                }
+
+                function requestTick() {
+                    if (!raf) raf = requestAnimationFrame(tick);
+                }
+
+                const observer = new IntersectionObserver(entries => {
+                    active = entries.some(entry => entry.isIntersecting);
+                    body.classList.toggle('fx-parallax-ready', active);
+                    if (!active) {
+                        targetX = 0;
+                        targetY = 0;
+                        requestTick();
+                    }
+                }, { threshold: 0.12 });
+                observer.observe(hero);
+
+                hero.addEventListener('pointermove', event => {
+                    if (!active || (event.pointerType && event.pointerType !== 'mouse')) return;
+                    const rect = hero.getBoundingClientRect();
+                    targetX = clamp(((event.clientX - rect.left) / rect.width - 0.5) * 9, -4.5, 4.5);
+                    targetY = clamp(((event.clientY - rect.top) / rect.height - 0.5) * 7, -3.5, 3.5);
+                    hovering = true;
+                    requestTick();
+                }, { passive: true });
+
+                hero.addEventListener('pointerleave', () => {
+                    hovering = false;
+                    targetX = 0;
+                    targetY = 0;
+                    requestTick();
+                }, { passive: true });
+            }
+
+            function setupHeroCanvas() {
+                if (!canUseRichFx) return;
+                const hero = doc.querySelector('.hero-section');
+                if (!hero) return;
+
+                const canvas = doc.createElement('canvas');
+                canvas.className = 'hero-fx-canvas';
+                canvas.setAttribute('aria-hidden', 'true');
+                const overlay = hero.querySelector('.hero-overlay');
+                if (overlay?.nextSibling) hero.insertBefore(canvas, overlay.nextSibling);
+                else hero.insertBefore(canvas, hero.firstChild);
+
+                const ctx = canvas.getContext('2d', { alpha: true });
+                if (!ctx) return;
+
+                let width = 1;
+                let height = 1;
+                let ratio = 1;
+                let particles = [];
+                let raf = 0;
+                let active = true;
+                let lastFrame = 0;
+
+                function resize() {
+                    const rect = hero.getBoundingClientRect();
+                    width = Math.max(1, Math.floor(rect.width));
+                    height = Math.max(1, Math.floor(rect.height));
+                    ratio = Math.min(window.devicePixelRatio || 1, 1.25);
+                    canvas.width = Math.floor(width * ratio);
+                    canvas.height = Math.floor(height * ratio);
+                    canvas.style.width = `${width}px`;
+                    canvas.style.height = `${height}px`;
+                    ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+                    const count = width < 900 ? 12 : 22;
+                    particles = Array.from({ length: count }, (_, index) => ({
+                        x: Math.random() * width,
+                        y: Math.random() * height,
+                        vx: (Math.random() - 0.5) * 0.16,
+                        vy: (Math.random() - 0.5) * 0.12,
+                        r: 0.8 + Math.random() * 1.8,
+                        phase: Math.random() * Math.PI * 2,
+                        hue: index % 3
+                    }));
+                }
+
+                function draw(time) {
+                    raf = 0;
+                    if (!active || doc.hidden) return;
+                    if (time - lastFrame < 42) {
+                        raf = requestAnimationFrame(draw);
+                        return;
+                    }
+                    lastFrame = time;
+
+                    ctx.clearRect(0, 0, width, height);
+                    for (const p of particles) {
+                        p.x += p.vx;
+                        p.y += p.vy;
+                        p.phase += 0.012;
+                        if (p.x < -20) p.x = width + 20;
+                        if (p.x > width + 20) p.x = -20;
+                        if (p.y < -20) p.y = height + 20;
+                        if (p.y > height + 20) p.y = -20;
+
+                        const pulse = 0.45 + Math.sin(p.phase) * 0.25;
+                        const color = p.hue === 0 ? '168,85,247' : p.hue === 1 ? '236,72,153' : '255,255,255';
+                        ctx.beginPath();
+                        ctx.fillStyle = `rgba(${color}, ${0.17 + pulse * 0.16})`;
+                        ctx.arc(p.x, p.y, p.r + pulse, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+
+                    for (let i = 0; i < particles.length; i++) {
+                        for (let j = i + 1; j < particles.length; j++) {
+                            const a = particles[i];
+                            const b = particles[j];
+                            const dx = a.x - b.x;
+                            const dy = a.y - b.y;
+                            const dist = Math.hypot(dx, dy);
+                            if (dist > 105) continue;
+                            ctx.beginPath();
+                            ctx.strokeStyle = `rgba(168,85,247,${(1 - dist / 105) * 0.085})`;
+                            ctx.lineWidth = 1;
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(b.x, b.y);
+                            ctx.stroke();
+                        }
+                    }
+
+                    raf = requestAnimationFrame(draw);
+                }
+
+                function start() {
+                    if (raf || !active || doc.hidden) return;
+                    raf = requestAnimationFrame(draw);
+                }
+
+                function stop() {
+                    if (raf) cancelAnimationFrame(raf);
+                    raf = 0;
+                }
+
+                resize();
+                start();
+
+                const resizeObserver = 'ResizeObserver' in window ? new ResizeObserver(() => {
+                    resize();
+                    start();
+                }) : null;
+                resizeObserver?.observe(hero);
+                window.addEventListener('resize', () => {
+                    resize();
+                    start();
+                }, { passive: true });
+
+                if ('IntersectionObserver' in window) {
+                    const observer = new IntersectionObserver(entries => {
+                        active = entries.some(entry => entry.isIntersecting);
+                        if (active) start(); else stop();
+                    }, { threshold: 0.05 });
+                    observer.observe(hero);
+                }
+
+                doc.addEventListener('visibilitychange', () => {
+                    if (doc.hidden) stop();
+                    else start();
+                });
+            }
+
+            function boot() {
+                setupReveal();
+                setupDelegatedCardGlow();
+                setupCursorGlow();
+                setupHeroParallax();
+                setupHeroCanvas();
+            }
+
+            if (doc.readyState === 'loading') {
+                doc.addEventListener('DOMContentLoaded', boot, { once: true });
+            } else {
+                boot();
+            }
+        })();
+    </script>
 </body>
 </html>
