@@ -11377,52 +11377,86 @@ body[data-syn-fx-preset="minimal"] .filter-panel {
 
     </script>
 
-
-<script id="synchrose-settings-gate-late">
+<script id="synchrose-settings-clean-controller">
 /* ============================================================
-   Late hard settings engine.
-   Makes settings actually remove/disable expensive effects.
+   Clean settings controller
+   - No EventTarget.prototype patching
+   - No MutationObserver patching
+   - No function-source regex interception
+   - Settings are applied through body classes + small direct cleanup.
 ============================================================ */
 (() => {
-    const KEY = window.__synFxKey || 'synchrose:visual-settings:v1';
-    const PRESETS = window.__synFxPresets || {
-        original: { intro:true, heroVideo:true, glass:true, animations:true, glow:true, tilt3d:true, lookAtCursor:true, canvasParticles:true, smoothScroll:true, textEffects:true, statEffects:true, versionEffects:true, marquee:true, buttonShine:true, cardGlint:true, musicPlayer:true },
-        balanced: { intro:true, heroVideo:true, glass:true, animations:true, glow:false, tilt3d:true, lookAtCursor:false, canvasParticles:false, smoothScroll:false, textEffects:true, statEffects:true, versionEffects:true, marquee:true, buttonShine:true, cardGlint:true, musicPlayer:true },
-        minimal: { intro:false, heroVideo:false, glass:false, animations:false, glow:false, tilt3d:false, lookAtCursor:false, canvasParticles:false, smoothScroll:false, textEffects:false, statEffects:false, versionEffects:false, marquee:false, buttonShine:false, cardGlint:false, musicPlayer:true },
-        performance: { intro:false, heroVideo:false, glass:false, animations:false, glow:false, tilt3d:false, lookAtCursor:false, canvasParticles:false, smoothScroll:false, textEffects:false, statEffects:false, versionEffects:false, marquee:false, buttonShine:false, cardGlint:false, musicPlayer:false }
+    const KEY = 'synchrose:visual-settings:v1';
+    const MIGRATION_KEY = 'synchrose:settings-clean-controller:migrated:v1';
+
+    const PRESETS = {
+        original: {
+            intro: true, heroVideo: true, glass: true, animations: true,
+            glow: true, tilt3d: true, lookAtCursor: true, canvasParticles: true,
+            smoothScroll: true, textEffects: true, statEffects: true,
+            versionEffects: true, marquee: true, buttonShine: true, cardGlint: true, musicPlayer: true
+        },
+        balanced: {
+            intro: true, heroVideo: true, glass: true, animations: true,
+            glow: false, tilt3d: true, lookAtCursor: false, canvasParticles: false,
+            smoothScroll: false, textEffects: true, statEffects: true,
+            versionEffects: true, marquee: true, buttonShine: true, cardGlint: true, musicPlayer: true
+        },
+        minimal: {
+            intro: false, heroVideo: false, glass: false, animations: false,
+            glow: false, tilt3d: false, lookAtCursor: false, canvasParticles: false,
+            smoothScroll: false, textEffects: false, statEffects: false,
+            versionEffects: false, marquee: false, buttonShine: false, cardGlint: false, musicPlayer: true
+        },
+        performance: {
+            intro: false, heroVideo: false, glass: false, animations: false,
+            glow: false, tilt3d: false, lookAtCursor: false, canvasParticles: false,
+            smoothScroll: false, textEffects: false, statEffects: false,
+            versionEffects: false, marquee: false, buttonShine: false, cardGlint: false, musicPlayer: false
+        }
     };
 
-    const effectNames = Object.keys(PRESETS.original);
+    const EFFECT_NAMES = Object.keys(PRESETS.original);
 
-    function parse(raw) {
+    function parseJson(raw) {
         try { return JSON.parse(raw); } catch { return null; }
     }
 
     function normalize(settings) {
-        if (!settings || !settings.effects) {
-            settings = { preset: 'balanced', effects: { ...PRESETS.balanced } };
-        }
-        const preset = settings.preset || 'custom';
-        const base = PRESETS[preset] || PRESETS.original;
+        const preset = settings?.preset || 'balanced';
+        const base = PRESETS[preset] || PRESETS.balanced;
         return {
             preset,
-            effects: { ...PRESETS.original, ...base, ...settings.effects }
+            effects: { ...PRESETS.original, ...base, ...(settings?.effects || {}) }
         };
-    }
-
-    function load() {
-        let settings = parse(localStorage.getItem(KEY));
-        if (!settings || !settings.effects) {
-            settings = { preset: 'balanced', effects: { ...PRESETS.balanced } };
-            save(settings);
-        }
-        return normalize(settings);
     }
 
     function save(settings) {
         const normalized = normalize(settings);
         try { localStorage.setItem(KEY, JSON.stringify(normalized)); } catch {}
         return normalized;
+    }
+
+    function load() {
+        let settings = parseJson(localStorage.getItem(KEY));
+
+        // One-time migration: previous builds defaulted to Original, which is heavy.
+        // Existing custom/minimal/performance choices are kept.
+        const migrated = localStorage.getItem(MIGRATION_KEY) === '1';
+        if (!migrated) {
+            if (!settings || !settings.effects || settings.preset === 'original') {
+                settings = { preset: 'balanced', effects: { ...PRESETS.balanced } };
+                save(settings);
+            }
+            try { localStorage.setItem(MIGRATION_KEY, '1'); } catch {}
+        }
+
+        if (!settings || !settings.effects) {
+            settings = { preset: 'balanced', effects: { ...PRESETS.balanced } };
+            save(settings);
+        }
+
+        return normalize(settings);
     }
 
     function kebab(name) {
@@ -11434,148 +11468,91 @@ body[data-syn-fx-preset="minimal"] .filter-panel {
         if (!body) return;
 
         body.dataset.synFxPreset = settings.preset;
-        const trigger = document.getElementById('settingsTrigger');
-        if (trigger) {
-            const badge = settings.preset === 'performance' ? 'FPS' : settings.preset === 'minimal' ? 'MIN' : settings.preset === 'balanced' ? 'BAL' : '';
-            trigger.dataset.fxBadge = badge;
-        }
 
-        effectNames.forEach(name => {
+        EFFECT_NAMES.forEach(name => {
             body.classList.toggle(`fx-${kebab(name)}-off`, settings.effects[name] === false);
         });
+
+        const trigger = document.getElementById('settingsTrigger');
+        if (trigger) {
+            trigger.dataset.fxBadge =
+                settings.preset === 'performance' ? 'FPS' :
+                settings.preset === 'minimal' ? 'MIN' :
+                settings.preset === 'balanced' ? 'BAL' : '';
+        }
     }
 
-    function hardDisable(settings) {
+    function directCleanup(settings) {
         const fx = settings.effects;
         const body = document.body;
         const root = document.documentElement;
 
         if (!body) return;
 
-        // Smooth scroll: replace custom helpers with native and let the early gate skip old wheel handlers.
-        if (!fx.smoothScroll) {
-            root.style.scrollBehavior = 'auto';
-            window.smoothScrollToY = function(y, options = {}) {
-                const max = Math.max(0, root.scrollHeight - window.innerHeight);
-                const top = Math.max(0, Math.min(Number(y) || 0, max));
-                window.scrollTo(0, top);
-            };
-            window.smoothScrollToElement = function(el, options = {}) {
-                if (!el) return;
-                const offset = Number(options.offset || 0);
-                window.smoothScrollToY(el.getBoundingClientRect().top + window.scrollY - offset, options);
-            };
-            window.resetSmoothScrollPosition?.(window.scrollY || 0);
-        }
+        root.style.scrollBehavior = fx.smoothScroll ? '' : 'auto';
 
-        // Hero video.
-        document.querySelectorAll('.hero-video').forEach(video => {
-            if (!fx.heroVideo) {
+        if (!fx.heroVideo) {
+            document.querySelectorAll('.hero-video').forEach(video => {
                 try { video.pause(); } catch {}
                 video.style.display = 'none';
-            } else {
+            });
+        } else {
+            document.querySelectorAll('.hero-video').forEach(video => {
                 video.style.display = '';
                 try { video.play?.().catch?.(() => {}); } catch {}
-            }
-        });
+            });
+        }
 
-        // Intro skip.
         if (!fx.intro) {
             const intro = document.getElementById('synchroseIntro');
             if (intro) intro.style.display = 'none';
             body.classList.add('synchrose-intro-done');
         }
 
-        // Ambient/canvas/cursor glow.
-        const ambientOff = !fx.glow || !fx.canvasParticles || settings.preset === 'performance' || settings.preset === 'minimal';
-        document.querySelectorAll('.synchrose-starfield, .synchrose-orb, .synchrose-cursor-glow, .fx-cursor-glow, .hero-fx-canvas').forEach(el => {
-            if (ambientOff || (!fx.canvasParticles && el.classList.contains('hero-fx-canvas'))) {
-                el.style.display = 'none';
-                el.style.visibility = 'hidden';
-            } else {
-                el.style.display = '';
-                el.style.visibility = '';
-            }
-        });
-
-        // Starfield density: original can keep more, balanced gets a light star layer.
-        const maxStars = settings.preset === 'original' && fx.glow ? 90 : fx.glow ? 34 : 0;
-        document.querySelectorAll('.synchrose-star').forEach((star, i) => {
-            star.style.display = i < maxStars ? '' : 'none';
-        });
-
-        // Look-at cursor.
         if (!fx.lookAtCursor) {
             body.classList.remove('syn-look-ready', 'syn-cursor-active');
-            root.style.setProperty('--syn-title-rx', '0deg');
-            root.style.setProperty('--syn-title-ry', '0deg');
-            root.style.setProperty('--syn-sub-rx', '0deg');
-            root.style.setProperty('--syn-sub-ry', '0deg');
-            root.style.setProperty('--syn-title-tx', '0px');
-            root.style.setProperty('--syn-title-ty', '0px');
-            root.style.setProperty('--syn-sub-tx', '0px');
-            root.style.setProperty('--syn-sub-ty', '0px');
-        }
-
-        // Remove inline transform state and active classes from heavy hover effects.
-        if (!fx.tilt3d || settings.preset === 'performance' || settings.preset === 'minimal') {
-            document.querySelectorAll('.executor-card, .stat-card, .version-item').forEach(el => {
-                el.classList.remove('is-card-looking', 'is-stat-looking', 'is-version-looking');
-                ['--card-rx','--card-ry','--card-glare-x','--card-glare-y','--fx-rx','--fx-ry','--fx-x','--fx-y','--versions-x','--versions-y'].forEach(prop => el.style.removeProperty(prop));
+            ['--syn-title-rx','--syn-title-ry','--syn-sub-rx','--syn-sub-ry'].forEach(prop => {
+                root.style.setProperty(prop, '0deg');
+            });
+            ['--syn-title-tx','--syn-title-ty','--syn-sub-tx','--syn-sub-ty'].forEach(prop => {
+                root.style.setProperty(prop, '0px');
             });
         }
 
-        if (!fx.statEffects) {
+        const hideAmbient = !fx.glow || !fx.canvasParticles || settings.preset === 'minimal' || settings.preset === 'performance';
+        document.querySelectorAll('.synchrose-starfield, .synchrose-orb, .synchrose-cursor-glow, .fx-cursor-glow, .hero-fx-canvas').forEach(el => {
+            const isCanvas = el.classList.contains('hero-fx-canvas');
+            const shouldHide = hideAmbient || (isCanvas && !fx.canvasParticles);
+            el.style.display = shouldHide ? 'none' : '';
+            el.style.visibility = shouldHide ? 'hidden' : '';
+        });
+
+        if (!fx.statEffects || !fx.tilt3d) {
             document.querySelectorAll('.stat-card').forEach(el => {
-                el.classList.remove('is-stat-looking', 'syn-stat-fx');
+                el.classList.remove('is-stat-looking');
                 ['--fx-rx','--fx-ry','--fx-x','--fx-y'].forEach(prop => el.style.removeProperty(prop));
             });
-        } else if (fx.tilt3d) {
-            document.querySelectorAll('.stat-card').forEach(el => el.classList.add('syn-stat-fx'));
         }
 
-        if (!fx.versionEffects) {
+        if (!fx.versionEffects || !fx.tilt3d) {
             document.querySelectorAll('.version-item').forEach(el => {
-                el.classList.remove('is-version-looking', 'syn-version-fx');
+                el.classList.remove('is-version-looking');
                 ['--fx-rx','--fx-ry','--fx-x','--fx-y'].forEach(prop => el.style.removeProperty(prop));
             });
-        } else if (fx.tilt3d) {
-            document.querySelectorAll('.version-item').forEach(el => el.classList.add('syn-version-fx'));
         }
 
-        if (!fx.cardGlint || !fx.tilt3d) {
+        if (!fx.tilt3d || !fx.cardGlint) {
             document.querySelectorAll('.executor-card').forEach(el => {
                 el.classList.remove('is-card-looking');
-                if (!fx.tilt3d) el.classList.remove('syn-card-look');
+                ['--card-rx','--card-ry','--card-glare-x','--card-glare-y'].forEach(prop => el.style.removeProperty(prop));
             });
         }
 
-        if (!fx.animations) {
-            document.querySelectorAll('.fx-reveal').forEach(el => {
-                el.classList.remove('fx-reveal');
-                el.style.opacity = '1';
-                el.style.transform = 'none';
-                el.style.filter = 'none';
-            });
-        }
-
-        if (!fx.musicPlayer) {
-            const player = document.getElementById('mxMusicPlayer');
-            if (player) player.style.display = 'none';
-        } else {
-            const player = document.getElementById('mxMusicPlayer');
-            if (player) player.style.display = '';
-        }
-
-        // Make browser drop some expensive compositing hints in performance/minimal.
-        if (settings.preset === 'performance' || settings.preset === 'minimal') {
-            document.querySelectorAll('[style*="will-change"], .executor-card, .stat-card, .version-item, .hero-content, .synchrose-main-title, .hero-tagline').forEach(el => {
-                el.style.willChange = 'auto';
-            });
-        }
+        const player = document.getElementById('mxMusicPlayer');
+        if (player) player.style.display = fx.musicPlayer ? '' : 'none';
     }
 
-    function syncUI(settings) {
+    function syncUi(settings) {
         document.querySelectorAll('.preset-card').forEach(card => {
             card.classList.toggle('is-active', card.dataset.preset === settings.preset);
         });
@@ -11604,77 +11581,61 @@ body[data-syn-fx-preset="minimal"] .filter-panel {
 
             note.innerHTML = `
                 <strong>Active preset: ${settings.preset}</strong><br>
-                Settings now hard-disable event handlers, animated layers, canvas/star layers, smooth-wheel interception, and 3D hover math. 
-                Balanced is the new default for fewer frame drops.
+                Clean controller active: no prototype patching, no observer patching, no source-code regex listener blocking.
                 <div class="perf-row">${pills}</div>
             `;
         }
     }
 
-    function apply(settings, options = {}) {
+    function apply(settings) {
         const normalized = save(settings);
         applyClasses(normalized);
-        hardDisable(normalized);
-        syncUI(normalized);
+        directCleanup(normalized);
+        syncUi(normalized);
         window.__synFxCurrentSettings = normalized;
         document.dispatchEvent(new CustomEvent('synchrose:settings-applied', { detail: normalized }));
         return normalized;
     }
 
-    window.applyPreset = function(presetName) {
+    window.applyPreset = function applyPreset(presetName) {
         if (!PRESETS[presetName]) return;
         const settings = apply({ preset: presetName, effects: { ...PRESETS[presetName] } });
-        if (window.showToast) {
-            const labels = { original: 'Original', balanced: 'Balanced', minimal: 'Minimal', performance: 'Performance' };
-            window.showToast(`Applied ${labels[presetName] || presetName} preset`, 'success');
-        }
+        window.showToast?.(`Applied ${presetName} preset`, 'success');
         return settings;
     };
 
-    window.toggleEffect = function(effectName, enabled) {
+    window.toggleEffect = function toggleEffect(effectName, enabled) {
         const current = load();
         if (!(effectName in PRESETS.original)) return;
-        current.effects[effectName] = Boolean(enabled);
         current.preset = 'custom';
+        current.effects[effectName] = Boolean(enabled);
         const settings = apply(current);
-        if (window.showToast) window.showToast(`${effectName.replace(/[A-Z]/g, m => ' ' + m.toLowerCase())}: ${enabled ? 'on' : 'off'}`, 'success');
+        window.showToast?.(`${effectName.replace(/[A-Z]/g, m => ' ' + m.toLowerCase())}: ${enabled ? 'on' : 'off'}`, 'success');
         return settings;
     };
 
-    window.resetToDefaults = function() {
+    window.resetToDefaults = function resetToDefaults() {
         const settings = apply({ preset: 'balanced', effects: { ...PRESETS.balanced } });
-        if (window.showToast) window.showToast('Reset to Balanced defaults', 'success');
+        window.showToast?.('Reset to Balanced defaults', 'success');
         return settings;
     };
 
-    window.saveSettings = function() {
+    window.saveSettings = function saveSettings() {
         const settings = apply(load());
-        if (typeof window.closeSettings === 'function') window.closeSettings();
-        if (window.showToast) window.showToast('Settings saved and applied', 'success');
+        window.closeSettings?.();
+        window.showToast?.('Settings saved', 'success');
         return settings;
     };
 
-    // Re-apply after dashboard re-renders data.
-    let applyTimer = 0;
-    const scheduleApply = () => {
-        clearTimeout(applyTimer);
-        applyTimer = setTimeout(() => apply(load()), 80);
-    };
-
-    const observer = new MutationObserver(records => {
-        if (!records.some(record => record.addedNodes?.length)) return;
-        scheduleApply();
-    });
-
-    if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+    const settings = load();
 
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => apply(load()), { once: true });
+        document.addEventListener('DOMContentLoaded', () => apply(settings), { once: true });
     } else {
-        apply(load());
+        apply(settings);
     }
 
-    window.addEventListener('pageshow', () => apply(load()));
+    window.addEventListener('pageshow', () => apply(load()), { passive: true });
 })();
 </script>
 
