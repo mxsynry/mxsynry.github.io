@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="Ready to win?">
-    <link rel="icon" href="https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/globe.ico" type="image/x-icon">
+    <link rel="icon" href="/Others/Synchrose/globe.ico" type="image/x-icon">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
     <meta property="og:title" content="Synchrose">
@@ -4454,6 +4454,485 @@
         }
     </style>
 
+
+    <style id="synchrose-look-offset-fix">
+        /* ============================================================
+           Look-at-cursor offset fix
+           - No selectable title/subtitle text
+           - No fake anchor / invisible attachment feeling
+           - Rotates from each element's own center, not page center
+        ============================================================ */
+
+        .synchrose-main-title,
+        .synchrose-main-title *,
+        .hero-title,
+        .hero-title *,
+        .hero-tagline,
+        .hero-tagline *,
+        .synchrose-title-gradient {
+            -webkit-user-select: none !important;
+            user-select: none !important;
+            -webkit-touch-callout: none !important;
+        }
+
+        .synchrose-main-title,
+        .hero-title,
+        .hero-tagline {
+            transform-origin: 50% 50% !important;
+            transform-box: border-box;
+            backface-visibility: hidden;
+            will-change: transform, filter;
+        }
+
+        /* Do not let the older parallax/reveal transforms become the "invisible thing"
+           the text seems attached to. Keep the text at its real layout position. */
+        body.fx-parallax-ready .hero-content,
+        .hero-content {
+            transform: none !important;
+            transform-style: preserve-3d;
+            perspective: 1000px;
+        }
+
+        /* The title/subtitle stay at their normal position.
+           Only rotation is applied. No translateX/Y/Z offset. */
+        body.syn-look-ready .synchrose-main-title,
+        body.syn-look-ready .hero-title {
+            transform:
+                perspective(980px)
+                rotateX(var(--syn-title-rx, 0deg))
+                rotateY(var(--syn-title-ry, 0deg)) !important;
+            transition: transform 72ms cubic-bezier(.16, 1, .3, 1);
+        }
+
+        body.syn-look-ready .hero-tagline {
+            transform:
+                perspective(900px)
+                rotateX(var(--syn-sub-rx, 0deg))
+                rotateY(var(--syn-sub-ry, 0deg)) !important;
+            transition: transform 82ms cubic-bezier(.16, 1, .3, 1);
+        }
+
+        /* Horizontal-only shake stays inside the text itself, so it no longer drifts down. */
+        .synchrose-title-gradient {
+            display: inline-block;
+            transform: translate3d(0, 0, 0) !important;
+            transform-origin: 50% 50% !important;
+        }
+
+        @keyframes synchroseTitleHorizontalShakeFixed {
+            0%, 100% { translate: 0 0; }
+            25% { translate: 2px 0; }
+            50% { translate: -2px 0; }
+            75% { translate: 2px 0; }
+        }
+
+        .synchrose-main-title:hover .synchrose-title-gradient,
+        .hero-title:hover .synchrose-title-gradient,
+        .synchrose-main-title:focus-within .synchrose-title-gradient,
+        .hero-title:focus-within .synchrose-title-gradient {
+            animation:
+                synchroseTitleGlow 2.25s ease-in-out infinite,
+                synchroseTitleHorizontalShakeFixed 0.055s steps(2, end) infinite !important;
+        }
+
+        /* Keep subtitle highlight shake horizontal-only too. */
+        .hero-tagline .highlight,
+        .hero-tagline .highlight.hero-bright {
+            display: inline-block;
+            transform: translate3d(0, 0, 0) !important;
+        }
+
+        @keyframes heroSmallHorizontalShakeFixed {
+            0%, 100% { translate: 0 0; }
+            25% { translate: 0.5px 0; }
+            50% { translate: -0.5px 0; }
+            75% { translate: 0.5px 0; }
+        }
+
+        .hero-tagline .highlight,
+        .hero-tagline .highlight.hero-bright {
+            animation: heroSmallHorizontalShakeFixed 0.064s steps(2, end) infinite !important;
+        }
+
+        /* Cards still get 3D only when hovered, but no detached anchor feeling. */
+        .executor-card.syn-card-look {
+            transform-origin: 50% 50% !important;
+        }
+
+        .executor-card.syn-card-look.is-card-looking {
+            transform:
+                perspective(920px)
+                rotateX(var(--card-rx, 0deg))
+                rotateY(var(--card-ry, 0deg))
+                translateY(-5px)
+                scale(1.012) !important;
+        }
+
+        @media (max-width: 720px), (prefers-reduced-motion: reduce) {
+            body.syn-look-ready .synchrose-main-title,
+            body.syn-look-ready .hero-title,
+            body.syn-look-ready .hero-tagline,
+            .executor-card.syn-card-look.is-card-looking {
+                transform: none !important;
+            }
+        }
+    </style>
+
+
+    <style id="synchrose-stat-version-effects">
+        /* ============================================================
+           Stats + Roblox Versions visual effects
+        ============================================================ */
+
+        .stats-bar,
+        .versions-grid,
+        .version-list,
+        .versions-panel {
+            perspective: 1000px;
+        }
+
+        .stat-card,
+        .version-item {
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+            isolation: isolate;
+        }
+
+        .stat-card.syn-stat-fx,
+        .version-item.syn-version-fx {
+            --fx-x: 50%;
+            --fx-y: 50%;
+            --fx-rx: 0deg;
+            --fx-ry: 0deg;
+            --fx-lift: 0px;
+            transition:
+                transform 130ms cubic-bezier(.16, 1, .3, 1),
+                border-color 150ms ease,
+                box-shadow 150ms ease,
+                background 150ms ease,
+                filter 150ms ease !important;
+            will-change: transform, box-shadow, border-color, filter;
+        }
+
+        .stat-card.syn-stat-fx::before,
+        .version-item.syn-version-fx::before {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            background:
+                radial-gradient(circle at var(--fx-x) var(--fx-y), rgba(255,255,255,0.24), transparent 24%),
+                radial-gradient(circle at var(--fx-x) var(--fx-y), rgba(168,85,247,0.20), transparent 45%),
+                linear-gradient(135deg, rgba(124,58,237,0.20), transparent 38%, rgba(236,72,153,0.15));
+            opacity: 0;
+            pointer-events: none;
+            z-index: 0;
+            transition: opacity 140ms ease;
+        }
+
+        .stat-card.syn-stat-fx::after,
+        .version-item.syn-version-fx::after {
+            content: "";
+            position: absolute;
+            inset: -40% -80%;
+            background: linear-gradient(110deg, transparent 38%, rgba(255,255,255,0.28) 48%, transparent 58%);
+            transform: translateX(-58%) rotate(8deg);
+            opacity: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .stat-card.syn-stat-fx > *,
+        .version-item.syn-version-fx > * {
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-card.syn-stat-fx:hover,
+        .stat-card.syn-stat-fx.is-stat-looking {
+            transform:
+                perspective(900px)
+                rotateX(var(--fx-rx))
+                rotateY(var(--fx-ry))
+                translateY(-7px)
+                scale(1.025) !important;
+            border-color: rgba(255,255,255,0.20) !important;
+            background:
+                linear-gradient(180deg, rgba(255,255,255,0.075), rgba(255,255,255,0.025)),
+                rgba(14, 14, 24, 0.76) !important;
+            box-shadow:
+                0 26px 70px rgba(0,0,0,0.34),
+                0 0 34px rgba(124,58,237,0.22),
+                0 0 42px rgba(236,72,153,0.12),
+                inset 0 1px 0 rgba(255,255,255,0.10) !important;
+            filter: brightness(1.08) saturate(1.08);
+        }
+
+        .version-item.syn-version-fx:hover,
+        .version-item.syn-version-fx.is-version-looking {
+            transform:
+                perspective(900px)
+                rotateX(var(--fx-rx))
+                rotateY(var(--fx-ry))
+                translateY(-5px)
+                scale(1.015) !important;
+            border-color: rgba(255,255,255,0.18) !important;
+            box-shadow:
+                0 22px 60px rgba(0,0,0,0.32),
+                0 0 30px rgba(56,189,248,0.13),
+                0 0 34px rgba(168,85,247,0.16),
+                inset 0 1px 0 rgba(255,255,255,0.09) !important;
+            filter: brightness(1.06) saturate(1.08);
+        }
+
+        .stat-card.syn-stat-fx:hover::before,
+        .stat-card.syn-stat-fx.is-stat-looking::before,
+        .version-item.syn-version-fx:hover::before,
+        .version-item.syn-version-fx.is-version-looking::before {
+            opacity: 1;
+        }
+
+        .stat-card.syn-stat-fx:hover::after,
+        .stat-card.syn-stat-fx.is-stat-looking::after,
+        .version-item.syn-version-fx:hover::after,
+        .version-item.syn-version-fx.is-version-looking::after {
+            opacity: 1;
+            animation: synStatShine 0.62s cubic-bezier(.16, 1, .3, 1) forwards;
+        }
+
+        @keyframes synStatShine {
+            from { transform: translateX(-58%) rotate(8deg); }
+            to { transform: translateX(58%) rotate(8deg); }
+        }
+
+        .stat-card .stat-value {
+            position: relative;
+            display: inline-block;
+            transform: translateZ(24px);
+            transition:
+                transform 140ms cubic-bezier(.16,1,.3,1),
+                text-shadow 140ms ease,
+                color 140ms ease;
+        }
+
+        .stat-card .stat-label {
+            transform: translateZ(14px);
+            transition: color 140ms ease, letter-spacing 140ms ease, opacity 140ms ease;
+        }
+
+        .stat-card.syn-stat-fx:hover .stat-value,
+        .stat-card.syn-stat-fx.is-stat-looking .stat-value {
+            transform: translateZ(34px) scale(1.10);
+            color: #ffffff;
+            text-shadow:
+                0 0 12px rgba(255,255,255,0.55),
+                0 0 24px rgba(168,85,247,0.62),
+                0 0 38px rgba(236,72,153,0.34);
+            animation: synStatNumberPulse 0.48s cubic-bezier(.16, 1, .3, 1);
+        }
+
+        .stat-card.syn-stat-fx:hover .stat-label,
+        .stat-card.syn-stat-fx.is-stat-looking .stat-label {
+            color: rgba(255,255,255,0.82);
+            letter-spacing: 0.095em;
+            opacity: 1;
+        }
+
+        @keyframes synStatNumberPulse {
+            0% { scale: 1; filter: brightness(1); }
+            45% { scale: 1.13; filter: brightness(1.3); }
+            100% { scale: 1; filter: brightness(1); }
+        }
+
+        /* Per-stat accent aura. */
+        .stat-card.syn-stat-fx[data-stat-kind="free"]::before,
+        .stat-card.syn-stat-fx[data-stat-kind="updated"]::before,
+        .stat-card.syn-stat-fx[data-stat-kind="undetected"]::before {
+            background:
+                radial-gradient(circle at var(--fx-x) var(--fx-y), rgba(255,255,255,0.22), transparent 22%),
+                radial-gradient(circle at var(--fx-x) var(--fx-y), rgba(52,211,153,0.27), transparent 48%),
+                linear-gradient(135deg, rgba(52,211,153,0.18), transparent 45%, rgba(56,189,248,0.13));
+        }
+
+        .stat-card.syn-stat-fx[data-stat-kind="paid"]::before,
+        .stat-card.syn-stat-fx[data-stat-kind="outdated"]::before {
+            background:
+                radial-gradient(circle at var(--fx-x) var(--fx-y), rgba(255,255,255,0.22), transparent 22%),
+                radial-gradient(circle at var(--fx-x) var(--fx-y), rgba(250,204,21,0.26), transparent 48%),
+                linear-gradient(135deg, rgba(250,204,21,0.16), transparent 45%, rgba(236,72,153,0.13));
+        }
+
+        .stat-card.syn-stat-fx[data-stat-kind="detected"]::before {
+            background:
+                radial-gradient(circle at var(--fx-x) var(--fx-y), rgba(255,255,255,0.22), transparent 22%),
+                radial-gradient(circle at var(--fx-x) var(--fx-y), rgba(251,113,133,0.28), transparent 48%),
+                linear-gradient(135deg, rgba(251,113,133,0.18), transparent 45%, rgba(236,72,153,0.14));
+        }
+
+        .stat-card.syn-stat-fx[data-stat-kind="total"]::before {
+            background:
+                radial-gradient(circle at var(--fx-x) var(--fx-y), rgba(255,255,255,0.24), transparent 24%),
+                radial-gradient(circle at var(--fx-x) var(--fx-y), rgba(168,85,247,0.26), transparent 48%),
+                linear-gradient(135deg, rgba(124,58,237,0.20), transparent 40%, rgba(56,189,248,0.13));
+        }
+
+        /* Tiny animated status dot for stats. */
+        .stat-card.syn-stat-fx .stat-label::before {
+            content: "";
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            margin-right: 6px;
+            border-radius: 999px;
+            vertical-align: 1px;
+            background: currentColor;
+            opacity: 0.42;
+            box-shadow: 0 0 12px currentColor;
+            transition: opacity 140ms ease, transform 140ms ease;
+        }
+
+        .stat-card.syn-stat-fx:hover .stat-label::before,
+        .stat-card.syn-stat-fx.is-stat-looking .stat-label::before {
+            opacity: 0.95;
+            transform: scale(1.26);
+            animation: synDotBlink 0.55s steps(2, end) infinite;
+        }
+
+        @keyframes synDotBlink {
+            0%, 100% { opacity: 0.95; }
+            50% { opacity: 0.35; }
+        }
+
+        /* Roblox Versions panel polish. */
+        .versions-panel {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .versions-panel::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background:
+                radial-gradient(circle at var(--versions-x, 50%) var(--versions-y, 0%), rgba(56,189,248,0.12), transparent 30%),
+                radial-gradient(circle at 20% 0%, rgba(168,85,247,0.14), transparent 30rem);
+            opacity: 0;
+            transition: opacity 180ms ease;
+        }
+
+        .versions-panel:hover::before {
+            opacity: 1;
+        }
+
+        .versions-panel h3,
+        .versions-panel .version-title,
+        .versions-panel .panel-title {
+            position: relative;
+            z-index: 2;
+        }
+
+        .version-item.syn-version-fx {
+            cursor: default;
+        }
+
+        .version-item.syn-version-fx .version-name,
+        .version-item.syn-version-fx .version-platform,
+        .version-item.syn-version-fx strong,
+        .version-item.syn-version-fx .platform-name {
+            transition: color 140ms ease, text-shadow 140ms ease, transform 140ms ease;
+            transform: translateZ(16px);
+        }
+
+        .version-item.syn-version-fx .version-number,
+        .version-item.syn-version-fx code,
+        .version-item.syn-version-fx .version-code {
+            transition: color 140ms ease, text-shadow 140ms ease, transform 140ms ease;
+            transform: translateZ(22px);
+        }
+
+        .version-item.syn-version-fx:hover .version-name,
+        .version-item.syn-version-fx:hover .version-platform,
+        .version-item.syn-version-fx:hover strong,
+        .version-item.syn-version-fx:hover .platform-name {
+            color: #ffffff;
+            text-shadow:
+                0 0 12px rgba(255,255,255,0.42),
+                0 0 24px rgba(56,189,248,0.22);
+        }
+
+        .version-item.syn-version-fx:hover .version-number,
+        .version-item.syn-version-fx:hover code,
+        .version-item.syn-version-fx:hover .version-code {
+            color: #f6f1ff;
+            text-shadow:
+                0 0 12px rgba(168,85,247,0.42),
+                0 0 24px rgba(236,72,153,0.20);
+        }
+
+        .version-item.syn-version-fx::marker {
+            color: var(--accent);
+        }
+
+        @media (prefers-reduced-motion: reduce), (max-width: 720px) {
+            .stat-card.syn-stat-fx,
+            .version-item.syn-version-fx,
+            .stat-card.syn-stat-fx:hover,
+            .version-item.syn-version-fx:hover {
+                transform: none !important;
+                animation: none !important;
+            }
+
+            .stat-card.syn-stat-fx::after,
+            .version-item.syn-version-fx::after {
+                display: none !important;
+            }
+        }
+    </style>
+
+
+    <style id="synchrose-version-text-brightness">
+        /* Make Roblox version text about 20% brighter. */
+        .versions-panel,
+        .version-item {
+            color: rgba(255,255,255,0.90) !important;
+        }
+
+        .version-item,
+        .version-item *,
+        .version-item .version-number,
+        .version-item .version-code,
+        .version-item code,
+        .version-item time,
+        .version-item small {
+            filter: brightness(1.2);
+        }
+
+        .version-item .version-number,
+        .version-item .version-code,
+        .version-item code {
+            color: #f4f0ff !important;
+            text-shadow:
+                0 0 10px rgba(255,255,255,0.18),
+                0 0 18px rgba(168,85,247,0.22);
+        }
+
+        .version-item .version-date,
+        .version-item .version-updated,
+        .version-item time,
+        .version-item small {
+            color: rgba(235,230,255,0.82) !important;
+        }
+
+        .version-item:hover .version-number,
+        .version-item:hover .version-code,
+        .version-item:hover code {
+            color: #ffffff !important;
+            filter: brightness(1.26);
+        }
+    </style>
+
 </head>
 <body>
 
@@ -4589,7 +5068,7 @@
         <div class="synchrose-final-title" aria-hidden="true">Synchrose</div>
         <div class="synchrose-hint" id="synchroseIntroHint">CLICK / PRESS ANY KEY TO SKIP</div>
     </div>
-    <!-- /synchrose-intro -->
+    <!-- /synchrose-intro-v3 -->
 
 
     <div class="mx-music-player is-empty" id="mxMusicPlayer" aria-label="MP3 music player">
@@ -9298,6 +9777,173 @@
             } else {
                 boot();
             }
+        })();
+    </script>
+
+
+    <script id="synchrose-look-offset-fix-script">
+        (() => {
+            const root = document.documentElement;
+            const body = document.body;
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+            if (reduceMotion || !finePointer) return;
+
+            let mouseX = window.innerWidth / 2;
+            let mouseY = window.innerHeight * 0.40;
+            let raf = 0;
+
+            function elementLookVars(element, maxY, maxX) {
+                if (!element) return { rx: 0, ry: 0 };
+
+                const rect = element.getBoundingClientRect();
+                const centerX = rect.left + rect.width / 2;
+                const centerY = rect.top + rect.height / 2;
+
+                const nx = Math.max(-1, Math.min(1, (mouseX - centerX) / Math.max(rect.width * 0.85, 1)));
+                const ny = Math.max(-1, Math.min(1, (mouseY - centerY) / Math.max(rect.height * 1.35, 1)));
+
+                return {
+                    rx: -ny * maxY,
+                    ry: nx * maxX
+                };
+            }
+
+            function updateLook() {
+                raf = 0;
+
+                const title =
+                    document.querySelector('.synchrose-main-title') ||
+                    document.querySelector('.hero-title');
+
+                const subtitle = document.querySelector('.hero-tagline');
+
+                const titleLook = elementLookVars(title, 4.2, 5.8);
+                const subLook = elementLookVars(subtitle, 2.0, 2.8);
+
+                root.style.setProperty('--syn-title-rx', `${titleLook.rx.toFixed(3)}deg`);
+                root.style.setProperty('--syn-title-ry', `${titleLook.ry.toFixed(3)}deg`);
+                root.style.setProperty('--syn-sub-rx', `${subLook.rx.toFixed(3)}deg`);
+                root.style.setProperty('--syn-sub-ry', `${subLook.ry.toFixed(3)}deg`);
+
+                // Keep these zero so older CSS variables cannot drag the text away.
+                root.style.setProperty('--syn-title-tx', '0px');
+                root.style.setProperty('--syn-title-ty', '0px');
+                root.style.setProperty('--syn-sub-tx', '0px');
+                root.style.setProperty('--syn-sub-ty', '0px');
+            }
+
+            function queueUpdate(event) {
+                if (event?.pointerType && event.pointerType !== 'mouse') return;
+
+                if (event) {
+                    mouseX = event.clientX;
+                    mouseY = event.clientY;
+                }
+
+                body.classList.add('syn-look-ready');
+                if (!raf) raf = requestAnimationFrame(updateLook);
+            }
+
+            window.addEventListener('pointermove', queueUpdate, { passive: true });
+            window.addEventListener('scroll', () => queueUpdate(), { passive: true });
+            window.addEventListener('resize', () => queueUpdate(), { passive: true });
+
+            queueUpdate();
+        })();
+    </script>
+
+
+    <script id="synchrose-stat-version-effects-script">
+        (() => {
+            const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+            function classifyStat(card) {
+                const label = card.querySelector('.stat-label')?.textContent?.trim().toLowerCase() || '';
+                const value = card.querySelector('.stat-value')?.textContent?.trim() || '';
+                card.dataset.statKind = label || value || 'stat';
+            }
+
+            function applyTilt(element, event, maxX = 7, maxY = 8) {
+                const rect = element.getBoundingClientRect();
+                const x = (event.clientX - rect.left) / Math.max(rect.width, 1);
+                const y = (event.clientY - rect.top) / Math.max(rect.height, 1);
+                const nx = (x - 0.5) * 2;
+                const ny = (y - 0.5) * 2;
+
+                element.style.setProperty('--fx-x', `${(x * 100).toFixed(2)}%`);
+                element.style.setProperty('--fx-y', `${(y * 100).toFixed(2)}%`);
+                element.style.setProperty('--fx-ry', `${(nx * maxX).toFixed(3)}deg`);
+                element.style.setProperty('--fx-rx', `${(-ny * maxY).toFixed(3)}deg`);
+
+                const versions = element.closest('.versions-panel');
+                if (versions) {
+                    const panelRect = versions.getBoundingClientRect();
+                    versions.style.setProperty('--versions-x', `${(((event.clientX - panelRect.left) / Math.max(panelRect.width, 1)) * 100).toFixed(2)}%`);
+                    versions.style.setProperty('--versions-y', `${(((event.clientY - panelRect.top) / Math.max(panelRect.height, 1)) * 100).toFixed(2)}%`);
+                }
+            }
+
+            function bindHoverFx(element, activeClass, maxX, maxY) {
+                if (!element || element.dataset.synStatsBound === '1') return;
+                element.dataset.synStatsBound = '1';
+
+                let raf = 0;
+                let lastEvent = null;
+
+                const flush = () => {
+                    raf = 0;
+                    if (!lastEvent) return;
+                    applyTilt(element, lastEvent, maxX, maxY);
+                };
+
+                element.addEventListener('pointerenter', event => {
+                    if (!finePointer || reduceMotion || (event.pointerType && event.pointerType !== 'mouse')) return;
+                    element.classList.add(activeClass);
+                    lastEvent = event;
+                    flush();
+                }, { passive: true });
+
+                element.addEventListener('pointermove', event => {
+                    if (!finePointer || reduceMotion || (event.pointerType && event.pointerType !== 'mouse')) return;
+                    lastEvent = event;
+                    if (!raf) raf = requestAnimationFrame(flush);
+                }, { passive: true });
+
+                element.addEventListener('pointerleave', () => {
+                    element.classList.remove(activeClass);
+                    element.style.removeProperty('--fx-rx');
+                    element.style.removeProperty('--fx-ry');
+                    element.style.removeProperty('--fx-x');
+                    element.style.removeProperty('--fx-y');
+                    lastEvent = null;
+                }, { passive: true });
+            }
+
+            function enhanceStatsAndVersions() {
+                document.querySelectorAll('.stat-card').forEach(card => {
+                    card.classList.add('syn-stat-fx');
+                    classifyStat(card);
+                    bindHoverFx(card, 'is-stat-looking', 8, 7);
+                });
+
+                document.querySelectorAll('.version-item').forEach(item => {
+                    item.classList.add('syn-version-fx');
+                    bindHoverFx(item, 'is-version-looking', 5, 4.5);
+                });
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', enhanceStatsAndVersions, { once: true });
+            } else {
+                enhanceStatsAndVersions();
+            }
+
+            // Re-apply when dashboard data refreshes/re-renders.
+            const observer = new MutationObserver(() => enhanceStatsAndVersions());
+            observer.observe(document.body, { childList: true, subtree: true });
         })();
     </script>
 
