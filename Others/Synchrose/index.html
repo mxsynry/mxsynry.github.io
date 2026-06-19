@@ -939,11 +939,63 @@
             border-bottom: 1px solid var(--border);
         }
 
-        .card-select-row input[type="checkbox"] {
+        .card-select-row /* ============================================================
+           UNIFIED CHECKBOX STYLES - all checkboxes use same design
+           ============================================================ */
+        input[type="checkbox"] {
+            appearance: none;
+            -webkit-appearance: none;
             width: 20px;
             height: 20px;
-            accent-color: var(--accent);
+            min-width: 20px;
+            flex-shrink: 0;
+            margin: 0;
+            border-radius: 6px;
+            border: 1px solid rgba(236, 72, 153, 0.45);
+            background: #0f0f18;
+            display: inline-grid;
+            place-content: center;
             cursor: pointer;
+            transition: all 0.18s ease;
+            box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.12);
+            position: relative;
+            overflow: hidden;
+            vertical-align: middle;
+        }
+
+        input[type="checkbox"]::after {
+            content: "";
+            position: absolute;
+            left: 50%;
+            top: 45%;
+            width: 5px;
+            height: 9px;
+            border: solid #fff;
+            border-width: 0 2px 2px 0;
+            transform: translate(-50%, -50%) rotate(45deg) scale(0);
+            transition: transform 0.15s cubic-bezier(.34,1.56,.64,1), opacity 0.12s ease;
+            opacity: 0;
+        }
+
+        input[type="checkbox"]:checked {
+            background: linear-gradient(135deg, #7c3aed, #a855f7 48%, #ec4899);
+            border-color: rgba(244, 114, 182, 0.9);
+            box-shadow: 0 0 14px rgba(236, 72, 153, 0.35), 0 0 10px rgba(124, 58, 237, 0.28);
+        }
+
+        input[type="checkbox"]:checked::after {
+            transform: translate(-50%, -50%) rotate(45deg) scale(1);
+            opacity: 1;
+        }
+
+        input[type="checkbox"]:focus-visible {
+            outline: 2px solid rgba(236, 72, 153, 0.8);
+            outline-offset: 3px;
+        }
+
+        /* Disable native checkbox styling completely */
+        input[type="checkbox"]:not(:checked) {
+            accent-color: transparent;
         }
 
         .card-select-row label {
@@ -988,7 +1040,6 @@
             from { transform: translateX(100%); opacity: 0; }
             to { transform: translateX(0); opacity: 1; }
         }
-
 
 
         /* Voxlis filter panel */
@@ -1252,25 +1303,7 @@
             flex: 0 0 auto;
         }
 
-        input.theme-check::after {
-            content: "";
-            width: 9px;
-            height: 9px;
-            border-radius: 3px;
-            transform: scale(0);
-            transition: transform 0.14s ease;
-            background: white;
-        }
-
-        input.theme-check:checked {
-            border-color: transparent;
-            background: linear-gradient(135deg, var(--accent), #ec4899);
-            box-shadow: 0 0 14px rgba(236,72,153,0.22);
-        }
-
-        input.theme-check:checked::after {
-            transform: scale(1);
-        }
+        
 
         .filter-toggle-card {
             margin-top: 0.75rem;
@@ -1384,46 +1417,7 @@
             border: 1px solid rgba(245, 158, 11, 0.3);
         }
 
-        input[type="checkbox"] {
-            appearance: none;
-            -webkit-appearance: none;
-            width: 20px;
-            height: 20px;
-            min-width: 20px;
-            border-radius: 6px;
-            border: 1px solid rgba(236, 72, 153, 0.45);
-            background: #0f0f18;
-            display: inline-grid;
-            place-content: center;
-            cursor: pointer;
-            transition: all 0.18s ease;
-            box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.12), 0 0 0 rgba(236, 72, 153, 0);
-        }
-
-        input[type="checkbox"]::before {
-            content: "";
-            width: 10px;
-            height: 10px;
-            transform: scale(0);
-            transition: transform 0.15s ease;
-            background: #fff;
-            clip-path: polygon(14% 44%, 0 58%, 38% 96%, 100% 20%, 86% 6%, 36% 66%);
-        }
-
-        input[type="checkbox"]:checked {
-            background: var(--gradient-main);
-            border-color: rgba(244, 114, 182, 0.9);
-            box-shadow: 0 0 14px rgba(236, 72, 153, 0.35), 0 0 10px rgba(124, 58, 237, 0.28);
-        }
-
-        input[type="checkbox"]:checked::before {
-            transform: scale(1);
-        }
-
-        input[type="checkbox"]:focus-visible {
-            outline: 2px solid rgba(236, 72, 153, 0.8);
-            outline-offset: 3px;
-        }
+        
 
 
         /* ============================================================
@@ -2230,7 +2224,6 @@
             }
         }
     </style>
-
 
 
     <style id="synchrose-intro-style">
@@ -4933,6 +4926,701 @@
         }
     </style>
 
+
+    <style id="synchrose-settings-style">
+
+/* ============================================================
+   FIXED CHECKBOX STYLES - No white squares
+   Replaces the problematic clip-path approach with mask-image
+   ============================================================ */
+
+/* Base checkbox reset */
+input[type="checkbox"],
+input.theme-check {
+    appearance: none;
+    -webkit-appearance: none;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border-radius: 6px;
+    border: 1px solid rgba(236, 72, 153, 0.45);
+    background: #0f0f18;
+    display: inline-grid;
+    place-content: center;
+    cursor: pointer;
+    transition: all 0.18s ease;
+    box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.12);
+    margin: 0;
+    padding: 0;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Unchecked hover state */
+input[type="checkbox"]:hover,
+input.theme-check:hover {
+    border-color: rgba(236, 72, 153, 0.65);
+    box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.2), 0 0 8px rgba(236, 72, 153, 0.15);
+}
+
+/* Checked state - gradient background */
+input[type="checkbox"]:checked,
+input.theme-check:checked {
+    background: linear-gradient(135deg, #7c3aed, #a855f7 48%, #ec4899);
+    border-color: rgba(244, 114, 182, 0.9);
+    box-shadow: 0 0 14px rgba(236, 72, 153, 0.35), 0 0 10px rgba(124, 58, 237, 0.28);
+}
+
+/* Checkmark using mask-image (reliable, no white squares) */
+input[type="checkbox"]::before,
+input.theme-check::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    display: block;
+    background-color: #fff;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M3 8.5l3.5 3.5 6.5-7'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M3 8.5l3.5 3.5 6.5-7'/%3E%3C/svg%3E");
+    -webkit-mask-size: 70%;
+    mask-size: 70%;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    transform: scale(0);
+    transition: transform 0.15s cubic-bezier(.16, 1, .3, 1);
+}
+
+/* Show checkmark when checked */
+input[type="checkbox"]:checked::before,
+input.theme-check:checked::before {
+    transform: scale(1);
+}
+
+/* Focus state */
+input[type="checkbox"]:focus-visible,
+input.theme-check:focus-visible {
+    outline: 2px solid rgba(236, 72, 153, 0.8);
+    outline-offset: 3px;
+}
+
+/* Disabled state */
+input[type="checkbox"]:disabled,
+input.theme-check:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* ============================================================
+   SETTINGS PANEL SPECIFIC CHECKBOX FIXES
+   ============================================================ */
+
+.toggle-row input[type="checkbox"] {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    /* Ensure no inherited styles conflict */
+    background: #0f0f18;
+    border: 1px solid rgba(236, 72, 153, 0.45);
+}
+
+.toggle-row input[type="checkbox"]:checked {
+    background: linear-gradient(135deg, #7c3aed, #a855f7 48%, #ec4899);
+}
+
+.toggle-row input[type="checkbox"]::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    display: block;
+    background-color: #fff;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M3 8.5l3.5 3.5 6.5-7'/%3E%3C/svg%3E");
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M3 8.5l3.5 3.5 6.5-7'/%3E%3C/svg%3E");
+    -webkit-mask-size: 70%;
+    mask-size: 70%;
+    -webkit-mask-position: center;
+    mask-position: center;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    transform: scale(0);
+    transition: transform 0.15s cubic-bezier(.16, 1, .3, 1);
+}
+
+.toggle-row input[type="checkbox"]:checked::before {
+    transform: scale(1);
+}
+
+/* Override any old conflicting styles */
+input[type="checkbox"]:not(:checked)::before,
+input.theme-check:not(:checked)::before {
+    transform: scale(0) !important;
+}
+
+input[type="checkbox"]:checked::before,
+input.theme-check:checked::before {
+    transform: scale(1) !important;
+}
+
+
+/* ============================================================
+   SETTINGS PANEL STYLES
+   ============================================================ */
+
+.settings-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(3, 3, 5, 0.72);
+    backdrop-filter: blur(8px);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.28s ease;
+    z-index: 9998;
+}
+
+body.settings-open .settings-overlay {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.settings-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: min(420px, 100vw);
+    height: 100dvh;
+    background: linear-gradient(180deg, rgba(124,58,237,0.08), rgba(236,72,153,0.04)), #0a0a12;
+    border-left: 1px solid rgba(255,255,255,0.08);
+    box-shadow: -24px 0 60px rgba(0,0,0,0.5);
+    transform: translateX(105%);
+    transition: transform 0.32s cubic-bezier(.16, 1, .3, 1);
+    z-index: 9999;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+body.settings-open .settings-panel {
+    transform: translateX(0);
+}
+
+.settings-header {
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    padding: 1.25rem 1.5rem;
+    background: linear-gradient(180deg, rgba(15,15,24,0.98), rgba(15,15,24,0.88));
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}
+
+.settings-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #8b5cf6, #ec4899);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    margin-bottom: 0.15rem;
+}
+
+.settings-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.settings-close {
+    padding: 0.5rem;
+    min-width: 36px;
+    min-height: 36px;
+    border-radius: 10px;
+    display: grid;
+    place-items: center;
+}
+
+.settings-body {
+    padding: 1.25rem 1.5rem 2rem;
+}
+
+.settings-section {
+    margin-bottom: 1.75rem;
+}
+
+.settings-section-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    margin-bottom: 0.85rem;
+}
+
+/* Preset Cards */
+.preset-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.65rem;
+}
+
+.preset-card {
+    padding: 1rem 0.75rem;
+    border-radius: 14px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.03);
+    color: var(--text);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.preset-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(124,58,237,0.15), rgba(236,72,153,0.1));
+    opacity: 0;
+    transition: opacity 0.2s ease;
+}
+
+.preset-card:hover {
+    border-color: rgba(168,85,247,0.4);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(124,58,237,0.12);
+}
+
+.preset-card:hover::before {
+    opacity: 1;
+}
+
+.preset-card.is-active {
+    border-color: rgba(168,85,247,0.6);
+    background: linear-gradient(135deg, rgba(124,58,237,0.2), rgba(236,72,153,0.12));
+    box-shadow: 0 0 20px rgba(124,58,237,0.2);
+}
+
+.preset-card.is-active::before {
+    opacity: 1;
+}
+
+.preset-card > * {
+    position: relative;
+    z-index: 1;
+}
+
+.preset-icon {
+    font-size: 1.6rem;
+    margin-bottom: 0.35rem;
+}
+
+.preset-name {
+    font-size: 0.88rem;
+    font-weight: 700;
+    margin-bottom: 0.15rem;
+}
+
+.preset-desc {
+    font-size: 0.72rem;
+    color: var(--text-muted);
+}
+
+/* Toggle List */
+.toggle-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+
+.toggle-row {
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+    padding: 0.7rem 0.85rem;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.04);
+    background: rgba(255,255,255,0.02);
+    cursor: pointer;
+    transition: all 0.15s ease;
+    user-select: none;
+}
+
+.toggle-row:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(168,85,247,0.2);
+}
+
+.toggle-row input[type="checkbox"] {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+}
+
+.toggle-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.toggle-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.toggle-desc {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    line-height: 1.35;
+}
+
+.settings-footer {
+    display: flex;
+    gap: 0.75rem;
+    padding-top: 1rem;
+    border-top: 1px solid rgba(255,255,255,0.06);
+}
+
+.settings-footer .btn {
+    flex: 1;
+    justify-content: center;
+}
+
+/* Settings Trigger Button */
+.settings-trigger {
+    position: fixed;
+    bottom: 1.5rem;
+    right: 1.5rem;
+    z-index: 100;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(236,72,153,0.18));
+    color: #fff;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 8px 28px rgba(124,58,237,0.25), 0 0 16px rgba(236,72,153,0.12);
+    transition: all 0.25s cubic-bezier(.16,1,.3,1);
+    backdrop-filter: blur(10px);
+}
+
+.settings-trigger:hover {
+    transform: translateY(-3px) scale(1.08);
+    box-shadow: 0 12px 36px rgba(124,58,237,0.35), 0 0 24px rgba(236,72,153,0.18);
+}
+
+.settings-trigger:active {
+    transform: translateY(-1px) scale(0.98);
+}
+
+.settings-trigger svg {
+    animation: settingsSpin 8s linear infinite;
+}
+
+@keyframes settingsSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@media (max-width: 720px) {
+    .settings-panel {
+        width: 100vw;
+    }
+    .preset-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .settings-trigger {
+        bottom: 1rem;
+        right: 1rem;
+        width: 48px;
+        height: 48px;
+    }
+}
+
+/* ============================================================
+   EFFECT SYSTEM CSS VARIABLES
+   These are toggled by JavaScript to enable/disable effects
+   ============================================================ */
+
+:root {
+    /* Effect toggles: 1 = on, 0 = off */
+    --fx-intro: 1;
+    --fx-hero-video: 1;
+    --fx-glass: 1;
+    --fx-animations: 1;
+    --fx-glow: 1;
+    --fx-tilt3d: 1;
+    --fx-look-at-cursor: 1;
+    --fx-canvas-particles: 1;
+    --fx-smooth-scroll: 1;
+    --fx-text-effects: 1;
+    --fx-stat-effects: 1;
+    --fx-version-effects: 1;
+    --fx-marquee: 1;
+    --fx-button-shine: 1;
+    --fx-card-glint: 1;
+    --fx-music-player: 1;
+}
+
+/* ---------- INTRO ---------- */
+#synchroseIntro {
+    display: block;
+}
+body.fx-intro-off #synchroseIntro {
+    display: none !important;
+}
+body.fx-intro-off {
+    overflow: auto !important;
+}
+body.fx-intro-off .mx-music-player {
+    transform: translateY(0) scale(1) !important;
+    opacity: 1 !important;
+    pointer-events: auto !important;
+}
+body.fx-intro-off .hero-btn {
+    pointer-events: auto !important;
+}
+
+/* ---------- HERO VIDEO ---------- */
+.hero-video {
+    display: block;
+}
+body.fx-hero-video-off .hero-video {
+    display: none !important;
+}
+
+/* ---------- GLASS MORPHISM ---------- */
+body.fx-glass-off .stat-card,
+body.fx-glass-off .versions-panel,
+body.fx-glass-off .controls,
+body.fx-glass-off .filter-summary-bar,
+body.fx-glass-off .executor-card,
+body.fx-glass-off .compare-card,
+body.fx-glass-off .version-item,
+body.fx-glass-off .filter-section,
+body.fx-glass-off .comparison-table {
+    backdrop-filter: none !important;
+    background: var(--surface) !important;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+}
+body.fx-glass-off .filter-panel {
+    backdrop-filter: none !important;
+    background: #0a0a12 !important;
+}
+
+/* ---------- REVEAL ANIMATIONS ---------- */
+body.fx-animations-off .fx-reveal,
+body.fx-animations-off .fade-in {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+    animation: none !important;
+}
+
+/* ---------- AMBIENT GLOW ---------- */
+body.fx-glow-off .synchrose-starfield,
+body.fx-glow-off .synchrose-orb,
+body.fx-glow-off .synchrose-cursor-glow,
+body.fx-glow-off .fx-cursor-glow {
+    display: none !important;
+}
+body.fx-glow-off .fx-stroke-glow::before,
+body.fx-glow-off .executor-card::before {
+    display: none !important;
+}
+body.fx-glow-off .stat-card.syn-stat-fx::before,
+body.fx-glow-off .version-item.syn-version-fx::before {
+    display: none !important;
+}
+
+/* ---------- 3D CARD TILT ---------- */
+body.fx-tilt3d-off .executor-card.syn-card-look,
+body.fx-tilt3d-off .executor-card.syn-card-look.is-card-looking,
+body.fx-tilt3d-off .stat-card.syn-stat-fx:hover,
+body.fx-tilt3d-off .stat-card.syn-stat-fx.is-stat-looking,
+body.fx-tilt3d-off .version-item.syn-version-fx:hover,
+body.fx-tilt3d-off .version-item.syn-version-fx.is-version-looking {
+    transform: none !important;
+}
+body.fx-tilt3d-off .executor-card:hover {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2) !important;
+}
+
+/* ---------- LOOK-AT-CURSOR ---------- */
+body.fx-look-at-cursor-off.syn-look-ready .synchrose-main-title,
+body.fx-look-at-cursor-off.syn-look-ready .hero-title,
+body.fx-look-at-cursor-off.syn-look-ready .hero-tagline {
+    transform: none !important;
+    transition: none !important;
+}
+
+/* ---------- CANVAS PARTICLES ---------- */
+body.fx-canvas-particles-off .hero-fx-canvas {
+    display: none !important;
+}
+
+/* ---------- SMOOTH SCROLL ---------- */
+/* Handled in JS - revert to native */
+
+/* ---------- TEXT EFFECTS ---------- */
+body.fx-text-effects-off .synchrose-title-gradient {
+    animation: none !important;
+    filter: none !important;
+}
+body.fx-text-effects-off .hero-tagline .highlight,
+body.fx-text-effects-off .hero-tagline .highlight.hero-bright {
+    animation: none !important;
+    text-shadow: 0 0 8px rgba(168,85,247,0.5) !important;
+}
+body.fx-text-effects-off .synchrose-main-title:hover .synchrose-title-gradient,
+body.fx-text-effects-off .hero-title:hover .synchrose-title-gradient {
+    animation: none !important;
+}
+
+/* ---------- STAT EFFECTS ---------- */
+body.fx-stat-effects-off .stat-card.syn-stat-fx:hover,
+body.fx-stat-effects-off .stat-card.syn-stat-fx.is-stat-looking {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2) !important;
+}
+body.fx-stat-effects-off .stat-card.syn-stat-fx::after,
+body.fx-stat-effects-off .stat-card.syn-stat-fx:hover .stat-value {
+    animation: none !important;
+}
+body.fx-stat-effects-off .stat-card.syn-stat-fx:hover .stat-value {
+    transform: none !important;
+    text-shadow: none !important;
+}
+body.fx-stat-effects-off .stat-card.syn-stat-fx .stat-label::before {
+    display: none !important;
+}
+
+/* ---------- VERSION EFFECTS ---------- */
+body.fx-version-effects-off .version-item.syn-version-fx:hover,
+body.fx-version-effects-off .version-item.syn-version-fx.is-version-looking {
+    transform: translateY(-2px) !important;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.2) !important;
+}
+
+/* ---------- MARQUEE ---------- */
+body.fx-marquee-off .synchrose-marquee {
+    animation: none !important;
+    padding-left: 0 !important;
+    white-space: normal !important;
+}
+
+/* ---------- BUTTON SHINE ---------- */
+body.fx-button-shine-off .btn::after,
+body.fx-button-shine-off .btn-small::after,
+body.fx-button-shine-off .hero-btn::after {
+    display: none !important;
+}
+
+/* ---------- CARD GLINT ---------- */
+body.fx-card-glint-off .executor-card::after {
+    display: none !important;
+}
+
+/* ---------- MUSIC PLAYER ---------- */
+body.fx-music-player-off #mxMusicPlayer {
+    display: none !important;
+}
+
+</style>
+
+<style id="checkbox-override-fix">
+/* ============================================================
+   EMERGENCY CHECKBOX FIX - Overrides all previous checkbox styles
+   ============================================================ */
+
+/* Kill any old ::before content that might show as white squares */
+input[type="checkbox"]::before,
+input.theme-check::before,
+.toggle-row input[type="checkbox"]::before {
+    content: "" !important;
+    position: absolute !important;
+    inset: 0 !important;
+    display: block !important;
+    background-color: transparent !important;
+    -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M3 8.5l3.5 3.5 6.5-7'/%3E%3C/svg%3E") !important;
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='none' stroke='white' stroke-linecap='round' stroke-linejoin='round' stroke-width='2.5' d='M3 8.5l3.5 3.5 6.5-7'/%3E%3C/svg%3E") !important;
+    -webkit-mask-size: 70% !important;
+    mask-size: 70% !important;
+    -webkit-mask-position: center !important;
+    mask-position: center !important;
+    -webkit-mask-repeat: no-repeat !important;
+    mask-repeat: no-repeat !important;
+    transform: scale(0) !important;
+    transition: transform 0.15s cubic-bezier(.16, 1, .3, 1), background-color 0.15s ease !important;
+    clip-path: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* Show checkmark when checked */
+input[type="checkbox"]:checked::before,
+input.theme-check:checked::before,
+.toggle-row input[type="checkbox"]:checked::before {
+    background-color: #fff !important;
+    transform: scale(1) !important;
+}
+
+/* Ensure unchecked is truly empty */
+input[type="checkbox"]:not(:checked)::before,
+input.theme-check:not(:checked)::before,
+.toggle-row input[type="checkbox"]:not(:checked)::before {
+    background-color: transparent !important;
+    transform: scale(0) !important;
+}
+
+/* Base checkbox styling */
+input[type="checkbox"],
+input.theme-check {
+    appearance: none !important;
+    -webkit-appearance: none !important;
+    width: 20px !important;
+    height: 20px !important;
+    min-width: 20px !important;
+    border-radius: 6px !important;
+    border: 1px solid rgba(236, 72, 153, 0.45) !important;
+    background: #0f0f18 !important;
+    display: inline-grid !important;
+    place-content: center !important;
+    cursor: pointer !important;
+    position: relative !important;
+    overflow: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: inset 0 0 0 1px rgba(124, 58, 237, 0.12) !important;
+}
+
+input[type="checkbox"]:checked,
+input.theme-check:checked {
+    background: linear-gradient(135deg, #7c3aed, #a855f7 48%, #ec4899) !important;
+    border-color: rgba(244, 114, 182, 0.9) !important;
+    box-shadow: 0 0 14px rgba(236, 72, 153, 0.35), 0 0 10px rgba(124, 58, 237, 0.28) !important;
+}
+
+input[type="checkbox"]:hover,
+input.theme-check:hover {
+    border-color: rgba(236, 72, 153, 0.65) !important;
+}
+
+input[type="checkbox"]:focus-visible,
+input.theme-check:focus-visible {
+    outline: 2px solid rgba(236, 72, 153, 0.8) !important;
+    outline-offset: 3px !important;
+}
+</style>
+<base target="_blank">
 </head>
 <body>
 
@@ -4988,7 +5676,7 @@
                 <span class="synchrose-line"> </span>
                 <span class="synchrose-line">[SYS] (00:00:00) ELAPSED</span>
                 <span class="synchrose-line">[NET] <span class="synchrose-purple">Voxlis.NET</span> / <span class="synchrose-pink">WEAO.xyz</span> bridge prepared</span>
-                <span class="synchrose-line synchrose-after-click-line">[SYS] the system is yours</span>
+                <span class="synchrose-line synchrose-after-click-line">[SYNCHROSE] ありがとう, the system is yours.</span>
                 <span class="synchrose-line synchrose-cli-bar">[LOAD] <span class="synchrose-bar-shell"><span class="synchrose-bar-fill"></span></span> <span class="synchrose-bar-label">SYNCING</span></span>
                 <pre class="synchrose-ascii">   ███████╗██╗   ██╗███╗   ██╗ ██████╗██╗  ██╗██████╗  ██████╗ ███████╗███████╗
    ██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝██║  ██║██╔══██╗██╔═══██╗██╔════╝██╔════╝
@@ -5018,7 +5706,7 @@
                 <span class="synchrose-line"> </span>
                 <span class="synchrose-line">[SYS] (00:00:00) ELAPSED</span>
                 <span class="synchrose-line">[NET] <span class="synchrose-purple">Voxlis.NET</span> / <span class="synchrose-pink">WEAO.xyz</span> bridge prepared</span>
-                <span class="synchrose-line synchrose-after-click-line">[SYS] the system is yours</span>
+                <span class="synchrose-line synchrose-after-click-line">[SYNCHROSE] ありがとう, the system is yours.</span>
                 <span class="synchrose-line synchrose-cli-bar">[LOAD] <span class="synchrose-bar-shell"><span class="synchrose-bar-fill"></span></span> <span class="synchrose-bar-label">SYNCING</span></span>
                 <pre class="synchrose-ascii">   ███████╗██╗   ██╗███╗   ██╗ ██████╗██╗  ██╗██████╗  ██████╗ ███████╗███████╗
    ██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝██║  ██║██╔══██╗██╔═══██╗██╔════╝██╔════╝
@@ -5046,7 +5734,7 @@
                 <span class="synchrose-line"> </span>
                 <span class="synchrose-line">[SYS] (00:00:00) ELAPSED</span>
                 <span class="synchrose-line">[NET] <span class="synchrose-purple">Voxlis.NET</span> / <span class="synchrose-pink">WEAO.xyz</span> bridge prepared</span>
-                <span class="synchrose-line synchrose-after-click-line">[SYS] the system is yours</span>
+                <span class="synchrose-line synchrose-after-click-line">[SYNCHROSE] ありがとう, the system is yours.</span>
                 <span class="synchrose-line synchrose-cli-bar">[LOAD] <span class="synchrose-bar-shell"><span class="synchrose-bar-fill"></span></span> <span class="synchrose-bar-label">SYNCING</span></span>
                 <pre class="synchrose-ascii">   ███████╗██╗   ██╗███╗   ██╗ ██████╗██╗  ██╗██████╗  ██████╗ ███████╗███████╗
    ██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝██║  ██║██╔══██╗██╔═══██╗██╔════╝██╔════╝
@@ -5157,6 +5845,186 @@
             </a>
         </div>
 </section>
+
+    <!-- ============================================================
+         SETTINGS / PRESETS PANEL
+         ============================================================ -->
+    <div class="settings-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
+    <div class="settings-panel" id="settingsPanel" aria-hidden="true">
+        <div class="settings-header">
+            <div>
+                <div class="settings-title">Visual Settings</div>
+                <div class="settings-subtitle">Customize your Synchrose experience</div>
+            </div>
+            <button class="btn settings-close" type="button" onclick="closeSettings()" aria-label="Close settings">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M18 6L6 18M6 6l12 12"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="settings-body">
+            <!-- Presets -->
+            <div class="settings-section">
+                <div class="settings-section-title">Presets</div>
+                <div class="preset-grid">
+                    <button class="preset-card" data-preset="original" onclick="applyPreset('original')">
+                        <div class="preset-icon">&#10024;</div>
+                        <div class="preset-name">Original</div>
+                        <div class="preset-desc">Full experience</div>
+                    </button>
+                    <button class="preset-card" data-preset="balanced" onclick="applyPreset('balanced')">
+                        <div class="preset-icon">&#9889;</div>
+                        <div class="preset-name">Balanced</div>
+                        <div class="preset-desc">Optimized look</div>
+                    </button>
+                    <button class="preset-card" data-preset="minimal" onclick="applyPreset('minimal')">
+                        <div class="preset-icon">&#129718;</div>
+                        <div class="preset-name">Minimal</div>
+                        <div class="preset-desc">Bare essentials</div>
+                    </button>
+                    <button class="preset-card" data-preset="performance" onclick="applyPreset('performance')">
+                        <div class="preset-icon">&#128640;</div>
+                        <div class="preset-name">Performance</div>
+                        <div class="preset-desc">Maximum FPS</div>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Individual Toggles -->
+            <div class="settings-section">
+                <div class="settings-section-title">Individual Effects</div>
+                <div class="toggle-list">
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="intro" onchange="toggleEffect('intro', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">Terminal Intro</span>
+                            <span class="toggle-desc">Boot sequence with split animation</span>
+                        </span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="heroVideo" onchange="toggleEffect('heroVideo', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">Hero Video</span>
+                            <span class="toggle-desc">Blurred looping background video</span>
+                        </span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="glass" onchange="toggleEffect('glass', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">Glass Morphism</span>
+                            <span class="toggle-desc">Frosted glass panels and cards</span>
+                        </span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="animations" onchange="toggleEffect('animations', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">Reveal Animations</span>
+                            <span class="toggle-desc">Scroll-triggered entrance effects</span>
+                        </span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="glow" onchange="toggleEffect('glow', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">Ambient Glow</span>
+                            <span class="toggle-desc">Cursor glow, orbs, starfield</span>
+                        </span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="tilt3d" onchange="toggleEffect('tilt3d', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">3D Card Tilt</span>
+                            <span class="toggle-desc">Perspective rotation on hover</span>
+                        </span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="lookAtCursor" onchange="toggleEffect('lookAtCursor', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">Look-At-Cursor</span>
+                            <span class="toggle-desc">Title follows mouse position</span>
+                        </span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="canvasParticles" onchange="toggleEffect('canvasParticles', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">Canvas Particles</span>
+                            <span class="toggle-desc">Hero section particle network</span>
+                        </span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="smoothScroll" onchange="toggleEffect('smoothScroll', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">Smooth Scroll</span>
+                            <span class="toggle-desc">Custom wheel interpolation</span>
+                        </span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="textEffects" onchange="toggleEffect('textEffects', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">Text Effects</span>
+                            <span class="toggle-desc">Title glow pulse and shake</span>
+                        </span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="statEffects" onchange="toggleEffect('statEffects', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">Stat Card Effects</span>
+                            <span class="toggle-desc">3D tilt and shine on stats</span>
+                        </span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="versionEffects" onchange="toggleEffect('versionEffects', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">Version Effects</span>
+                            <span class="toggle-desc">3D tilt on version items</span>
+                        </span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="marquee" onchange="toggleEffect('marquee', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">News Ticker</span>
+                            <span class="toggle-desc">Scrolling marquee in terminal</span>
+                        </span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="buttonShine" onchange="toggleEffect('buttonShine', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">Button Shine</span>
+                            <span class="toggle-desc">Light sweep on button hover</span>
+                        </span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="cardGlint" onchange="toggleEffect('cardGlint', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">Card Glint</span>
+                            <span class="toggle-desc">Diagonal reflection on cards</span>
+                        </span>
+                    </label>
+                    <label class="toggle-row">
+                        <input type="checkbox" class="theme-check" data-effect="musicPlayer" onchange="toggleEffect('musicPlayer', this.checked)">
+                        <span class="toggle-info">
+                            <span class="toggle-name">Music Player</span>
+                            <span class="toggle-desc">Floating disc music player</span>
+                        </span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="settings-footer">
+                <button class="btn" onclick="resetToDefaults()">Reset to Defaults</button>
+                <button class="btn btn-refresh" onclick="saveSettings()">Save & Apply</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Settings Trigger Button -->
+    <button class="settings-trigger" id="settingsTrigger" onclick="openSettings()" title="Visual Settings" aria-label="Open visual settings">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 5 15.4a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 20.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+    </button>
+
 
     <!-- ============================================================
          DASHBOARD SECTION
@@ -8699,7 +9567,7 @@
                 intro?.addEventListener('transitionend', keepOneGuide);
                 intro?.addEventListener('animationend', keepOneGuide);
 
-                // Terminal content click/first advance reveals "the system is yours".
+                // Terminal content click/first advance reveals "ありがとう, the system is yours.".
                 intro?.addEventListener('pointerdown', () => {
                     intro.classList.add('stage-clicked-content');
                     keepOneGuide();
@@ -9945,6 +10813,340 @@
             const observer = new MutationObserver(() => enhanceStatsAndVersions());
             observer.observe(document.body, { childList: true, subtree: true });
         })();
+    </script>
+
+
+    <script id="synchrose-settings-engine">
+
+// ============================================================
+// SYNCHROSE VISUAL SETTINGS ENGINE
+// Preset system with per-effect toggles
+// ============================================================
+
+(() => {
+    const SETTINGS_KEY = 'synchrose:visual-settings:v1';
+
+    const DEFAULT_SETTINGS = {
+        preset: 'original',
+        effects: {
+            intro: true,
+            heroVideo: true,
+            glass: true,
+            animations: true,
+            glow: true,
+            tilt3d: true,
+            lookAtCursor: true,
+            canvasParticles: true,
+            smoothScroll: true,
+            textEffects: true,
+            statEffects: true,
+            versionEffects: true,
+            marquee: true,
+            buttonShine: true,
+            cardGlint: true,
+            musicPlayer: true
+        }
+    };
+
+    const PRESETS = {
+        original: {
+            intro: true, heroVideo: true, glass: true, animations: true,
+            glow: true, tilt3d: true, lookAtCursor: true, canvasParticles: true,
+            smoothScroll: true, textEffects: true, statEffects: true,
+            versionEffects: true, marquee: true, buttonShine: true,
+            cardGlint: true, musicPlayer: true
+        },
+        balanced: {
+            intro: true, heroVideo: true, glass: true, animations: true,
+            glow: false, tilt3d: true, lookAtCursor: false, canvasParticles: false,
+            smoothScroll: false, textEffects: true, statEffects: true,
+            versionEffects: true, marquee: true, buttonShine: true,
+            cardGlint: true, musicPlayer: true
+        },
+        minimal: {
+            intro: false, heroVideo: false, glass: false, animations: false,
+            glow: false, tilt3d: false, lookAtCursor: false, canvasParticles: false,
+            smoothScroll: false, textEffects: false, statEffects: false,
+            versionEffects: false, marquee: false, buttonShine: false,
+            cardGlint: false, musicPlayer: true
+        },
+        performance: {
+            intro: false, heroVideo: false, glass: false, animations: false,
+            glow: false, tilt3d: false, lookAtCursor: false, canvasParticles: false,
+            smoothScroll: false, textEffects: false, statEffects: false,
+            versionEffects: false, marquee: false, buttonShine: false,
+            cardGlint: false, musicPlayer: false
+        }
+    };
+
+    let currentSettings = null;
+    let smoothScrollActive = false;
+    let canvasRafId = null;
+
+    // ---------- Persistence ----------
+    function loadSettings() {
+        try {
+            const raw = localStorage.getItem(SETTINGS_KEY);
+            if (raw) {
+                const parsed = JSON.parse(raw);
+                if (parsed && parsed.effects) {
+                    // Merge with defaults to handle new effects
+                    return {
+                        preset: parsed.preset || 'custom',
+                        effects: { ...DEFAULT_SETTINGS.effects, ...parsed.effects }
+                    };
+                }
+            }
+        } catch (e) {
+            console.warn('Failed to load settings:', e);
+        }
+        return { ...DEFAULT_SETTINGS };
+    }
+
+    function saveSettingsToStorage() {
+        try {
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(currentSettings));
+        } catch (e) {
+            console.warn('Failed to save settings:', e);
+        }
+    }
+
+    // ---------- Body Class Application ----------
+    function applyBodyClasses() {
+        const fx = currentSettings.effects;
+        const body = document.body;
+        const classes = [];
+
+        if (!fx.intro) classes.push('fx-intro-off');
+        if (!fx.heroVideo) classes.push('fx-hero-video-off');
+        if (!fx.glass) classes.push('fx-glass-off');
+        if (!fx.animations) classes.push('fx-animations-off');
+        if (!fx.glow) classes.push('fx-glow-off');
+        if (!fx.tilt3d) classes.push('fx-tilt3d-off');
+        if (!fx.lookAtCursor) classes.push('fx-look-at-cursor-off');
+        if (!fx.canvasParticles) classes.push('fx-canvas-particles-off');
+        if (!fx.smoothScroll) classes.push('fx-smooth-scroll-off');
+        if (!fx.textEffects) classes.push('fx-text-effects-off');
+        if (!fx.statEffects) classes.push('fx-stat-effects-off');
+        if (!fx.versionEffects) classes.push('fx-version-effects-off');
+        if (!fx.marquee) classes.push('fx-marquee-off');
+        if (!fx.buttonShine) classes.push('fx-button-shine-off');
+        if (!fx.cardGlint) classes.push('fx-card-glint-off');
+        if (!fx.musicPlayer) classes.push('fx-music-player-off');
+
+        // Remove old fx-* classes
+        body.className = body.className.split(' ').filter(c => !c.startsWith('fx-') || c === 'fx-motion-ready' || c === 'fx-parallax-ready' || c === 'fx-scroll-ready').join(' ');
+
+        // Add new classes
+        classes.forEach(c => body.classList.add(c));
+
+        // Handle intro skip if disabled
+        if (!fx.intro && !body.classList.contains('synchrose-intro-done')) {
+            body.classList.add('synchrose-intro-done');
+            const intro = document.getElementById('synchroseIntro');
+            if (intro) intro.style.display = 'none';
+        }
+    }
+
+    // ---------- JS-Controlled Effects ----------
+    function applyJSEffects() {
+        const fx = currentSettings.effects;
+
+        // Smooth Scroll
+        if (fx.smoothScroll) {
+            enableSmoothScroll();
+        } else {
+            disableSmoothScroll();
+        }
+
+        // Canvas Particles
+        if (fx.canvasParticles) {
+            enableCanvasParticles();
+        } else {
+            disableCanvasParticles();
+        }
+
+        // Look-at-cursor mouse tracking
+        if (fx.lookAtCursor) {
+            enableLookAtCursor();
+        } else {
+            disableLookAtCursor();
+        }
+
+        // Glow effects (cursor glow rAF)
+        if (fx.glow) {
+            enableGlowTracking();
+        } else {
+            disableGlowTracking();
+        }
+    }
+
+    // ---------- Smooth Scroll Control ----------
+    function enableSmoothScroll() {
+        if (smoothScrollActive) return;
+        smoothScrollActive = true;
+        // The original smooth scroll script handles this
+        // We just ensure the wheel interceptor is active
+    }
+
+    function disableSmoothScroll() {
+        smoothScrollActive = false;
+        // Override smoothScrollToY to use native
+        window.smoothScrollToY = function(y, options = {}) {
+            const target = Math.max(0, Math.min(y, document.documentElement.scrollHeight - window.innerHeight));
+            if (options.immediate) {
+                window.scrollTo(0, target);
+            } else {
+                window.scrollTo({ top: target, behavior: 'smooth' });
+            }
+        };
+        window.smoothScrollToElement = function(el, options = {}) {
+            if (!el) return;
+            const offset = Number(options.offset || 0);
+            const top = el.getBoundingClientRect().top + window.scrollY - offset;
+            window.smoothScrollToY(top, options);
+        };
+    }
+
+    // ---------- Canvas Particles Control ----------
+    function enableCanvasParticles() {
+        const canvas = document.querySelector('.hero-fx-canvas');
+        if (canvas) canvas.style.display = 'block';
+    }
+
+    function disableCanvasParticles() {
+        const canvas = document.querySelector('.hero-fx-canvas');
+        if (canvas) {
+            canvas.style.display = 'none';
+            // Try to cancel any running rAF
+            if (canvasRafId) {
+                cancelAnimationFrame(canvasRafId);
+                canvasRafId = null;
+            }
+        }
+    }
+
+    // ---------- Look-At-Cursor Control ----------
+    let lookAtCursorHandler = null;
+    function enableLookAtCursor() {
+        if (lookAtCursorHandler) return;
+        document.body.classList.add('syn-look-ready');
+        // The existing scripts handle the actual tracking
+    }
+
+    function disableLookAtCursor() {
+        document.body.classList.remove('syn-look-ready');
+        // Reset CSS variables
+        document.documentElement.style.setProperty('--syn-title-rx', '0deg');
+        document.documentElement.style.setProperty('--syn-title-ry', '0deg');
+        document.documentElement.style.setProperty('--syn-sub-rx', '0deg');
+        document.documentElement.style.setProperty('--syn-sub-ry', '0deg');
+    }
+
+    // ---------- Glow Tracking Control ----------
+    let glowHandlerActive = false;
+    function enableGlowTracking() {
+        glowHandlerActive = true;
+    }
+
+    function disableGlowTracking() {
+        glowHandlerActive = false;
+        const glow = document.querySelector('.synchrose-cursor-glow, .fx-cursor-glow');
+        if (glow) glow.style.opacity = '0';
+    }
+
+    // ---------- UI Sync ----------
+    function syncUI() {
+        // Update preset cards
+        document.querySelectorAll('.preset-card').forEach(card => {
+            card.classList.toggle('is-active', card.dataset.preset === currentSettings.preset);
+        });
+
+        // Update toggles
+        document.querySelectorAll('[data-effect]').forEach(input => {
+            const effect = input.dataset.effect;
+            input.checked = currentSettings.effects[effect];
+        });
+    }
+
+    // ---------- Public API ----------
+    window.applyPreset = function(presetName) {
+        if (!PRESETS[presetName]) return;
+        currentSettings.preset = presetName;
+        currentSettings.effects = { ...PRESETS[presetName] };
+        applyBodyClasses();
+        applyJSEffects();
+        syncUI();
+        saveSettingsToStorage();
+
+        // Show toast
+        if (window.showToast) {
+            const labels = { original: 'Original', balanced: 'Balanced', minimal: 'Minimal', performance: 'Performance' };
+            window.showToast(`Applied ${labels[presetName]} preset`, 'success');
+        }
+    };
+
+    window.toggleEffect = function(effectName, enabled) {
+        currentSettings.effects[effectName] = enabled;
+        currentSettings.preset = 'custom';
+        applyBodyClasses();
+        applyJSEffects();
+        syncUI();
+        saveSettingsToStorage();
+    };
+
+    window.resetToDefaults = function() {
+        currentSettings = { ...DEFAULT_SETTINGS };
+        applyBodyClasses();
+        applyJSEffects();
+        syncUI();
+        saveSettingsToStorage();
+        if (window.showToast) window.showToast('Reset to defaults', 'success');
+    };
+
+    window.saveSettings = function() {
+        saveSettingsToStorage();
+        closeSettings();
+        if (window.showToast) window.showToast('Settings saved', 'success');
+    };
+
+    window.openSettings = function() {
+        document.body.classList.add('settings-open');
+        const panel = document.getElementById('settingsPanel');
+        if (panel) panel.setAttribute('aria-hidden', 'false');
+        syncUI();
+    };
+
+    window.closeSettings = function() {
+        document.body.classList.remove('settings-open');
+        const panel = document.getElementById('settingsPanel');
+        if (panel) panel.setAttribute('aria-hidden', 'true');
+    };
+
+    // ---------- Initialization ----------
+    function init() {
+        currentSettings = loadSettings();
+        applyBodyClasses();
+        applyJSEffects();
+
+        // Wait for DOM then sync UI
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', syncUI, { once: true });
+        } else {
+            syncUI();
+        }
+
+        // Escape to close
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.body.classList.contains('settings-open')) {
+                closeSettings();
+            }
+        });
+    }
+
+    init();
+})();
+
     </script>
 
 </body>
