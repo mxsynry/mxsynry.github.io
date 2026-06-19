@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+
+<meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="description" content="Ready to win?">
@@ -5621,6 +5622,233 @@ input.theme-check:focus-visible {
 }
 </style>
 <base target="_blank">
+
+<style id="synchrose-settings-gate-style">
+/* ============================================================
+   Accurate settings + lag reduction overrides.
+============================================================ */
+
+html {
+    scroll-behavior: auto !important;
+}
+
+/* Performance/minimal mode: stop expensive paint features aggressively. */
+body[data-syn-fx-preset="performance"],
+body[data-syn-fx-preset="minimal"] {
+    background: #0a0a0f !important;
+}
+
+body[data-syn-fx-preset="performance"] *,
+body[data-syn-fx-preset="minimal"] * {
+    animation: none !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+}
+
+body[data-syn-fx-preset="performance"] .executor-card,
+body[data-syn-fx-preset="performance"] .stat-card,
+body[data-syn-fx-preset="performance"] .version-item,
+body[data-syn-fx-preset="performance"] .compare-card,
+body[data-syn-fx-preset="performance"] .filter-section {
+    transform: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+}
+
+/* Accurate toggle behavior. */
+body.fx-glow-off .synchrose-starfield,
+body.fx-glow-off .synchrose-orb,
+body.fx-glow-off .synchrose-cursor-glow,
+body.fx-glow-off .fx-cursor-glow,
+body.fx-canvas-particles-off .hero-fx-canvas {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+body.fx-look-at-cursor-off .synchrose-main-title,
+body.fx-look-at-cursor-off .hero-title,
+body.fx-look-at-cursor-off .hero-tagline,
+body.fx-look-at-cursor-off.syn-look-ready .synchrose-main-title,
+body.fx-look-at-cursor-off.syn-look-ready .hero-title,
+body.fx-look-at-cursor-off.syn-look-ready .hero-tagline {
+    transform: none !important;
+    transition: none !important;
+}
+
+body.fx-tilt3d-off .executor-card,
+body.fx-tilt3d-off .executor-card:hover,
+body.fx-tilt3d-off .executor-card.syn-card-look,
+body.fx-tilt3d-off .executor-card.syn-card-look.is-card-looking,
+body.fx-tilt3d-off .stat-card,
+body.fx-tilt3d-off .stat-card:hover,
+body.fx-tilt3d-off .version-item,
+body.fx-tilt3d-off .version-item:hover {
+    transform: none !important;
+}
+
+body.fx-card-glint-off .executor-card::after,
+body.fx-card-glint-off .card::before,
+body.fx-button-shine-off .btn::after,
+body.fx-button-shine-off .btn-small::after,
+body.fx-button-shine-off .hero-btn::after {
+    display: none !important;
+}
+
+body.fx-stat-effects-off .stat-card,
+body.fx-stat-effects-off .stat-card:hover,
+body.fx-stat-effects-off .stat-card.syn-stat-fx,
+body.fx-stat-effects-off .stat-card.syn-stat-fx:hover,
+body.fx-stat-effects-off .stat-card.syn-stat-fx.is-stat-looking {
+    transform: none !important;
+    filter: none !important;
+}
+
+body.fx-stat-effects-off .stat-card::before,
+body.fx-stat-effects-off .stat-card::after,
+body.fx-stat-effects-off .stat-card .stat-label::before {
+    display: none !important;
+}
+
+body.fx-version-effects-off .version-item,
+body.fx-version-effects-off .version-item:hover,
+body.fx-version-effects-off .version-item.syn-version-fx,
+body.fx-version-effects-off .version-item.syn-version-fx:hover,
+body.fx-version-effects-off .version-item.syn-version-fx.is-version-looking {
+    transform: none !important;
+    filter: none !important;
+}
+
+body.fx-version-effects-off .version-item::before,
+body.fx-version-effects-off .version-item::after,
+body.fx-version-effects-off .versions-panel::before {
+    display: none !important;
+}
+
+body.fx-glass-off .stat-card,
+body.fx-glass-off .versions-panel,
+body.fx-glass-off .controls,
+body.fx-glass-off .filter-summary-bar,
+body.fx-glass-off .executor-card,
+body.fx-glass-off .compare-card,
+body.fx-glass-off .version-item,
+body.fx-glass-off .filter-section,
+body.fx-glass-off .comparison-table,
+body.fx-glass-off .settings-panel,
+body.fx-glass-off .filter-panel,
+body.fx-glass-off .mx-music-player::before {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+body.fx-animations-off .fx-reveal,
+body.fx-animations-off .fade-in,
+body.fx-animations-off .executor-card,
+body.fx-animations-off .stat-card,
+body.fx-animations-off .version-item,
+body.fx-animations-off .hero-title,
+body.fx-animations-off .hero-tagline {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+    filter: none !important;
+}
+
+body.fx-text-effects-off .synchrose-title-gradient,
+body.fx-text-effects-off .hero-tagline .highlight,
+body.fx-text-effects-off .hero-tagline .highlight.hero-bright {
+    animation: none !important;
+    text-shadow: none !important;
+    filter: none !important;
+}
+
+body.fx-hero-video-off .hero-video {
+    display: none !important;
+}
+
+body.fx-music-player-off #mxMusicPlayer {
+    display: none !important;
+}
+
+/* Settings UI accuracy/readability. */
+.settings-performance-note {
+    margin: 0 0 1rem;
+    padding: 0.9rem 1rem;
+    border-radius: 14px;
+    border: 1px solid rgba(168,85,247,0.28);
+    background:
+        linear-gradient(135deg, rgba(124,58,237,0.14), rgba(236,72,153,0.08)),
+        rgba(255,255,255,0.035);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.settings-performance-note strong {
+    color: #fff;
+}
+
+.settings-performance-note .perf-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 0.65rem;
+}
+
+.settings-performance-note .perf-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.26rem 0.5rem;
+    border-radius: 999px;
+    background: rgba(255,255,255,0.055);
+    border: 1px solid rgba(255,255,255,0.08);
+    color: #d8d1ff;
+    font-size: 0.72rem;
+}
+
+.settings-performance-note .perf-pill.off {
+    color: #86efac;
+    border-color: rgba(52,211,153,0.22);
+    background: rgba(52,211,153,0.08);
+}
+
+.settings-performance-note .perf-pill.on {
+    color: #fbbf24;
+    border-color: rgba(251,191,36,0.22);
+    background: rgba(251,191,36,0.08);
+}
+
+body[data-syn-fx-preset="performance"] .settings-trigger::after,
+body[data-syn-fx-preset="minimal"] .settings-trigger::after,
+body[data-syn-fx-preset="balanced"] .settings-trigger::after {
+    content: attr(data-fx-badge);
+    position: absolute;
+    right: -4px;
+    bottom: -4px;
+    min-width: 18px;
+    height: 18px;
+    display: grid;
+    place-items: center;
+    border-radius: 999px;
+    background: linear-gradient(135deg, #22c55e, #38bdf8);
+    color: #020617;
+    font-size: 0.62rem;
+    font-weight: 900;
+    border: 1px solid rgba(255,255,255,0.28);
+}
+
+/* Keep settings itself smooth even when global animations are off. */
+body[data-syn-fx-preset="performance"] .settings-panel,
+body[data-syn-fx-preset="minimal"] .settings-panel,
+body[data-syn-fx-preset="performance"] .filter-panel,
+body[data-syn-fx-preset="minimal"] .filter-panel {
+    transition-duration: 0.18s !important;
+}
+</style>
+
+<base target="_blank">
 </head>
 <body>
 
@@ -11148,6 +11376,307 @@ input.theme-check:focus-visible {
 })();
 
     </script>
+
+
+<script id="synchrose-settings-gate-late">
+/* ============================================================
+   Late hard settings engine.
+   Makes settings actually remove/disable expensive effects.
+============================================================ */
+(() => {
+    const KEY = window.__synFxKey || 'synchrose:visual-settings:v1';
+    const PRESETS = window.__synFxPresets || {
+        original: { intro:true, heroVideo:true, glass:true, animations:true, glow:true, tilt3d:true, lookAtCursor:true, canvasParticles:true, smoothScroll:true, textEffects:true, statEffects:true, versionEffects:true, marquee:true, buttonShine:true, cardGlint:true, musicPlayer:true },
+        balanced: { intro:true, heroVideo:true, glass:true, animations:true, glow:false, tilt3d:true, lookAtCursor:false, canvasParticles:false, smoothScroll:false, textEffects:true, statEffects:true, versionEffects:true, marquee:true, buttonShine:true, cardGlint:true, musicPlayer:true },
+        minimal: { intro:false, heroVideo:false, glass:false, animations:false, glow:false, tilt3d:false, lookAtCursor:false, canvasParticles:false, smoothScroll:false, textEffects:false, statEffects:false, versionEffects:false, marquee:false, buttonShine:false, cardGlint:false, musicPlayer:true },
+        performance: { intro:false, heroVideo:false, glass:false, animations:false, glow:false, tilt3d:false, lookAtCursor:false, canvasParticles:false, smoothScroll:false, textEffects:false, statEffects:false, versionEffects:false, marquee:false, buttonShine:false, cardGlint:false, musicPlayer:false }
+    };
+
+    const effectNames = Object.keys(PRESETS.original);
+
+    function parse(raw) {
+        try { return JSON.parse(raw); } catch { return null; }
+    }
+
+    function normalize(settings) {
+        if (!settings || !settings.effects) {
+            settings = { preset: 'balanced', effects: { ...PRESETS.balanced } };
+        }
+        const preset = settings.preset || 'custom';
+        const base = PRESETS[preset] || PRESETS.original;
+        return {
+            preset,
+            effects: { ...PRESETS.original, ...base, ...settings.effects }
+        };
+    }
+
+    function load() {
+        let settings = parse(localStorage.getItem(KEY));
+        if (!settings || !settings.effects) {
+            settings = { preset: 'balanced', effects: { ...PRESETS.balanced } };
+            save(settings);
+        }
+        return normalize(settings);
+    }
+
+    function save(settings) {
+        const normalized = normalize(settings);
+        try { localStorage.setItem(KEY, JSON.stringify(normalized)); } catch {}
+        return normalized;
+    }
+
+    function kebab(name) {
+        return name.replace(/[A-Z]/g, m => '-' + m.toLowerCase());
+    }
+
+    function applyClasses(settings) {
+        const body = document.body;
+        if (!body) return;
+
+        body.dataset.synFxPreset = settings.preset;
+        const trigger = document.getElementById('settingsTrigger');
+        if (trigger) {
+            const badge = settings.preset === 'performance' ? 'FPS' : settings.preset === 'minimal' ? 'MIN' : settings.preset === 'balanced' ? 'BAL' : '';
+            trigger.dataset.fxBadge = badge;
+        }
+
+        effectNames.forEach(name => {
+            body.classList.toggle(`fx-${kebab(name)}-off`, settings.effects[name] === false);
+        });
+    }
+
+    function hardDisable(settings) {
+        const fx = settings.effects;
+        const body = document.body;
+        const root = document.documentElement;
+
+        if (!body) return;
+
+        // Smooth scroll: replace custom helpers with native and let the early gate skip old wheel handlers.
+        if (!fx.smoothScroll) {
+            root.style.scrollBehavior = 'auto';
+            window.smoothScrollToY = function(y, options = {}) {
+                const max = Math.max(0, root.scrollHeight - window.innerHeight);
+                const top = Math.max(0, Math.min(Number(y) || 0, max));
+                window.scrollTo(0, top);
+            };
+            window.smoothScrollToElement = function(el, options = {}) {
+                if (!el) return;
+                const offset = Number(options.offset || 0);
+                window.smoothScrollToY(el.getBoundingClientRect().top + window.scrollY - offset, options);
+            };
+            window.resetSmoothScrollPosition?.(window.scrollY || 0);
+        }
+
+        // Hero video.
+        document.querySelectorAll('.hero-video').forEach(video => {
+            if (!fx.heroVideo) {
+                try { video.pause(); } catch {}
+                video.style.display = 'none';
+            } else {
+                video.style.display = '';
+                try { video.play?.().catch?.(() => {}); } catch {}
+            }
+        });
+
+        // Intro skip.
+        if (!fx.intro) {
+            const intro = document.getElementById('synchroseIntro');
+            if (intro) intro.style.display = 'none';
+            body.classList.add('synchrose-intro-done');
+        }
+
+        // Ambient/canvas/cursor glow.
+        const ambientOff = !fx.glow || !fx.canvasParticles || settings.preset === 'performance' || settings.preset === 'minimal';
+        document.querySelectorAll('.synchrose-starfield, .synchrose-orb, .synchrose-cursor-glow, .fx-cursor-glow, .hero-fx-canvas').forEach(el => {
+            if (ambientOff || (!fx.canvasParticles && el.classList.contains('hero-fx-canvas'))) {
+                el.style.display = 'none';
+                el.style.visibility = 'hidden';
+            } else {
+                el.style.display = '';
+                el.style.visibility = '';
+            }
+        });
+
+        // Starfield density: original can keep more, balanced gets a light star layer.
+        const maxStars = settings.preset === 'original' && fx.glow ? 90 : fx.glow ? 34 : 0;
+        document.querySelectorAll('.synchrose-star').forEach((star, i) => {
+            star.style.display = i < maxStars ? '' : 'none';
+        });
+
+        // Look-at cursor.
+        if (!fx.lookAtCursor) {
+            body.classList.remove('syn-look-ready', 'syn-cursor-active');
+            root.style.setProperty('--syn-title-rx', '0deg');
+            root.style.setProperty('--syn-title-ry', '0deg');
+            root.style.setProperty('--syn-sub-rx', '0deg');
+            root.style.setProperty('--syn-sub-ry', '0deg');
+            root.style.setProperty('--syn-title-tx', '0px');
+            root.style.setProperty('--syn-title-ty', '0px');
+            root.style.setProperty('--syn-sub-tx', '0px');
+            root.style.setProperty('--syn-sub-ty', '0px');
+        }
+
+        // Remove inline transform state and active classes from heavy hover effects.
+        if (!fx.tilt3d || settings.preset === 'performance' || settings.preset === 'minimal') {
+            document.querySelectorAll('.executor-card, .stat-card, .version-item').forEach(el => {
+                el.classList.remove('is-card-looking', 'is-stat-looking', 'is-version-looking');
+                ['--card-rx','--card-ry','--card-glare-x','--card-glare-y','--fx-rx','--fx-ry','--fx-x','--fx-y','--versions-x','--versions-y'].forEach(prop => el.style.removeProperty(prop));
+            });
+        }
+
+        if (!fx.statEffects) {
+            document.querySelectorAll('.stat-card').forEach(el => {
+                el.classList.remove('is-stat-looking', 'syn-stat-fx');
+                ['--fx-rx','--fx-ry','--fx-x','--fx-y'].forEach(prop => el.style.removeProperty(prop));
+            });
+        } else if (fx.tilt3d) {
+            document.querySelectorAll('.stat-card').forEach(el => el.classList.add('syn-stat-fx'));
+        }
+
+        if (!fx.versionEffects) {
+            document.querySelectorAll('.version-item').forEach(el => {
+                el.classList.remove('is-version-looking', 'syn-version-fx');
+                ['--fx-rx','--fx-ry','--fx-x','--fx-y'].forEach(prop => el.style.removeProperty(prop));
+            });
+        } else if (fx.tilt3d) {
+            document.querySelectorAll('.version-item').forEach(el => el.classList.add('syn-version-fx'));
+        }
+
+        if (!fx.cardGlint || !fx.tilt3d) {
+            document.querySelectorAll('.executor-card').forEach(el => {
+                el.classList.remove('is-card-looking');
+                if (!fx.tilt3d) el.classList.remove('syn-card-look');
+            });
+        }
+
+        if (!fx.animations) {
+            document.querySelectorAll('.fx-reveal').forEach(el => {
+                el.classList.remove('fx-reveal');
+                el.style.opacity = '1';
+                el.style.transform = 'none';
+                el.style.filter = 'none';
+            });
+        }
+
+        if (!fx.musicPlayer) {
+            const player = document.getElementById('mxMusicPlayer');
+            if (player) player.style.display = 'none';
+        } else {
+            const player = document.getElementById('mxMusicPlayer');
+            if (player) player.style.display = '';
+        }
+
+        // Make browser drop some expensive compositing hints in performance/minimal.
+        if (settings.preset === 'performance' || settings.preset === 'minimal') {
+            document.querySelectorAll('[style*="will-change"], .executor-card, .stat-card, .version-item, .hero-content, .synchrose-main-title, .hero-tagline').forEach(el => {
+                el.style.willChange = 'auto';
+            });
+        }
+    }
+
+    function syncUI(settings) {
+        document.querySelectorAll('.preset-card').forEach(card => {
+            card.classList.toggle('is-active', card.dataset.preset === settings.preset);
+        });
+
+        document.querySelectorAll('[data-effect]').forEach(input => {
+            const name = input.dataset.effect;
+            if (name in settings.effects) input.checked = settings.effects[name] !== false;
+        });
+
+        const panelBody = document.querySelector('.settings-body');
+        if (panelBody && !document.getElementById('settingsPerformanceNote')) {
+            const note = document.createElement('div');
+            note.id = 'settingsPerformanceNote';
+            note.className = 'settings-performance-note';
+            panelBody.prepend(note);
+        }
+
+        const note = document.getElementById('settingsPerformanceNote');
+        if (note) {
+            const expensive = ['smoothScroll','lookAtCursor','glow','canvasParticles','tilt3d','statEffects','versionEffects','glass','heroVideo'];
+            const pills = expensive.map(name => {
+                const on = settings.effects[name] !== false;
+                const label = name.replace(/[A-Z]/g, m => ' ' + m.toLowerCase()).replace(/^./, m => m.toUpperCase());
+                return `<span class="perf-pill ${on ? 'on' : 'off'}">${on ? '●' : '✓'} ${label}: ${on ? 'on' : 'off'}</span>`;
+            }).join('');
+
+            note.innerHTML = `
+                <strong>Active preset: ${settings.preset}</strong><br>
+                Settings now hard-disable event handlers, animated layers, canvas/star layers, smooth-wheel interception, and 3D hover math. 
+                Balanced is the new default for fewer frame drops.
+                <div class="perf-row">${pills}</div>
+            `;
+        }
+    }
+
+    function apply(settings, options = {}) {
+        const normalized = save(settings);
+        applyClasses(normalized);
+        hardDisable(normalized);
+        syncUI(normalized);
+        window.__synFxCurrentSettings = normalized;
+        document.dispatchEvent(new CustomEvent('synchrose:settings-applied', { detail: normalized }));
+        return normalized;
+    }
+
+    window.applyPreset = function(presetName) {
+        if (!PRESETS[presetName]) return;
+        const settings = apply({ preset: presetName, effects: { ...PRESETS[presetName] } });
+        if (window.showToast) {
+            const labels = { original: 'Original', balanced: 'Balanced', minimal: 'Minimal', performance: 'Performance' };
+            window.showToast(`Applied ${labels[presetName] || presetName} preset`, 'success');
+        }
+        return settings;
+    };
+
+    window.toggleEffect = function(effectName, enabled) {
+        const current = load();
+        if (!(effectName in PRESETS.original)) return;
+        current.effects[effectName] = Boolean(enabled);
+        current.preset = 'custom';
+        const settings = apply(current);
+        if (window.showToast) window.showToast(`${effectName.replace(/[A-Z]/g, m => ' ' + m.toLowerCase())}: ${enabled ? 'on' : 'off'}`, 'success');
+        return settings;
+    };
+
+    window.resetToDefaults = function() {
+        const settings = apply({ preset: 'balanced', effects: { ...PRESETS.balanced } });
+        if (window.showToast) window.showToast('Reset to Balanced defaults', 'success');
+        return settings;
+    };
+
+    window.saveSettings = function() {
+        const settings = apply(load());
+        if (typeof window.closeSettings === 'function') window.closeSettings();
+        if (window.showToast) window.showToast('Settings saved and applied', 'success');
+        return settings;
+    };
+
+    // Re-apply after dashboard re-renders data.
+    let applyTimer = 0;
+    const scheduleApply = () => {
+        clearTimeout(applyTimer);
+        applyTimer = setTimeout(() => apply(load()), 80);
+    };
+
+    const observer = new MutationObserver(records => {
+        if (!records.some(record => record.addedNodes?.length)) return;
+        scheduleApply();
+    });
+
+    if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', () => apply(load()), { once: true });
+    } else {
+        apply(load());
+    }
+
+    window.addEventListener('pageshow', () => apply(load()));
+})();
+</script>
 
 </body>
 </html>
