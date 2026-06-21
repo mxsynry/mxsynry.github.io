@@ -1,12 +1,7 @@
 -- =============================================
--- Ryu's JJS script (FIXED)
--- Stare fixed, targetting, highlight on locked target,
+-- Ryu's JJS Script
+-- Stare, aimbot, highlight on target
 -- BLACK FLASH + PERFECT TODO SWAP (players + NPCs)
--- 
--- FIXES:
--- • Auto-unlocks when target leaves the game
--- • Auto-renews targeting on death + respawn (seamless for players)
--- • Shows "Waiting for respawn" during the short death window
 -- =============================================
 
 local Players = game:GetService("Players")
@@ -23,18 +18,21 @@ if _G[SCRIPT_ID] then
     pcall(_G[SCRIPT_ID])
 end
 
+local function wipeHighlights()
+    for _, obj in workspace:GetDescendants() do
+        if obj:IsA("Highlight") and obj:GetAttribute("RyuLockOn") then
+            obj:Destroy()
+        end
+    end
+end
+
 pcall(function()
     local old = PlayerGui:FindFirstChild("GameSenseHUD")
     if old then old:Destroy() end
 end)
-pcall(function()
-    for _, obj in workspace:GetChildren() do
-        if obj:IsA("Highlight") and obj.OutlineColor == Color3.new(1, 0, 0) then
-            obj:Destroy()
-        end
-    end
-end)
+wipeHighlights()
 _G[SCRIPT_ID] = nil
+
 -- =======================================================================
 local Connections = {}
 local function Cleanup()
@@ -45,49 +43,14 @@ local function Cleanup()
         local old = PlayerGui:FindFirstChild("GameSenseHUD")
         if old then old:Destroy() end
     end)
-    pcall(function()
-        for _, obj in workspace:GetChildren() do
-            if obj:IsA("Highlight") and obj.OutlineColor == Color3.new(1, 0, 0) then
-                obj:Destroy()
-            end
-        end
-    end)
+    wipeHighlights()
     _G[SCRIPT_ID] = nil
 end
 _G[SCRIPT_ID] = Cleanup
 
-local GUI, Status, Credits
-local function createHUD()
-    local old = PlayerGui:FindFirstChild("GameSenseHUD")
-    if old then old:Destroy() end
-    GUI = Instance.new("ScreenGui")
-    GUI.Name = "GameSenseHUD"
-    GUI.ResetOnSpawn = false
-    GUI.Parent = PlayerGui
-    Status = Instance.new("TextLabel", GUI)
-    Status.Size = UDim2.new(0, 500, 0, 50)
-    Status.Position = UDim2.new(0.5, -250, 0.85, 0)
-    Status.BackgroundTransparency = 1
-    Status.TextSize = 28
-    Status.Font = Enum.Font.SourceSansBold
-    Status.TextColor3 = Color3.new(1,1,1)
-    Status.TextStrokeTransparency = 0.5
-    Status.Text = "On Standby"
-    Credits = Status:Clone()
-    Credits.TextSize = 14
-    Credits.Text = "Ryu's JJS script"
-    Credits.Position = UDim2.new(0.5, -250, 0.85, -25)
-    Credits.Parent = GUI
-end
-createHUD()
-table.insert(Connections, PlayerGui.ChildRemoved:Connect(function(child)
-    if child.Name == "GameSenseHUD" then
-        createHUD()
-    end
-end))
-
--- ===================================================================
+-- =======================================================================
 -- Config
+-- =======================================================================
 local ToggleKey = Enum.KeyCode.C
 local ModeCycleKey = Enum.KeyCode.M
 local LockYKey = Enum.KeyCode.V
@@ -99,6 +62,10 @@ local SmoothAim = false
 local Sensitivity = 0.22
 local AngleOffset = -30
 local AimHorizontalOffset = 2.2
+local FOVRadius = 250
+local MaxDistance = 500
+local TargetPlayers = true
+local TargetNPCs = true
 
 -- Auto BF + Swap
 local ENABLE_AUTO_BLACKFLASH = true
@@ -109,13 +76,52 @@ local swapAudioId = "rbxassetid://17156034319"
 local isActive = false
 local currentMode = "stare"
 local lockedTarget = nil
-local lockedPlayer = nil      -- NEW: tracks Player for auto-respawn
-local lockedName = nil        -- NEW: fallback for NPCs
-local stareConnection = nil
+local lockedPlayer = nil
+local lockedName = nil
 local LockY = false
 local Highlight = nil
 
--- (all helpers, stareTracking, aimTracking, blackflash functions, setupJJS, loops, input)
+-- =======================================================================
+-- HUD (exact original visuals)
+-- =======================================================================
+local GUI, Status, Credits
+
+local function createHUD()
+    local old = PlayerGui:FindFirstChild("GameSenseHUD")
+    if old then old:Destroy() end
+
+    GUI = Instance.new("ScreenGui")
+    GUI.Name = "GameSenseHUD"
+    GUI.ResetOnSpawn = false
+    GUI.Parent = PlayerGui
+
+    Status = Instance.new("TextLabel", GUI)
+    Status.Size = UDim2.new(0, 500, 0, 50)
+    Status.Position = UDim2.new(0.5, -250, 0.85, 0)
+    Status.BackgroundTransparency = 1
+    Status.TextSize = 28
+    Status.Font = Enum.Font.SourceSansBold
+    Status.TextColor3 = Color3.new(1, 1, 1)
+    Status.TextStrokeTransparency = 0.5
+    Status.Text = "On Standby"
+
+    Credits = Status:Clone()
+    Credits.TextSize = 14
+    Credits.Text = "Ryu's JJS script"
+    Credits.Position = UDim2.new(0.5, -250, 0.85, -25)
+    Credits.Parent = GUI
+end
+createHUD()
+
+table.insert(Connections, PlayerGui.ChildRemoved:Connect(function(child)
+    if child.Name == "GameSenseHUD" then
+        createHUD()
+    end
+end))
+
+-- =======================================================================
+-- Utility
+-- =======================================================================
 local function getRoot(char)
     if not char then return nil end
     local hrp = char:FindFirstChild("HumanoidRootPart")
@@ -127,14 +133,24 @@ local function getLockedTargetRoot()
     return getRoot(lockedTarget)
 end
 
+local function isAlive(char)
+    if not char or not char.Parent then return false end
+    local hum = char:FindFirstChildOfClass("Humanoid")
+    return hum and hum.Health > 0
+end
+
+-- =======================================================================
+-- Highlight
+-- =======================================================================
 local function updateHighlight()
     if not Highlight then
         Highlight = Instance.new("Highlight")
+        Highlight:SetAttribute("RyuLockOn", true)
         Highlight.FillTransparency = 1
         Highlight.OutlineColor = HighlightColor
         Highlight.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
     end
-    if isActive and lockedTarget then
+    if isActive and lockedTarget and isAlive(lockedTarget) then
         Highlight.Adornee = lockedTarget
         Highlight.Parent = workspace
     else
@@ -143,27 +159,94 @@ local function updateHighlight()
     end
 end
 
-local function findScreenCenterTarget()
-    local center = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
-    local closest, minDist = nil, math.huge
-    for _, obj in workspace.Characters:GetChildren() do
-        if not obj:IsA("Model") then continue end
-        if LocalPlayer.Character and obj == LocalPlayer.Character then continue end
-        local hum = obj:FindFirstChild("Humanoid")
-        local part = obj:FindFirstChild(AimPart)
-        if not (hum and part and hum.Health > 0) then continue end
-        local pt, onScreen = Camera:WorldToScreenPoint(part.Position)
-        if onScreen and pt.Z > 0 then
-            local dist = (Vector2.new(pt.X, pt.Y) - center).Magnitude
-            if dist < minDist then
-                minDist = dist
-                closest = obj
+-- =======================================================================
+-- Universal Target Finding
+-- =======================================================================
+local function getAllCharacters()
+    local chars = {}
+    local seen = {}
+
+    local charsFolder = workspace:FindFirstChild("Characters")
+    if charsFolder then
+        for _, obj in charsFolder:GetChildren() do
+            if obj:IsA("Model") and obj:FindFirstChildOfClass("Humanoid") then
+                table.insert(chars, obj)
+                seen[obj] = true
             end
+        end
+    end
+
+    if TargetPlayers then
+        for _, player in ipairs(Players:GetPlayers()) do
+            if player ~= LocalPlayer and player.Character then
+                local c = player.Character
+                if c:FindFirstChildOfClass("Humanoid") and not seen[c] then
+                    table.insert(chars, c)
+                    seen[c] = true
+                end
+            end
+        end
+    end
+
+    if TargetNPCs then
+        for _, obj in workspace:GetDescendants() do
+            if obj:IsA("Model")
+                and obj:FindFirstChildOfClass("Humanoid")
+                and not Players:GetPlayerFromCharacter(obj)
+                and not obj:IsA("Tool")
+                and not obj:IsA("Accessory")
+                and not seen[obj]
+            then
+                table.insert(chars, obj)
+                seen[obj] = true
+            end
+        end
+    end
+
+    return chars
+end
+
+local function findScreenCenterTarget()
+    local myChar = LocalPlayer.Character
+    local myRoot = getRoot(myChar)
+    if not myRoot then return nil end
+
+    local center = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y / 2)
+    local closest, minDist = nil, FOVRadius + 1
+
+    for _, obj in getAllCharacters() do
+        if obj == myChar then continue end
+        if not isAlive(obj) then continue end
+
+        local part = obj:FindFirstChild(AimPart)
+        if not part then continue end
+
+        if (part.Position - myRoot.Position).Magnitude > MaxDistance then continue end
+
+        local pt, onScreen = Camera:WorldToScreenPoint(part.Position)
+        if not onScreen or pt.Z <= 0 then continue end
+
+        local dist = (Vector2.new(pt.X, pt.Y) - center).Magnitude
+        if dist < minDist then
+            minDist = dist
+            closest = obj
         end
     end
     return closest
 end
 
+local function findTargetByName(name)
+    for _, char in getAllCharacters() do
+        if char.Name == name and isAlive(char) then
+            return char
+        end
+    end
+    return nil
+end
+
+-- =======================================================================
+-- Tracking
+-- =======================================================================
 local function stareTracking()
     if not isActive or currentMode ~= "stare" then return end
     local myChar = LocalPlayer.Character
@@ -171,9 +254,13 @@ local function stareTracking()
     if not myRoot then return end
     local tRoot = getLockedTargetRoot()
     if not tRoot then return end
+
     local targetPos = tRoot.Position
-    local lookAt = LockY and Vector3.new(targetPos.X, myRoot.Position.Y, targetPos.Z) or targetPos
+    local lookAt = LockY
+        and Vector3.new(targetPos.X, myRoot.Position.Y, targetPos.Z)
+        or targetPos
     local targetCF = CFrame.lookAt(myRoot.Position, lookAt)
+
     if SmoothAim then
         myRoot.CFrame = myRoot.CFrame:Lerp(targetCF, Sensitivity)
     else
@@ -181,34 +268,40 @@ local function stareTracking()
     end
 end
 
-local function startStareLoop()
-    if stareConnection then stareConnection:Disconnect() end
-    if isActive and currentMode == "stare" and lockedTarget then
-        stareConnection = RunService.RenderStepped:Connect(stareTracking)
-    end
-end
-
 local function aimTracking()
     if not isActive or currentMode ~= "aim" then return end
     local tPart = lockedTarget and lockedTarget:FindFirstChild(AimPart)
     if not tPart then return end
+
     local targetPos = tPart.Position + (Camera.CFrame.RightVector * AimHorizontalOffset)
+    local camPos = Camera.CFrame.Position
     local finalCF
+
     if LockY then
-        local camPos = Camera.CFrame.Position
-        local flat = Vector3.new(targetPos.X, camPos.Y, targetPos.Z)
-        finalCF = CFrame.new(camPos, flat) * CFrame.Angles(math.rad(AngleOffset), 0, 0)
+        local currentLook = Camera.CFrame.LookVector
+        local currentPitch = math.asin(math.clamp(currentLook.Y, -1, 1))
+        local toTarget = targetPos - camPos
+        local targetYaw = math.atan2(toTarget.X, toTarget.Z)
+        local newLook = Vector3.new(
+            math.sin(targetYaw) * math.cos(currentPitch),
+            math.sin(currentPitch),
+            math.cos(targetYaw) * math.cos(currentPitch)
+        ).Unit
+        finalCF = CFrame.new(camPos, camPos + newLook)
     else
-        finalCF = CFrame.new(Camera.CFrame.Position, targetPos)
+        finalCF = CFrame.new(camPos, targetPos)
     end
-    if not SmoothAim or LockY then
+
+    if not SmoothAim then
         Camera.CFrame = finalCF
     else
         Camera.CFrame = Camera.CFrame:Lerp(finalCF, Sensitivity)
     end
 end
 
--- BLACK FLASH + pressKey + pressMouse1 + pollForSwapAudio + run_ functions
+-- =======================================================================
+-- JJS: Black Flash + Todo Swap
+-- =======================================================================
 local function pressKey(keyCode)
     pcall(function()
         VirtualInputManager:SendKeyEvent(true, keyCode, false, game)
@@ -249,9 +342,9 @@ local function setupJJS(char)
     local hum = char:WaitForChild("Humanoid", 5)
     local anim = hum and hum:WaitForChild("Animator", 5)
     if not anim then return end
-    local AnimationTriggers = { ["rbxassetid://100962226150441"] = 0.18, ["rbxassetid://95852624447551"] = 0.18, ["rbxassetid://74145636023952"] = 0.18, ["rbxassetid://72475960800126"] = 0.20 } --3 of the first one are divergent fist from yuji, the last is from mahito's focus strike
-    local todo1 = "rbxassetid://100081544058065" --rock sliding anim
-    local todo2 = "rbxassetid://123167492985370" --brute force anim
+    local AnimationTriggers = { ["rbxassetid://100962226150441"] = 0.18, ["rbxassetid://95852624447551"] = 0.18, ["rbxassetid://74145636023952"] = 0.18, ["rbxassetid://72475960800126"] = 0.20 }
+    local todo1 = "rbxassetid://100081544058065"
+    local todo2 = "rbxassetid://123167492985370"
     local swapAnims = { ["rbxassetid://116040503139675"] = true, ["rbxassetid://91074768993486"] = true, ["rbxassetid://131358603583212"] = true }
     anim.AnimationPlayed:Connect(function(track)
         local animId = track.Animation.AnimationId
@@ -286,14 +379,14 @@ local function setupJJS(char)
     end)
 end
 
--- ==================== NEW: VALIDATION + AUTO-RENEW ====================
+-- =======================================================================
+-- Validation + Auto-Renew
+-- =======================================================================
 local function validateLockedTarget()
     if not isActive then return end
 
     if lockedPlayer then
-        -- Player target (auto-respawn + leave detection)
         if Players:GetPlayerByUserId(lockedPlayer.UserId) ~= lockedPlayer then
-            -- Player left the game
             lockedTarget = nil
             lockedPlayer = nil
             lockedName = nil
@@ -302,18 +395,21 @@ local function validateLockedTarget()
         end
 
         local currentChar = lockedPlayer.Character
-        if currentChar and currentChar.Parent and currentChar:FindFirstChild("Humanoid") then
-            lockedTarget = currentChar
+        if currentChar and currentChar.Parent and isAlive(currentChar) then
+            if lockedTarget ~= currentChar then
+                lockedTarget = currentChar
+            end
         else
             lockedTarget = nil
-            -- keep isActive + lockedPlayer (waiting for respawn)
         end
-    else
-        -- NPC / non-player
-        if not lockedTarget or not lockedTarget.Parent then
+        return
+    end
+
+    if lockedTarget then
+        if not lockedTarget.Parent or not isAlive(lockedTarget) then
             if lockedName then
-                local newTarget = workspace.Characters:FindFirstChild(lockedName)
-                if newTarget and newTarget:FindFirstChild("Humanoid") then
+                local newTarget = findTargetByName(lockedName)
+                if newTarget then
                     lockedTarget = newTarget
                     return
                 end
@@ -324,11 +420,10 @@ local function validateLockedTarget()
             return
         end
 
-        local hum = lockedTarget:FindFirstChild("Humanoid")
-        if not hum then
+        if not lockedTarget:FindFirstChildOfClass("Humanoid") then
             if lockedName then
-                local newTarget = workspace.Characters:FindFirstChild(lockedName)
-                if newTarget and newTarget ~= lockedTarget and newTarget:FindFirstChild("Humanoid") then
+                local newTarget = findTargetByName(lockedName)
+                if newTarget and newTarget ~= lockedTarget then
                     lockedTarget = newTarget
                     return
                 end
@@ -341,9 +436,9 @@ local function validateLockedTarget()
     end
 end
 
--- ===================================================================
+-- =======================================================================
 table.insert(Connections, RunService.Heartbeat:Connect(function()
-    validateLockedTarget()      -- NEW: runs every frame
+    validateLockedTarget()
     updateHighlight()
 
     local statusText = "On Standby"
@@ -367,7 +462,9 @@ table.insert(Connections, RunService.RenderStepped:Connect(function()
     end
 end))
 
--- Input + CharacterAdded
+-- =======================================================================
+-- Input
+-- =======================================================================
 table.insert(Connections, UserInputService.InputBegan:Connect(function(input, gpe)
     if gpe then return end
     if input.KeyCode == ToggleKey then
@@ -384,11 +481,9 @@ table.insert(Connections, UserInputService.InputBegan:Connect(function(input, gp
             lockedTarget = nil
             lockedPlayer = nil
             lockedName = nil
-            startStareLoop()
         end
     elseif input.KeyCode == ModeCycleKey then
         currentMode = currentMode == "stare" and "aim" or "stare"
-        startStareLoop()
     elseif input.KeyCode == LockYKey then
         LockY = not LockY
     elseif input.KeyCode == TeleportKey and lockedTarget then
@@ -410,6 +505,6 @@ if LocalPlayer.Character then task.spawn(setupJJS, LocalPlayer.Character) end
 
 StarterGui:SetCore("SendNotification", {
     Title = "Ryu's JJS • With love",
-    Text = "C = lock/unlock target (players + NPCs)\nM = switch stare ↔ aim\nV = toggle Y-lock\nX = TP behind target\n\nNow auto-unlocks on leave & renews on respawn!",
+    Text = "C = lock/unlock target (players + NPCs)\nM = switch stare ↔ aim\nV = toggle free pitch in aim / Y-lock in stare\nX = TP behind target\n\nUniversal targeting + auto-unlock/respawn!",
     Duration = 10
 })
