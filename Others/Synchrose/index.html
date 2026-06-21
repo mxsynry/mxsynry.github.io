@@ -6122,96 +6122,98 @@ body[data-syn-fx-preset="minimal"] * {
 </style>
 
 
-<style id="synchrose-voxlis-descriptions-style">
+<style id="synchrose-descriptions-modal-style">
 /* ============================================================
-   Voxlis multi-description viewer
+   Voxlis description/details modal
+   Handles points.json, review.md, modals.json, info.json + tag-specific notes.
 ============================================================ */
-.card-description-action {
-    display: block;
-    width: 100%;
-    margin-top: 1rem;
+
+.card-footer.card-footer-with-desc {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 0.5rem !important;
 }
 
-.card-description-action .syn-desc-button {
+.btn-description-wide {
+    grid-column: 1 / -1;
     width: 100%;
-    min-height: 42px;
+    min-height: 44px;
     justify-content: center;
-    border-radius: 10px;
+    border: 1px solid rgba(168,85,247,0.42);
     background:
-        linear-gradient(135deg, rgba(124,58,237,0.18), rgba(236,72,153,0.13)),
-        rgba(15,15,24,0.70);
-    border: 1px solid rgba(168,85,247,0.36);
+        linear-gradient(135deg, rgba(124,58,237,0.20), rgba(236,72,153,0.14)),
+        rgba(255,255,255,0.035);
     color: #f4efff;
-    font-weight: 800;
+    box-shadow: 0 0 18px rgba(124,58,237,0.14);
 }
 
-.card-description-action .syn-desc-button:hover {
-    transform: translateY(-1px);
-    border-color: rgba(236,72,153,0.55);
-    box-shadow: 0 0 20px rgba(124,58,237,0.18), 0 0 14px rgba(236,72,153,0.12);
+.btn-description-wide:hover {
+    border-color: rgba(236,72,153,0.62);
+    background:
+        linear-gradient(135deg, rgba(124,58,237,0.30), rgba(236,72,153,0.20)),
+        rgba(255,255,255,0.055);
+    box-shadow: 0 0 24px rgba(124,58,237,0.20), 0 0 18px rgba(236,72,153,0.12);
 }
 
-.feature-tags {
-    align-items: center;
-}
-
-.feature-tag.syn-feature-tag {
-    border: 1px solid rgba(168,85,247,0.26);
+.feature-tag-button {
+    border: 1px solid rgba(124,58,237,0.22);
     cursor: pointer;
-    font: inherit;
-    line-height: 1;
+    font-family: inherit;
+    line-height: 1.2;
 }
 
-.feature-tag.syn-feature-tag:hover {
-    border-color: rgba(236,72,153,0.55);
+.feature-tag-button:hover {
+    border-color: rgba(236,72,153,0.46);
     color: #fff;
-    background: linear-gradient(135deg, rgba(124,58,237,0.20), rgba(236,72,153,0.16));
+    box-shadow: 0 0 14px rgba(124,58,237,0.15);
 }
 
 .syn-desc-overlay {
     position: fixed;
     inset: 0;
-    z-index: 2147482600;
+    z-index: 2147482500;
     display: none;
     align-items: center;
     justify-content: center;
     padding: 1.25rem;
-    background: rgba(3, 3, 9, 0.72);
+    background: rgba(3, 3, 8, 0.76);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
 }
 
-.syn-desc-overlay.is-open {
+body.syn-desc-open .syn-desc-overlay {
     display: flex;
 }
 
-.syn-desc-modal {
-    width: min(760px, 100%);
-    max-height: min(82vh, 820px);
+.syn-desc-panel {
+    width: min(780px, 100%);
+    max-height: min(82dvh, 820px);
+    overflow: hidden;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    border-radius: 24px;
-    border: 1px solid rgba(168,85,247,0.34);
+    border-radius: 22px;
+    border: 1px solid rgba(168,85,247,0.30);
     background:
-        radial-gradient(circle at 10% 0%, rgba(124,58,237,0.22), transparent 34%),
-        radial-gradient(circle at 96% 18%, rgba(236,72,153,0.16), transparent 30%),
-        rgba(12,12,20,0.98);
+        radial-gradient(circle at 20% 0%, rgba(124,58,237,0.20), transparent 32%),
+        radial-gradient(circle at 100% 18%, rgba(236,72,153,0.16), transparent 34%),
+        #0b0b12;
     box-shadow:
-        0 32px 90px rgba(0,0,0,0.58),
-        0 0 36px rgba(124,58,237,0.18);
+        0 28px 90px rgba(0,0,0,0.58),
+        0 0 42px rgba(124,58,237,0.18);
 }
 
-.syn-desc-head {
+.syn-desc-header {
     display: flex;
+    align-items: flex-start;
     justify-content: space-between;
     gap: 1rem;
-    align-items: start;
-    padding: 1.15rem 1.2rem;
+    padding: 1.2rem 1.35rem;
     border-bottom: 1px solid rgba(255,255,255,0.08);
 }
 
 .syn-desc-title {
     margin: 0;
-    font-size: 1.15rem;
+    font-size: 1.16rem;
     line-height: 1.2;
     color: #fff;
 }
@@ -6225,84 +6227,100 @@ body[data-syn-fx-preset="minimal"] * {
 .syn-desc-close {
     width: 38px;
     height: 38px;
-    border-radius: 999px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
     border: 1px solid rgba(255,255,255,0.10);
-    background: rgba(255,255,255,0.055);
+    background: rgba(255,255,255,0.05);
     color: #fff;
     cursor: pointer;
-    font-size: 1.15rem;
-    line-height: 1;
 }
 
 .syn-desc-close:hover {
-    border-color: rgba(236,72,153,0.55);
-    background: rgba(236,72,153,0.13);
+    border-color: rgba(236,72,153,0.46);
+    background: rgba(236,72,153,0.12);
 }
 
 .syn-desc-body {
     overflow: auto;
-    padding: 1.05rem 1.2rem 1.25rem;
+    padding: 1.2rem 1.35rem 1.35rem;
 }
 
-.syn-desc-chip-row {
+.syn-desc-source-row {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.48rem;
-    margin-bottom: 1rem;
+    gap: 0.45rem;
+    margin-bottom: 0.95rem;
 }
 
-.syn-desc-chip {
-    border: 1px solid rgba(168,85,247,0.28);
+.syn-desc-source-pill {
+    padding: 0.32rem 0.58rem;
     border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.10);
     background: rgba(255,255,255,0.045);
-    color: #ded7ff;
-    padding: 0.34rem 0.62rem;
-    font-size: 0.76rem;
-    cursor: pointer;
-}
-
-.syn-desc-chip:hover {
-    background: rgba(124,58,237,0.18);
-    border-color: rgba(236,72,153,0.50);
-    color: #fff;
+    color: #d8d1ff;
+    font-size: 0.74rem;
+    font-weight: 750;
 }
 
 .syn-desc-section {
-    border: 1px solid rgba(255,255,255,0.075);
-    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.085);
     background: rgba(255,255,255,0.035);
-    padding: 0.92rem 1rem;
+    border-radius: 16px;
+    padding: 0.95rem 1rem;
     margin-bottom: 0.75rem;
 }
 
+.syn-desc-section.is-warning {
+    border-color: rgba(245,158,11,0.36);
+    background:
+        linear-gradient(135deg, rgba(245,158,11,0.12), rgba(239,68,68,0.08)),
+        rgba(255,255,255,0.035);
+}
+
+.syn-desc-section.is-danger {
+    border-color: rgba(239,68,68,0.36);
+    background:
+        linear-gradient(135deg, rgba(239,68,68,0.12), rgba(236,72,153,0.08)),
+        rgba(255,255,255,0.035);
+}
+
+.syn-desc-section.is-positive {
+    border-color: rgba(16,185,129,0.32);
+    background:
+        linear-gradient(135deg, rgba(16,185,129,0.09), rgba(59,130,246,0.06)),
+        rgba(255,255,255,0.035);
+}
+
 .syn-desc-section.is-focused {
-    border-color: rgba(236,72,153,0.60);
-    box-shadow: 0 0 22px rgba(236,72,153,0.14), 0 0 18px rgba(124,58,237,0.11);
+    outline: 2px solid rgba(236,72,153,0.72);
+    box-shadow: 0 0 0 4px rgba(236,72,153,0.10), 0 0 28px rgba(124,58,237,0.16);
 }
 
-.syn-desc-section h4 {
-    margin: 0 0 0.38rem;
+.syn-desc-section-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.42rem;
     color: #fff;
-    font-size: 0.92rem;
+    font-size: 0.88rem;
+    font-weight: 850;
+    letter-spacing: 0.01em;
 }
 
-.syn-desc-source {
-    display: inline-flex;
-    margin-bottom: 0.5rem;
-    padding: 0.16rem 0.44rem;
-    border-radius: 999px;
-    background: rgba(124,58,237,0.16);
-    color: #cfc5ff;
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.02em;
+.syn-desc-origin {
+    flex: 0 0 auto;
+    font-size: 0.66rem;
+    color: var(--text-muted);
     text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 800;
 }
 
 .syn-desc-text {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: 0.88rem;
+    color: #d3cee4;
+    font-size: 0.86rem;
     line-height: 1.55;
     white-space: pre-wrap;
     overflow-wrap: anywhere;
@@ -6311,292 +6329,914 @@ body[data-syn-fx-preset="minimal"] * {
 .syn-desc-empty {
     color: var(--text-muted);
     text-align: center;
-    padding: 1.4rem 0.4rem;
+    padding: 2rem 0.5rem;
+    font-size: 0.9rem;
 }
 
 @media (max-width: 720px) {
     .syn-desc-overlay {
-        padding: 0.65rem;
+        padding: 0.7rem;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
     }
 
-    .syn-desc-modal {
-        max-height: 88vh;
+    .syn-desc-panel {
+        max-height: 88dvh;
         border-radius: 18px;
     }
 
-    .syn-desc-head {
-        padding: 1rem;
-    }
-
-    .syn-desc-body {
-        padding: 0.9rem;
+    .card-footer.card-footer-with-desc {
+        grid-template-columns: 1fr !important;
     }
 }
 </style>
 
 
-<style id="synchrose-control-desc-ui-fix">
-/* ============================================================
-   Control row + description button fix
-   Scoped only to the toolbar row/card actions so the search logic stays untouched.
-============================================================ */
+<style id="synchrose-responsive-final-patch">
+/* FINAL RESPONSIVE PATCH: placed late so it overrides old duplicate mobile blocks. */
 
-/* Make the whole top control row look intentional, not like only the input is styled. */
-.control-top-row {
-    display: grid !important;
-    grid-template-columns: minmax(260px, 1fr) auto !important;
-    align-items: stretch !important;
-    gap: 0.75rem !important;
-    width: 100% !important;
-    padding: 0.72rem !important;
-    border: 1px solid rgba(124, 58, 237, 0.22) !important;
-    border-radius: 20px !important;
-    background:
-        linear-gradient(135deg, rgba(124,58,237,0.075), rgba(236,72,153,0.045)),
-        rgba(12,12,20,0.54) !important;
-    box-shadow: inset 0 0 0 1px rgba(255,255,255,0.025) !important;
-}
-
-/* Keep the search wrapper a normal compact height. */
-.control-top-row > .search-box {
-    min-width: 0 !important;
-    width: 100% !important;
-    min-height: 46px !important;
-    height: 46px !important;
-    max-height: 46px !important;
-    align-self: stretch !important;
-}
-
-/* Only height/alignment here; no visual restyle of the search input. */
-.control-top-row > .search-box input#searchInput {
-    height: 46px !important;
-    min-height: 46px !important;
-    max-height: 46px !important;
-    line-height: 1.2 !important;
-}
-
-/* Make toolbar buttons match the search bar instead of floating awkwardly. */
-.control-top-row > .toolbar-actions {
-    display: grid !important;
-    grid-auto-flow: column !important;
-    grid-auto-columns: max-content !important;
-    align-items: stretch !important;
-    gap: 0.55rem !important;
-    min-height: 46px !important;
-    height: 46px !important;
-    max-height: 46px !important;
-    align-self: stretch !important;
-}
-
-.control-top-row > .toolbar-actions .btn {
-    min-height: 46px !important;
-    height: 46px !important;
-    max-height: 46px !important;
-    padding-block: 0 !important;
-    border-radius: 14px !important;
-    align-items: center !important;
-    justify-content: center !important;
-    cursor: pointer !important;
-}
-
-/* Keep the counter badge vertically centered in the filter button. */
-.control-top-row .filter-active-count {
-    flex: 0 0 auto !important;
-}
-
-/* Description button should behave like the card action buttons and stay attached above them. */
-.executor-card .card-description-action {
-    margin-top: auto !important;
-    padding-top: 1rem !important;
-    width: 100% !important;
-}
-
-.executor-card .card-description-action + .card-footer {
-    margin-top: 0.55rem !important;
-    padding-top: 0 !important;
-}
-
-.card-description-action .syn-desc-button {
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
-    width: 100% !important;
-    min-height: 42px !important;
-    height: 42px !important;
-    border-radius: 8px !important;
-    cursor: pointer !important;
-    pointer-events: auto !important;
-    user-select: none !important;
-    text-decoration: none !important;
-}
-
-.card-description-action .syn-desc-button:hover {
-    cursor: pointer !important;
-}
-
-.card-description-action .syn-desc-button:active {
-    transform: translateY(0) scale(0.99) !important;
-}
-
-/* Clickable tags should also clearly behave like buttons. */
-.feature-tag.syn-feature-tag {
-    cursor: pointer !important;
-    user-select: none !important;
-}
-
-@media (max-width: 980px) {
-    .control-top-row {
-        grid-template-columns: 1fr !important;
+@media (max-width: 900px) {
+    html, body {
+        overflow-x: hidden !important;
     }
 
-    .control-top-row > .toolbar-actions {
-        grid-auto-flow: row !important;
-        grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
-        height: auto !important;
-        max-height: none !important;
+    .dashboard-container,
+    .container {
+        width: 100% !important;
+        max-width: 100% !important;
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
     }
 
-    .control-top-row > .toolbar-actions .btn {
+    .controls,
+    .control-top-row,
+    .toolbar-actions,
+    .filter-summary-bar {
+        flex-direction: column !important;
+        align-items: stretch !important;
         width: 100% !important;
     }
-}
 
-@media (max-width: 540px) {
-    .control-top-row {
-        padding: 0.62rem !important;
-        border-radius: 16px !important;
+    .search-box {
+        width: 100% !important;
+        min-width: 0 !important;
+        flex: 1 1 auto !important;
     }
 
-    .control-top-row > .toolbar-actions {
+    .stats-bar {
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+        gap: 0.75rem !important;
+    }
+
+    .version-grid,
+    .versions-grid,
+    .executors-grid,
+    .compare-grid {
+        grid-template-columns: 1fr !important;
+    }
+
+    .tabs {
+        overflow-x: auto !important;
+        scrollbar-width: none;
+    }
+
+    .tabs::-webkit-scrollbar {
+        display: none;
+    }
+
+    .tab {
+        flex: 0 0 auto;
+    }
+
+    #tableContainer,
+    .table-container {
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .comparison-table {
+        min-width: 900px;
+    }
+}
+
+@media (max-width: 720px) {
+    body {
+        min-width: 0 !important;
+    }
+
+    .hero-section {
+        min-height: 100svh !important;
+        height: 100svh !important;
+        padding: 1rem !important;
+    }
+
+    .hero-content {
+        width: 100% !important;
+        padding: 1rem !important;
+        transform: none !important;
+    }
+
+    .synchrose-main-title,
+    .hero-title {
+        font-size: clamp(2.25rem, 13vw, 4rem) !important;
+        line-height: 0.95 !important;
+        max-width: 100% !important;
+        text-align: center !important;
+    }
+
+    .hero-tagline {
+        font-size: clamp(0.95rem, 4vw, 1.15rem) !important;
+        line-height: 1.45 !important;
+        max-width: min(92vw, 34rem) !important;
+        margin-left: auto !important;
+        margin-right: auto !important;
+        text-align: center !important;
+    }
+
+    .hero-btn {
+        width: min(100%, 320px) !important;
+        justify-content: center !important;
+        padding: 0.9rem 1.25rem !important;
+    }
+
+    .dashboard-header h2 {
+        font-size: clamp(1.45rem, 8vw, 2rem) !important;
+    }
+
+    .stat-card {
+        padding: 1rem 0.75rem !important;
+        border-radius: 14px !important;
+    }
+
+    .stat-value {
+        font-size: clamp(1.35rem, 8vw, 1.85rem) !important;
+    }
+
+    .stat-label {
+        font-size: 0.68rem !important;
+        letter-spacing: 0.04em !important;
+    }
+
+    .versions-panel {
+        padding: 1rem !important;
+    }
+
+    .version-item {
+        padding: 0.85rem !important;
+    }
+
+    .version-hash,
+    .version-number,
+    .version-code,
+    .version-item code {
+        font-size: 0.78rem !important;
+        word-break: break-word !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    .executor-card {
+        padding: 1rem !important;
+        border-radius: 16px !important;
+        content-visibility: visible !important;
+        contain-intrinsic-size: auto !important;
+    }
+
+    .card-header {
+        flex-direction: column !important;
+        gap: 0.75rem !important;
+        align-items: stretch !important;
+    }
+
+    .executor-name {
+        font-size: 1.1rem !important;
+        line-height: 1.2 !important;
+    }
+
+    .info-row {
+        gap: 0.75rem !important;
+        align-items: flex-start !important;
+    }
+
+    .info-label {
+        flex: 0 0 auto !important;
+    }
+
+    .info-value {
+        min-width: 0 !important;
+        text-align: right !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    .feature-tag,
+    .feature-tag-button {
+        font-size: 0.68rem !important;
+        padding: 0.25rem 0.45rem !important;
+    }
+
+    .card-footer,
+    .card-footer.card-footer-with-desc {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 0.5rem !important;
+    }
+
+    .btn-small,
+    .btn-description-wide {
+        width: 100% !important;
+        justify-content: center !important;
+        min-height: 42px !important;
+    }
+
+    #filterPanel.filter-panel,
+    .filter-panel {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100dvh !important;
+        right: 0 !important;
+        left: auto !important;
+        border-radius: 0 !important;
+        padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
+    }
+
+    #settingsPanel.settings-panel,
+    .settings-panel {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+        right: 0 !important;
+        left: auto !important;
+        border-radius: 0 !important;
+    }
+
+    .settings-body {
+        max-height: calc(100dvh - 150px) !important;
+        overflow-y: auto !important;
+        -webkit-overflow-scrolling: touch;
+        padding-bottom: max(1rem, env(safe-area-inset-bottom)) !important;
+    }
+
+    #mxMusicPlayer.mx-music-player,
+    .mx-music-player {
+        left: 0.75rem !important;
+        right: auto !important;
+        top: 0.75rem !important;
+        max-width: calc(100vw - 1.5rem) !important;
+        z-index: 8500 !important;
+    }
+
+    .mx-music-player.is-open,
+    .mx-music-player.is-selector {
+        width: calc(100vw - 1.5rem) !important;
+    }
+
+    .mx-music-list {
+        max-height: 42vh !important;
+        overflow-y: auto !important;
+    }
+
+    .syn-desc-overlay {
+        padding: 0.65rem !important;
+        align-items: flex-end !important;
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    .syn-desc-panel {
+        width: 100% !important;
+        max-height: 88dvh !important;
+        border-radius: 18px 18px 0 0 !important;
+    }
+
+    body.syn-look-ready .synchrose-main-title,
+    body.syn-look-ready .hero-title,
+    body.syn-look-ready .hero-tagline,
+    .executor-card.syn-card-look.is-card-looking,
+    .stat-card.syn-stat-fx.is-stat-looking,
+    .version-item.syn-version-fx.is-version-looking {
+        transform: none !important;
+    }
+
+    .synchrose-cursor-glow,
+    .fx-cursor-glow {
+        display: none !important;
+    }
+}
+
+@media (max-width: 430px) {
+    .dashboard-container,
+    .container {
+        padding-left: 0.75rem !important;
+        padding-right: 0.75rem !important;
+    }
+
+    .stats-bar {
+        gap: 0.55rem !important;
+    }
+
+    .stat-card {
+        padding: 0.85rem 0.55rem !important;
+    }
+
+    .tab {
+        padding: 0.65rem 1rem !important;
+        font-size: 0.88rem !important;
+    }
+
+    .executor-card {
+        padding: 0.9rem !important;
+    }
+
+    .score-circle {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 0.68rem !important;
+    }
+
+    .synchrose-terminal {
+        width: 94vw !important;
+        height: 70svh !important;
+    }
+
+    .synchrose-ascii {
+        font-size: clamp(0.18rem, 1.05vw, 0.36rem) !important;
+    }
+
+    .synchrose-term-body {
+        font-size: 0.68rem !important;
+    }
+}
+</style>
+
+
+<style id="synchrose-compare-sticky-desc-anim-style">
+/* Comparison cards: keep action buttons pinned to the bottom */
+.compare-grid { align-items: stretch !important; }
+
+.compare-card {
+    display: flex !important;
+    flex-direction: column !important;
+    height: 100% !important;
+}
+
+.compare-card h4,
+.compare-card .compare-row {
+    flex: 0 0 auto;
+}
+
+.compare-card .btn-description-wide {
+    margin-top: auto !important;
+}
+
+.compare-card .card-footer,
+.compare-card .compare-actions-bottom {
+    margin-top: .65rem !important;
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: .5rem !important;
+    align-items: end !important;
+}
+
+.compare-card .card-footer .btn-small,
+.compare-card .compare-actions-bottom .btn-small {
+    width: 100%;
+    justify-content: center;
+}
+
+/* Description modal animation */
+.syn-desc-overlay {
+    display: flex !important;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 180ms ease, visibility 0s linear 180ms;
+}
+
+body.syn-desc-open .syn-desc-overlay {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition: opacity 180ms ease, visibility 0s linear 0s;
+}
+
+.syn-desc-panel {
+    transform: translate3d(0, 18px, 0) scale(.965);
+    opacity: 0;
+    filter: blur(8px) brightness(.92);
+    transform-origin: center;
+    transition:
+        transform 260ms cubic-bezier(.16,1,.3,1),
+        opacity 190ms ease,
+        filter 240ms ease;
+    will-change: transform, opacity, filter;
+}
+
+body.syn-desc-open .syn-desc-panel {
+    transform: translate3d(0, 0, 0) scale(1);
+    opacity: 1;
+    filter: blur(0) brightness(1);
+}
+
+.syn-desc-header {
+    transform: translateY(-8px);
+    opacity: 0;
+    transition: transform 240ms cubic-bezier(.16,1,.3,1) 55ms, opacity 190ms ease 55ms;
+}
+
+body.syn-desc-open .syn-desc-header {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.syn-desc-source-row,
+.syn-desc-section,
+.syn-desc-empty {
+    transform: translateY(12px);
+    opacity: 0;
+    transition: transform 260ms cubic-bezier(.16,1,.3,1), opacity 220ms ease;
+}
+
+body.syn-desc-open .syn-desc-source-row,
+body.syn-desc-open .syn-desc-section,
+body.syn-desc-open .syn-desc-empty {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+body.syn-desc-open .syn-desc-source-row { transition-delay: 90ms; }
+body.syn-desc-open .syn-desc-section:nth-of-type(1) { transition-delay: 110ms; }
+body.syn-desc-open .syn-desc-section:nth-of-type(2) { transition-delay: 135ms; }
+body.syn-desc-open .syn-desc-section:nth-of-type(3) { transition-delay: 160ms; }
+body.syn-desc-open .syn-desc-section:nth-of-type(4) { transition-delay: 185ms; }
+body.syn-desc-open .syn-desc-section:nth-of-type(5) { transition-delay: 210ms; }
+body.syn-desc-open .syn-desc-section:nth-of-type(n+6) { transition-delay: 235ms; }
+
+.syn-desc-section.is-focused {
+    animation: synDescFocusPulse 820ms cubic-bezier(.16,1,.3,1) 260ms 1 both;
+}
+
+@keyframes synDescFocusPulse {
+    0% { box-shadow: 0 0 0 0 rgba(236,72,153,0); transform: translateY(0) scale(1); }
+    38% { box-shadow: 0 0 0 5px rgba(236,72,153,.18), 0 0 34px rgba(124,58,237,.28); transform: translateY(-2px) scale(1.01); }
+    100% { box-shadow: 0 0 0 2px rgba(236,72,153,.12), 0 0 18px rgba(124,58,237,.12); transform: translateY(0) scale(1); }
+}
+
+.syn-desc-close {
+    transition: transform 130ms ease, background 130ms ease, border-color 130ms ease;
+}
+
+.syn-desc-close:hover {
+    transform: rotate(6deg) scale(1.05);
+}
+
+@media (max-width:720px) {
+    .compare-card .card-footer,
+    .compare-card .compare-actions-bottom {
+        grid-template-columns: 1fr !important;
+    }
+
+    .syn-desc-panel {
+        transform: translate3d(0, 28px, 0) scale(.985);
+        transform-origin: bottom center;
+    }
+
+    body.syn-desc-open .syn-desc-panel {
+        transform: translate3d(0,0,0) scale(1);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .syn-desc-overlay,
+    .syn-desc-panel,
+    .syn-desc-header,
+    .syn-desc-section,
+    .syn-desc-source-row,
+    .syn-desc-empty,
+    .syn-desc-close {
+        transition: none !important;
+        animation: none !important;
+        transform: none !important;
+        filter: none !important;
+    }
+
+    body.syn-desc-open .syn-desc-panel,
+    body.syn-desc-open .syn-desc-header,
+    body.syn-desc-open .syn-desc-section,
+    body.syn-desc-open .syn-desc-source-row,
+    body.syn-desc-open .syn-desc-empty {
+        opacity: 1 !important;
+    }
+}
+</style>
+
+
+<style id="synchrose-settings-default-is-reset-style">
+/* ============================================================
+   Settings fix:
+   - "Default" is NOT a preset/card.
+   - Reset to Defaults is the only default action.
+   - Adds more UI element toggles.
+   - Cleans visual defaults to be less AI/neon by default.
+============================================================ */
+
+/* Hide the old Balanced preset card. Default is reset button, not a preset. */
+.preset-card[data-preset="balanced"] {
+    display: none !important;
+}
+
+.preset-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.settings-default-note {
+    margin: 0 0 0.9rem;
+    padding: 0.85rem 0.95rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(255,255,255,0.035);
+    color: var(--text-muted);
+    font-size: 0.78rem;
+    line-height: 1.45;
+}
+
+.settings-default-note strong {
+    color: #fff;
+}
+
+/* Description button must always feel clickable/selectable. */
+.btn-description-wide,
+.feature-tag-button,
+.syn-desc-close {
+    cursor: pointer !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+}
+
+.btn-description-wide:hover {
+    filter: brightness(1.08);
+}
+
+.btn-description-wide:active {
+    transform: translateY(1px) scale(0.99) !important;
+}
+
+.btn-description-wide:focus-visible,
+.feature-tag-button:focus-visible {
+    outline: 2px solid rgba(236,72,153,0.8) !important;
+    outline-offset: 3px !important;
+}
+
+/* New UI element toggles */
+body.fx-gradients-off .hero-btn,
+body.fx-gradients-off .btn.active,
+body.fx-gradients-off .btn-refresh,
+body.fx-gradients-off .btn-primary,
+body.fx-gradients-off .compare-pill,
+body.fx-gradients-off .filter-chip.active,
+body.fx-gradients-off .btn-description-wide {
+    background: #191927 !important;
+    border-color: rgba(255,255,255,0.12) !important;
+    box-shadow: none !important;
+}
+
+body.fx-gradients-off .dashboard-header h2,
+body.fx-gradients-off .settings-title,
+body.fx-gradients-off .synchrose-title-gradient,
+body.fx-gradients-off .filter-panel-title {
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    -webkit-text-fill-color: initial !important;
+    color: #f2edff !important;
+}
+
+body.fx-gradients-off .executor-card::before,
+body.fx-gradients-off .stat-card.syn-stat-fx::before,
+body.fx-gradients-off .version-item.syn-version-fx::before {
+    background: rgba(168,85,247,0.35) !important;
+}
+
+body.fx-rounded-corners-off .executor-card,
+body.fx-rounded-corners-off .stat-card,
+body.fx-rounded-corners-off .versions-panel,
+body.fx-rounded-corners-off .version-item,
+body.fx-rounded-corners-off .compare-card,
+body.fx-rounded-corners-off .filter-section,
+body.fx-rounded-corners-off .btn,
+body.fx-rounded-corners-off .btn-small,
+body.fx-rounded-corners-off .feature-tag,
+body.fx-rounded-corners-off .filter-chip,
+body.fx-rounded-corners-off .settings-panel,
+body.fx-rounded-corners-off .filter-panel,
+body.fx-rounded-corners-off .syn-desc-panel,
+body.fx-rounded-corners-off .mx-music-player::before {
+    border-radius: 8px !important;
+}
+
+body.fx-shadows-off .executor-card,
+body.fx-shadows-off .stat-card,
+body.fx-shadows-off .versions-panel,
+body.fx-shadows-off .version-item,
+body.fx-shadows-off .compare-card,
+body.fx-shadows-off .filter-section,
+body.fx-shadows-off .btn,
+body.fx-shadows-off .btn-small,
+body.fx-shadows-off .settings-panel,
+body.fx-shadows-off .filter-panel,
+body.fx-shadows-off .syn-desc-panel,
+body.fx-shadows-off .mx-music-player::before {
+    box-shadow: none !important;
+}
+
+body.fx-card-hover-lift-off .executor-card:hover,
+body.fx-card-hover-lift-off .stat-card:hover,
+body.fx-card-hover-lift-off .version-item:hover,
+body.fx-card-hover-lift-off .compare-card:hover,
+body.fx-card-hover-lift-off .filter-section:hover {
+    transform: none !important;
+}
+
+body.fx-description-animations-off .syn-desc-overlay,
+body.fx-description-animations-off .syn-desc-panel,
+body.fx-description-animations-off .syn-desc-header,
+body.fx-description-animations-off .syn-desc-section,
+body.fx-description-animations-off .syn-desc-source-row,
+body.fx-description-animations-off .syn-desc-empty {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+    filter: none !important;
+}
+
+body.fx-description-animations-off.syn-desc-open .syn-desc-panel,
+body.fx-description-animations-off.syn-desc-open .syn-desc-header,
+body.fx-description-animations-off.syn-desc-open .syn-desc-section,
+body.fx-description-animations-off.syn-desc-open .syn-desc-source-row,
+body.fx-description-animations-off.syn-desc-open .syn-desc-empty {
+    opacity: 1 !important;
+}
+
+body.fx-noise-overlays-off .synchrose-starfield,
+body.fx-noise-overlays-off .synchrose-orb,
+body.fx-noise-overlays-off .synchrose-cursor-glow,
+body.fx-noise-overlays-off .fx-cursor-glow,
+body.fx-noise-overlays-off .hero-fx-canvas {
+    display: none !important;
+    visibility: hidden !important;
+}
+
+@media (max-width: 720px) {
+    .preset-grid {
         grid-template-columns: 1fr !important;
     }
 }
 </style>
 
 
-<style id="synchrose-rounded-tag-style-fix">
+<style id="synchrose-clean-professional-default-style">
 /* ============================================================
-   Rounded Voxlis tag buttons
-   Keeps the old dashboard/detail typography, removes default button look,
-   and adds button-like glint only on hover.
+   Clean professional default pass
+   Removes the AI/neon feel: fewer gradients, smaller radii, flatter panels.
 ============================================================ */
 
-.feature-tags {
-    gap: 0.42rem !important;
+/* Kill the explanatory "default is not preset" note completely. */
+#settingsDefaultNote,
+.settings-default-note {
+    display: none !important;
 }
 
-/* Works for both old <span> tags and new clickable <button> tags. */
-.feature-tag,
-.feature-tag.syn-feature-tag {
-    appearance: none !important;
-    -webkit-appearance: none !important;
-    position: relative !important;
-    isolation: isolate !important;
-    overflow: hidden !important;
+/* Clean default: flat, sharp-ish, dashboard-like. */
+body[data-syn-fx-preset="reset-default"],
+body.fx-gradients-off {
+    --radius: 8px;
+    --surface: #111118;
+    --surface-hover: #171720;
+    --border: #252536;
+    --accent: #9b5cff;
+    --accent-hover: #b17cff;
+}
 
-    display: inline-flex !important;
-    align-items: center !important;
-    justify-content: center !important;
+/* Main title can keep identity, but without overdone glow. */
+body[data-syn-fx-preset="reset-default"] .synchrose-title-gradient,
+body.fx-gradients-off .synchrose-title-gradient {
+    background: none !important;
+    -webkit-background-clip: initial !important;
+    -webkit-text-fill-color: #f4f1ff !important;
+    color: #f4f1ff !important;
+    text-shadow: none !important;
+    filter: none !important;
+}
 
-    min-height: 26px !important;
-    padding: 0.31rem 0.72rem !important;
-    border-radius: 9999px !important;
-
-    border: 1px solid transparent !important;
-    outline: none !important;
-
-    background:
-        linear-gradient(135deg, rgba(124,58,237,0.105), rgba(236,72,153,0.075)),
-        rgba(124,58,237,0.075) !important;
-
-    color: #bfaeff !important;
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
-    font-size: 0.75rem !important;
-    font-weight: 600 !important;
-    line-height: 1.05 !important;
-    letter-spacing: 0.005em !important;
-    text-transform: none !important;
-    text-decoration: none !important;
-
+/* Flatten cards/panels/buttons. */
+body[data-syn-fx-preset="reset-default"] .executor-card,
+body[data-syn-fx-preset="reset-default"] .stat-card,
+body[data-syn-fx-preset="reset-default"] .versions-panel,
+body[data-syn-fx-preset="reset-default"] .version-item,
+body[data-syn-fx-preset="reset-default"] .compare-card,
+body[data-syn-fx-preset="reset-default"] .controls,
+body[data-syn-fx-preset="reset-default"] .filter-summary-bar,
+body[data-syn-fx-preset="reset-default"] .filter-section,
+body[data-syn-fx-preset="reset-default"] .settings-panel,
+body[data-syn-fx-preset="reset-default"] .filter-panel,
+body[data-syn-fx-preset="reset-default"] .syn-desc-panel {
+    background: #111118 !important;
+    border-color: #262638 !important;
+    border-radius: 8px !important;
     box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Less "bubble" UI. */
+body[data-syn-fx-preset="reset-default"] .btn,
+body[data-syn-fx-preset="reset-default"] .btn-small,
+body[data-syn-fx-preset="reset-default"] .badge,
+body[data-syn-fx-preset="reset-default"] .feature-tag,
+body[data-syn-fx-preset="reset-default"] .filter-chip,
+body[data-syn-fx-preset="reset-default"] .preset-card,
+body[data-syn-fx-preset="reset-default"] .toggle-row,
+body[data-syn-fx-preset="reset-default"] .search-box input,
+body[data-syn-fx-preset="reset-default"] .score-circle {
+    border-radius: 7px !important;
+    box-shadow: none !important;
+}
+
+/* Buttons: no candy gradients. */
+body[data-syn-fx-preset="reset-default"] .btn-refresh,
+body[data-syn-fx-preset="reset-default"] .btn-primary,
+body[data-syn-fx-preset="reset-default"] .hero-btn,
+body[data-syn-fx-preset="reset-default"] .btn-description-wide,
+body[data-syn-fx-preset="reset-default"] .compare-pill,
+body[data-syn-fx-preset="reset-default"] .filter-chip.active,
+body[data-syn-fx-preset="reset-default"] .preset-card.is-active {
+    background: #1b1630 !important;
+    border: 1px solid #3a2d63 !important;
+    color: #f4f1ff !important;
+    box-shadow: none !important;
+}
+
+body[data-syn-fx-preset="reset-default"] .btn:hover,
+body[data-syn-fx-preset="reset-default"] .btn-small:hover,
+body[data-syn-fx-preset="reset-default"] .filter-chip:hover,
+body[data-syn-fx-preset="reset-default"] .preset-card:hover,
+body[data-syn-fx-preset="reset-default"] .toggle-row:hover {
+    transform: none !important;
+    border-color: #56418e !important;
+    background: #171720 !important;
+    box-shadow: none !important;
+}
+
+/* Remove glossy sweeps/glints/noise by default. */
+body[data-syn-fx-preset="reset-default"] .btn::after,
+body[data-syn-fx-preset="reset-default"] .hero-btn::after,
+body[data-syn-fx-preset="reset-default"] .executor-card::before,
+body[data-syn-fx-preset="reset-default"] .executor-card::after,
+body[data-syn-fx-preset="reset-default"] .stat-card::before,
+body[data-syn-fx-preset="reset-default"] .stat-card::after,
+body[data-syn-fx-preset="reset-default"] .version-item::before,
+body[data-syn-fx-preset="reset-default"] .version-item::after,
+body[data-syn-fx-preset="reset-default"] .dashboard-section::before,
+body[data-syn-fx-preset="reset-default"] .synchrose-starfield,
+body[data-syn-fx-preset="reset-default"] .synchrose-orb,
+body[data-syn-fx-preset="reset-default"] .synchrose-cursor-glow,
+body[data-syn-fx-preset="reset-default"] .fx-cursor-glow,
+body[data-syn-fx-preset="reset-default"] .hero-fx-canvas {
+    display: none !important;
+}
+
+/* Keep cards readable, not duplicated/verbose. */
+.compare-row[data-compare-key="name"],
+.compare-row .label[data-label="Name"] {
+    display: none !important;
+}
+
+.syn-desc-section[data-desc-key="classic-description"] .syn-desc-section-title span:first-child {
+    font-size: 0;
+}
+
+.syn-desc-section[data-desc-key="classic-description"] .syn-desc-section-title span:first-child::after {
+    content: "Summary";
+    font-size: 0.88rem;
+}
+
+/* Description button cursor/selection state. */
+.btn-description-wide,
+.feature-tag-button,
+.syn-desc-close {
     cursor: pointer !important;
     user-select: none !important;
-
-    transition:
-        transform 0.16s ease,
-        color 0.16s ease,
-        background 0.16s ease,
-        border-color 0.16s ease,
-        box-shadow 0.16s ease !important;
+    -webkit-user-select: none !important;
 }
 
-.feature-tag::after,
-.feature-tag.syn-feature-tag::after {
-    content: "" !important;
-    position: absolute !important;
-    inset: -65% !important;
-    z-index: -1 !important;
-    pointer-events: none !important;
-    opacity: 0 !important;
-    background: linear-gradient(
-        115deg,
-        transparent 36%,
-        rgba(255,255,255,0.18) 47%,
-        rgba(236,72,153,0.22) 50%,
-        rgba(124,58,237,0.16) 54%,
-        transparent 66%
-    ) !important;
-    transform: translateX(-45%) rotate(10deg) !important;
-    transition:
-        opacity 0.18s ease,
-        transform 0.46s ease !important;
+.btn-description-wide:disabled,
+.btn-description-wide.disabled-link {
+    cursor: not-allowed !important;
 }
 
-/* No outline by default; border/glow appears only when hovered/focused by keyboard. */
-.feature-tag:hover,
-.feature-tag.syn-feature-tag:hover,
-.feature-tag:focus-visible,
-.feature-tag.syn-feature-tag:focus-visible {
-    color: #fff !important;
-    border-color: rgba(236,72,153,0.50) !important;
-    background:
-        linear-gradient(135deg, rgba(124,58,237,0.18), rgba(236,72,153,0.13)),
-        rgba(255,255,255,0.035) !important;
-    box-shadow:
-        0 0 16px rgba(124,58,237,0.16),
-        0 0 12px rgba(236,72,153,0.10) !important;
-    transform: translateY(-1px) !important;
+.btn-description-wide:hover {
+    background: #211a38 !important;
+    border-color: #6d52ae !important;
 }
 
-.feature-tag:hover::after,
-.feature-tag.syn-feature-tag:hover::after,
-.feature-tag:focus-visible::after,
-.feature-tag.syn-feature-tag:focus-visible::after {
-    opacity: 1 !important;
-    transform: translateX(42%) rotate(10deg) !important;
+.btn-description-wide:active {
+    transform: translateY(1px) !important;
 }
 
-.feature-tag:active,
-.feature-tag.syn-feature-tag:active {
-    transform: translateY(0) scale(0.985) !important;
+/* Settings: no obvious "lecture" text. */
+.settings-subtitle {
+    font-size: 0 !important;
 }
 
-/* Keep performance/minimal modes calm. */
-body[data-syn-fx-preset="performance"] .feature-tag,
-body[data-syn-fx-preset="performance"] .feature-tag.syn-feature-tag,
-body[data-syn-fx-preset="minimal"] .feature-tag,
-body[data-syn-fx-preset="minimal"] .feature-tag.syn-feature-tag,
-body.fx-button-shine-off .feature-tag,
-body.fx-button-shine-off .feature-tag.syn-feature-tag {
-    transition: color 0.12s ease, background 0.12s ease, border-color 0.12s ease !important;
+.settings-subtitle::after {
+    content: "Visual controls";
+    font-size: 0.8rem;
 }
 
-body[data-syn-fx-preset="performance"] .feature-tag::after,
-body[data-syn-fx-preset="performance"] .feature-tag.syn-feature-tag::after,
-body[data-syn-fx-preset="minimal"] .feature-tag::after,
-body[data-syn-fx-preset="minimal"] .feature-tag.syn-feature-tag::after,
-body.fx-button-shine-off .feature-tag::after,
-body.fx-button-shine-off .feature-tag.syn-feature-tag::after {
+.settings-section-title {
+    color: #a7a2b8 !important;
+}
+
+/* Keep optional preset cards compact and less bubbly. */
+.preset-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.preset-card[data-preset="balanced"] {
+    display: none !important;
+}
+
+@media (max-width: 720px) {
+    .preset-grid {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+
+
+<style id="synchrose-presets-balanced-fix-style">
+/* Presets wording + balanced preset fix */
+.settings-section-title[data-syn-presets-title="1"]::before {
+    content: "Presets";
+}
+
+.settings-section-title[data-syn-presets-title="1"] {
+    font-size: 0 !important;
+}
+
+.settings-section-title[data-syn-presets-title="1"]::before {
+    font-size: 0.72rem !important;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+.preset-card[data-preset="balanced"] {
+    display: block !important;
+}
+
+.preset-card[data-preset="minimal"] {
+    display: none !important;
+}
+
+.preset-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+#settingsDefaultNote,
+.settings-default-note {
+    display: none !important;
+}
+</style>
+
+
+<style id="synchrose-compare-name-rounded-cleanup-style">
+/* Cleanup: no Rounded Corners setting, no duplicate Name row in comparison. */
+
+/* Hide via CSS immediately; JS also removes the node. */
+.toggle-row:has([data-effect="roundedCorners"]),
+label:has([data-effect="roundedCorners"]) {
+    display: none !important;
+}
+
+/* Neutralize older rounded-corners-off rules if old localStorage still has the value. */
+body.fx-rounded-corners-off .executor-card,
+body.fx-rounded-corners-off .stat-card,
+body.fx-rounded-corners-off .versions-panel,
+body.fx-rounded-corners-off .version-item,
+body.fx-rounded-corners-off .compare-card,
+body.fx-rounded-corners-off .filter-section,
+body.fx-rounded-corners-off .btn,
+body.fx-rounded-corners-off .btn-small,
+body.fx-rounded-corners-off .feature-tag,
+body.fx-rounded-corners-off .filter-chip,
+body.fx-rounded-corners-off .settings-panel,
+body.fx-rounded-corners-off .filter-panel,
+body.fx-rounded-corners-off .syn-desc-panel,
+body.fx-rounded-corners-off .mx-music-player::before {
+    border-radius: revert-layer !important;
+}
+
+/* Fallback for browsers without :has; JS removes these too. */
+.toggle-row[data-remove-rounded-corners-toggle="1"] {
     display: none !important;
 }
 </style>
@@ -12719,562 +13359,1383 @@ body.fx-button-shine-off .feature-tag.syn-feature-tag::after {
 </script>
 
 
-<script id="synchrose-voxlis-descriptions-script">
+<script id="synchrose-descriptions-modal-script">
 /* ============================================================
-   Voxlis multi-description support
-   Pulls from:
-   - points.json summaries
-   - review.md
-   - modals.json warning/note descriptions
-   - info.json tags + Voxlis tag metadata descriptions
+   Voxlis multi-description/details viewer
+   Reads Voxlis info.json + points.json + review.md + modals.json data already fetched.
 ============================================================ */
 (() => {
-    const TAG_INFO = {
-        decompiler: {
-            label: 'Decompiler',
-            info: 'This product includes decompiler functionality.'
-        },
-        'multi-instance': {
-            label: 'Multi-instance',
-            info: 'This product supports running multiple instances at once.'
-        },
-        kernel: {
-            label: 'Kernel',
-            info: 'Due to this tool using a kernel-level driver, beware that there may be unexpected behaviour such as BSODs.'
-        },
-        freemium: {
-            label: 'Freemium',
-            info: 'This product is free to use, but it relies on a key system.'
-        },
-        keysystem: {
-            label: 'Key-System',
-            info: 'This product is free to use, but it relies on a key system.'
-        },
-        insecure: {
-            label: 'Insecure',
-            info: 'This product is only shown in insecure mode because it is not recommended or not yet verified.'
-        },
-        raknet: {
-            label: 'RakNet',
-            info: 'This product supports RakNet lib.'
-        },
-        serverside: {
-            label: 'Server-side',
-            info: 'This product supports server-side execution.'
-        }
+    const TAG_DESCRIPTION_MAP = {
+        'warning': 'This product has a Voxlis warning attached. Open details to see the exact warning content from modals.json.',
+        'warningred': 'This product has a high-risk Voxlis warning attached. Open details to see the exact warning content from modals.json.',
+        'multi-instance': 'This product supports running multiple instances at once.',
+        'multi_instance': 'This product supports running multiple instances at once.',
+        'decompiler': 'This product includes decompiler functionality.',
+        'keysystem': 'This product uses a key system.',
+        'freemium': 'This product has both free and paid/keyed parts.',
+        'clientmods': 'This product includes client modification functionality.',
+        'client-mods': 'This product includes client modification functionality.',
+        'verified': 'This product is marked verified in Voxlis badges.',
+        'trending': 'This product is marked trending in Voxlis badges.',
+        'beta': 'This product is marked beta.',
+        'longest-running': 'This product is marked longest-running.',
+        'insecure': 'This product is hidden behind insecure/risky filtering on Voxlis.',
+        'inviteonly': 'This product is marked invite-only.',
+        'serverside': 'This product is tagged as server-side.',
+        'raknet': 'This product is tagged with RakNet functionality.',
+        'kernel': 'This product is tagged with kernel-level functionality.'
     };
 
-    const MODAL_LABELS = {
-        warning: 'Warning',
-        warningred: 'Warning',
-        note: 'Note',
-        info: 'Info',
-        notice: 'Notice'
-    };
-
-    function localToArray(value) {
-        if (Array.isArray(value)) return value;
-        if (value == null || value === false) return [];
-        return [value];
-    }
-
-    function localNormalizeKey(value = '') {
-        const raw = String(value || '').trim().toLowerCase();
-        if (!raw) return '';
-        const cleaned = raw
-            .replace(/[_\s]+/g, '-')
-            .replace(/[^a-z0-9-]/g, '')
-            .replace(/-+/g, '-')
-            .replace(/^-|-$/g, '');
-
-        const aliases = {
-            multiinstance: 'multi-instance',
-            multiinject: 'multi-instance',
-            multiinjects: 'multi-instance',
-            multi_instance: 'multi-instance',
-            key: 'keysystem',
-            'key-system': 'keysystem',
-            servside: 'serverside',
-            'server-side': 'serverside'
-        };
-
-        return aliases[cleaned] || cleaned;
-    }
-
-    function localTitleCase(value = '') {
-        const key = localNormalizeKey(value);
-        if (TAG_INFO[key]?.label) return TAG_INFO[key].label;
-        return String(value || key || 'Description')
-            .replace(/[-_]+/g, ' ')
-            .replace(/\s+/g, ' ')
-            .trim()
-            .replace(/\b\w/g, char => char.toUpperCase());
-    }
-
-    function cleanDesc(value) {
-        if (value == null) return '';
-        let text = String(value)
+    function cleanTextLoose(value) {
+        return String(value ?? '')
             .replace(/```[\s\S]*?```/g, ' ')
             .replace(/`([^`]+)`/g, '$1')
             .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
             .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
             .replace(/^>\s?/gm, '')
-            .replace(/[#*_~>-]/g, ' ')
-            .replace(/\s+/g, ' ')
+            .replace(/[#*_~]/g, ' ')
+            .replace(/\bnull\b/gi, ' ')
+            .replace(/\bundefined\b/gi, ' ')
+            .replace(/[ \t]+\n/g, '\n')
+            .replace(/\n{3,}/g, '\n\n')
+            .replace(/[ \t]{2,}/g, ' ')
             .trim();
-
-        // Fix old joined strings like "... developers null".
-        text = text.replace(/\s+(null|undefined)\s*$/i, '').trim();
-
-        if (!text || /^(null|undefined|none|n\/a|na)$/i.test(text)) return '';
-        return text;
     }
 
-    function shorten(value, max = 2800) {
-        const text = cleanDesc(value);
-        if (text.length <= max) return text;
-        return `${text.slice(0, max).trim()}...`;
+    function normalizeKeyLoose(value) {
+        return String(value || '')
+            .toLowerCase()
+            .trim()
+            .replace(/[_\s]+/g, '-')
+            .replace(/[^a-z0-9-]/g, '');
     }
 
-    function pushSection(sections, title, text, source, key = '') {
-        const cleaned = cleanDesc(text);
-        if (!cleaned) return;
+    function humanizeKey(value) {
+        return String(value || 'Details')
+            .replace(/[_-]+/g, ' ')
+            .replace(/\b\w/g, ch => ch.toUpperCase())
+            .trim();
+    }
 
-        const dedupeKey = `${String(title).toLowerCase()}::${cleaned.toLowerCase()}`;
-        if (sections.some(section => section.dedupeKey === dedupeKey)) return;
-
-        sections.push({
-            title,
-            text: cleaned,
-            source,
-            key: key || localNormalizeKey(title),
-            dedupeKey
-        });
+    function itemById(id) {
+        try {
+            return allData.find(item => String(item.id) === String(id));
+        } catch {
+            return null;
+        }
     }
 
     function getVoxlisRaw(item) {
-        const raw = item?.raw || {};
-        return raw.voxlis || (raw.info || raw.points || raw.modals ? raw : null);
+        if (!item) return null;
+
+        const raw = item.raw || {};
+        if (raw.voxlis) return raw.voxlis;
+        if (raw.info || raw.points || raw.review || raw.modals) return raw;
+        if (item.source === 'voxlis') return raw;
+
+        return null;
     }
 
-    function getWeaoRaw(item) {
-        const raw = item?.raw || {};
-        return raw.weao || (item?.source === 'weao' ? raw : null);
+    function pushSection(list, section) {
+        const text = cleanTextLoose(section?.text);
+        const title = cleanTextLoose(section?.title);
+        if (!text || !title) return;
+
+        const key = section.key || `${section.origin || 'section'}:${title}:${text}`;
+        const exists = list.some(item => cleanTextLoose(item.text).toLowerCase() === text.toLowerCase());
+        if (exists) return;
+
+        list.push({
+            key,
+            title,
+            text,
+            origin: section.origin || 'Details',
+            tone: section.tone || ''
+        });
     }
 
-    function getModalText(modal) {
-        if (!modal || typeof modal !== 'object') return '';
-        return cleanDesc(modal.description || modal.message || modal.text || modal.body || modal.content || modal.summary || modal.note);
-    }
+    function collectStringsDeep(value, path = [], out = []) {
+        if (value == null) return out;
 
-    function getItemTagObjects(item) {
-        const found = new Map();
+        if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') {
+            const text = cleanTextLoose(value);
+            if (text && text !== 'true' && text !== 'false') out.push({ path, text });
+            return out;
+        }
 
-        function addTag(value, explicitLabel = '') {
-            const key = localNormalizeKey(value);
-            if (!key || found.has(key)) return;
-            found.set(key, {
-                key,
-                label: explicitLabel || TAG_INFO[key]?.label || localTitleCase(value),
-                info: TAG_INFO[key]?.info || ''
+        if (Array.isArray(value)) {
+            value.forEach((entry, index) => collectStringsDeep(entry, path.concat(index), out));
+            return out;
+        }
+
+        if (typeof value === 'object') {
+            Object.entries(value).forEach(([key, entry]) => {
+                if (['enabled', 'icon', 'color', 'severity', 'type', 'button', 'buttons'].includes(String(key).toLowerCase())) return;
+                collectStringsDeep(entry, path.concat(key), out);
             });
         }
 
-        localToArray(item?.tags).forEach(tag => addTag(tag));
-        localToArray(getVoxlisRaw(item)?.info?.tags).forEach(tag => addTag(tag));
-
-        if (item?.decompiler) addTag('decompiler');
-        if (item?.multiInject) addTag('multi-instance');
-        if (item?.keysystem) addTag('keysystem');
-        if (item?.clientmods) addTag('clientmods', 'Client Mods');
-        if (item?.insecure) addTag('insecure');
-
-        if (item?.beta) addTag('beta', 'Beta');
-        if (item?.elementCertified) addTag('verified', 'Verified');
-        if (item?.longestRunning) addTag('longest-running', 'Longest Running');
-
-        localToArray(item?.badges).forEach(badge => addTag(badge));
-
-        return [...found.values()];
+        return out;
     }
 
-    function buildDescriptionSections(item) {
+    function getModalTitle(key, modal) {
+        return cleanTextLoose(
+            modal?.title ||
+            modal?.heading ||
+            modal?.name ||
+            modal?.label ||
+            humanizeKey(key)
+        );
+    }
+
+    function getModalMainText(modal) {
+        if (!modal || typeof modal !== 'object') return cleanTextLoose(modal);
+
+        const direct = cleanTextLoose(
+            modal.description ??
+            modal.message ??
+            modal.body ??
+            modal.text ??
+            modal.content ??
+            modal.reason ??
+            modal.details ??
+            modal.summary ??
+            ''
+        );
+        if (direct) return direct;
+
+        return collectStringsDeep(modal)
+            .map(entry => entry.text)
+            .filter(Boolean)
+            .join('\n');
+    }
+
+    function collectModalSections(item, sections) {
+        const raw = getVoxlisRaw(item);
+        const modals = raw?.modals || raw?.info?.modals || item?.modals || {};
+
+        if (!modals || typeof modals !== 'object') return;
+
+        Object.entries(modals).forEach(([key, modal]) => {
+            if (modal && typeof modal === 'object' && modal.enabled === false) return;
+
+            const normalized = normalizeKeyLoose(key);
+            const title = getModalTitle(key, modal);
+            const text = getModalMainText(modal);
+            const tone = normalized.includes('warningred') ? 'danger' : normalized.includes('warning') ? 'warning' : '';
+
+            pushSection(sections, {
+                key: `modal:${normalized}`,
+                title,
+                text,
+                origin: 'modals.json',
+                tone
+            });
+        });
+    }
+
+    function collectPointSections(item, sections) {
+        const raw = getVoxlisRaw(item);
+        const points = raw?.points || {};
+
+        const entries = [
+            ['pro_summary', 'Pro Summary', 'positive'],
+            ['neutral_summary', 'Neutral Summary', ''],
+            ['con_summary', 'Con Summary', 'danger'],
+            ['pro', 'Pro', 'positive'],
+            ['neutral', 'Neutral', ''],
+            ['con', 'Con', 'danger']
+        ];
+
+        entries.forEach(([key, title, tone]) => {
+            const value = points?.[key] ?? item?.[key.replace(/_summary$/, 'Summary')];
+            pushSection(sections, {
+                key: `points:${key}`,
+                title,
+                text: value,
+                origin: 'points.json',
+                tone
+            });
+        });
+    }
+
+    function collectInfoSections(item, sections) {
+        const raw = getVoxlisRaw(item);
+        const info = raw?.info || {};
+
+        [
+            ['description', 'Info Description'],
+            ['summary', 'Info Summary'],
+            ['note', 'Info Note'],
+            ['warning', 'Info Warning']
+        ].forEach(([key, title]) => {
+            pushSection(sections, {
+                key: `info:${key}`,
+                title,
+                text: info?.[key],
+                origin: 'info.json',
+                tone: key.includes('warning') ? 'warning' : ''
+            });
+        });
+    }
+
+    function collectReviewSection(item, sections) {
+        const raw = getVoxlisRaw(item);
+        const review = cleanTextLoose(raw?.review || item?.review || '');
+        if (!review) return;
+
+        pushSection(sections, {
+            key: 'review',
+            title: 'Full Review',
+            text: review,
+            origin: 'review.md'
+        });
+    }
+
+    function collectTagSections(item, sections) {
+        const tags = []
+            .concat(item?.tags || [])
+            .concat(item?.badges || [])
+            .filter(Boolean);
+
+        const seen = new Set();
+
+        tags.forEach(tag => {
+            const normalized = normalizeKeyLoose(tag);
+            if (!normalized || seen.has(normalized)) return;
+            seen.add(normalized);
+
+            const text = TAG_DESCRIPTION_MAP[normalized] || `Voxlis tag: ${humanizeKey(tag)}.`;
+            pushSection(sections, {
+                key: `tag:${normalized}`,
+                title: humanizeKey(tag),
+                text,
+                origin: 'Tag details',
+                tone: normalized.includes('warning') || normalized === 'insecure' ? 'warning' : ''
+            });
+        });
+    }
+
+    function collectAllDescriptionSections(item) {
         const sections = [];
-        const voxlis = getVoxlisRaw(item);
-        const weao = getWeaoRaw(item);
-        const points = voxlis?.points || {};
-        const info = voxlis?.info || {};
-        const modals = voxlis?.modals || item?.raw?.modals || {};
 
-        const cleanedDescription = cleanDesc(item?.description);
-        if (item && cleanedDescription !== item.description) item.description = cleanedDescription;
-
-        pushSection(sections, 'Classic description', cleanedDescription, item?.sourceLabel || item?.source || 'Merged', 'classic-description');
-
-        pushSection(sections, 'Pro summary', item?.proSummary || points.pro_summary, 'Voxlis points.json', 'pro-summary');
-        pushSection(sections, 'Neutral summary', item?.neutralSummary || points.neutral_summary, 'Voxlis points.json', 'neutral-summary');
-        pushSection(sections, 'Con summary', item?.conSummary || points.con_summary, 'Voxlis points.json', 'con-summary');
-
-        ['description', 'desc', 'summary', 'note', 'notes'].forEach(key => {
-            pushSection(sections, localTitleCase(key), info?.[key], 'Voxlis info.json', `info-${key}`);
+        pushSection(sections, {
+            key: 'classic-description',
+            title: 'Classic Description',
+            text: item?.description,
+            origin: item?.source === 'weao' ? 'WEAO/API description' : 'Dashboard summary'
         });
 
-        Object.entries(modals || {}).forEach(([key, modal]) => {
-            if (!modal || typeof modal !== 'object') return;
-            if (modal.enabled === false && !getModalText(modal)) return;
-
-            const label = MODAL_LABELS[localNormalizeKey(key)] || localTitleCase(key);
-            const text = getModalText(modal);
-            pushSection(sections, label, text, 'Voxlis modals.json', `modal-${localNormalizeKey(key)}`);
-        });
-
-        getItemTagObjects(item).forEach(tag => {
-            if (tag.info) {
-                pushSection(sections, tag.label, tag.info, 'Voxlis tag metadata', `tag-${tag.key}`);
-            }
-        });
-
-        pushSection(sections, 'Review', shorten(item?.review || voxlis?.review, 3200), 'Voxlis review.md', 'review');
-
-        if (weao) {
-            ['description', 'desc', 'summary', 'note', 'notes'].forEach(key => {
-                pushSection(sections, `WEAO ${localTitleCase(key)}`, weao?.[key], 'WEAO', `weao-${key}`);
-            });
-        }
+        collectPointSections(item, sections);
+        collectInfoSections(item, sections);
+        collectModalSections(item, sections);
+        collectTagSections(item, sections);
+        collectReviewSection(item, sections);
 
         return sections;
     }
 
-    function renderDescriptionButton(item) {
-        const count = buildDescriptionSections(item).length;
-        if (!count) return '';
-
-        return `
-            <div class="card-description-action">
-                <button type="button"
-                    class="btn-small btn-secondary syn-desc-button"
-                    onclick="openDescriptions(${escapeForInlineJs(item.id)})">
-                    Descriptions · ${count}
-                </button>
-            </div>
-        `;
-    }
-
-    function renderClickableFeatureTags(item) {
-        const tags = getItemTagObjects(item);
-        if (!tags.length) return '';
-
-        return `
-            <div class="feature-tags">
-                ${tags.map(tag => `
-                    <button type="button"
-                        class="feature-tag syn-feature-tag"
-                        title="${escapeHtml(tag.info || 'View descriptions')}"
-                        onclick="openDescriptions(${escapeForInlineJs(item.id)}, ${escapeForInlineJs(`tag-${tag.key}`)})">
-                        ${escapeHtml(tag.label)}
-                    </button>
-                `).join('')}
-            </div>
-        `;
-    }
-
-    function ensureDescriptionsModal() {
-        let overlay = document.getElementById('synDescOverlay');
+    function ensureDescriptionModal() {
+        let overlay = document.getElementById('synDescriptionOverlay');
         if (overlay) return overlay;
 
         overlay = document.createElement('div');
-        overlay.id = 'synDescOverlay';
+        overlay.id = 'synDescriptionOverlay';
         overlay.className = 'syn-desc-overlay';
+        overlay.setAttribute('aria-hidden', 'true');
         overlay.innerHTML = `
-            <div class="syn-desc-modal" role="dialog" aria-modal="true" aria-labelledby="synDescTitle">
-                <div class="syn-desc-head">
+            <div class="syn-desc-panel" role="dialog" aria-modal="true" aria-labelledby="synDescriptionTitle">
+                <div class="syn-desc-header">
                     <div>
-                        <h3 id="synDescTitle" class="syn-desc-title">Descriptions</h3>
-                        <div id="synDescSubtitle" class="syn-desc-subtitle"></div>
+                        <h3 class="syn-desc-title" id="synDescriptionTitle">Descriptions</h3>
+                        <div class="syn-desc-subtitle" id="synDescriptionSubtitle">Voxlis details</div>
                     </div>
-                    <button type="button" class="syn-desc-close" onclick="closeDescriptions()" aria-label="Close descriptions">×</button>
+                    <button class="syn-desc-close" type="button" aria-label="Close descriptions" onclick="closeDescriptionModal()">×</button>
                 </div>
-                <div id="synDescBody" class="syn-desc-body"></div>
+                <div class="syn-desc-body" id="synDescriptionBody"></div>
             </div>
         `;
 
         overlay.addEventListener('click', event => {
-            if (event.target === overlay) closeDescriptions();
+            if (event.target === overlay) window.closeDescriptionModal();
         });
 
         document.body.appendChild(overlay);
         return overlay;
     }
 
-    window.openDescriptions = function openDescriptions(id, focusKey = '') {
-        const item = allData.find(entry => String(entry.id) === String(id));
-        if (!item) {
-            if (window.showToast) window.showToast('Description data not found for this item', 'error');
-            return;
-        }
+    function renderDescriptionSection(section, focusKey) {
+        const focused = focusKey && String(section.key).toLowerCase().includes(String(focusKey).toLowerCase());
+        const toneClass =
+            section.tone === 'danger' ? ' is-danger' :
+            section.tone === 'warning' ? ' is-warning' :
+            section.tone === 'positive' ? ' is-positive' : '';
 
-        const overlay = ensureDescriptionsModal();
-        const title = document.getElementById('synDescTitle');
-        const subtitle = document.getElementById('synDescSubtitle');
-        const body = document.getElementById('synDescBody');
-        const sections = buildDescriptionSections(item);
-        const tags = getItemTagObjects(item).filter(tag => tag.info);
+        return `
+            <section class="syn-desc-section${toneClass}${focused ? ' is-focused' : ''}" data-desc-key="${escapeHtml(section.key)}">
+                <div class="syn-desc-section-title">
+                    <span>${escapeHtml(section.title)}</span>
+                    <span class="syn-desc-origin">${escapeHtml(section.origin)}</span>
+                </div>
+                <div class="syn-desc-text">${escapeHtml(section.text)}</div>
+            </section>
+        `;
+    }
+
+    window.openDescriptionModal = function openDescriptionModal(id, focusKey = '') {
+        const item = itemById(id);
+        if (!item) return;
+
+        const overlay = ensureDescriptionModal();
+        const title = document.getElementById('synDescriptionTitle');
+        const subtitle = document.getElementById('synDescriptionSubtitle');
+        const body = document.getElementById('synDescriptionBody');
+
+        const sections = collectAllDescriptionSections(item);
+        const sourcePills = [
+            ...(item.sources || [item.source]).filter(Boolean),
+            item.raw?.voxlis ? 'voxlis raw' : '',
+            item.raw?.weao ? 'weao raw' : ''
+        ].filter(Boolean);
 
         title.textContent = `${item.name} descriptions`;
-        subtitle.textContent = `${item.sourceLabel || item.source || 'Source'} · ${sections.length} description block${sections.length === 1 ? '' : 's'}`;
+        subtitle.textContent = 'Description sources: info.json, points.json, review.md, modals.json, tags/badges when available';
 
-        if (!sections.length) {
-            body.innerHTML = `<div class="syn-desc-empty">No description blocks are available for this item.</div>`;
-        } else {
-            body.innerHTML = `
-                ${tags.length ? `
-                    <div class="syn-desc-chip-row" aria-label="Jump to tag descriptions">
-                        ${tags.map(tag => `
-                            <button type="button"
-                                class="syn-desc-chip"
-                                onclick="openDescriptions(${escapeForInlineJs(item.id)}, ${escapeForInlineJs(`tag-${tag.key}`)})">
-                                ${escapeHtml(tag.label)}
-                            </button>
-                        `).join('')}
-                    </div>
-                ` : ''}
+        body.innerHTML = `
+            <div class="syn-desc-source-row">
+                ${[...new Set(sourcePills)].map(src => `<span class="syn-desc-source-pill">${escapeHtml(src)}</span>`).join('')}
+            </div>
+            ${sections.length ? sections.map(section => renderDescriptionSection(section, focusKey)).join('') : `
+                <div class="syn-desc-empty">No extra descriptions were found for this item.</div>
+            `}
+        `;
 
-                ${sections.map(section => `
-                    <section class="syn-desc-section ${section.key === focusKey ? 'is-focused' : ''}" data-desc-key="${escapeHtml(section.key)}">
-                        <h4>${escapeHtml(section.title)}</h4>
-                        <span class="syn-desc-source">${escapeHtml(section.source)}</span>
-                        <p class="syn-desc-text">${escapeHtml(section.text)}</p>
-                    </section>
-                `).join('')}
-            `;
-        }
-
-        overlay.classList.add('is-open');
-        document.body.style.overflow = 'hidden';
+        document.body.classList.add('syn-desc-open');
+        overlay.setAttribute('aria-hidden', 'false');
 
         if (focusKey) {
-            requestAnimationFrame(() => {
-                const target = body.querySelector(`[data-desc-key="${CSS.escape(focusKey)}"]`);
-                if (target) target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-            });
+            setTimeout(() => {
+                const focused = body.querySelector('.is-focused');
+                focused?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            }, 30);
         }
     };
 
-    window.closeDescriptions = function closeDescriptions() {
-        const overlay = document.getElementById('synDescOverlay');
-        if (overlay) overlay.classList.remove('is-open');
-        document.body.style.overflow = '';
+    window.closeDescriptionModal = function closeDescriptionModal() {
+        document.body.classList.remove('syn-desc-open');
+        const overlay = document.getElementById('synDescriptionOverlay');
+        overlay?.setAttribute('aria-hidden', 'true');
     };
 
     document.addEventListener('keydown', event => {
-        if (event.key === 'Escape' && document.getElementById('synDescOverlay')?.classList.contains('is-open')) {
-            closeDescriptions();
+        if (event.key === 'Escape' && document.body.classList.contains('syn-desc-open')) {
+            event.preventDefault();
+            window.closeDescriptionModal();
         }
-    });
+    }, { capture: true });
 
-    // Override grid rendering so descriptions are available directly on cards,
-    // not only hidden in the comparison tab.
-    renderGrid = function renderGrid() {
-        const container = document.getElementById('gridContainer');
+    // Override feature tag rendering so tags can open their tag-specific explanation.
+    try {
+        buildFeatureTags = function buildFeatureTagsWithDescriptions(item) {
+            const features = [];
+            if (item.decompiler) features.push('Decompiler');
+            if (item.multiInject) features.push('Multi-Instance');
+            if (item.keysystem) features.push('Key System');
+            if (item.clientmods) features.push('Client Mods');
+            if (item.beta) features.push('Beta');
+            if (item.elementCertified) features.push('Verified');
+            if (item.tags?.length) features.push(...item.tags.map(tag => String(tag).replace(/-/g, ' ')));
+            if (item.badges?.length) features.push(...item.badges.map(tag => String(tag).replace(/-/g, ' ')));
+            return [...new Set(features.filter(Boolean))];
+        };
+    } catch {}
 
-        if (filteredData.length === 0) {
-            container.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-muted);">
-                    <p style="font-size: 1.25rem; margin-bottom: 0.5rem;">No exploits found</p>
-                    <p>Try adjusting your filters or search terms</p>
-                </div>
-            `;
-            return;
-        }
+    // Override grid renderer to include the wide Descriptions button above Website/Discord/Buy,
+    // and make tags clickable.
+    try {
+        renderGrid = function renderGridWithDescriptions() {
+            const container = document.getElementById('gridContainer');
 
-        container.innerHTML = filteredData.map(item => {
-            const detectionUi = getDetectionUi(item);
-            const updateUi = getUpdateUi(item);
-            const isSelected = selectedForCompare.has(item.id);
-
-            return `
-                <div class="executor-card fade-in" data-id="${escapeHtml(item.id)}">
-                    <div class="card-select-row">
-                        <input type="checkbox"
-                            id="cb-${escapeHtml(item.id)}"
-                            ${isSelected ? 'checked' : ''}
-                            onchange="toggleCompare(${escapeForInlineJs(item.id)})">
-                        <label for="cb-${escapeHtml(item.id)}">Compare</label>
+            if (filteredData.length === 0) {
+                container.innerHTML = `
+                    <div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-muted);">
+                        <p style="font-size: 1.25rem; margin-bottom: 0.5rem;">No exploits found</p>
+                        <p>Try adjusting your filters or search terms</p>
                     </div>
+                `;
+                return;
+            }
 
-                    <div class="card-header">
-                        <a href="${escapeHtml(item.website || '#')}" target="_blank" class="executor-name" rel="noopener">
-                            ${item.logo ? `<img src="${escapeHtml(item.logo)}" alt="" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;" onerror="this.style.display='none'">` : ''}
-                            ${escapeHtml(item.name)}
-                        </a>
-                        <div class="badges">
-                            <span class="badge badge-source-${escapeHtml(sourceClass(item))}">${escapeHtml(item.sourceLabel || item.source.toUpperCase())}</span>
-                            <span class="badge ${item.free ? 'badge-free' : 'badge-paid'}">
-                                ${item.free ? 'Free' : 'Paid'}
-                            </span>
-                            <span class="badge ${detectionUi.badge}">
-                                ${detectionUi.text}
-                            </span>
-                        </div>
-                    </div>
+            container.innerHTML = filteredData.map(item => {
+                const detectionUi = getDetectionUi(item);
+                const updateUi = getUpdateUi(item);
+                const isSelected = selectedForCompare.has(item.id);
+                const features = buildFeatureTags(item);
+                const descCount = collectAllDescriptionSections(item).length;
 
-                    <div class="card-body">
-                        <div class="info-row">
-                            <span class="info-label">Platform</span>
-                            <span class="info-value"><span class="badge badge-platform">${escapeHtml(item.platformDisplay)}</span></span>
+                return `
+                    <div class="executor-card fade-in" data-id="${escapeHtml(item.id)}">
+                        <div class="card-select-row">
+                            <input type="checkbox"
+                                id="cb-${escapeHtml(item.id)}"
+                                ${isSelected ? 'checked' : ''}
+                                onchange="toggleCompare(${escapeForInlineJs(item.id)})">
+                            <label for="cb-${escapeHtml(item.id)}">Compare</label>
                         </div>
 
-                        <div class="info-row">
-                            <span class="info-label">Data Source</span>
-                            <span class="info-value"><span class="badge badge-source-${escapeHtml(sourceClass(item))}">${escapeHtml(item.sourceLabel || item.source.toUpperCase())}</span></span>
+                        <div class="card-header">
+                            <a href="${escapeHtml(item.website || '#')}" target="_blank" class="executor-name" rel="noopener">
+                                ${item.logo ? `<img src="${escapeHtml(item.logo)}" alt="" style="width: 32px; height: 32px; border-radius: 6px; object-fit: cover;" onerror="this.style.display='none'">` : ''}
+                                ${escapeHtml(item.name)}
+                            </a>
+                            <div class="badges">
+                                <span class="badge badge-source-${escapeHtml(sourceClass(item))}">${escapeHtml(item.sourceLabel || item.source.toUpperCase())}</span>
+                                <span class="badge ${item.free ? 'badge-free' : 'badge-paid'}">${item.free ? 'Free' : 'Paid'}</span>
+                                <span class="badge ${detectionUi.badge}">${detectionUi.text}</span>
+                            </div>
                         </div>
 
-                        <div class="info-row">
-                            <span class="info-label">Version</span>
-                            <span class="info-value">${escapeHtml(item.version)}</span>
-                        </div>
-
-                        <div class="info-row">
-                            <span class="info-label">Price</span>
-                            <span class="info-value">${renderPrice(item.price)}</span>
-                        </div>
-
-                        <div class="info-row">
-                            <span class="info-label">Update</span>
-                            <span class="info-value">
-                                <span class="status-indicator">
-                                    <span class="status-dot ${updateUi.dot}"></span>
-                                    <span style="color: ${updateUi.color}">${updateUi.text}</span>
+                        <div class="card-body">
+                            <div class="info-row">
+                                <span class="info-label">Platform</span>
+                                <span class="info-value"><span class="badge badge-platform">${escapeHtml(item.platformDisplay)}</span></span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Data Source</span>
+                                <span class="info-value"><span class="badge badge-source-${escapeHtml(sourceClass(item))}">${escapeHtml(item.sourceLabel || item.source.toUpperCase())}</span></span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Version</span>
+                                <span class="info-value">${escapeHtml(item.version)}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Price</span>
+                                <span class="info-value">${renderPrice(item.price)}</span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">Update</span>
+                                <span class="info-value">
+                                    <span class="status-indicator">
+                                        <span class="status-dot ${updateUi.dot}"></span>
+                                        <span style="color: ${updateUi.color}">${updateUi.text}</span>
+                                    </span>
                                 </span>
-                            </span>
+                            </div>
+                            <div class="info-row">
+                                <span class="info-label">sUNC Score</span>
+                                <span class="info-value">${renderSunc(item)}</span>
+                            </div>
+                            ${hasNumber(item.uncPercentage) ? `
+                            <div class="info-row">
+                                <span class="info-label">UNC Score</span>
+                                <span class="info-value">${item.uncPercentage}%</span>
+                            </div>` : ''}
+                            ${item.rbxVersion && item.rbxVersion !== 'N/A' ? `
+                            <div class="info-row">
+                                <span class="info-label">Roblox Ver</span>
+                                <span class="info-value" style="font-family: monospace; font-size: 0.8rem;">${escapeHtml(item.rbxVersion)}</span>
+                            </div>` : ''}
+                            ${item.proSummary ? `
+                            <div class="info-row">
+                                <span class="info-label">Pro</span>
+                                <span class="info-value" style="max-width: 65%; text-align: right;">${escapeHtml(item.proSummary)}</span>
+                            </div>` : ''}
+                            ${item.neutralSummary ? `
+                            <div class="info-row">
+                                <span class="info-label">Note</span>
+                                <span class="info-value" style="max-width: 65%; text-align: right; color: var(--warning);">${escapeHtml(item.neutralSummary)}</span>
+                            </div>` : ''}
+                            ${item.conSummary ? `
+                            <div class="info-row">
+                                <span class="info-label">Con</span>
+                                <span class="info-value" style="max-width: 65%; text-align: right; color: var(--danger);">${escapeHtml(item.conSummary)}</span>
+                            </div>` : ''}
+                            ${item.detectionReason ? `
+                            <div class="info-row">
+                                <span class="info-label">Detection</span>
+                                <span class="info-value" style="color: var(--danger); font-size: 0.8rem;">${escapeHtml(item.detectionReason)}</span>
+                            </div>` : ''}
                         </div>
 
-                        <div class="info-row">
-                            <span class="info-label">sUNC Score</span>
-                            <span class="info-value">${renderSunc(item)}</span>
-                        </div>
+                        ${features.length > 0 ? `
+                        <div class="feature-tags">
+                            ${features.map(f => {
+                                const focus = `tag:${normalizeKeyLoose(f)}`;
+                                return `<button type="button" class="feature-tag feature-tag-button" onclick="openDescriptionModal(${escapeForInlineJs(item.id)}, ${escapeForInlineJs(focus)})">${escapeHtml(f)}</button>`;
+                            }).join('')}
+                        </div>` : ''}
 
-                        ${hasNumber(item.uncPercentage) ? `
-                        <div class="info-row">
-                            <span class="info-label">UNC Score</span>
-                            <span class="info-value">${item.uncPercentage}%</span>
+                        <div class="card-footer card-footer-with-desc">
+                            <button type="button" class="btn-small btn-description-wide" onclick="openDescriptionModal(${escapeForInlineJs(item.id)})">
+                                Descriptions${descCount ? ` (${descCount})` : ''}
+                            </button>
+                            ${item.website && item.website !== '#' ? `
+                                <a href="${escapeHtml(item.website)}" target="_blank" class="btn-small btn-primary" rel="noopener">Website</a>
+                            ` : `<span class="btn-small btn-secondary disabled-link" aria-disabled="true">Website</span>`}
+                            ${item.discord ? `
+                                <a href="${escapeHtml(item.discord)}" target="_blank" class="btn-small btn-secondary" rel="noopener">Discord</a>
+                            ` : `<span class="btn-small btn-secondary disabled-link" aria-disabled="true">Discord</span>`}
+                            ${item.purchaseLink ? `
+                                <a href="${escapeHtml(item.purchaseLink)}" target="_blank" class="btn-small btn-secondary" rel="noopener">Buy</a>
+                            ` : `<span class="btn-small btn-secondary disabled-link" aria-disabled="true">Buy</span>`}
                         </div>
-                        ` : ''}
-
-                        ${item.rbxVersion && item.rbxVersion !== 'N/A' ? `
-                        <div class="info-row">
-                            <span class="info-label">Roblox Ver</span>
-                            <span class="info-value" style="font-family: monospace; font-size: 0.8rem;">${escapeHtml(item.rbxVersion)}</span>
-                        </div>
-                        ` : ''}
-
-                        ${item.proSummary ? `
-                        <div class="info-row">
-                            <span class="info-label">Pro</span>
-                            <span class="info-value" style="max-width: 65%; text-align: right;">${escapeHtml(item.proSummary)}</span>
-                        </div>
-                        ` : ''}
-
-                        ${item.neutralSummary ? `
-                        <div class="info-row">
-                            <span class="info-label">Note</span>
-                            <span class="info-value" style="max-width: 65%; text-align: right; color: var(--warning);">${escapeHtml(item.neutralSummary)}</span>
-                        </div>
-                        ` : ''}
-
-                        ${item.conSummary ? `
-                        <div class="info-row">
-                            <span class="info-label">Con</span>
-                            <span class="info-value" style="max-width: 65%; text-align: right; color: var(--danger);">${escapeHtml(item.conSummary)}</span>
-                        </div>
-                        ` : ''}
-
-                        ${item.detectionReason ? `
-                        <div class="info-row">
-                            <span class="info-label">Detection</span>
-                            <span class="info-value" style="color: var(--danger); font-size: 0.8rem;">${escapeHtml(item.detectionReason)}</span>
-                        </div>
-                        ` : ''}
                     </div>
+                `;
+            }).join('');
 
-                    ${renderClickableFeatureTags(item)}
-                    ${renderDescriptionButton(item)}
+            bindCardTilt();
+        };
+    } catch {}
 
-                    <div class="card-footer">
-                        ${item.website && item.website !== '#' ? `
-                            <a href="${escapeHtml(item.website)}" target="_blank" class="btn-small btn-primary" rel="noopener">Website</a>
-                        ` : `<span class="btn-small btn-secondary disabled-link" aria-disabled="true">Website</span>`}
-                        ${item.discord ? `
-                            <a href="${escapeHtml(item.discord)}" target="_blank" class="btn-small btn-secondary" rel="noopener">Discord</a>
-                        ` : `<span class="btn-small btn-secondary disabled-link" aria-disabled="true">Discord</span>`}
-                        ${item.purchaseLink ? `
-                            <a href="${escapeHtml(item.purchaseLink)}" target="_blank" class="btn-small btn-secondary" rel="noopener">Buy</a>
-                        ` : `<span class="btn-small btn-secondary disabled-link" aria-disabled="true">Buy</span>`}
-                    </div>
+    // Also make comparison cards use the richer viewer instead of only a plain truncated paragraph.
+    try {
+        const oldRenderCompareRow = renderCompareRow;
+        renderComparison = function renderComparisonWithDescriptions() {
+            const container = document.getElementById('comparisonContainer');
+            const selectedItems = allData.filter(e => selectedForCompare.has(e.id));
+
+            if (selectedItems.length < 2) {
+                container.innerHTML = `
+                    <p style="color: var(--text-muted); text-align: center; padding: 2rem;">
+                        Select at least 2 executors to compare.
+                    </p>
+                `;
+                return;
+            }
+
+            const fields = [
+                { key: 'name', label: 'Name' },
+                { key: 'version', label: 'Version' },
+                { key: 'platformDisplay', label: 'Platform' },
+                { key: 'price', label: 'Price' },
+                { key: 'suncPercentage', label: 'sUNC', suffix: '%', nullable: true },
+                { key: 'uncPercentage', label: 'UNC', suffix: '%', nullable: true },
+                { key: 'detected', label: 'Detected', bool: true },
+                { key: 'updateStatus', label: 'Updated', bool: true },
+                { key: 'decompiler', label: 'Decompiler', bool: true },
+                { key: 'multiInject', label: 'Multi-Instance', bool: true },
+                { key: 'keysystem', label: 'Key System', bool: true },
+                { key: 'clientmods', label: 'Client Mods', bool: true },
+                { key: 'beta', label: 'Beta', bool: true },
+                { key: 'elementCertified', label: 'Verified', bool: true },
+                { key: 'updatedDate', label: 'Last Updated' },
+                { key: 'rbxVersion', label: 'Roblox Version' },
+                { key: 'sourceLabel', label: 'Data Source' }
+            ];
+
+            container.innerHTML = `
+                <div class="compare-grid">
+                    ${selectedItems.map(item => `
+                        <div class="compare-card fade-in">
+                            <h4>${escapeHtml(item.name)}</h4>
+                            ${fields.map(f => oldRenderCompareRow(item, f)).join('')}
+                            <button type="button" class="btn-small btn-description-wide" style="margin-top: 0.85rem;" onclick="openDescriptionModal(${escapeForInlineJs(item.id)})">
+                                View all descriptions (${collectAllDescriptionSections(item).length})
+                            </button>
+                            <div class="card-footer" style="margin-top: 1rem; padding-top: 1rem;">
+                                ${item.website && item.website !== '#' ? `<a href="${escapeHtml(item.website)}" target="_blank" class="btn-small btn-primary" rel="noopener">Website</a>` : ''}
+                                ${item.discord ? `<a href="${escapeHtml(item.discord)}" target="_blank" class="btn-small btn-secondary" rel="noopener">Discord</a>` : ''}
+                            </div>
+                        </div>
+                    `).join('')}
                 </div>
             `;
-        }).join('');
+        };
+    } catch {}
 
-        bindCardTilt();
+    // If data already rendered before this patch loaded, refresh the visible view.
+    setTimeout(() => {
+        try {
+            const activeGrid = document.getElementById('gridTab')?.classList.contains('active');
+            if (activeGrid && Array.isArray(filteredData) && filteredData.length) renderGrid();
+        } catch {}
+    }, 50);
+})();
+</script>
+
+
+<script id="synchrose-compare-sticky-desc-anim-script">
+(() => {
+    function patchCompareCards() {
+        document.querySelectorAll('.compare-card').forEach(card => {
+            card.classList.add('syn-compare-sticky-actions');
+            card.querySelectorAll('.card-footer').forEach(footer => {
+                footer.classList.add('compare-actions-bottom');
+            });
+        });
+    }
+
+    const oldRenderComparison = window.renderComparison;
+    if (typeof oldRenderComparison === 'function' && !oldRenderComparison.__synStickyPatched) {
+        window.renderComparison = function renderComparisonStickyActions() {
+            const result = oldRenderComparison.apply(this, arguments);
+            requestAnimationFrame(patchCompareCards);
+            return result;
+        };
+        window.renderComparison.__synStickyPatched = true;
+    }
+
+    document.addEventListener('DOMContentLoaded', patchCompareCards);
+    const observer = new MutationObserver(() => requestAnimationFrame(patchCompareCards));
+    if (document.body) observer.observe(document.body, { childList: true, subtree: true });
+})();
+</script>
+
+
+<script id="synchrose-settings-default-is-reset-script">
+/* ============================================================
+   Default is reset button, not a preset.
+   Adds more toggles and makes reset apply clean/professional defaults.
+============================================================ */
+(() => {
+    const KEY = 'synchrose:visual-settings:v1';
+    const MIGRATION_KEY = 'synchrose:default-is-reset:v1';
+
+    const DEFAULT_EFFECTS = {
+        intro: true,
+        heroVideo: false,
+        glass: false,
+        animations: true,
+        glow: false,
+        tilt3d: false,
+        lookAtCursor: false,
+        canvasParticles: false,
+        smoothScroll: false,
+        textEffects: false,
+        statEffects: true,
+        versionEffects: true,
+        marquee: true,
+        buttonShine: false,
+        cardGlint: false,
+        musicPlayer: true,
+
+        gradients: false,
+        roundedCorners: true,
+        shadows: false,
+        cardHoverLift: true,
+        descriptionAnimations: true,
+        noiseOverlays: false
     };
 
-    renderComparison = function renderComparison() {
-        const container = document.getElementById('comparisonContainer');
-        const selectedItems = allData.filter(e => selectedForCompare.has(e.id));
+    const PRESETS = {
+        original: {
+            intro: true, heroVideo: true, glass: true, animations: true,
+            glow: true, tilt3d: true, lookAtCursor: true, canvasParticles: true,
+            smoothScroll: true, textEffects: true, statEffects: true,
+            versionEffects: true, marquee: true, buttonShine: true,
+            cardGlint: true, musicPlayer: true,
+            gradients: true, roundedCorners: true, shadows: true,
+            cardHoverLift: true, descriptionAnimations: true, noiseOverlays: true
+        },
+        minimal: {
+            intro: false, heroVideo: false, glass: false, animations: false,
+            glow: false, tilt3d: false, lookAtCursor: false, canvasParticles: false,
+            smoothScroll: false, textEffects: false, statEffects: false,
+            versionEffects: false, marquee: false, buttonShine: false,
+            cardGlint: false, musicPlayer: true,
+            gradients: false, roundedCorners: true, shadows: false,
+            cardHoverLift: false, descriptionAnimations: false, noiseOverlays: false
+        },
+        performance: {
+            intro: false, heroVideo: false, glass: false, animations: false,
+            glow: false, tilt3d: false, lookAtCursor: false, canvasParticles: false,
+            smoothScroll: false, textEffects: false, statEffects: false,
+            versionEffects: false, marquee: false, buttonShine: false,
+            cardGlint: false, musicPlayer: false,
+            gradients: false, roundedCorners: false, shadows: false,
+            cardHoverLift: false, descriptionAnimations: false, noiseOverlays: false
+        }
+    };
 
-        if (selectedItems.length < 2) {
-            container.innerHTML = `
-                <p style="color: var(--text-muted); text-align: center; padding: 2rem;">
-                    Select at least 2 executors to compare.
-                </p>
-            `;
-            return;
+    const EFFECT_LABELS = {
+        gradients: ['Gradients', 'Large purple/pink gradient fills'],
+        roundedCorners: ['Rounded Corners', 'Softer corners on panels and cards'],
+        shadows: ['Glow Shadows', 'Outer glow and depth shadows'],
+        cardHoverLift: ['Card Hover Lift', 'Subtle lift on cards when hovered'],
+        descriptionAnimations: ['Description Popup Animation', 'Popup/cascade animation in description modal'],
+        noiseOverlays: ['Noise / Ambient Overlays', 'Starfield, orbs, cursor glow, canvas overlays']
+    };
+
+    function parse(raw) {
+        try { return JSON.parse(raw); } catch { return null; }
+    }
+
+    function kebab(name) {
+        return String(name).replace(/[A-Z]/g, m => '-' + m.toLowerCase());
+    }
+
+    function normalize(settings) {
+        const preset = PRESETS[settings?.preset] ? settings.preset : 'custom';
+        const base = preset === 'custom' ? DEFAULT_EFFECTS : PRESETS[preset];
+        return {
+            preset,
+            isDefault: Boolean(settings?.isDefault),
+            effects: { ...DEFAULT_EFFECTS, ...base, ...(settings?.effects || {}) }
+        };
+    }
+
+    function effectsEqual(a, b) {
+        const keys = new Set([...Object.keys(DEFAULT_EFFECTS), ...Object.keys(a || {}), ...Object.keys(b || {})]);
+        for (const key of keys) {
+            if (Boolean(a?.[key]) !== Boolean(b?.[key])) return false;
+        }
+        return true;
+    }
+
+    function save(settings) {
+        const normalized = normalize(settings);
+        try { localStorage.setItem(KEY, JSON.stringify(normalized)); } catch {}
+        window.__synFxCurrentSettings = normalized;
+        return normalized;
+    }
+
+    function load() {
+        let settings = normalize(parse(localStorage.getItem(KEY)));
+
+        // One-time migration: old Balanced/default gets replaced by the new reset-default config.
+        const migrated = localStorage.getItem(MIGRATION_KEY) === '1';
+        if (!migrated || settings.preset === 'balanced') {
+            settings = { preset: 'custom', isDefault: true, effects: { ...DEFAULT_EFFECTS } };
+            save(settings);
+            try { localStorage.setItem(MIGRATION_KEY, '1'); } catch {}
         }
 
-        const fields = [
-            { key: 'name', label: 'Name' },
-            { key: 'version', label: 'Version' },
-            { key: 'platformDisplay', label: 'Platform' },
-            { key: 'price', label: 'Price' },
-            { key: 'suncPercentage', label: 'sUNC', suffix: '%', nullable: true },
-            { key: 'uncPercentage', label: 'UNC', suffix: '%', nullable: true },
-            { key: 'detected', label: 'Detected', bool: true },
-            { key: 'updateStatus', label: 'Updated', bool: true },
-            { key: 'decompiler', label: 'Decompiler', bool: true },
-            { key: 'multiInject', label: 'Multi-Instance', bool: true },
-            { key: 'keysystem', label: 'Key System', bool: true },
-            { key: 'clientmods', label: 'Client Mods', bool: true },
-            { key: 'beta', label: 'Beta', bool: true },
-            { key: 'elementCertified', label: 'Verified', bool: true },
-            { key: 'updatedDate', label: 'Last Updated' },
-            { key: 'rbxVersion', label: 'Roblox Version' },
-            { key: 'sourceLabel', label: 'Data Source' }
-        ];
+        return normalize(settings);
+    }
 
-        container.innerHTML = `
-            <div class="compare-grid">
-                ${selectedItems.map(item => `
-                    <div class="compare-card fade-in">
-                        <h4>${escapeHtml(item.name)}</h4>
-                        ${fields.map(f => renderCompareRow(item, f)).join('')}
-                        ${renderClickableFeatureTags(item)}
-                        ${renderDescriptionButton(item)}
-                        <div class="card-footer" style="margin-top: 1rem; padding-top: 1rem;">
-                            ${item.website && item.website !== '#' ? `<a href="${escapeHtml(item.website)}" target="_blank" class="btn-small btn-primary" rel="noopener">Website</a>` : ''}
-                            ${item.discord ? `<a href="${escapeHtml(item.discord)}" target="_blank" class="btn-small btn-secondary" rel="noopener">Discord</a>` : ''}
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        `;
+    function ensureSettingsUi() {
+        const presetTitle = [...document.querySelectorAll('.settings-section-title')]
+            .find(el => el.textContent.trim().toLowerCase() === 'presets');
+        if (presetTitle) presetTitle.textContent = 'Optional Presets';
+
+        const presetGrid = document.querySelector('.preset-grid');
+        if (presetGrid) {
+            presetGrid.querySelector('[data-preset="balanced"]')?.remove();
+
+            if (!document.getElementById('settingsDefaultNote')) {
+                const note = document.createElement('div');
+                note.id = 'settingsDefaultNote';
+                note.className = 'settings-default-note';
+                note.innerHTML = '<strong>Default is not a preset.</strong><br>Use Reset to Defaults to return to the clean/professional baseline.';
+                presetGrid.parentElement?.insertBefore(note, presetGrid);
+            }
+        }
+
+        const toggleList = document.querySelector('.toggle-list');
+        if (toggleList) {
+            Object.entries(EFFECT_LABELS).forEach(([key, [name, desc]]) => {
+                if (toggleList.querySelector(`[data-effect="${key}"]`)) return;
+                const label = document.createElement('label');
+                label.className = 'toggle-row';
+                label.innerHTML = `
+                    <input type="checkbox" class="theme-check" data-effect="${key}" onchange="toggleEffect('${key}', this.checked)">
+                    <span class="toggle-info">
+                        <span class="toggle-name">${name}</span>
+                        <span class="toggle-desc">${desc}</span>
+                    </span>
+                `;
+                toggleList.appendChild(label);
+            });
+        }
+
+        const resetBtn = [...document.querySelectorAll('.settings-footer .btn')]
+            .find(btn => /reset/i.test(btn.textContent || ''));
+        if (resetBtn) {
+            resetBtn.textContent = 'Reset to Defaults';
+            resetBtn.title = 'Apply the clean/professional default settings';
+            resetBtn.classList.add('settings-reset-default-button');
+        }
+    }
+
+    function directApply(settings) {
+        const fx = settings.effects;
+        const body = document.body;
+        const root = document.documentElement;
+        if (!body) return;
+
+        root.style.scrollBehavior = fx.smoothScroll ? '' : 'auto';
+
+        document.querySelectorAll('.hero-video').forEach(video => {
+            if (!fx.heroVideo) {
+                try { video.pause(); } catch {}
+                video.style.display = 'none';
+            } else {
+                video.style.display = '';
+                try { video.play?.().catch?.(() => {}); } catch {}
+            }
+        });
+
+        if (!fx.intro) {
+            const intro = document.getElementById('synchroseIntro');
+            if (intro) intro.style.display = 'none';
+            body.classList.add('synchrose-intro-done');
+        }
+
+        if (!fx.lookAtCursor) {
+            body.classList.remove('syn-look-ready', 'syn-cursor-active');
+            ['--syn-title-rx','--syn-title-ry','--syn-sub-rx','--syn-sub-ry'].forEach(prop => root.style.setProperty(prop, '0deg'));
+            ['--syn-title-tx','--syn-title-ty','--syn-sub-tx','--syn-sub-ty'].forEach(prop => root.style.setProperty(prop, '0px'));
+        }
+
+        const hideAmbient = !fx.glow || !fx.canvasParticles || !fx.noiseOverlays || settings.preset === 'minimal' || settings.preset === 'performance';
+        document.querySelectorAll('.synchrose-starfield, .synchrose-orb, .synchrose-cursor-glow, .fx-cursor-glow, .hero-fx-canvas').forEach(el => {
+            const shouldHide = hideAmbient || (el.classList.contains('hero-fx-canvas') && !fx.canvasParticles);
+            el.style.display = shouldHide ? 'none' : '';
+            el.style.visibility = shouldHide ? 'hidden' : '';
+        });
+
+        if (!fx.tilt3d || !fx.cardGlint) {
+            document.querySelectorAll('.executor-card').forEach(el => {
+                el.classList.remove('is-card-looking');
+                ['--card-rx','--card-ry','--card-glare-x','--card-glare-y'].forEach(prop => el.style.removeProperty(prop));
+            });
+        }
+
+        const player = document.getElementById('mxMusicPlayer');
+        if (player) player.style.display = fx.musicPlayer ? '' : 'none';
+    }
+
+    function applyClasses(settings) {
+        const body = document.body;
+        if (!body) return;
+
+        const effects = settings.effects;
+        const names = Object.keys({ ...DEFAULT_EFFECTS, ...effects });
+
+        body.dataset.synFxPreset = settings.isDefault || effectsEqual(effects, DEFAULT_EFFECTS) ? 'reset-default' : settings.preset;
+
+        names.forEach(name => {
+            body.classList.toggle(`fx-${kebab(name)}-off`, effects[name] === false);
+        });
+
+        const trigger = document.getElementById('settingsTrigger');
+        if (trigger) {
+            trigger.dataset.fxBadge =
+                settings.isDefault || effectsEqual(effects, DEFAULT_EFFECTS) ? 'DEF' :
+                settings.preset === 'performance' ? 'FPS' :
+                settings.preset === 'minimal' ? 'MIN' :
+                settings.preset === 'original' ? 'ORG' : '';
+        }
+    }
+
+    function syncUi(settings) {
+        ensureSettingsUi();
+
+        document.querySelectorAll('.preset-card').forEach(card => {
+            const preset = card.dataset.preset;
+            card.classList.toggle('is-active', settings.preset === preset && !settings.isDefault);
+        });
+
+        document.querySelectorAll('[data-effect]').forEach(input => {
+            const name = input.dataset.effect;
+            if (name in settings.effects) input.checked = settings.effects[name] !== false;
+        });
+
+        const note = document.getElementById('settingsPerformanceNote');
+        if (note) {
+            const state = settings.isDefault || effectsEqual(settings.effects, DEFAULT_EFFECTS) ? 'Reset Default' : settings.preset;
+            note.innerHTML = `
+                <strong>Current settings: ${state}</strong><br>
+                Default is the Reset to Defaults action, not a preset card.
+                <div class="perf-row">
+                    <span class="perf-pill ${settings.effects.gradients ? 'on' : 'off'}">Gradients: ${settings.effects.gradients ? 'on' : 'off'}</span>
+                    <span class="perf-pill ${settings.effects.shadows ? 'on' : 'off'}">Shadows: ${settings.effects.shadows ? 'on' : 'off'}</span>
+                    <span class="perf-pill ${settings.effects.roundedCorners ? 'on' : 'off'}">Rounded: ${settings.effects.roundedCorners ? 'on' : 'off'}</span>
+                    <span class="perf-pill ${settings.effects.descriptionAnimations ? 'on' : 'off'}">Descriptions animation: ${settings.effects.descriptionAnimations ? 'on' : 'off'}</span>
+                </div>
+            `;
+        }
+    }
+
+    function apply(settings) {
+        const normalized = save(settings);
+        applyClasses(normalized);
+        directApply(normalized);
+        syncUi(normalized);
+        document.dispatchEvent(new CustomEvent('synchrose:settings-applied', { detail: normalized }));
+        return normalized;
+    }
+
+    window.applyPreset = function applyPresetNoDefault(presetName) {
+        if (!PRESETS[presetName]) return;
+        const settings = apply({ preset: presetName, isDefault: false, effects: { ...PRESETS[presetName] } });
+        window.showToast?.(`Applied ${presetName} preset`, 'success');
+        return settings;
     };
 
-    // Re-render current view once after this patch loads.
+    window.toggleEffect = function toggleEffectNoDefault(effectName, enabled) {
+        const current = load();
+        current.isDefault = false;
+        current.preset = 'custom';
+        current.effects[effectName] = Boolean(enabled);
+        const settings = apply(current);
+        window.showToast?.(`${effectName.replace(/[A-Z]/g, m => ' ' + m.toLowerCase())}: ${enabled ? 'on' : 'off'}`, 'success');
+        return settings;
+    };
+
+    window.resetToDefaults = function resetToDefaultsOnlyDefault() {
+        const settings = apply({ preset: 'custom', isDefault: true, effects: { ...DEFAULT_EFFECTS } });
+        window.showToast?.('Reset to Defaults', 'success');
+        return settings;
+    };
+
+    window.saveSettings = function saveSettingsNoDefaultPreset() {
+        const stored = load();
+        const effects = { ...stored.effects };
+        document.querySelectorAll('[data-effect]').forEach(input => {
+            const name = input.dataset.effect;
+            if (name in effects) effects[name] = Boolean(input.checked);
+        });
+
+        const isDefault = effectsEqual(effects, DEFAULT_EFFECTS);
+        const settings = apply({ preset: isDefault ? 'custom' : 'custom', isDefault, effects });
+        document.body.classList.remove('settings-open');
+        document.getElementById('settingsPanel')?.setAttribute('aria-hidden', 'true');
+        window.showToast?.('Settings saved', 'success');
+        return settings;
+    };
+
+    window.closeSettings = function closeSettingsNoDefaultPreset() {
+        window.saveSettings();
+        return window.__synFxCurrentSettings;
+    };
+
+    const boot = () => {
+        ensureSettingsUi();
+        apply(load());
+    };
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', () => {
-            if (Array.isArray(filteredData) && filteredData.length) renderGrid();
-        }, { once: true });
+        document.addEventListener('DOMContentLoaded', boot, { once: true });
+    } else {
+        boot();
     }
+
+    window.addEventListener('pageshow', () => apply(load()), { passive: true });
+})();
+</script>
+
+
+<script id="synchrose-clean-professional-default-script">
+(() => {
+    const KEY = 'synchrose:visual-settings:v1';
+
+    const CLEAN_DEFAULT_EFFECTS = {
+        intro: true,
+        heroVideo: false,
+        glass: false,
+        animations: true,
+        glow: false,
+        tilt3d: false,
+        lookAtCursor: false,
+        canvasParticles: false,
+        smoothScroll: false,
+        textEffects: false,
+        statEffects: false,
+        versionEffects: false,
+        marquee: true,
+        buttonShine: false,
+        cardGlint: false,
+        musicPlayer: true,
+        gradients: false,
+        roundedCorners: false,
+        shadows: false,
+        cardHoverLift: false,
+        descriptionAnimations: true,
+        noiseOverlays: false
+    };
+
+    function parse(raw) {
+        try { return JSON.parse(raw); } catch { return null; }
+    }
+
+    function kebab(name) {
+        return String(name).replace(/[A-Z]/g, m => '-' + m.toLowerCase());
+    }
+
+    function save(settings) {
+        try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch {}
+        window.__synFxCurrentSettings = settings;
+        return settings;
+    }
+
+    function applyClasses(settings) {
+        const body = document.body;
+        if (!body) return;
+
+        body.dataset.synFxPreset = settings.isDefault ? 'reset-default' : (settings.preset || 'custom');
+
+        Object.entries(settings.effects || {}).forEach(([name, enabled]) => {
+            body.classList.toggle(`fx-${kebab(name)}-off`, enabled === false);
+        });
+
+        const trigger = document.getElementById('settingsTrigger');
+        if (trigger) trigger.dataset.fxBadge = settings.isDefault ? 'DEF' : '';
+    }
+
+    function syncToggles(settings) {
+        document.querySelectorAll('.preset-card[data-preset="balanced"]').forEach(el => el.remove());
+        document.getElementById('settingsDefaultNote')?.remove();
+        document.querySelectorAll('.settings-default-note').forEach(el => el.remove());
+
+        document.querySelectorAll('.preset-card').forEach(card => {
+            card.classList.toggle('is-active', !settings.isDefault && settings.preset === card.dataset.preset);
+        });
+
+        document.querySelectorAll('[data-effect]').forEach(input => {
+            const key = input.dataset.effect;
+            if (key in settings.effects) input.checked = settings.effects[key] !== false;
+        });
+
+        const note = document.getElementById('settingsPerformanceNote');
+        if (note) note.remove();
+    }
+
+    function hardVisualCleanup(settings) {
+        if (!settings.isDefault) return;
+
+        document.querySelectorAll('.hero-video').forEach(video => {
+            try { video.pause(); } catch {}
+            video.style.display = 'none';
+        });
+
+        document.querySelectorAll('.synchrose-starfield, .synchrose-orb, .synchrose-cursor-glow, .fx-cursor-glow, .hero-fx-canvas').forEach(el => {
+            el.style.display = 'none';
+            el.style.visibility = 'hidden';
+        });
+
+        document.body.classList.remove('syn-look-ready', 'syn-cursor-active');
+    }
+
+    function applyCleanDefault() {
+        const settings = {
+            preset: 'custom',
+            isDefault: true,
+            effects: { ...CLEAN_DEFAULT_EFFECTS }
+        };
+        save(settings);
+        applyClasses(settings);
+        syncToggles(settings);
+        hardVisualCleanup(settings);
+        document.dispatchEvent(new CustomEvent('synchrose:settings-applied', { detail: settings }));
+        return settings;
+    }
+
+    // Reset button is the default. Not a preset.
+    window.resetToDefaults = function resetToDefaultsClean() {
+        const settings = applyCleanDefault();
+        window.showToast?.('Reset to Defaults', 'success');
+        return settings;
+    };
+
+    const oldApplyPreset = window.applyPreset;
+    window.applyPreset = function applyPresetClean(presetName) {
+        if (presetName === 'balanced') return applyCleanDefault();
+        const result = typeof oldApplyPreset === 'function' ? oldApplyPreset(presetName) : null;
+        setTimeout(() => {
+            const stored = parse(localStorage.getItem(KEY)) || {};
+            stored.isDefault = false;
+            save(stored);
+            applyClasses(stored);
+            syncToggles(stored);
+        }, 0);
+        return result;
+    };
+
+    const oldToggleEffect = window.toggleEffect;
+    window.toggleEffect = function toggleEffectClean(effectName, enabled) {
+        const result = typeof oldToggleEffect === 'function'
+            ? oldToggleEffect(effectName, enabled)
+            : null;
+
+        setTimeout(() => {
+            const stored = parse(localStorage.getItem(KEY)) || { preset: 'custom', effects: {} };
+            stored.isDefault = false;
+            stored.preset = 'custom';
+            stored.effects = { ...CLEAN_DEFAULT_EFFECTS, ...(stored.effects || {}), [effectName]: Boolean(enabled) };
+            save(stored);
+            applyClasses(stored);
+            syncToggles(stored);
+        }, 0);
+
+        return result;
+    };
+
+    const boot = () => {
+        const stored = parse(localStorage.getItem(KEY));
+        if (!stored || stored.preset === 'balanced' || stored.isDefault) {
+            applyCleanDefault();
+        } else {
+            applyClasses(stored);
+            syncToggles(stored);
+        }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot, { once: true });
+    } else {
+        boot();
+    }
+})();
+</script>
+
+
+<script id="synchrose-presets-balanced-fix-script">
+(() => {
+    const KEY = 'synchrose:visual-settings:v1';
+
+    const BALANCED_EFFECTS = {
+        intro: true,
+        heroVideo: false,
+        glass: false,
+        animations: true,
+        glow: false,
+        tilt3d: false,
+        lookAtCursor: false,
+        canvasParticles: false,
+        smoothScroll: false,
+        textEffects: false,
+        statEffects: true,
+        versionEffects: true,
+        marquee: true,
+        buttonShine: false,
+        cardGlint: false,
+        musicPlayer: true,
+        gradients: false,
+        roundedCorners: true,
+        shadows: false,
+        cardHoverLift: true,
+        descriptionAnimations: true,
+        noiseOverlays: false
+    };
+
+    function parse(raw) {
+        try { return JSON.parse(raw); } catch { return null; }
+    }
+
+    function kebab(name) {
+        return String(name).replace(/[A-Z]/g, m => '-' + m.toLowerCase());
+    }
+
+    function save(settings) {
+        try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch {}
+        window.__synFxCurrentSettings = settings;
+        return settings;
+    }
+
+    function applyClasses(settings) {
+        const body = document.body;
+        if (!body) return;
+
+        body.dataset.synFxPreset = settings.preset || 'custom';
+
+        Object.entries(settings.effects || {}).forEach(([name, enabled]) => {
+            body.classList.toggle(`fx-${kebab(name)}-off`, enabled === false);
+        });
+
+        const trigger = document.getElementById('settingsTrigger');
+        if (trigger) {
+            trigger.dataset.fxBadge =
+                settings.isDefault ? 'DEF' :
+                settings.preset === 'balanced' ? 'BAL' :
+                settings.preset === 'performance' ? 'FPS' :
+                settings.preset === 'original' ? 'ORG' : '';
+        }
+    }
+
+    function syncPresetUi(settings) {
+        document.getElementById('settingsDefaultNote')?.remove();
+        document.querySelectorAll('.settings-default-note').forEach(el => el.remove());
+
+        const presetTitle = [...document.querySelectorAll('.settings-section-title')]
+            .find(el => /optional presets|presets/i.test(el.textContent || '') || el.dataset.synPresetsTitle === '1');
+        if (presetTitle) {
+            presetTitle.textContent = 'Presets';
+            presetTitle.dataset.synPresetsTitle = '1';
+        }
+
+        const grid = document.querySelector('.preset-grid');
+        if (grid) {
+            grid.querySelector('[data-preset="minimal"]')?.remove();
+
+            if (!grid.querySelector('[data-preset="balanced"]')) {
+                const original = grid.querySelector('[data-preset="original"]');
+                const balanced = document.createElement('button');
+                balanced.className = 'preset-card';
+                balanced.dataset.preset = 'balanced';
+                balanced.type = 'button';
+                balanced.setAttribute('onclick', "applyPreset('balanced')");
+                balanced.innerHTML = `
+                    <div class="preset-icon">&#9889;</div>
+                    <div class="preset-name">Balanced</div>
+                    <div class="preset-desc">Clean with useful motion</div>
+                `;
+                original?.insertAdjacentElement('afterend', balanced) || grid.prepend(balanced);
+            }
+
+            grid.querySelector('[data-preset="balanced"] .preset-name')?.replaceChildren(document.createTextNode('Balanced'));
+            grid.querySelector('[data-preset="balanced"] .preset-desc')?.replaceChildren(document.createTextNode('Clean with useful motion'));
+        }
+
+        document.querySelectorAll('.preset-card').forEach(card => {
+            card.classList.toggle('is-active', !settings.isDefault && settings.preset === card.dataset.preset);
+        });
+
+        document.querySelectorAll('[data-effect]').forEach(input => {
+            const key = input.dataset.effect;
+            if (key in (settings.effects || {})) input.checked = settings.effects[key] !== false;
+        });
+    }
+
+    function applyBalanced() {
+        const settings = {
+            preset: 'balanced',
+            isDefault: false,
+            effects: { ...BALANCED_EFFECTS }
+        };
+        save(settings);
+        applyClasses(settings);
+        syncPresetUi(settings);
+        document.dispatchEvent(new CustomEvent('synchrose:settings-applied', { detail: settings }));
+        window.showToast?.('Applied Balanced preset', 'success');
+        return settings;
+    }
+
+    const previousApplyPreset = window.applyPreset;
+    window.applyPreset = function applyPresetBalancedFixed(presetName) {
+        if (presetName === 'balanced' || presetName === 'minimal') {
+            return applyBalanced();
+        }
+
+        const result = typeof previousApplyPreset === 'function'
+            ? previousApplyPreset(presetName)
+            : null;
+
+        setTimeout(() => {
+            const stored = parse(localStorage.getItem(KEY)) || window.__synFxCurrentSettings || {};
+            stored.isDefault = false;
+            if (presetName) stored.preset = presetName;
+            save(stored);
+            applyClasses(stored);
+            syncPresetUi(stored);
+        }, 0);
+
+        return result;
+    };
+
+    const boot = () => {
+        const stored = parse(localStorage.getItem(KEY)) || window.__synFxCurrentSettings || { preset: 'custom', isDefault: true, effects: {} };
+        syncPresetUi(stored);
+        applyClasses(stored);
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', boot, { once: true });
+    } else {
+        boot();
+    }
+
+    document.addEventListener('synchrose:settings-applied', event => {
+        syncPresetUi(event.detail || parse(localStorage.getItem(KEY)) || {});
+    });
+})();
+</script>
+
+
+<script id="synchrose-compare-name-rounded-cleanup-script">
+(() => {
+    const KEY = 'synchrose:visual-settings:v1';
+
+    function parse(raw) {
+        try { return JSON.parse(raw); } catch { return null; }
+    }
+
+    function write(settings) {
+        try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch {}
+        window.__synFxCurrentSettings = settings;
+        return settings;
+    }
+
+    function removeRoundedCornersSetting() {
+        // Remove toggle from Settings UI.
+        document.querySelectorAll('[data-effect="roundedCorners"]').forEach(input => {
+            const row = input.closest('.toggle-row, label');
+            if (row) {
+                row.dataset.removeRoundedCornersToggle = '1';
+                row.remove();
+            }
+        });
+
+        // Remove old state so the body class does not keep coming back.
+        const stored = parse(localStorage.getItem(KEY));
+        if (stored?.effects && Object.prototype.hasOwnProperty.call(stored.effects, 'roundedCorners')) {
+            delete stored.effects.roundedCorners;
+            write(stored);
+        }
+
+        if (window.__synFxCurrentSettings?.effects) {
+            delete window.__synFxCurrentSettings.effects.roundedCorners;
+        }
+
+        document.body?.classList.remove('fx-rounded-corners-off');
+    }
+
+    function removeCompareNameRows() {
+        document.querySelectorAll('.compare-card').forEach(card => {
+            card.querySelectorAll('.compare-row').forEach(row => {
+                const label = row.querySelector('.label');
+                if ((label?.textContent || '').trim().toLowerCase() === 'name') {
+                    row.remove();
+                }
+            });
+        });
+    }
+
+    const previousRenderComparison = window.renderComparison;
+    if (typeof previousRenderComparison === 'function' && !previousRenderComparison.__synNoNamePatched) {
+        window.renderComparison = function renderComparisonNoDuplicateName() {
+            const result = previousRenderComparison.apply(this, arguments);
+            requestAnimationFrame(() => {
+                removeCompareNameRows();
+                removeRoundedCornersSetting();
+            });
+            return result;
+        };
+        window.renderComparison.__synNoNamePatched = true;
+    }
+
+    const previousToggleEffect = window.toggleEffect;
+    if (typeof previousToggleEffect === 'function' && !previousToggleEffect.__synNoRoundedPatched) {
+        window.toggleEffect = function toggleEffectNoRounded(effectName, enabled) {
+            if (effectName === 'roundedCorners') {
+                removeRoundedCornersSetting();
+                return window.__synFxCurrentSettings;
+            }
+            return previousToggleEffect.apply(this, arguments);
+        };
+        window.toggleEffect.__synNoRoundedPatched = true;
+    }
+
+    function cleanup() {
+        removeRoundedCornersSetting();
+        removeCompareNameRows();
+
+        // Fix settings title if an older patch changed it.
+        [...document.querySelectorAll('.settings-section-title')].forEach(title => {
+            if (/optional presets/i.test(title.textContent || '')) title.textContent = 'Presets';
+        });
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', cleanup, { once: true });
+    } else {
+        cleanup();
+    }
+
+    document.addEventListener('synchrose:settings-applied', cleanup);
+
+    const observer = new MutationObserver(() => requestAnimationFrame(cleanup));
+    if (document.body) observer.observe(document.body, { childList: true, subtree: true });
 })();
 </script>
 
