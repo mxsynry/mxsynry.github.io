@@ -146,13 +146,190 @@ local ColorTable = {
     ["Orange"] = Color3.fromRGB(255, 165, 0), ["Cyan"] = Color3.fromRGB(0, 255, 255),
     ["White"] = Color3.fromRGB(255, 255, 255), ["Magenta"] = Color3.fromRGB(255, 0, 255)
 }
-local ESP_Config = { Enabled = false, EnemyColor = "Bright Red", TeamColor = "Bright Blue", OutlineColor = "White", Transparency = 0.5, OutlineTransparency = 0 }
+local ESP_Config = { Enabled = false, EnemyColor = "Bright Red", TeamColor = "Bright Blue", OutlineColor = "White", Transparency = 0.5, OutlineTransparency = 0, ThroughWalls = false }
+
+local LandmineESP = { Enabled = false, Color = "Bright Red", Transparency = 0.5, OutlineColor = "White" }
+local landmineCache = {}
 
 local Solvers = { Prometheus = false, Hermes = false, Platform = false, Tank = false, TridentQTE = false }
 local WeaponModEnabled = false
 local InfJumpEnabled = false
 local AntiStunEnabled = false
 local espCache = {}
+
+-- ====================================================================
+-- [[ TERMINAL VELOCITY EXPLOITS ]]
+-- ====================================================================
+local TV_Exploits = {
+    SlamSpam = false, SpamDelay = 0.1, RemoveGlide = false,
+    RemoveDirectCharge = false, InfiniteFuel = false,
+    QKeyHeld = false, LastSlamTime = 0, GlideThrottle = 0
+}
+
+local function FindTerminalVelocity()
+    local char = LocalPlayer.Character
+    if not char or not char.Parent then return nil end
+    for _, child in ipairs(char:GetChildren()) do
+        if child:IsA("Tool") and child.Name == "Terminal Velocity" then return child end
+    end
+    local backpack = LocalPlayer:FindFirstChild("Backpack")
+    if backpack then
+        for _, child in ipairs(backpack:GetChildren()) do
+            if child:IsA("Tool") and child.Name == "Terminal Velocity" then return child end
+        end
+    end
+    for _, child in ipairs(char:GetChildren()) do
+        if child:IsA("Tool") then
+            if child:FindFirstChild("Propell") and child:FindFirstChild("Slam") and child:FindFirstChild("Meter") then
+                return child
+            end
+        end
+    end
+    return nil
+end
+
+local function DoSlamSpam(tool)
+    if not tool or not tool.Parent then return end
+    local char = LocalPlayer.Character
+    if not char or not char.Parent then return end
+    local root = char:FindFirstChild("HumanoidRootPart")
+    if not root then return end
+    local now = tick()
+    if now - TV_Exploits.LastSlamTime < TV_Exploits.SpamDelay then return end
+    TV_Exploits.LastSlamTime = now
+    if TV_Exploits.RemoveGlide then
+        local glideRem = tool:FindFirstChild("SetGlideState")
+        if glideRem then pcall(function() glideRem:FireServer(false) end) end
+    end
+    if TV_Exploits.RemoveDirectCharge then
+        local dc = root:FindFirstChild("DirectCharge")
+        if dc then pcall(function() dc:Destroy() end) end
+    end
+    pcall(function()
+        tool:SetAttribute("SlamCooldown", 0)
+        tool:SetAttribute("JetCooldown", 0)
+    end)
+    local propell = tool:FindFirstChild("Propell")
+    if propell then pcall(function() propell:FireServer(nil, false) end) end
+    task.wait(0.03)
+    local slam = tool:FindFirstChild("Slam")
+    if slam then
+        pcall(function()
+            slam:FireServer((root.CFrame * CFrame.new(0, -2.5, 0)).Position, nil, false)
+        end)
+    end
+end
+
+-- ====================================================================
+-- [[ EQUIPMENT EXPLOITS ]]
+-- ====================================================================
+local EquipExploits = { AerorigFuel = false, InfiniteJetpack = false, UnlimitedPCU = false }
+
+local function FindEquippedToolByName(name)
+    local char = LocalPlayer.Character
+    if not char or not char.Parent then return nil end
+    for _, child in ipairs(char:GetChildren()) do
+        if child:IsA("Tool") and child.Name == name then return child end
+    end
+    return nil
+end
+
+local function ForceFuelMax(tool)
+    if not tool or not tool.Parent then return end
+    local meter = tool:FindFirstChild("Meter")
+    if meter and meter.Value < 100 then pcall(function() meter.Value = 100 end) end
+    local fuel = tool:FindFirstChild("Fuel")
+    if fuel then
+        local maxFuel = fuel:FindFirstChild("Max") or fuel
+        if maxFuel:IsA("NumberValue") or maxFuel:IsA("IntValue") then
+            if fuel.Value < maxFuel.Value then pcall(function() fuel.Value = maxFuel.Value end) end
+        else
+            pcall(function() fuel.Value = 100 end)
+        end
+    end
+    local fuelAttr = tool:GetAttribute("Fuel")
+    if fuelAttr ~= nil then
+        local maxAttr = tool:GetAttribute("MaxFuel") or 100
+        if fuelAttr < maxAttr then pcall(function() tool:SetAttribute("Fuel", maxAttr) end) end
+    end
+end
+
+-- ====================================================================
+-- [[ MAP PROMPT FINDER — Recursive ]]
+-- ====================================================================
+local function FindPromptInContainer(parent, targetName)
+    if not parent then return nil end
+    for _, child in ipairs(parent:GetChildren()) do
+        if child.Name == targetName then
+            local pp = child:FindFirstChildWhichIsA("ProximityPrompt", true)
+            if pp then return pp end
+        end
+        if child:IsA("Model") or child:IsA("Folder") then
+            local found = FindPromptInContainer(child, targetName)
+            if found then return found end
+        end
+    end
+    return nil
+end
+
+local function FindMapPrompt(buildingName)
+    local mapFolder = Workspace:FindFirstChild("Map")
+    if not mapFolder then
+        return nil, "Map folder not found in Workspace"
+    end
+    local pp = FindPromptInContainer(mapFolder, buildingName)
+    if not pp then
+        return nil, "No ProximityPrompt found inside any '" .. buildingName .. "' in Map"
+    end
+    return pp, nil
+end
+
+-- ====================================================================
+-- [[ FIRE PROMPT — Native fireproximityprompt first, fallback second ]]
+-- ====================================================================
+local HasFirePrompt = (fireproximityprompt ~= nil)
+
+if fireproximityprompt then 
+    game:GetService("ProximityPromptService").PromptButtonHoldBegan:Connect(function(prompt)
+        fireproximityprompt(prompt)
+    end)
+end
+
+local function FirePrompt(prompt)
+    if not prompt then return false, "nil prompt" end
+    if not prompt:IsA("ProximityPrompt") then
+        return false, "not a ProximityPrompt (got " .. tostring(prompt.ClassName) .. ")"
+    end
+
+    -- Method 1: Executor native function (best, no side effects)
+    if HasFirePrompt then
+        local ok, err = pcall(fireproximityprompt, prompt)
+        if ok then return true, nil end
+        -- If native failed, warn and fall through to manual
+        warn("[Ryu] fireproximityprompt failed: " .. tostring(err) .. " — falling back to manual")
+    else
+        warn("[Ryu] fireproximityprompt not available in this executor — using manual fallback")
+    end
+
+    -- Method 2: Manual InputHoldBegin/End (fallback)
+    local origHold = prompt.HoldDuration
+    local origLOS = prompt.RequiresLineOfSight
+    local origDist = prompt.MaxActivationDistance
+    prompt.HoldDuration = 0
+    prompt.RequiresLineOfSight = false
+    prompt.MaxActivationDistance = 999
+    local ok, err = pcall(function()
+        prompt:InputHoldBegin()
+        task.wait(0.15)
+        prompt:InputHoldEnd()
+    end)
+    task.wait(0.05)
+    prompt.HoldDuration = origHold
+    prompt.RequiresLineOfSight = origLOS
+    prompt.MaxActivationDistance = origDist
+    if ok then return true, nil end
+    return false, "manual fallback failed: " .. tostring(err)
+end
 
 -- ====================================================================
 -- [[ NPC CACHE ]]
@@ -193,6 +370,22 @@ Workspace.ChildRemoved:Connect(function(v)
 end)
 
 -- ====================================================================
+-- [[ Q KEY INPUT ]]
+-- ====================================================================
+UserInputService.InputBegan:Connect(function(input, gameProcessed)
+    if gameProcessed then return end
+    if input.KeyCode == Enum.KeyCode.Q then
+        TV_Exploits.QKeyHeld = true
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input, gameProcessed)
+    if input.KeyCode == Enum.KeyCode.Q then
+        TV_Exploits.QKeyHeld = false
+    end
+end)
+
+-- ====================================================================
 -- [[ CORE LOGIC ]]
 -- ====================================================================
 local lastAttackTime = 0
@@ -216,7 +409,6 @@ local function AutoAttack()
     
     local bestPart, bestHum, bestDist = nil, nil, math.huge
     
-    -- SYNTAX FIX: Removed "continue" statements for executor compatibility
     for _, ent in ipairs(Workspace:GetChildren()) do
         if ent:IsA("Model") and ent:FindFirstChild("HumanoidRootPart") and ent ~= myChar and not Players:GetPlayerFromCharacter(ent) then 
             local hum = ent:FindFirstChildOfClass("Humanoid")
@@ -302,6 +494,116 @@ LocalPlayer.CharacterAdded:Connect(function(char)
 end)
 
 -- ====================================================================
+-- [[ HIGHLIGHT HELPER ]]
+-- ====================================================================
+local function GetOrCreateHighlight(cache, obj, name, alwaysOnTop)
+    if not cache[obj] then
+        local h = Instance.new("Highlight")
+        h.Adornee = obj
+        h.Name = name
+        if alwaysOnTop then
+            h.DepthMode = Enum.HighlightDepthMode.AlwaysOnTop
+        end
+        h.Parent = Workspace
+        cache[obj] = h
+    end
+    return cache[obj]
+end
+
+-- ====================================================================
+-- [[ LANDMINE DETECTION ]]
+-- ====================================================================
+local function ScanForLandmines()
+    local found = {}
+    local landmineFolder = Workspace:FindFirstChild("Landmine")
+    if landmineFolder then
+        for _, child in ipairs(landmineFolder:GetChildren()) do
+            if child:IsA("BasePart") and child.Name == "Hitbox" and child.Parent then
+                found[child] = true
+            end
+        end
+    end
+    for _, child in ipairs(Workspace:GetChildren()) do
+        if child.Name == "Landmine" and child ~= landmineFolder then
+            if child:IsA("BasePart") then
+                found[child] = true
+            elseif child:IsA("Model") then
+                local hitbox = child:FindFirstChild("Hitbox")
+                if hitbox and hitbox:IsA("BasePart") then
+                    found[hitbox] = true
+                else
+                    found[child] = true
+                end
+            end
+        end
+    end
+    for _, child in ipairs(Workspace:GetDescendants()) do
+        if child.Name:find("Landmine") and child:IsA("BasePart") and child.Parent then
+            if child.Name == "Hitbox" or child.Parent.Name == "Landmine" then
+                found[child] = true
+            end
+        end
+    end
+    local mapFolder = Workspace:FindFirstChild("Map")
+    if mapFolder then
+        for _, child in ipairs(mapFolder:GetDescendants()) do
+            if child.Name:find("Landmine") then
+                if child:IsA("BasePart") then
+                    found[child] = true
+                elseif child:IsA("Model") then
+                    local hitbox = child:FindFirstChild("Hitbox")
+                    if hitbox and hitbox:IsA("BasePart") then
+                        found[hitbox] = true
+                    else
+                        found[child] = true
+                    end
+                end
+            end
+        end
+    end
+    return found
+end
+
+-- ====================================================================
+-- [[ SAFE HEAD RESIZE ]]
+-- ====================================================================
+local function ApplyNPCHeadHitbox(head, size)
+    head.Size = Vector3.new(size, size, size)
+    head.Massless = true
+    head.CanCollide = false
+    head.Transparency = 0.6
+    head.BrickColor = BrickColor.new("Really red")
+    head.Material = Enum.Material.Neon
+end
+
+local function ResetNPCHead(head)
+    head.Size = Vector3.new(1,1,1)
+    head.Transparency = 0
+    head.Material = Enum.Material.Plastic
+    head.BrickColor = BrickColor.new("Medium stone grey")
+    head.Massless = false
+    head.CanCollide = true
+end
+
+local function ApplyPlayerHeadHitbox(head, size)
+    head.Size = Vector3.new(size, size, size)
+    head.Massless = true
+    head.CanCollide = false
+    head.Transparency = 0.6
+    head.BrickColor = BrickColor.new("Really red")
+    head.Material = Enum.Material.Neon
+end
+
+local function ResetPlayerHead(head)
+    head.Size = Vector3.new(1,1,1)
+    head.Transparency = 0
+    head.Material = Enum.Material.Plastic
+    head.BrickColor = BrickColor.new("Medium stone grey")
+    head.Massless = false
+    head.CanCollide = true
+end
+
+-- ====================================================================
 -- [[ MAIN LOOPS ]]
 -- ====================================================================
 RunService.Heartbeat:Connect(function(dt)
@@ -321,7 +623,7 @@ RunService.Heartbeat:Connect(function(dt)
     local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     
     for v, _ in pairs(activeNPCs) do
-        if v and v:FindFirstChild("Head") and v:FindFirstChild("HumanoidRootPart") then
+        if v and v.Parent and v:FindFirstChild("Head") and v:FindFirstChild("HumanoidRootPart") then
             local head = v.Head
             if NPC_HB.Enabled then
                 local size = NPC_HB.StaticSize
@@ -331,28 +633,15 @@ RunService.Heartbeat:Connect(function(dt)
                     alpha = alpha * alpha * (3 - 2 * alpha)
                     size = NPC_HB.Min + (NPC_HB.Max - NPC_HB.Min) * alpha
                 end
-                head.Size = Vector3.new(size, size, size)
-                head.Massless = true
-                head.CanCollide = false
-                head.Transparency = 0.6
-                head.LocalTransparencyModifier = 1 
-                head.BrickColor = BrickColor.new("Really red")
-                head.Material = Enum.Material.Neon
+                ApplyNPCHeadHitbox(head, size)
             else
                 if head.Size ~= Vector3.new(1,1,1) then 
-                    head.Size = Vector3.new(1,1,1)
-                    head.Transparency = 0
-                    head.LocalTransparencyModifier = 0
-                    head.Material = Enum.Material.Plastic
-                    head.BrickColor = BrickColor.new("Medium stone grey")
-                    head.Massless = false
-                    head.CanCollide = true 
+                    ResetNPCHead(head)
                 end
             end
         end
     end
 
-    -- PING BUG FIX: Strictly loop ONLY players for player hitboxes
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("HumanoidRootPart") then
             local head = player.Character.Head
@@ -364,22 +653,10 @@ RunService.Heartbeat:Connect(function(dt)
                     alpha = alpha * alpha * (3 - 2 * alpha)
                     size = Player_HB.Min + (Player_HB.Max - Player_HB.Min) * alpha
                 end
-                head.Size = Vector3.new(size, size, size)
-                head.Massless = true
-                head.CanCollide = false
-                head.Transparency = 0.6
-                head.LocalTransparencyModifier = 1 
-                head.BrickColor = BrickColor.new("Really red")
-                head.Material = Enum.Material.Neon
+                ApplyPlayerHeadHitbox(head, size)
             else
                 if head.Size ~= Vector3.new(1,1,1) then 
-                    head.Size = Vector3.new(1,1,1)
-                    head.Transparency = 0
-                    head.LocalTransparencyModifier = 0
-                    head.Material = Enum.Material.Plastic
-                    head.BrickColor = BrickColor.new("Medium stone grey")
-                    head.Massless = false
-                    head.CanCollide = true 
+                    ResetPlayerHead(head)
                 end
             end
         end
@@ -389,26 +666,17 @@ RunService.Heartbeat:Connect(function(dt)
         local enemyCol = ColorTable[ESP_Config.EnemyColor] or Color3.fromRGB(255,0,0)
         local teamCol = ColorTable[ESP_Config.TeamColor] or Color3.fromRGB(0,100,255)
         local outCol = ColorTable[ESP_Config.OutlineColor] or Color3.fromRGB(255,255,255)
-
         for _, ent in ipairs(Workspace:GetChildren()) do
             if ent:IsA("Model") and ent:FindFirstChildOfClass("Humanoid") and ent:FindFirstChild("HumanoidRootPart") and ent ~= LocalPlayer.Character then
                 local hum = ent:FindFirstChildOfClass("Humanoid")
                 if hum and hum.Health > 0 then
-                    if not espCache[ent] then
-                        local h = Instance.new("Highlight")
-                        h.Adornee = ent
-                        h.Name = "DVN_ESP"
-                        h.Parent = Workspace
-                        espCache[ent] = h
-                    end
-
+                    local h = GetOrCreateHighlight(espCache, ent, "DVN_ESP", ESP_Config.ThroughWalls)
                     local plr = Players:GetPlayerFromCharacter(ent)
                     local isPlayerTeammate = plr ~= nil
-
-                    espCache[ent].FillColor = isPlayerTeammate and teamCol or enemyCol
-                    espCache[ent].OutlineColor = outCol
-                    espCache[ent].FillTransparency = ESP_Config.Transparency
-                    espCache[ent].OutlineTransparency = ESP_Config.OutlineTransparency
+                    h.FillColor = isPlayerTeammate and teamCol or enemyCol
+                    h.OutlineColor = outCol
+                    h.FillTransparency = ESP_Config.Transparency
+                    h.OutlineTransparency = ESP_Config.OutlineTransparency
                 else
                     if espCache[ent] then 
                         espCache[ent]:Destroy()
@@ -418,8 +686,86 @@ RunService.Heartbeat:Connect(function(dt)
             end
         end
     end
+
+    if LandmineESP.Enabled then
+        local fillCol = ColorTable[LandmineESP.Color] or Color3.fromRGB(255, 0, 0)
+        local outCol = ColorTable[LandmineESP.OutlineColor] or Color3.fromRGB(255, 255, 255)
+        local foundMines = ScanForLandmines()
+        for obj, _ in pairs(foundMines) do
+            local h = GetOrCreateHighlight(landmineCache, obj, "DVN_Landmine_ESP", true)
+            h.FillColor = fillCol
+            h.OutlineColor = outCol
+            h.FillTransparency = LandmineESP.Transparency
+            h.OutlineTransparency = 0
+        end
+    end
+
+    local tvTool = FindTerminalVelocity()
+    if tvTool and tvTool.Parent then
+        if TV_Exploits.InfiniteFuel then
+            local meter = tvTool:FindFirstChild("Meter")
+            if meter and meter.Value < 100 then pcall(function() meter.Value = 100 end) end
+        end
+        if TV_Exploits.RemoveGlide then
+            TV_Exploits.GlideThrottle = TV_Exploits.GlideThrottle + dt
+            if TV_Exploits.GlideThrottle >= 0.5 then
+                TV_Exploits.GlideThrottle = 0
+                local glideRem = tvTool:FindFirstChild("SetGlideState")
+                if glideRem then pcall(function() glideRem:FireServer(false) end) end
+            end
+        end
+        if TV_Exploits.SlamSpam and TV_Exploits.QKeyHeld then
+            DoSlamSpam(tvTool)
+        end
+    end
+
+    if TV_Exploits.RemoveDirectCharge then
+        local char = LocalPlayer.Character
+        if char and char.Parent then
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if root then
+                local dc = root:FindFirstChild("DirectCharge")
+                if dc then pcall(function() dc:Destroy() end) end
+            end
+        end
+    end
+
+    if EquipExploits.AerorigFuel then
+        local aeroTool = FindEquippedToolByName("Aerorig")
+        if aeroTool then ForceFuelMax(aeroTool) end
+    end
+    if EquipExploits.InfiniteJetpack then
+        local jpTool = FindEquippedToolByName("Jetpack")
+        if jpTool then ForceFuelMax(jpTool) end
+    end
+    if EquipExploits.UnlimitedPCU then
+        local pcuVal = LocalPlayer:GetAttribute("PCU")
+        local maxPCU = LocalPlayer:GetAttribute("MaxPCU")
+        if pcuVal ~= nil and maxPCU ~= nil then
+            if pcuVal < maxPCU then pcall(function() LocalPlayer:SetAttribute("PCU", maxPCU) end) end
+        end
+        local char = LocalPlayer.Character
+        if char and char.Parent then
+            local cPcu = char:GetAttribute("PCU")
+            local cMax = char:GetAttribute("MaxPCU")
+            if cPcu ~= nil and cMax ~= nil then
+                if cPcu < cMax then pcall(function() char:SetAttribute("PCU", cMax) end) end
+            end
+        end
+        local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
+        if leaderstats then
+            local pcuLs = leaderstats:FindFirstChild("PCU")
+            local maxLs = leaderstats:FindFirstChild("MaxPCU")
+            if pcuLs and maxLs then
+                if pcuLs.Value < maxLs.Value then pcall(function() pcuLs.Value = maxLs.Value end) end
+            end
+        end
+    end
 end)
 
+-- ====================================================================
+-- [[ CLEANUP LOOP ]]
+-- ====================================================================
 RunService.Heartbeat:Connect(function()
     if not ESP_Config.Enabled then
         for ent, h in pairs(espCache) do 
@@ -434,6 +780,20 @@ RunService.Heartbeat:Connect(function()
             end
         end
     end
+
+    if not LandmineESP.Enabled then
+        for obj, h in pairs(landmineCache) do
+            if h and h.Parent then h:Destroy() end
+            landmineCache[obj] = nil
+        end
+    else
+        for obj, h in pairs(landmineCache) do
+            if not obj or not obj.Parent then
+                if h and h.Parent then h:Destroy() end
+                landmineCache[obj] = nil
+            end
+        end
+    end
 end)
 
 UserInputService.JumpRequest:Connect(function() 
@@ -442,6 +802,9 @@ UserInputService.JumpRequest:Connect(function()
     end 
 end)
 
+-- ====================================================================
+-- [[ UI: WEAPONS ]]
+-- ====================================================================
 Tabs.Weapons:CreateToggle("WeaponMods", {Title = "Super Weapons", Default = false}):OnChanged(function() WeaponModEnabled = Fluent.Options.WeaponMods.Value; SetupWeaponWatcher() end)
 Tabs.Weapons:CreateSlider("Firerate", {Title = "Weapon Fire Rate", Default = 1000, Min = 0, Max = 5000, Rounding = 10, Callback = function(v) WeaponSettings.Firerate = v end})
 Tabs.Weapons:CreateSlider("BulletSpeed", {Title = "Projectile Velocity", Default = 500, Min = 0, Max = 2000, Rounding = 10, Callback = function(v) WeaponSettings.BulletSpeed = v end})
@@ -452,6 +815,9 @@ Tabs.Weapons:CreateSlider("FarmRange", {Title = "Max Kill Range (Studs)", Defaul
 Tabs.Weapons:CreateSlider("GunDelay", {Title = "Gun Attack Delay (ms)", Default = 50, Min = 10, Max = 1000, Rounding = 10, Callback = function(v) Farm.GunDelay = v end})
 Tabs.Weapons:CreateSlider("MeleeDelay", {Title = "Melee Attack Delay (ms)", Default = 150, Min = 50, Max = 2000, Rounding = 10, Callback = function(v) Farm.MeleeDelay = v end})
 
+-- ====================================================================
+-- [[ UI: HITBOX ]]
+-- ====================================================================
 Tabs.Hitbox:CreateParagraph("HitboxInfo", {Title = "Dynamic Logic", Content = "Shrinks at 2 studs (melee range), expands smoothly to max size for shooting."})
 
 Tabs.Hitbox:CreateToggle("NPC_HB", {Title = "Enable NPC Hitbox", Default = false}):OnChanged(function() NPC_HB.Enabled = Fluent.Options.NPC_HB.Value end)
@@ -470,14 +836,96 @@ Tabs.Hitbox:CreateSlider("Player_Max", {Title = "Player Max Size (Far)", Default
 Tabs.Hitbox:CreateSlider("Player_Near", {Title = "Player Shrink Threshold (Studs)", Default = 2, Min = 1, Max = 20, Rounding = 1, Callback = function(v) Player_HB.Near = v end})
 Tabs.Hitbox:CreateSlider("Player_Far", {Title = "Player Max Out Dist (Studs)", Default = 30, Min = 15, Max = 150, Rounding = 1, Callback = function(v) Player_HB.Far = v end})
 
+-- ====================================================================
+-- [[ UI: VISUALS ]]
+-- ====================================================================
 Tabs.Visuals:CreateParagraph("ESPInfo", {Title = "Player vs NPC Detection", Content = "Teammate Color = Other Players. Enemy Color = NPCs/Bosses."})
 Tabs.Visuals:CreateToggle("ESP", {Title = "Enable Highlight ESP", Default = false}):OnChanged(function() ESP_Config.Enabled = Fluent.Options.ESP.Value end)
+Tabs.Visuals:CreateToggle("ESPThroughWalls", {Title = "ESP See Through Walls", Default = false}):OnChanged(function() 
+    ESP_Config.ThroughWalls = Fluent.Options.ESPThroughWalls.Value
+    for _, h in pairs(espCache) do
+        if h and h.Parent then
+            h.DepthMode = ESP_Config.ThroughWalls and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
+        end
+    end
+end)
 Tabs.Visuals:CreateDropdown("EnemyColor", {Title = "Enemy Fill Color (NPCs)", Values = {"Bright Red", "Dark Red", "Bright Green", "Bright Blue", "Light Blue", "Yellow", "Purple", "Pink", "Orange", "Cyan", "White", "Magenta"}, Default = 1, Callback = function(v) ESP_Config.EnemyColor = v end})
 Tabs.Visuals:CreateDropdown("TeamColor", {Title = "Teammate Fill Color (Players)", Values = {"Bright Red", "Dark Red", "Bright Green", "Bright Blue", "Light Blue", "Yellow", "Purple", "Pink", "Orange", "Cyan", "White", "Magenta"}, Default = 4, Callback = function(v) ESP_Config.TeamColor = v end})
 Tabs.Visuals:CreateDropdown("OutlineColor", {Title = "Outline Color", Values = {"Bright Red", "Dark Red", "Bright Green", "Bright Blue", "Light Blue", "Yellow", "Purple", "Pink", "Orange", "Cyan", "White", "Magenta"}, Default = 11, Callback = function(v) ESP_Config.OutlineColor = v end})
 Tabs.Visuals:CreateSlider("Transparency", {Title = "Fill Transparency", Default = 50, Min = 0, Max = 100, Rounding = 1, Callback = function(v) ESP_Config.Transparency = v / 100 end})
 Tabs.Visuals:CreateSlider("OutlineTransparency", {Title = "Outline Transparency", Default = 0, Min = 0, Max = 100, Rounding = 1, Callback = function(v) ESP_Config.OutlineTransparency = v / 100 end})
 
+Tabs.Visuals:CreateParagraph("LandmineESPHeader", {Title = "━━ Landmine ESP ━━", Content = "Scans entire workspace for landmines. Visible through walls."})
+Tabs.Visuals:CreateToggle("LandmineESP", {Title = "Enable Landmine ESP", Default = false}):OnChanged(function() LandmineESP.Enabled = Fluent.Options.LandmineESP.Value end)
+Tabs.Visuals:CreateDropdown("LandmineColor", {Title = "Landmine Fill Color", Values = {"Bright Red", "Dark Red", "Bright Green", "Bright Blue", "Light Blue", "Yellow", "Purple", "Pink", "Orange", "Cyan", "White", "Magenta"}, Default = 1, Callback = function(v) LandmineESP.Color = v end})
+Tabs.Visuals:CreateDropdown("LandmineOutlineColor", {Title = "Landmine Outline Color", Values = {"Bright Red", "Dark Red", "Bright Green", "Bright Blue", "Light Blue", "Yellow", "Purple", "Pink", "Orange", "Cyan", "White", "Magenta"}, Default = 11, Callback = function(v) LandmineESP.OutlineColor = v end})
+Tabs.Visuals:CreateSlider("LandmineTransparency", {Title = "Landmine Fill Transparency", Default = 50, Min = 0, Max = 100, Rounding = 1, Callback = function(v) LandmineESP.Transparency = v / 100 end})
+
+-- ====================================================================
+-- [[ UI: MISC — PROMPT BUTTONS ]]
+-- ====================================================================
+Tabs.Misc:CreateParagraph("MapHeader", {Title = "━━ Map Interactions ━━", Content = "Uses " .. (HasFirePrompt and "fireproximityprompt (native)" or "manual fallback") .. " to trigger prompts."})
+Tabs.Misc:CreateButton({
+    Title = "Open Ammo Fabricator",
+    Description = "Recursively finds AmmoFabricator in Map and fires its prompt.",
+    Callback = function()
+        local pp, err = FindMapPrompt("AmmoFabricator")
+        if not pp then
+            Fluent:Notify{Title = "Ammo Fabricator", Content = err or "Not found", Duration = 5}
+            warn("[Ryu] AmmoFabricator: " .. tostring(err))
+            return
+        end
+        local ok, fireErr = FirePrompt(pp)
+        if ok then
+            Fluent:Notify{Title = "Ammo Fabricator", Content = "Prompt fired.", Duration = 3}
+        else
+            Fluent:Notify{Title = "Ammo Fabricator", Content = fireErr or "Failed", Duration = 5}
+            warn("[Ryu] AmmoFabricator fire: " .. tostring(fireErr))
+        end
+    end
+})
+Tabs.Misc:CreateButton({
+    Title = "Open Armoury",
+    Description = "Recursively finds Armoury in Map and fires its prompt.",
+    Callback = function()
+        local pp, err = FindMapPrompt("Armoury")
+        if not pp then
+            Fluent:Notify{Title = "Armoury", Content = err or "Not found", Duration = 5}
+            warn("[Ryu] Armoury: " .. tostring(err))
+            return
+        end
+        local ok, fireErr = FirePrompt(pp)
+        if ok then
+            Fluent:Notify{Title = "Armoury", Content = "Prompt fired.", Duration = 3}
+        else
+            Fluent:Notify{Title = "Armoury", Content = fireErr or "Failed", Duration = 5}
+            warn("[Ryu] Armoury fire: " .. tostring(fireErr))
+        end
+    end
+})
+Tabs.Misc:CreateButton({
+    Title = "Open Modifier",
+    Description = "Recursively finds Modifier in Map and fires its prompt.",
+    Callback = function()
+        local pp, err = FindMapPrompt("Modifier")
+        if not pp then
+            Fluent:Notify{Title = "Modifier", Content = err or "Not found", Duration = 5}
+            warn("[Ryu] Modifier: " .. tostring(err))
+            return
+        end
+        local ok, fireErr = FirePrompt(pp)
+        if ok then
+            Fluent:Notify{Title = "Modifier", Content = "Prompt fired.", Duration = 3}
+        else
+            Fluent:Notify{Title = "Modifier", Content = fireErr or "Failed", Duration = 5}
+            warn("[Ryu] Modifier fire: " .. tostring(fireErr))
+        end
+    end
+})
+
+-- ====================================================================
+-- [[ UI: MISC — BOSSES ]]
+-- ====================================================================
 Tabs.Misc:CreateParagraph("BossHeader", {Title = "━━ Auto Boss Solvers ━━", Content = "Automatically targets boss weakpoints."})
 Tabs.Misc:CreateToggle("AutoPrometheus", {Title = "Auto Prometheus", Default = false}):OnChanged(function() Solvers.Prometheus = Fluent.Options.AutoPrometheus.Value end)
 Tabs.Misc:CreateToggle("AutoHermes", {Title = "Auto Hermes", Default = false}):OnChanged(function() Solvers.Hermes = Fluent.Options.AutoHermes.Value end)
@@ -492,7 +940,6 @@ Tabs.Misc:CreateToggle("TridentQTE", {Title = "Trident Auto-QTE", Default = fals
                 return ReplicatedStorage:WaitForChild("Remotes", 5):WaitForChild("Replication", 5):WaitForChild("Trident_QTE_Task", 5)
             end)
             if not ok or not rem then return end
-            
             rem.OnClientEvent:Connect(function(active)
                 if not active or not Solvers.TridentQTE then return end
                 local keys = {Enum.KeyCode.W, Enum.KeyCode.A, Enum.KeyCode.S, Enum.KeyCode.D}
@@ -515,44 +962,74 @@ Tabs.Misc:CreateToggle("TridentQTE", {Title = "Trident Auto-QTE", Default = fals
     end
 end)
 
+-- ====================================================================
+-- [[ UI: MISC — TV & EQUIP ]]
+-- ====================================================================
+Tabs.Misc:CreateParagraph("TVHeader", {Title = "━━ Terminal Velocity ━━", Content = "Hold Q to slam spam. Tool must be equipped."})
+Tabs.Misc:CreateToggle("TVSlamSpam", {Title = "Slam Spam", Default = false}):OnChanged(function() TV_Exploits.SlamSpam = Fluent.Options.TVSlamSpam.Value end)
+Tabs.Misc:CreateSlider("TVSpamDelay", {Title = "Spam Delay (sec)", Default = 10, Min = 1, Max = 50, Rounding = 1, Callback = function(v) TV_Exploits.SpamDelay = v / 100 end})
+Tabs.Misc:CreateToggle("TVRemoveGlide", {Title = "Remove Glide", Default = false}):OnChanged(function() TV_Exploits.RemoveGlide = Fluent.Options.TVRemoveGlide.Value end)
+Tabs.Misc:CreateToggle("TVRemoveDC", {Title = "Remove DirectCharge", Default = false}):OnChanged(function() TV_Exploits.RemoveDirectCharge = Fluent.Options.TVRemoveDC.Value end)
+Tabs.Misc:CreateToggle("TVInfFuel", {Title = "Infinite Fuel", Default = false}):OnChanged(function() TV_Exploits.InfiniteFuel = Fluent.Options.TVInfFuel.Value end)
+
+Tabs.Misc:CreateParagraph("EquipHeader", {Title = "━━ Equipment Exploits ━━", Content = "Aerorig & Jetpack fuel, building PCU bypass."})
+Tabs.Misc:CreateToggle("AerorigFuel", {Title = "Infinite Aerorig Fuel", Default = false}):OnChanged(function() EquipExploits.AerorigFuel = Fluent.Options.AerorigFuel.Value end)
+Tabs.Misc:CreateToggle("InfiniteJetpack", {Title = "Infinite Jetpack", Default = false}):OnChanged(function() EquipExploits.InfiniteJetpack = Fluent.Options.InfiniteJetpack.Value end)
+Tabs.Misc:CreateToggle("UnlimitedPCU", {Title = "Unlimited PCU", Default = false}):OnChanged(function() EquipExploits.UnlimitedPCU = Fluent.Options.UnlimitedPCU.Value end)
+
 Tabs.Misc:CreateParagraph("MiscHeader", {Title = "━━ Movement & Utility ━━", Content = ""})
 Tabs.Misc:CreateToggle("InfJump", {Title = "Infinite Jump", Default = false}):OnChanged(function() InfJumpEnabled = Fluent.Options.InfJump.Value end)
 Tabs.Misc:CreateToggle("AntiStun", {Title = "Anti Stun", Default = false}):OnChanged(function() AntiStunEnabled = Fluent.Options.AntiStun.Value end)
 Tabs.Misc:CreateSlider("WalkSpeed", {Title = "WalkSpeed", Default = 16, Min = 16, Max = 200, Rounding = 1, Callback = function(v) pcall(function() LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = v end) end})
 
+-- ====================================================================
+-- [[ UI: SETTINGS ]]
+-- ====================================================================
+Tabs.Settings:CreateParagraph("UtilityHeader", {Title = "━━ Utilities ━━", Content = "External tools and server actions."})
+
+Tabs.Settings:CreateButton({
+    Title = "Rejoin Server",
+    Description = "Teleports you back into the same game server.",
+    Callback = function()
+        pcall(function()
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
+        end)
+    end
+})
+
+Tabs.Settings:CreateButton({
+    Title = "Load Dex++",
+    Description = "Opens the Dex++ explorer with decompiler fix.",
+    Callback = function()
+        task.spawn(function()
+            pcall(function()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/jodta/my-scripts/refs/heads/main/Dex%2B%2B/Decompiler%20Fix.lua"))()
+            end)
+        end)
+    end
+})
+
 Tabs.Settings:CreateButton({Title = "Unload Script", Description = "Safely removes everything", Callback = function()
     ScriptAlive = false
+    TV_Exploits.QKeyHeld = false
     for ent, h in pairs(espCache) do 
         if h and h.Parent then h:Destroy() end 
     end
     espCache = {}
-    
+    for obj, h in pairs(landmineCache) do
+        if h and h.Parent then h:Destroy() end
+    end
+    landmineCache = {}
     for v, _ in pairs(activeNPCs) do
-        if v and v:FindFirstChild("Head") then
-            local h = v.Head
-            h.Size = Vector3.new(1,1,1)
-            h.Transparency = 0
-            h.LocalTransparencyModifier = 0
-            h.Material = Enum.Material.Plastic
-            h.BrickColor = BrickColor.new("Medium stone grey")
-            h.Massless = false
-            h.CanCollide = true
+        if v and v.Parent and v:FindFirstChild("Head") then
+            ResetNPCHead(v.Head)
         end
     end
-    
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-            local h = player.Character.Head
-            h.Size = Vector3.new(1,1,1)
-            h.Transparency = 0
-            h.LocalTransparencyModifier = 0
-            h.Material = Enum.Material.Plastic
-            h.BrickColor = BrickColor.new("Medium stone grey")
-            h.Massless = false
-            h.CanCollide = true
+            ResetPlayerHead(player.Character.Head)
         end
     end
-    
     for _, conn in ipairs(ToolConns) do 
         if conn then conn:Disconnect() end 
     end
@@ -595,17 +1072,33 @@ local function SyncSavedSettings()
     Player_HB.Far = Fluent.Options.Player_Far and Fluent.Options.Player_Far.Value or 30
     
     ESP_Config.Enabled = Fluent.Options.ESP.Value
+    ESP_Config.ThroughWalls = Fluent.Options.ESPThroughWalls and Fluent.Options.ESPThroughWalls.Value or false
     ESP_Config.EnemyColor = Fluent.Options.EnemyColor.Value
     ESP_Config.TeamColor = Fluent.Options.TeamColor.Value
     ESP_Config.OutlineColor = Fluent.Options.OutlineColor.Value
     ESP_Config.Transparency = Fluent.Options.Transparency.Value / 100
     ESP_Config.OutlineTransparency = Fluent.Options.OutlineTransparency and (Fluent.Options.OutlineTransparency.Value / 100) or 0
     
+    LandmineESP.Enabled = Fluent.Options.LandmineESP and Fluent.Options.LandmineESP.Value or false
+    LandmineESP.Color = Fluent.Options.LandmineColor and Fluent.Options.LandmineColor.Value or "Bright Red"
+    LandmineESP.OutlineColor = Fluent.Options.LandmineOutlineColor and Fluent.Options.LandmineOutlineColor.Value or "White"
+    LandmineESP.Transparency = Fluent.Options.LandmineTransparency and (Fluent.Options.LandmineTransparency.Value / 100) or 0.5
+    
     Solvers.Prometheus = Fluent.Options.AutoPrometheus.Value
     Solvers.Hermes = Fluent.Options.AutoHermes.Value
     Solvers.Platform = Fluent.Options.AutoPlatform.Value
     Solvers.Tank = Fluent.Options.AutoTank.Value
     Solvers.TridentQTE = Fluent.Options.TridentQTE.Value
+    
+    TV_Exploits.SlamSpam = Fluent.Options.TVSlamSpam and Fluent.Options.TVSlamSpam.Value or false
+    TV_Exploits.SpamDelay = Fluent.Options.TVSpamDelay and (Fluent.Options.TVSpamDelay.Value / 100) or 0.1
+    TV_Exploits.RemoveGlide = Fluent.Options.TVRemoveGlide and Fluent.Options.TVRemoveGlide.Value or false
+    TV_Exploits.RemoveDirectCharge = Fluent.Options.TVRemoveDC and Fluent.Options.TVRemoveDC.Value or false
+    TV_Exploits.InfiniteFuel = Fluent.Options.TVInfFuel and Fluent.Options.TVInfFuel.Value or false
+    
+    EquipExploits.AerorigFuel = Fluent.Options.AerorigFuel and Fluent.Options.AerorigFuel.Value or false
+    EquipExploits.InfiniteJetpack = Fluent.Options.InfiniteJetpack and Fluent.Options.InfiniteJetpack.Value or false
+    EquipExploits.UnlimitedPCU = Fluent.Options.UnlimitedPCU and Fluent.Options.UnlimitedPCU.Value or false
     
     InfJumpEnabled = Fluent.Options.InfJump.Value
     AntiStunEnabled = Fluent.Options.AntiStun.Value
@@ -618,5 +1111,5 @@ Window:SelectTab(1)
 Fluent:Notify{Title = "By Nanashi Ryu", Content = "Made with Love.", Duration = 5}
 
 if workspace.Camera.Folder.Body then
-    workspace.Camera.Folder.Body:Destroy()
+    workspace.Camera:ClearAllChildren()
 end
