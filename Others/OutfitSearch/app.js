@@ -321,9 +321,7 @@ function assetCard(item) {
   const displayName = escapeHtml(displayLabel);
   const img = escapeAttr(item.imageUrl || "");
   const creator = escapeHtml(item.creatorName || item.creator?.name || item.creator?.Name || "Unknown creator");
-  const price = item.price !== undefined && item.price !== null
-    ? `${item.price} Robux`
-    : (item.lowestPrice ? `${item.lowestPrice} Robux+` : "Price unavailable");
+  const price = formatPrice(item);
   const type = escapeHtml(item.assetType?.name || item.assetType?.Name || item.assetTypeName || item.itemType || "Asset");
   const source = item.detailsSource ? ` • ${escapeHtml(item.detailsSource)}` : "";
   const fallbackText = escapeHtml((missingName ? getShortTypeLabel(item) : rawName).slice(0, 2).toUpperCase());
@@ -662,4 +660,23 @@ function escapeHtml(v) {
 
 function escapeAttr(v) {
   return escapeHtml(v).replace(/`/g, "&#96;");
+}
+
+
+function formatPrice(item = {}) {
+  if (item.isFree === true) return "Free";
+
+  const direct = Number(item.price);
+  if (Number.isFinite(direct)) return direct === 0 ? "Free" : `${direct} Robux`;
+
+  const lowest = Number(item.lowestPrice ?? item.resaleLowestPrice);
+  if (Number.isFinite(lowest)) return `${lowest} Robux+`;
+
+  const status = String(item.priceStatus || "").trim();
+  if (status) return status;
+
+  if (item.isLimited || item.collectibleItemId) return "Limited / no listings";
+  if (item.isForSale === false) return "Off sale";
+
+  return "Price unavailable";
 }
