@@ -15,10 +15,10 @@
       <p class="lede">Look up public accounts by username or user ID, compare duplicate-looking accounts, and list current avatar items plus saved outfits and selected outfit items.</p>
     </div>
     <div class="header-actions">
-      <button id="instructionsBtn" class="ghost" type="button">Instructions</button>
-      <button id="consoleBtn" class="ghost" type="button">View console</button>
-      <button id="changeApiBtn" class="ghost" type="button">Change API</button>
-      <button id="themeBtn" class="ghost" type="button">Theme</button>
+      <button id="instructionsBtn" class="ghost" type="button" title="Show setup instructions">Instructions</button>
+      <button id="consoleBtn" class="ghost" type="button" title="Open debug console">View console</button>
+      <button id="changeApiBtn" class="ghost" type="button" title="Clear or change the saved API URL">Change API</button>
+      <button id="themeBtn" class="ghost" type="button" title="Toggle theme">Theme</button>
     </div>
   </header>
 
@@ -40,8 +40,10 @@
         <div class="row">
           <input id="query" autocomplete="off" spellcheck="false" placeholder="Roblox, id:1, 156, search: builderman" />
           <button id="searchBtn" type="submit">Search</button>
+          <button id="copyLinkBtn" class="ghost" type="button">Copy search link</button>
         </div>
         <p class="hint">Supports comma/newline separated values. Use <code>id:12345</code> for exact ID. Use <code>search:keyword</code> to show possible matching accounts.</p>
+        <p class="hint">Direct links work too: <code>?username=zxwnvc</code>, <code>?id=8625608859</code>, <code>?search=builderman</code>, or <code>?q=Roblox,id:1</code>.</p>
       </form>
     </section>
 
@@ -60,6 +62,7 @@
       <li>Click <strong>Edit code</strong>, delete the starter code, paste this project’s <code>worker.js</code>, then <strong>Save and deploy</strong>.</li>
       <li>Copy the public URL ending in <code>.workers.dev</code>, for example <code>https://roblox-outfit-api.yourname.workers.dev</code>.</li>
       <li>Come back here, click <strong>Change API</strong>, paste that Worker URL, and click <strong>Save API</strong>.</li>
+      <li>To auto-run a lookup from a link, use <code>?username=someUser</code>, <code>?id=12345</code>, <code>?search=keyword</code>, or <code>?q=id:1,Roblox</code>.</li>
     </ol>
     <p class="hint danger-text">Do not paste a Cloudflare API token, Roblox cookie, GitHub token, or your GitHub Pages URL. Only paste the public <code>.workers.dev</code> URL.</p>
   </dialog>
@@ -90,12 +93,10 @@
           </div>
         </div>
       </div>
-
       <details class="description-block">
         <summary>Description</summary>
         <p class="description-text"></p>
       </details>
-
       <section>
         <div class="section-title">
           <h3>Currently wearing</h3>
@@ -103,7 +104,6 @@
         </div>
         <div class="asset-grid wearing-grid"></div>
       </section>
-
       <section>
         <div class="section-title">
           <h3>Saved outfits</h3>
@@ -111,7 +111,6 @@
         </div>
         <div class="outfit-grid"></div>
       </section>
-
       <section class="selected-outfit-section" hidden>
         <div class="section-title">
           <h3 class="selected-outfit-title">Selected outfit items</h3>

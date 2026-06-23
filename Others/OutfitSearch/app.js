@@ -29,6 +29,7 @@ const instructionsDialog = $("#instructionsDialog");
 const debugConsole = $("#debugConsole");
 const copyConsoleBtn = $("#copyConsoleBtn");
 const clearConsoleBtn = $("#clearConsoleBtn");
+const copyLinkBtn = $("#copyLinkBtn");
 
 function hasConfiguredApi() {
   return API_BASE && API_BASE !== DEFAULT_API_BASE;
@@ -118,10 +119,24 @@ clearConsoleBtn.addEventListener("click", () => {
   renderConsole();
 });
 
+copyLinkBtn?.addEventListener("click", async () => {
+  const q = queryInput.value.trim();
+  const url = buildShareUrl(q).toString();
+  try {
+    await navigator.clipboard.writeText(url);
+    copyLinkBtn.textContent = "Copied link";
+    setTimeout(() => copyLinkBtn.textContent = "Copy search link", 1100);
+    logSuccess("Search link copied.", { url });
+  } catch {
+    setStatus(`Share link: ${url}`, false);
+  }
+});
+
 searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const q = queryInput.value.trim();
   if (!q) return;
+  updateUrlForSearch(q);
   if (!hasConfiguredApi()) return setStatus("Set your Cloudflare Worker URL first.", true);
 
   results.innerHTML = "";
@@ -172,6 +187,19 @@ searchForm.addEventListener("submit", async (event) => {
     searchBtn.disabled = false;
   }
 });
+
+const initialQuery = getInitialQueryFromUrl();
+if (initialQuery) {
+  queryInput.value = initialQuery;
+  setStatus(`Loaded query from URL: ${initialQuery}`);
+  logInfo("Query loaded from URL.", { query: initialQuery });
+  if (hasConfiguredApi()) {
+    setTimeout(() => searchForm.requestSubmit(), 80);
+  } else {
+    setupPanel.style.display = "block";
+    setStatus("Query loaded from URL. Set your Cloudflare Worker URL to run it.");
+  }
+}
 
 async function api(path) {
   const url = `${API_BASE}${path}`;
@@ -256,7 +284,11 @@ function renderUser(report) {
   if (!wearing.length) wearingGrid.innerHTML = `<div class="empty">No public currently-wearing assets returned.</div>`;
   for (const item of wearing) wearingGrid.append(assetCard(item));
 
-  const outfits = report.outfits || [];
+  const allOutfits = report.outfits || [];
+  const outfitGroups = splitOutfits(allOutfits);
+  const outfits = outfitGroups.saved;
+  const costumeLike = outfitGroups.costumeLike;
+
   $(".outfit-count", tpl).textContent = `${outfits.length} outfit${outfits.length === 1 ? "" : "s"}`;
   const outfitGrid = $(".outfit-grid", tpl);
   const selectedOutfit = {
@@ -265,8 +297,13 @@ function renderUser(report) {
     count: $(".selected-outfit-count", tpl),
     grid: $(".selected-outfit-grid", tpl)
   };
-  if (!outfits.length) outfitGrid.innerHTML = `<div class="empty">No saved outfits returned, or the account has no public saved outfits.</div>`;
+  if (!outfits.length) outfitGrid.innerHTML = `<div class="empty">No normal saved outfits returned.</div>`;
   for (const outfit of outfits) outfitGrid.append(outfitCard(outfit, selectedOutfit));
+
+  if (costumeLike.length) {
+    const costumeSection = createCostumeSection(costumeLike, selectedOutfit);
+    selectedOutfit.section.before(costumeSection);
+  }
 
   $(".json-btn", tpl).addEventListener("click", () => downloadJson(`roblox-${p.id}-outfits.json`, report));
   results.append(tpl);
@@ -280,7 +317,8 @@ function assetCard(item) {
   const missingName = isFallbackAssetName(rawName, id);
   if (missingName) el.classList.add("missing-name");
 
-  const displayName = escapeHtml(missingName ? "Name unavailable" : rawName);
+  const displayLabel = missingName ? fallbackAssetLabel(item, id) : rawName;
+  const displayName = escapeHtml(displayLabel);
   const img = escapeAttr(item.imageUrl || "");
   const creator = escapeHtml(item.creatorName || item.creator?.name || item.creator?.Name || "Unknown creator");
   const price = item.price !== undefined && item.price !== null
@@ -288,7 +326,7 @@ function assetCard(item) {
     : (item.lowestPrice ? `${item.lowestPrice} Robux+` : "Price unavailable");
   const type = escapeHtml(item.assetType?.name || item.assetType?.Name || item.assetTypeName || item.itemType || "Asset");
   const source = item.detailsSource ? ` • ${escapeHtml(item.detailsSource)}` : "";
-  const fallbackText = escapeHtml((missingName ? "?" : rawName).slice(0, 2).toUpperCase());
+  const fallbackText = escapeHtml((missingName ? getShortTypeLabel(item) : rawName).slice(0, 2).toUpperCase());
 
   el.innerHTML = `
     <div class="thumb-wrap">
@@ -309,7 +347,7 @@ function assetCard(item) {
   return el;
 }
 
-function outfitCard(outfit, selectedOutfit) {
+function outfitCard(outfit, selectedOutfit, label = "Outfit") {
   const el = document.createElement("article");
   el.className = "outfit";
   const name = escapeHtml(outfit.name || `Outfit ${outfit.id}`);
@@ -320,7 +358,7 @@ function outfitCard(outfit, selectedOutfit) {
     </div>
     <div class="outfit-body">
       <p class="item-name" title="${name}">${name}</p>
-      <p class="item-meta">Outfit ID ${outfit.id}</p>
+      <p class="item-meta">${label} ID ${outfit.id}</p>
       <div class="item-links">
         <button class="small-btn" type="button">Show items below</button>
       </div>
@@ -353,6 +391,117 @@ function outfitCard(outfit, selectedOutfit) {
   });
 
   return el;
+}
+
+function splitOutfits(outfits = []) {
+  const saved = [];
+  const costumeLike = [];
+
+  for (const outfit of outfits) {
+    if (isCostumeLikeOutfit(outfit)) costumeLike.push(outfit);
+    else saved.push(outfit);
+  }
+
+  return { saved, costumeLike };
+}
+
+function isCostumeLikeOutfit(outfit = {}) {
+  const text = `${outfit.imageKind || ""} ${outfit.outfitKind || ""} ${outfit.thumbnailType || ""} ${outfit.imageUrl || ""}`;
+  return /DynamicHeadCostume|BundleThumbnail|Costume/i.test(text);
+}
+
+function createCostumeSection(items, selectedOutfit) {
+  const section = document.createElement("section");
+  section.className = "costume-like-section";
+  section.innerHTML = `
+    <div class="section-title">
+      <div>
+        <h3>Avatar costume entries</h3>
+        <p class="section-note">Roblox returned these through the saved-outfits API, but their thumbnails are costume/item-style entries, so they are separated from normal outfit cards.</p>
+      </div>
+      <span class="pill">${items.length} entr${items.length === 1 ? "y" : "ies"}</span>
+    </div>
+    <div class="outfit-grid"></div>`;
+
+  const grid = $(".outfit-grid", section);
+  items.forEach(item => grid.append(outfitCard(item, selectedOutfit, "Costume entry")));
+  return section;
+}
+
+function fallbackAssetLabel(item, id) {
+  const type = getShortTypeLabel(item);
+  return type && type !== "Asset" ? `${type} #${id}` : `Asset #${id}`;
+}
+
+function getShortTypeLabel(item = {}) {
+  const raw = item.assetType?.name || item.assetType?.Name || item.assetTypeName || item.itemType || "Asset";
+  return String(raw)
+    .replace(/Accessory$/i, "Accessory")
+    .replace(/Animation$/i, "Animation")
+    .trim() || "Asset";
+}
+
+function getInitialQueryFromUrl() {
+  const params = new URL(location.href).searchParams;
+  const parts = [];
+
+  collectParamValues(params, ["id", "ids", "userId", "userid", "uid"]).forEach(v => {
+    for (const part of splitParamList(v)) {
+      const id = part.replace(/^id:/i, "").trim();
+      if (/^\d+$/.test(id)) parts.push(`id:${id}`);
+    }
+  });
+
+  collectParamValues(params, ["username", "user", "name", "usernames"]).forEach(v => {
+    parts.push(...splitParamList(v).map(x => x.replace(/^@/, "").trim()).filter(Boolean));
+  });
+
+  collectParamValues(params, ["search"]).forEach(v => {
+    for (const part of splitParamList(v)) if (part) parts.push(`search:${part}`);
+  });
+
+  const direct = collectParamValues(params, ["q", "query"])
+    .flatMap(splitParamList)
+    .filter(Boolean);
+  parts.push(...direct);
+
+  return uniqueBy(parts, x => x.toLowerCase()).join(", ");
+}
+
+function collectParamValues(params, keys) {
+  return keys.flatMap(key => params.getAll(key)).filter(v => v !== null && v !== undefined && String(v).trim() !== "");
+}
+
+function splitParamList(value) {
+  return String(value || "")
+    .split(/[\n,;]+/)
+    .map(v => v.trim())
+    .filter(Boolean);
+}
+
+function updateUrlForSearch(q) {
+  const next = buildShareUrl(q);
+  history.replaceState(null, "", next);
+}
+
+function buildShareUrl(q) {
+  const url = new URL(location.href);
+  ["q", "query", "username", "user", "name", "usernames", "id", "ids", "userId", "userid", "uid", "search"].forEach(key => url.searchParams.delete(key));
+
+  const value = String(q || "").trim();
+  if (!value) return url;
+
+  if (/^id:\s*\d+$/i.test(value)) {
+    url.searchParams.set("id", value.replace(/^id:\s*/i, ""));
+  } else if (/^search:\s*.+$/i.test(value)) {
+    url.searchParams.set("search", value.replace(/^search:\s*/i, ""));
+  } else if (/^[A-Za-z0-9_]{3,20}$/.test(value)) {
+    url.searchParams.set("username", value);
+  } else {
+    url.searchParams.set("q", value);
+  }
+
+  return url;
 }
 
 function isFallbackAssetName(name, id) {

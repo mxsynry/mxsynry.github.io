@@ -214,3 +214,15 @@ code { background: var(--panel-2); padding: 2px 6px; border-radius: 8px; }
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
+
+.section-note {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  max-width: 720px;
+}
+.costume-like-section {
+  border-top: 1px solid var(--border);
+  margin-top: 22px;
+  padding-top: 4px;
+}

@@ -35,7 +35,7 @@ export default {
         return json({
           ok: true,
           name: "roblox-outfit-viewer-api",
-          version: "2026-06-23.3",
+          version: "2026-06-23.4",
           routes: ["/api/resolve?q=USERNAME", "/api/report/USER_ID", "/api/outfit/OUTFIT_ID"]
         });
       }
@@ -202,6 +202,11 @@ async function getReport(userId) {
   if (duplicatedIds.length) logs.push(`Removed duplicate currently-wearing IDs: ${duplicatedIds.map(x => `${x.id} x${x.count}`).join(", ")}.`);
 
   const avatarAssetMap = mapBy(avatarAssets, a => a.id);
+  if (avatarAssets.length) {
+    const avatarNamed = avatarAssets.filter(a => !isFallbackAssetName(a.name || a.Name || a.assetName || a.AssetName, a.id)).length;
+    logs.push(`Avatar details returned ${avatarAssets.length} asset record(s), ${avatarNamed} with public names.`);
+  }
+
   const [assetThumbs, catalogDetails, outfitThumbs] = await Promise.all([
     getAssetThumbnails(assetIds).catch(err => {
       logs.push(`Asset thumbnails failed: ${err.message}`);
@@ -226,11 +231,21 @@ async function getReport(userId) {
       ...fromCatalog,
       name: pickAssetName(id, fromCatalog, fromAvatar),
       assetType: fromCatalog.assetType || fromAvatar.assetType || null,
-      imageUrl: assetThumbs[id]?.imageUrl || null
+      imageUrl: assetThumbs[id]?.imageUrl || null,
+      imageKind: thumbnailKind(assetThumbs[id]?.imageUrl || null)
     });
   });
 
-  const normalizedOutfits = outfits.map(o => ({ ...o, imageUrl: outfitThumbs[o.id]?.imageUrl || null }));
+  const normalizedOutfits = outfits.map(o => {
+    const imageUrl = outfitThumbs[o.id]?.imageUrl || null;
+    const imageKind = thumbnailKind(imageUrl);
+    return {
+      ...o,
+      imageUrl,
+      imageKind,
+      outfitKind: imageKind && imageKind !== "Avatar" ? "Avatar costume entry" : "Saved outfit"
+    };
+  });
 
   logs.push(`Loaded profile for @${profile.name || userId}.`);
   logs.push(`Loaded ${currentlyWearing.length} unique currently-wearing item(s).`);
@@ -280,7 +295,8 @@ async function getOutfitDetails(outfitId) {
       ...(rawMap[id] || {}),
       ...(catalog[id] || {}),
       name: pickAssetName(id, catalog[id], rawMap[id]),
-      imageUrl: thumbs[id]?.imageUrl || null
+      imageUrl: thumbs[id]?.imageUrl || null,
+      imageKind: thumbnailKind(thumbs[id]?.imageUrl || null)
     })),
     bodyColors: detail.bodyColors || null,
     scale: detail.scale || null,
@@ -412,6 +428,7 @@ async function getCatalogDetails(assetIds, logs = []) {
   const out = {};
   let catalogNamed = 0;
   let economyNamed = 0;
+  let legacyNamed = 0;
   let missingAfterFallback = 0;
 
   for (const chunk of chunks(unique(assetIds), 100)) {
@@ -458,6 +475,22 @@ async function getCatalogDetails(assetIds, logs = []) {
       });
     }
 
+    const needsLegacy = chunk.filter(id => !out[id] || isFallbackAssetName(out[id].name, id));
+    if (needsLegacy.length) {
+      const legacyResults = await Promise.allSettled(needsLegacy.map(async id => {
+        const data = await robloxJson(`https://api.roblox.com/marketplace/productinfo?assetId=${id}`, {}, `legacy product info ${id}`);
+        return normalizeAsset({ ...data, id, detailsSource: "legacy-productinfo" });
+      }));
+
+      legacyResults.forEach((result, index) => {
+        const id = needsLegacy[index];
+        if (result.status === "fulfilled") {
+          out[id] = mergeAssetDetails(out[id], result.value);
+          if (!isFallbackAssetName(out[id].name, id)) legacyNamed += 1;
+        }
+      });
+    }
+
     for (const id of chunk) {
       if (!out[id]) out[id] = normalizeAsset({ id, name: `Asset ${id}`, detailsSource: "fallback" });
       if (isFallbackAssetName(out[id].name, id)) missingAfterFallback += 1;
@@ -465,7 +498,7 @@ async function getCatalogDetails(assetIds, logs = []) {
   }
 
   if (assetIds.length) {
-    logs.push(`Item detail lookup: catalog named ${catalogNamed}, economy fallback named ${economyNamed}, still unnamed ${missingAfterFallback}.`);
+    logs.push(`Item detail lookup: catalog named ${catalogNamed}, economy fallback named ${economyNamed}, legacy fallback named ${legacyNamed}, still unnamed ${missingAfterFallback}.`);
   }
 
   return out;
@@ -579,6 +612,11 @@ async function robloxJson(url, opts = {}, label = "Roblox API") {
   }
 
   return data;
+}
+
+function thumbnailKind(imageUrl) {
+  const m = String(imageUrl || "").match(/\/\d+\/\d+\/([^/]+)\/Png/i);
+  return m ? m[1] : null;
 }
 
 function assertId(id, label = "ID") {
