@@ -5,9 +5,6 @@ end
 getgenv().DVNScriptLoaded = true
 local ScriptAlive = true
 
--- ====================================================================
--- [[ FLUENT UI LIBRARY ]]
--- ====================================================================
 local Fluent = loadstring(game:HttpGet("https://github.com/ActualMasterOogway/Fluent-Renewed/releases/latest/download/Fluent.luau", true))()
 local SaveManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/SaveManager.luau", true))()
 local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.com/ActualMasterOogway/Fluent-Renewed/master/Addons/InterfaceManager.luau", true))()
@@ -30,9 +27,6 @@ local Tabs = {
     Settings = Window:CreateTab{ Title = "Settings", Icon = "rbxassetid://4483362458" }
 }
 
--- ====================================================================
--- [[ SERVICES ]]
--- ====================================================================
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 local RunService = game:GetService("RunService")
@@ -42,9 +36,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local TeleportService = game:GetService("TeleportService")
 local Camera = Workspace.CurrentCamera
 
--- ====================================================================
--- [[ DVN BOSS LOGIC ]]
--- ====================================================================
 local Remotes = {bullet=nil, sound=nil}
 
 local function SetupRemotes()
@@ -127,16 +118,13 @@ local function GetBossTarget(entity)
     return entity:FindFirstChild("Head"), nil, entity:FindFirstChildOfClass("Humanoid")
 end
 
--- ====================================================================
--- [[ CONFIGURATIONS ]]
--- ====================================================================
 local WeaponSettings = { Firerate = 1000, BulletSpeed = 500, Spread = 0, Ammo = 999, Recoil = 0, Kickback = 0 }
 local IgnoredWeapons = { ["RPG"] = true, ["Parabolic Hydra"] = true, ["Grenade Launcher"] = true, ["Shockwave Device"] = true, ["Intraplanar Device"] = true, ["Rocket Stormer"] = true }
 
 local Farm = { Enabled = false, MaxRange = 300, GunDelay = 50, MeleeDelay = 150 }
 
-local NPC_HB = { Enabled = false, Dynamic = false, StaticSize = 20, Min = 2, Max = 30, Near = 2, Far = 30 }
-local Player_HB = { Enabled = false, Dynamic = false, StaticSize = 20, Min = 2, Max = 30, Near = 2, Far = 30 }
+local NPC_HB = { Enabled = false, Dynamic = false, StaticSize = 20, Min = 2, Max = 30, Near = 2, Far = 30, Part = "Random" }
+local Player_HB = { Enabled = false, Dynamic = false, StaticSize = 20, Min = 2, Max = 30, Near = 2, Far = 30, Part = "Random" }
 
 local ColorTable = {
     ["Bright Red"] = Color3.fromRGB(255, 0, 0), ["Dark Red"] = Color3.fromRGB(139, 0, 0),
@@ -157,9 +145,6 @@ local InfJumpEnabled = false
 local AntiStunEnabled = false
 local espCache = {}
 
--- ====================================================================
--- [[ TERMINAL VELOCITY EXPLOITS ]]
--- ====================================================================
 local TV_Exploits = {
     SlamSpam = false, SpamDelay = 0.1, RemoveGlide = false,
     RemoveDirectCharge = false, InfiniteFuel = false,
@@ -220,9 +205,6 @@ local function DoSlamSpam(tool)
     end
 end
 
--- ====================================================================
--- [[ EQUIPMENT EXPLOITS ]]
--- ====================================================================
 local EquipExploits = { AerorigFuel = false, InfiniteJetpack = false, UnlimitedPCU = false }
 
 local function FindEquippedToolByName(name)
@@ -254,7 +236,6 @@ local function ForceFuelMax(tool)
     end
 end
 
--- Offloaded loop for fuel and PCU to save Heartbeat performance
 task.spawn(function()
     while ScriptAlive do
         if EquipExploits.AerorigFuel then
@@ -292,9 +273,6 @@ task.spawn(function()
     end
 end)
 
--- ====================================================================
--- [[ MAP PROMPT FINDER ]]
--- ====================================================================
 local function FindPromptInContainer(parent, targetName)
     if not parent then return nil end
     for _, child in ipairs(parent:GetChildren()) do
@@ -353,9 +331,6 @@ local function FirePrompt(prompt)
     return false, "manual fallback failed: " .. tostring(err)
 end
 
--- ====================================================================
--- [[ NPC CACHE ]]
--- ====================================================================
 local UnitsFolder = ReplicatedStorage:WaitForChild("Units", 5) and ReplicatedStorage.Units:WaitForChild("Noobs", 5)
 local enemyDict = {}
 if UnitsFolder then
@@ -386,9 +361,6 @@ Workspace.ChildRemoved:Connect(function(v)
     activeNPCs[v] = nil 
 end)
 
--- ====================================================================
--- [[ Q KEY INPUT ]]
--- ====================================================================
 UserInputService.InputBegan:Connect(function(input, gameProcessed)
     if gameProcessed then return end
     if input.KeyCode == Enum.KeyCode.Q then
@@ -402,9 +374,6 @@ UserInputService.InputEnded:Connect(function(input, gameProcessed)
     end
 end)
 
--- ====================================================================
--- [[ CORE LOGIC ]]
--- ====================================================================
 local lastAttackTime = 0
 
 local function AutoAttack()
@@ -476,9 +445,6 @@ local function AutoAttack()
     end
 end
 
--- ====================================================================
--- [[ WEAPON MOD ENGINE ]]
--- ====================================================================
 local ToolConns = {}
 
 local function ModifyTool(tool)
@@ -510,9 +476,6 @@ LocalPlayer.CharacterAdded:Connect(function(char)
     SetupWeaponWatcher()
 end)
 
--- ====================================================================
--- [[ HITBOX & HIGHLIGHT HELPERS ]]
--- ====================================================================
 local function GetOrCreateHighlight(cache, obj, name, alwaysOnTop)
     if not cache[obj] then
         local h = Instance.new("Highlight")
@@ -527,57 +490,131 @@ local function GetOrCreateHighlight(cache, obj, name, alwaysOnTop)
     return cache[obj]
 end
 
-local function ApplyNPCHeadHitbox(head, size)
-    if head.Size.X ~= size then head.Size = Vector3.new(size, size, size) end
-    if not head:GetAttribute("HB_Modified") then
-        head.Massless = true
-        head.CanCollide = false
-        head.Transparency = 0.6
-        head.BrickColor = BrickColor.new("Really red")
-        head.Material = Enum.Material.Neon
-        head:SetAttribute("HB_Modified", true)
+local function ApplyHitbox(part, size)
+    if not part or not part:IsA("BasePart") then return end
+    if part.Size ~= Vector3.new(size, size, size) then 
+        if not part:GetAttribute("HB_OriginalSizeX") then
+            part:SetAttribute("HB_OriginalSizeX", part.Size.X)
+            part:SetAttribute("HB_OriginalSizeY", part.Size.Y)
+            part:SetAttribute("HB_OriginalSizeZ", part.Size.Z)
+        end
+        part.Size = Vector3.new(size, size, size) 
+    end
+    if not part:GetAttribute("HB_Modified") then
+        part:SetAttribute("HB_OriginalMassless", part.Massless)
+        part:SetAttribute("HB_OriginalCanCollide", part.CanCollide)
+        part:SetAttribute("HB_OriginalTransparency", part.Transparency)
+        part:SetAttribute("HB_OriginalBrickColor", part.BrickColor.Name)
+        part:SetAttribute("HB_OriginalMaterial", part.Material.Name)
+        part.Massless = true
+        part.CanCollide = false
+        part.Transparency = 0.6
+        part.BrickColor = BrickColor.new("Really red")
+        part.Material = Enum.Material.Neon
+        part:SetAttribute("HB_Modified", true)
     end
 end
 
-local function ResetNPCHead(head)
-    if head:GetAttribute("HB_Modified") then
-        head.Size = Vector3.new(1,1,1)
-        head.Transparency = 0
-        head.Material = Enum.Material.Plastic
-        head.BrickColor = BrickColor.new("Medium stone grey")
-        head.Massless = false
-        head.CanCollide = true
-        head:SetAttribute("HB_Modified", false)
+local function ResetHitbox(part)
+    if part and part:IsA("BasePart") and part:GetAttribute("HB_Modified") then
+        local ox = part:GetAttribute("HB_OriginalSizeX")
+        local oy = part:GetAttribute("HB_OriginalSizeY")
+        local oz = part:GetAttribute("HB_OriginalSizeZ")
+        if ox and oy and oz then part.Size = Vector3.new(ox, oy, oz) end
+        part.Massless = part:GetAttribute("HB_OriginalMassless")
+        part.CanCollide = part:GetAttribute("HB_OriginalCanCollide")
+        part.Transparency = part:GetAttribute("HB_OriginalTransparency")
+        local bcName = part:GetAttribute("HB_OriginalBrickColor")
+        if bcName then part.BrickColor = BrickColor.new(bcName) end
+        local matName = part:GetAttribute("HB_OriginalMaterial")
+        if matName then part.Material = Enum.Material[matName] end
+        part:SetAttribute("HB_Modified", false)
+        part:SetAttribute("HB_OriginalSizeX", nil)
+        part:SetAttribute("HB_OriginalSizeY", nil)
+        part:SetAttribute("HB_OriginalSizeZ", nil)
+        part:SetAttribute("HB_OriginalMassless", nil)
+        part:SetAttribute("HB_OriginalCanCollide", nil)
+        part:SetAttribute("HB_OriginalTransparency", nil)
+        part:SetAttribute("HB_OriginalBrickColor", nil)
+        part:SetAttribute("HB_OriginalMaterial", nil)
     end
 end
 
-local function ApplyPlayerHeadHitbox(head, size)
-    if head.Size.X ~= size then head.Size = Vector3.new(size, size, size) end
-    if not head:GetAttribute("HB_Modified") then
-        head.Massless = true
-        head.CanCollide = false
-        head.Transparency = 0.6
-        head.BrickColor = BrickColor.new("Really red")
-        head.Material = Enum.Material.Neon
-        head:SetAttribute("HB_Modified", true)
+local function GetTargetPart(character, partName)
+    if not character then return nil end
+    
+    local storedTarget = character:FindFirstChild("HB_StoredTarget")
+    if storedTarget and storedTarget.Value and storedTarget.Value.Parent == character then
+        return storedTarget.Value
+    end
+
+    local target = nil
+    if partName == "Random" then
+        local validParts = {}
+        for _, name in ipairs({"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}) do
+            local p = character:FindFirstChild(name)
+            if p and p:IsA("BasePart") then table.insert(validParts, p) end
+        end
+        if #validParts > 0 then
+            target = validParts[math.random(1, #validParts)]
+        end
+    else
+        local p = character:FindFirstChild(partName)
+        if p and p:IsA("BasePart") then target = p end
+    end
+
+    if not target then
+        target = character:FindFirstChild("Torso")
+        if not target or not target:IsA("BasePart") then
+            target = character:FindFirstChild("HumanoidRootPart")
+            if not target or not target:IsA("BasePart") then
+                local parts = {}
+                for _, child in ipairs(character:GetChildren()) do
+                    if child:IsA("BasePart") then table.insert(parts, child) end
+                end
+                if #parts > 0 then
+                    target = parts[math.random(1, #parts)]
+                end
+            end
+        end
+    end
+
+    if target then
+        if not storedTarget then
+            storedTarget = Instance.new("ObjectValue")
+            storedTarget.Name = "HB_StoredTarget"
+            storedTarget.Parent = character
+        end
+        storedTarget.Value = target
+    end
+
+    return target
+end
+
+local function ClearStoredTargets()
+    for v, _ in pairs(activeNPCs) do
+        if v and v.Parent then
+            local st = v:FindFirstChild("HB_StoredTarget")
+            if st then st:Destroy() end
+            for _, child in ipairs(v:GetDescendants()) do
+                if child:IsA("BasePart") then ResetHitbox(child) end
+            end
+            v:SetAttribute("HB_Modified_Active", false)
+        end
+    end
+    for _, player in ipairs(Players:GetPlayers()) do
+        if player.Character and player.Character.Parent then
+            local char = player.Character
+            local st = char:FindFirstChild("HB_StoredTarget")
+            if st then st:Destroy() end
+            for _, child in ipairs(char:GetDescendants()) do
+                if child:IsA("BasePart") then ResetHitbox(child) end
+            end
+            char:SetAttribute("HB_Modified_Active", false)
+        end
     end
 end
 
-local function ResetPlayerHead(head)
-    if head:GetAttribute("HB_Modified") then
-        head.Size = Vector3.new(1,1,1)
-        head.Transparency = 0
-        head.Material = Enum.Material.Plastic
-        head.BrickColor = BrickColor.new("Medium stone grey")
-        head.Massless = false
-        head.CanCollide = true
-        head:SetAttribute("HB_Modified", false)
-    end
-end
-
--- ====================================================================
--- [[ THROTTLED LANDMINE DETECTION ]]
--- ====================================================================
 local foundMines = {}
 local function ScanForLandmines()
     table.clear(foundMines)
@@ -627,13 +664,10 @@ task.spawn(function()
         if LandmineESP.Enabled then
             ScanForLandmines()
         end
-        task.wait(1) -- Run heavy scan every 1 second
+        task.wait(1)
     end
 end)
 
--- ====================================================================
--- [[ MAIN LOOPS ]]
--- ====================================================================
 local espThrottle = 0
 
 RunService.Heartbeat:Connect(function(dt)
@@ -654,37 +688,54 @@ RunService.Heartbeat:Connect(function(dt)
     local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     
     for v, _ in pairs(activeNPCs) do
-        if v and v.Parent and v:FindFirstChild("Head") and v:FindFirstChild("HumanoidRootPart") then
-            local head = v.Head
+        if v and v.Parent and v:FindFirstChild("HumanoidRootPart") then
             if NPC_HB.Enabled then
-                local size = NPC_HB.StaticSize
-                if NPC_HB.Dynamic and myRoot then
-                    local dist = (head.Position - myRoot.Position).Magnitude
-                    local alpha = math.clamp((dist - NPC_HB.Near) / (NPC_HB.Far - NPC_HB.Near), 0, 1)
-                    alpha = alpha * alpha * (3 - 2 * alpha)
-                    size = NPC_HB.Min + (NPC_HB.Max - NPC_HB.Min) * alpha
+                local targetPart = GetTargetPart(v, NPC_HB.Part)
+                if targetPart then
+                    local size = NPC_HB.StaticSize
+                    if NPC_HB.Dynamic and myRoot then
+                        local dist = (targetPart.Position - myRoot.Position).Magnitude
+                        local alpha = math.clamp((dist - NPC_HB.Near) / (NPC_HB.Far - NPC_HB.Near), 0, 1)
+                        alpha = alpha * alpha * (3 - 2 * alpha)
+                        size = NPC_HB.Min + (NPC_HB.Max - NPC_HB.Min) * alpha
+                    end
+                    ApplyHitbox(targetPart, size)
+                    v:SetAttribute("HB_Modified_Active", true)
                 end
-                ApplyNPCHeadHitbox(head, size)
             else
-                ResetNPCHead(head)
+                if v:GetAttribute("HB_Modified_Active") then
+                    for _, child in ipairs(v:GetDescendants()) do
+                        if child:IsA("BasePart") then ResetHitbox(child) end
+                    end
+                    v:SetAttribute("HB_Modified_Active", false)
+                end
             end
         end
     end
 
     for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") and player.Character:FindFirstChild("HumanoidRootPart") then
-            local head = player.Character.Head
+        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
+            local char = player.Character
             if Player_HB.Enabled then
-                local size = Player_HB.StaticSize
-                if Player_HB.Dynamic and myRoot then
-                    local dist = (head.Position - myRoot.Position).Magnitude
-                    local alpha = math.clamp((dist - Player_HB.Near) / (Player_HB.Far - Player_HB.Near), 0, 1)
-                    alpha = alpha * alpha * (3 - 2 * alpha)
-                    size = Player_HB.Min + (Player_HB.Max - Player_HB.Min) * alpha
+                local targetPart = GetTargetPart(char, Player_HB.Part)
+                if targetPart then
+                    local size = Player_HB.StaticSize
+                    if Player_HB.Dynamic and myRoot then
+                        local dist = (targetPart.Position - myRoot.Position).Magnitude
+                        local alpha = math.clamp((dist - Player_HB.Near) / (Player_HB.Far - Player_HB.Near), 0, 1)
+                        alpha = alpha * alpha * (3 - 2 * alpha)
+                        size = Player_HB.Min + (Player_HB.Max - Player_HB.Min) * alpha
+                    end
+                    ApplyHitbox(targetPart, size)
+                    char:SetAttribute("HB_Modified_Active", true)
                 end
-                ApplyPlayerHeadHitbox(head, size)
             else
-                ResetPlayerHead(head)
+                if char:GetAttribute("HB_Modified_Active") then
+                    for _, child in ipairs(char:GetDescendants()) do
+                        if child:IsA("BasePart") then ResetHitbox(child) end
+                    end
+                    char:SetAttribute("HB_Modified_Active", false)
+                end
             end
         end
     end
@@ -721,7 +772,6 @@ RunService.Heartbeat:Connect(function(dt)
         end
     end
 
-    -- Landmine ESP Logic (Uses cached results from background thread)
     if LandmineESP.Enabled then
         local fillCol = ColorTable[LandmineESP.Color] or Color3.fromRGB(255, 0, 0)
         local outCol = ColorTable[LandmineESP.OutlineColor] or Color3.fromRGB(255, 255, 255)
@@ -736,7 +786,6 @@ RunService.Heartbeat:Connect(function(dt)
         end
     end
 
-    -- Terminal Velocity Logic
     local tvTool = FindTerminalVelocity()
     if tvTool and tvTool.Parent then
         if TV_Exploits.InfiniteFuel then
@@ -768,9 +817,6 @@ RunService.Heartbeat:Connect(function(dt)
     end
 end)
 
--- ====================================================================
--- [[ CLEANUP LOOP ]]
--- ====================================================================
 RunService.Heartbeat:Connect(function()
     if not ESP_Config.Enabled then
         for ent, h in pairs(espCache) do 
@@ -800,9 +846,6 @@ UserInputService.JumpRequest:Connect(function()
     end 
 end)
 
--- ====================================================================
--- [[ UI: WEAPONS ]]
--- ====================================================================
 Tabs.Weapons:CreateToggle("WeaponMods", {Title = "Super Weapons", Default = false}):OnChanged(function() WeaponModEnabled = Fluent.Options.WeaponMods.Value; SetupWeaponWatcher() end)
 Tabs.Weapons:CreateSlider("Firerate", {Title = "Weapon Fire Rate", Default = 1000, Min = 0, Max = 5000, Rounding = 10, Callback = function(v) WeaponSettings.Firerate = v end})
 Tabs.Weapons:CreateSlider("BulletSpeed", {Title = "Projectile Velocity", Default = 500, Min = 0, Max = 2000, Rounding = 10, Callback = function(v) WeaponSettings.BulletSpeed = v end})
@@ -813,12 +856,10 @@ Tabs.Weapons:CreateSlider("FarmRange", {Title = "Max Kill Range (Studs)", Defaul
 Tabs.Weapons:CreateSlider("GunDelay", {Title = "Gun Attack Delay (ms)", Default = 50, Min = 10, Max = 1000, Rounding = 10, Callback = function(v) Farm.GunDelay = v end})
 Tabs.Weapons:CreateSlider("MeleeDelay", {Title = "Melee Attack Delay (ms)", Default = 150, Min = 50, Max = 2000, Rounding = 10, Callback = function(v) Farm.MeleeDelay = v end})
 
--- ====================================================================
--- [[ UI: HITBOX ]]
--- ====================================================================
 Tabs.Hitbox:CreateParagraph("HitboxInfo", {Title = "Dynamic Logic", Content = "Shrinks at 2 studs (melee range), expands smoothly to max size for shooting."})
 
 Tabs.Hitbox:CreateToggle("NPC_HB", {Title = "Enable NPC Hitbox", Default = false}):OnChanged(function() NPC_HB.Enabled = Fluent.Options.NPC_HB.Value end)
+Tabs.Hitbox:CreateDropdown("NPC_Part", {Title = "NPC Body Part", Values = {"Random", "Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}, Default = 1, Callback = function(v) NPC_HB.Part = v; ClearStoredTargets() end})
 Tabs.Hitbox:CreateToggle("NPC_Dynamic", {Title = "NPC Use Dynamic Size?", Default = false}):OnChanged(function() NPC_HB.Dynamic = Fluent.Options.NPC_Dynamic.Value end)
 Tabs.Hitbox:CreateSlider("NPC_Static", {Title = "NPC Static Size", Default = 20, Min = 2, Max = 50, Rounding = 1, Callback = function(v) NPC_HB.StaticSize = v end})
 Tabs.Hitbox:CreateSlider("NPC_Min", {Title = "NPC Min Size (Close)", Default = 2, Min = 1, Max = 10, Rounding = 1, Callback = function(v) NPC_HB.Min = v end})
@@ -827,6 +868,7 @@ Tabs.Hitbox:CreateSlider("NPC_Near", {Title = "NPC Shrink Threshold (Studs)", De
 Tabs.Hitbox:CreateSlider("NPC_Far", {Title = "NPC Max Out Dist (Studs)", Default = 30, Min = 15, Max = 150, Rounding = 1, Callback = function(v) NPC_HB.Far = v end})
 
 Tabs.Hitbox:CreateToggle("Player_HB", {Title = "Enable Player Hitbox", Default = false}):OnChanged(function() Player_HB.Enabled = Fluent.Options.Player_HB.Value end)
+Tabs.Hitbox:CreateDropdown("Player_Part", {Title = "Player Body Part", Values = {"Random", "Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}, Default = 1, Callback = function(v) Player_HB.Part = v; ClearStoredTargets() end})
 Tabs.Hitbox:CreateToggle("Player_Dynamic", {Title = "Player Use Dynamic Size?", Default = false}):OnChanged(function() Player_HB.Dynamic = Fluent.Options.Player_Dynamic.Value end)
 Tabs.Hitbox:CreateSlider("Player_Static", {Title = "Player Static Size", Default = 20, Min = 2, Max = 50, Rounding = 1, Callback = function(v) Player_HB.StaticSize = v end})
 Tabs.Hitbox:CreateSlider("Player_Min", {Title = "Player Min Size (Close)", Default = 2, Min = 1, Max = 10, Rounding = 1, Callback = function(v) Player_HB.Min = v end})
@@ -834,9 +876,6 @@ Tabs.Hitbox:CreateSlider("Player_Max", {Title = "Player Max Size (Far)", Default
 Tabs.Hitbox:CreateSlider("Player_Near", {Title = "Player Shrink Threshold (Studs)", Default = 2, Min = 1, Max = 20, Rounding = 1, Callback = function(v) Player_HB.Near = v end})
 Tabs.Hitbox:CreateSlider("Player_Far", {Title = "Player Max Out Dist (Studs)", Default = 30, Min = 15, Max = 150, Rounding = 1, Callback = function(v) Player_HB.Far = v end})
 
--- ====================================================================
--- [[ UI: VISUALS ]]
--- ====================================================================
 Tabs.Visuals:CreateParagraph("ESPInfo", {Title = "Player vs NPC Detection", Content = "Teammate Color = Other Players. Enemy Color = NPCs/Bosses."})
 Tabs.Visuals:CreateToggle("ESP", {Title = "Enable Highlight ESP", Default = false}):OnChanged(function() ESP_Config.Enabled = Fluent.Options.ESP.Value end)
 Tabs.Visuals:CreateToggle("ESPThroughWalls", {Title = "ESP See Through Walls", Default = false}):OnChanged(function() 
@@ -859,9 +898,6 @@ Tabs.Visuals:CreateDropdown("LandmineColor", {Title = "Landmine Fill Color", Val
 Tabs.Visuals:CreateDropdown("LandmineOutlineColor", {Title = "Landmine Outline Color", Values = {"Bright Red", "Dark Red", "Bright Green", "Bright Blue", "Light Blue", "Yellow", "Purple", "Pink", "Orange", "Cyan", "White", "Magenta"}, Default = 11, Callback = function(v) LandmineESP.OutlineColor = v end})
 Tabs.Visuals:CreateSlider("LandmineTransparency", {Title = "Landmine Fill Transparency", Default = 50, Min = 0, Max = 100, Rounding = 1, Callback = function(v) LandmineESP.Transparency = v / 100 end})
 
--- ====================================================================
--- [[ UI: MISC — PROMPT BUTTONS ]]
--- ====================================================================
 Tabs.Misc:CreateParagraph("MapHeader", {Title = "━━ Map Interactions ━━", Content = "Uses " .. (HasFirePrompt and "fireproximityprompt (native)" or "manual fallback") .. " to trigger prompts."})
 Tabs.Misc:CreateButton({
     Title = "Open Ammo Fabricator",
@@ -894,9 +930,6 @@ Tabs.Misc:CreateButton({
     end
 })
 
--- ====================================================================
--- [[ UI: MISC — BOSSES ]]
--- ====================================================================
 Tabs.Misc:CreateParagraph("BossHeader", {Title = "━━ Auto Boss Solvers ━━", Content = "Automatically targets boss weakpoints."})
 Tabs.Misc:CreateToggle("AutoPrometheus", {Title = "Auto Prometheus", Default = false}):OnChanged(function() Solvers.Prometheus = Fluent.Options.AutoPrometheus.Value end)
 Tabs.Misc:CreateToggle("AutoHermes", {Title = "Auto Hermes", Default = false}):OnChanged(function() Solvers.Hermes = Fluent.Options.AutoHermes.Value end)
@@ -933,9 +966,6 @@ Tabs.Misc:CreateToggle("TridentQTE", {Title = "Trident Auto-QTE", Default = fals
     end
 end)
 
--- ====================================================================
--- [[ UI: MISC — TV & EQUIP ]]
--- ====================================================================
 Tabs.Misc:CreateParagraph("TVHeader", {Title = "━━ Terminal Velocity ━━", Content = "Hold Q to slam spam. Tool must be equipped."})
 Tabs.Misc:CreateToggle("TVSlamSpam", {Title = "Slam Spam", Default = false}):OnChanged(function() TV_Exploits.SlamSpam = Fluent.Options.TVSlamSpam.Value end)
 Tabs.Misc:CreateSlider("TVSpamDelay", {Title = "Spam Delay (sec)", Default = 10, Min = 1, Max = 50, Rounding = 1, Callback = function(v) TV_Exploits.SpamDelay = v / 100 end})
@@ -953,9 +983,6 @@ Tabs.Misc:CreateToggle("InfJump", {Title = "Infinite Jump", Default = false}):On
 Tabs.Misc:CreateToggle("AntiStun", {Title = "Anti Stun", Default = false}):OnChanged(function() AntiStunEnabled = Fluent.Options.AntiStun.Value end)
 Tabs.Misc:CreateSlider("WalkSpeed", {Title = "WalkSpeed", Default = 16, Min = 16, Max = 200, Rounding = 1, Callback = function(v) pcall(function() LocalPlayer.Character:FindFirstChildOfClass("Humanoid").WalkSpeed = v end) end})
 
--- ====================================================================
--- [[ UI: SETTINGS ]]
--- ====================================================================
 Tabs.Settings:CreateParagraph("UtilityHeader", {Title = "━━ Utilities ━━", Content = "External tools and server actions."})
 
 Tabs.Settings:CreateButton({
@@ -984,11 +1011,17 @@ Tabs.Settings:CreateButton({Title = "Unload Script", Description = "Safely remov
     for obj, h in pairs(landmineCache) do if h and h.Parent then h:Destroy() end end
     landmineCache = {}
     for v, _ in pairs(activeNPCs) do
-        if v and v.Parent and v:FindFirstChild("Head") then ResetNPCHead(v.Head) end
+        if v and v.Parent then
+            for _, child in ipairs(v:GetDescendants()) do
+                if child:IsA("BasePart") then ResetHitbox(child) end
+            end
+        end
     end
     for _, player in ipairs(Players:GetPlayers()) do
-        if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
-            ResetPlayerHead(player.Character.Head)
+        if player ~= LocalPlayer and player.Character and player.Character.Parent then
+            for _, child in ipairs(player.Character:GetDescendants()) do
+                if child:IsA("BasePart") then ResetHitbox(child) end
+            end
         end
     end
     for _, conn in ipairs(ToolConns) do if conn then conn:Disconnect() end end
@@ -996,9 +1029,6 @@ Tabs.Settings:CreateButton({Title = "Unload Script", Description = "Safely remov
     getgenv().DVNScriptLoaded = false
 end})
 
--- ====================================================================
--- [[ INIT & SAVE SYNC ]]
--- ====================================================================
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
 SaveManager:IgnoreThemeSettings()
