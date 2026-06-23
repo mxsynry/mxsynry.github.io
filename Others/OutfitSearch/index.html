@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roblox Outfit Viewer</title>
+  <meta name="description" content="Public Roblox outfit and currently-wearing avatar viewer by username or user ID." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Public Roblox avatar lookup</p>
+      <h1>Roblox Outfit Viewer</h1>
+      <p class="lede">Look up public accounts by username or user ID, compare duplicate-looking accounts, and list current avatar items plus saved outfits.</p>
+    </div>
+    <button id="themeBtn" class="ghost" type="button" title="Toggle theme">Theme</button>
+  </header>
+
+  <main>
+    <section class="panel setup" id="setupPanel">
+      <h2>API setup</h2>
+      <p>This GitHub Pages app needs a small Cloudflare Worker because many Roblox API calls are blocked by browser CORS. Paste your Worker URL once and it will be saved locally.</p>
+      <div class="row">
+        <input id="apiBaseInput" placeholder="https://your-worker-name.your-subdomain.workers.dev" />
+        <button id="saveApiBtn" type="button">Save API</button>
+      </div>
+      <p class="hint">Tip: you can also append <code>?api=https://your-worker.workers.dev</code> to the page URL.</p>
+    </section>
+
+    <section class="panel search-panel">
+      <form id="searchForm">
+        <label for="query">Username, user ID, or multiple values</label>
+        <div class="row">
+          <input id="query" autocomplete="off" spellcheck="false" placeholder="Roblox, id:1, 156, search: builderman" />
+          <button id="searchBtn" type="submit">Search</button>
+        </div>
+        <p class="hint">Supports comma/newline separated values. Use <code>id:12345</code> for exact ID. Use <code>search:keyword</code> to show possible matching accounts.</p>
+      </form>
+    </section>
+
+    <section id="status" class="status" aria-live="polite"></section>
+    <section id="results" class="results"></section>
+  </main>
+
+  <template id="userCardTpl">
+    <article class="user-card panel">
+      <div class="profile-head">
+        <img class="avatar-img" alt="Avatar thumbnail" loading="lazy" />
+        <div>
+          <h2 class="profile-title"></h2>
+          <p class="muted profile-meta"></p>
+          <div class="chips"></div>
+          <div class="actions">
+            <a class="profile-link" target="_blank" rel="noopener">Profile</a>
+            <button class="json-btn" type="button">Export JSON</button>
+          </div>
+        </div>
+      </div>
+      <details class="description-block">
+        <summary>Description</summary>
+        <p class="description-text"></p>
+      </details>
+      <section>
+        <div class="section-title">
+          <h3>Currently wearing</h3>
+          <span class="wearing-count pill"></span>
+        </div>
+        <div class="asset-grid wearing-grid"></div>
+      </section>
+      <section>
+        <div class="section-title">
+          <h3>Saved outfits</h3>
+          <span class="outfit-count pill"></span>
+        </div>
+        <div class="outfit-grid"></div>
+      </section>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
