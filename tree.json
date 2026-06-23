@@ -26,14 +26,6 @@
       ]
     },
     {
-      "name": "Gemfile",
-      "path": "Gemfile",
-      "type": "file",
-      "size": 3256,
-      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Gemfile",
-      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Gemfile"
-    },
-    {
       "name": "index.html",
       "path": "index.html",
       "type": "file",
@@ -59,14 +51,6 @@
           "path": "Others/Editor",
           "type": "dir",
           "children": [
-            {
-              "name": "fgd.html",
-              "path": "Others/Editor/fgd.html",
-              "type": "file",
-              "size": 34449,
-              "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Editor/fgd.html",
-              "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Editor/fgd.html"
-            },
             {
               "name": "fileaccess",
               "path": "Others/Editor/fileaccess",
@@ -4822,14 +4806,6 @@
               ]
             },
             {
-              "name": "index (1).html",
-              "path": "Others/Editor/index (1).html",
-              "type": "file",
-              "size": 20873,
-              "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Editor/index%20(1).html",
-              "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Editor/index%20(1).html"
-            },
-            {
               "name": "index.html",
               "path": "Others/Editor/index.html",
               "type": "file",
@@ -7358,7 +7334,7 @@
               "name": "app.js",
               "path": "Others/OutfitSearch/app.js",
               "type": "file",
-              "size": 18676,
+              "size": 23600,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/OutfitSearch/app.js",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/OutfitSearch/app.js"
             },
@@ -7366,7 +7342,7 @@
               "name": "index.html",
               "path": "Others/OutfitSearch/index.html",
               "type": "file",
-              "size": 5643,
+              "size": 6199,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/OutfitSearch/index.html",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/OutfitSearch/index.html"
             },
@@ -7374,7 +7350,7 @@
               "name": "README.md",
               "path": "Others/OutfitSearch/README.md",
               "type": "file",
-              "size": 1467,
+              "size": 653,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/OutfitSearch/README.md",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/OutfitSearch/README.md"
             },
@@ -7382,7 +7358,7 @@
               "name": "styles.css",
               "path": "Others/OutfitSearch/styles.css",
               "type": "file",
-              "size": 6996,
+              "size": 7201,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/OutfitSearch/styles.css",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/OutfitSearch/styles.css"
             },
@@ -7390,7 +7366,7 @@
               "name": "worker.js",
               "path": "Others/OutfitSearch/worker.js",
               "type": "file",
-              "size": 20851,
+              "size": 22408,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/OutfitSearch/worker.js",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/OutfitSearch/worker.js"
             },
@@ -7641,7 +7617,7 @@
       "name": "README.md",
       "path": "README.md",
       "type": "file",
-      "size": 1041,
+      "size": 785,
       "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/README.md",
       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/README.md"
     },
