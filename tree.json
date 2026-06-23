@@ -7358,7 +7358,7 @@
               "name": "app.js",
               "path": "Others/OutfitSearch/app.js",
               "type": "file",
-              "size": 11185,
+              "size": 17739,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/OutfitSearch/app.js",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/OutfitSearch/app.js"
             },
@@ -7366,7 +7366,7 @@
               "name": "index.html",
               "path": "Others/OutfitSearch/index.html",
               "type": "file",
-              "size": 3560,
+              "size": 5423,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/OutfitSearch/index.html",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/OutfitSearch/index.html"
             },
@@ -7374,7 +7374,7 @@
               "name": "README.md",
               "path": "Others/OutfitSearch/README.md",
               "type": "file",
-              "size": 2324,
+              "size": 1123,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/OutfitSearch/README.md",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/OutfitSearch/README.md"
             },
@@ -7382,7 +7382,7 @@
               "name": "styles.css",
               "path": "Others/OutfitSearch/styles.css",
               "type": "file",
-              "size": 5242,
+              "size": 7005,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/OutfitSearch/styles.css",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/OutfitSearch/styles.css"
             },
@@ -7390,9 +7390,17 @@
               "name": "worker.js",
               "path": "Others/OutfitSearch/worker.js",
               "type": "file",
-              "size": 9838,
+              "size": 15622,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/OutfitSearch/worker.js",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/OutfitSearch/worker.js"
+            },
+            {
+              "name": "wrangler.json",
+              "path": "Others/OutfitSearch/wrangler.json",
+              "type": "file",
+              "size": 95,
+              "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/OutfitSearch/wrangler.json",
+              "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/OutfitSearch/wrangler.json"
             }
           ]
         },
