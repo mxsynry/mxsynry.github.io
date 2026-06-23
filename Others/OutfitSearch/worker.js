@@ -1,10 +1,11 @@
 // Cloudflare Worker for Roblox Outfit Viewer
 // Public, read-only Roblox API proxy. No Roblox cookies, no private tokens.
 
-const CACHE_TTL_SECONDS = 60;
+const CACHE_TTL_SECONDS = 45;
 const MAX_INPUTS = 20;
 const MAX_SEARCH_RESULTS = 25;
 const MAX_OUTFITS = 300;
+const DETAIL_CONCURRENCY = 15;
 
 const BASE_HEADERS = {
   "access-control-allow-origin": "*",
@@ -35,7 +36,7 @@ export default {
         return json({
           ok: true,
           name: "roblox-outfit-viewer-api",
-          version: "2026-06-23.5",
+          version: "2026-06-24.1-creatorfix",
           routes: [
             "/api/resolve?q=USERNAME",
             "/api/report/USER_ID",
@@ -226,7 +227,7 @@ async function getReport(userId) {
 
   const currentIdsRaw = [
     ...(currently.assetIds || []),
-    ...avatarAssets.map(a => a.id)
+    ...avatarAssets.map(a => Number(a.id || a.assetId)).filter(Number.isFinite)
   ].filter(Number.isFinite);
 
   const duplicatedIds = duplicateCounts(currentIdsRaw);
@@ -240,12 +241,12 @@ async function getReport(userId) {
     );
   }
 
-  const avatarAssetMap = mapBy(avatarAssets, a => a.id);
+  const avatarAssetMap = mapBy(avatarAssets.map(normalizeAsset), a => a.id);
 
   if (avatarAssets.length) {
     const avatarNamed = avatarAssets.filter(a => {
       const name = a.name || a.Name || a.assetName || a.AssetName;
-      return !isFallbackAssetName(name, a.id);
+      return !isFallbackAssetName(name, Number(a.id || a.assetId));
     }).length;
 
     logs.push(`Avatar details returned ${avatarAssets.length} asset record(s), ${avatarNamed} with public names.`);
@@ -269,13 +270,13 @@ async function getReport(userId) {
   const currentlyWearing = assetIds.map(id => {
     const fromAvatar = avatarAssetMap[id] || {};
     const fromCatalog = catalogDetails[id] || {};
+    const merged = mergeAssetDetails(fromAvatar, fromCatalog);
 
     return normalizeAsset({
+      ...merged,
       id,
-      ...fromAvatar,
-      ...fromCatalog,
-      name: pickAssetName(id, fromCatalog, fromAvatar),
-      assetType: fromCatalog.assetType || fromAvatar.assetType || null,
+      name: pickAssetName(id, fromCatalog, fromAvatar, merged),
+      assetType: fromCatalog.assetType || fromAvatar.assetType || merged.assetType || null,
       imageUrl: assetThumbs[id]?.imageUrl || null,
       imageKind: thumbnailKind(assetThumbs[id]?.imageUrl || null)
     });
@@ -307,6 +308,7 @@ async function getReport(userId) {
       rawCurrentlyWearingCount: currentIdsRaw.length,
       uniqueCurrentlyWearingCount: assetIds.length,
       duplicateIds: duplicatedIds,
+      creatorStats: summarizeCreators(currentlyWearing),
       logs
     },
     fetchedAt: new Date().toISOString()
@@ -325,8 +327,8 @@ async function getOutfitDetails(outfitId) {
   );
 
   const rawAssets = Array.isArray(detail.assets) ? detail.assets : [];
-  const ids = unique(rawAssets.map(a => a.id).filter(Number.isFinite));
-  const rawMap = mapBy(rawAssets, a => a.id);
+  const ids = unique(rawAssets.map(a => Number(a.id || a.assetId)).filter(Number.isFinite));
+  const rawMap = mapBy(rawAssets.map(normalizeAsset), a => a.id);
 
   const [thumbs, catalog] = await Promise.all([
     getAssetThumbnails(ids).catch(err => {
@@ -346,12 +348,12 @@ async function getOutfitDetails(outfitId) {
     assets: ids.map(id => {
       const raw = rawMap[id] || {};
       const full = catalog[id] || {};
+      const merged = mergeAssetDetails(raw, full);
 
       return normalizeAsset({
+        ...merged,
         id,
-        ...raw,
-        ...full,
-        name: pickAssetName(id, full, raw),
+        name: pickAssetName(id, full, raw, merged),
         imageUrl: thumbs[id]?.imageUrl || null,
         imageKind: thumbnailKind(thumbs[id]?.imageUrl || null)
       });
@@ -535,10 +537,16 @@ const ASSET_TYPE_NAMES = {
 
 async function getCatalogDetails(assetIds, logs = []) {
   const out = {};
-  let catalogNamed = 0;
+  let batchNamed = 0;
+  let batchCreator = 0;
+  let singleNamed = 0;
+  let singleCreator = 0;
   let economyNamed = 0;
+  let economyCreator = 0;
   let legacyNamed = 0;
+  let legacyCreator = 0;
   let missingAfterFallback = 0;
+  let missingCreatorAfterFallback = 0;
 
   for (const chunk of chunks(unique(assetIds), 100)) {
     if (!chunk.length) continue;
@@ -561,60 +569,74 @@ async function getCatalogDetails(assetIds, logs = []) {
       for (const item of data.data || []) {
         const normalized = normalizeAsset({
           ...item,
-          detailsSource: "catalog"
+          detailsSource: "catalog-batch"
         });
 
         if (Number.isFinite(normalized.id)) {
           out[normalized.id] = mergeAssetDetails(out[normalized.id], normalized);
 
-          if (!isFallbackAssetName(out[normalized.id].name, normalized.id)) {
-            catalogNamed += 1;
-          }
+          if (!isFallbackAssetName(out[normalized.id].name, normalized.id)) batchNamed += 1;
+          if (out[normalized.id].creatorName) batchCreator += 1;
         }
       }
     } catch (err) {
       logs.push(`Catalog batch details failed for ${chunk.length} item(s): ${err.message}`);
     }
 
-    const needsFallback = chunk.filter(id => {
-      const item = out[id];
+    const needsSingleCatalog = chunk.filter(id => needsBetterDetails(out[id], id));
 
-      return (
-        !item ||
-        isFallbackAssetName(item.name, id) ||
-        !item.creatorName ||
-        !getAssetTypeName(item) ||
-        item.price === null ||
-        item.price === undefined
-      );
-    });
+    if (needsSingleCatalog.length) {
+      const results = await mapLimit(needsSingleCatalog, DETAIL_CONCURRENCY, async id => {
+        const data = await robloxJson(
+          `https://catalog.roblox.com/v1/catalog/items/${id}/details?itemType=Asset`,
+          {},
+          `single catalog item ${id}`
+        );
 
-    if (needsFallback.length) {
-      const results = await Promise.allSettled(
-        needsFallback.map(async id => {
-          const data = await robloxJson(
-            `https://economy.roblox.com/v2/assets/${id}/details`,
-            {},
-            `economy asset ${id}`
-          );
-
-          return normalizeAsset({
-            ...data,
-            id,
-            detailsSource: "economy"
-          });
-        })
-      );
+        return normalizeAsset({
+          ...data,
+          id: Number(data.id || data.assetId || id),
+          detailsSource: "catalog-single"
+        });
+      });
 
       results.forEach((result, index) => {
-        const id = needsFallback[index];
+        const id = needsSingleCatalog[index];
 
         if (result.status === "fulfilled") {
           out[id] = mergeAssetDetails(out[id], result.value);
 
-          if (!isFallbackAssetName(out[id].name, id)) {
-            economyNamed += 1;
-          }
+          if (!isFallbackAssetName(out[id].name, id)) singleNamed += 1;
+          if (out[id].creatorName) singleCreator += 1;
+        }
+      });
+    }
+
+    const needsEconomy = chunk.filter(id => needsBetterDetails(out[id], id));
+
+    if (needsEconomy.length) {
+      const results = await mapLimit(needsEconomy, DETAIL_CONCURRENCY, async id => {
+        const data = await robloxJson(
+          `https://economy.roblox.com/v2/assets/${id}/details`,
+          {},
+          `economy asset ${id}`
+        );
+
+        return normalizeAsset({
+          ...data,
+          id,
+          detailsSource: "economy"
+        });
+      });
+
+      results.forEach((result, index) => {
+        const id = needsEconomy[index];
+
+        if (result.status === "fulfilled") {
+          out[id] = mergeAssetDetails(out[id], result.value);
+
+          if (!isFallbackAssetName(out[id].name, id)) economyNamed += 1;
+          if (out[id].creatorName) economyCreator += 1;
         } else if (!out[id]) {
           out[id] = normalizeAsset({
             id,
@@ -625,33 +647,22 @@ async function getCatalogDetails(assetIds, logs = []) {
       });
     }
 
-    const needsLegacy = chunk.filter(id => {
-      const item = out[id];
-
-      return (
-        !item ||
-        isFallbackAssetName(item.name, id) ||
-        item.price === null ||
-        item.price === undefined
-      );
-    });
+    const needsLegacy = chunk.filter(id => needsBetterDetails(out[id], id));
 
     if (needsLegacy.length) {
-      const legacyResults = await Promise.allSettled(
-        needsLegacy.map(async id => {
-          const data = await robloxJson(
-            `https://api.roblox.com/marketplace/productinfo?assetId=${id}`,
-            {},
-            `legacy product info ${id}`
-          );
+      const legacyResults = await mapLimit(needsLegacy, DETAIL_CONCURRENCY, async id => {
+        const data = await robloxJson(
+          `https://api.roblox.com/marketplace/productinfo?assetId=${id}`,
+          {},
+          `legacy product info ${id}`
+        );
 
-          return normalizeAsset({
-            ...data,
-            id,
-            detailsSource: "legacy-productinfo"
-          });
-        })
-      );
+        return normalizeAsset({
+          ...data,
+          id,
+          detailsSource: "legacy-productinfo"
+        });
+      });
 
       legacyResults.forEach((result, index) => {
         const id = needsLegacy[index];
@@ -659,9 +670,8 @@ async function getCatalogDetails(assetIds, logs = []) {
         if (result.status === "fulfilled") {
           out[id] = mergeAssetDetails(out[id], result.value);
 
-          if (!isFallbackAssetName(out[id].name, id)) {
-            legacyNamed += 1;
-          }
+          if (!isFallbackAssetName(out[id].name, id)) legacyNamed += 1;
+          if (out[id].creatorName) legacyCreator += 1;
         }
       });
     }
@@ -675,41 +685,67 @@ async function getCatalogDetails(assetIds, logs = []) {
         });
       }
 
-      if (isFallbackAssetName(out[id].name, id)) {
-        missingAfterFallback += 1;
-      }
+      if (isFallbackAssetName(out[id].name, id)) missingAfterFallback += 1;
+      if (!out[id].creatorName) missingCreatorAfterFallback += 1;
     }
   }
 
   if (assetIds.length) {
     logs.push(
-      `Item detail lookup: catalog named ${catalogNamed}, economy fallback named ${economyNamed}, legacy fallback named ${legacyNamed}, still unnamed ${missingAfterFallback}.`
+      `Item detail lookup: batch named ${batchNamed}/creator ${batchCreator}, single named ${singleNamed}/creator ${singleCreator}, economy named ${economyNamed}/creator ${economyCreator}, legacy named ${legacyNamed}/creator ${legacyCreator}, still unnamed ${missingAfterFallback}, still unknown creator ${missingCreatorAfterFallback}.`
     );
   }
 
   return out;
 }
 
+function needsBetterDetails(item, id) {
+  return (
+    !item ||
+    isFallbackAssetName(item.name, id) ||
+    !item.creatorName ||
+    !getAssetTypeName(item) ||
+    item.price === null ||
+    item.price === undefined ||
+    !item.priceStatus
+  );
+}
+
 function normalizeAsset(item = {}) {
   const id = Number(item.id || item.Id || item.assetId || item.AssetId || item.targetId);
 
-  const creatorName =
-    item.creatorName ||
-    item.creatorTargetName ||
-    item.creator?.name ||
-    item.creator?.Name ||
-    item.Creator?.Name ||
-    item.creator?.creatorName ||
-    null;
+  const nestedCreator = item.creator || item.Creator || {};
 
-  const creatorId =
-    item.creatorId ||
-    item.creatorTargetId ||
-    item.creator?.id ||
-    item.creator?.Id ||
-    item.Creator?.Id ||
-    item.creator?.creatorId ||
-    null;
+  const creatorName = firstNonEmptyString(
+    item.creatorName,
+    item.CreatorName,
+    item.creatorTargetName,
+    item.CreatorTargetName,
+    nestedCreator.name,
+    nestedCreator.Name,
+    nestedCreator.creatorName,
+    nestedCreator.CreatorName
+  );
+
+  const creatorId = firstNumberAllowZero(
+    item.creatorId,
+    item.CreatorId,
+    item.creatorTargetId,
+    item.CreatorTargetId,
+    nestedCreator.id,
+    nestedCreator.Id,
+    nestedCreator.creatorId,
+    nestedCreator.CreatorId
+  );
+
+  const creatorType = firstNonEmptyString(
+    item.creatorType,
+    item.CreatorType,
+    nestedCreator.type,
+    nestedCreator.Type,
+    nestedCreator.creatorType,
+    nestedCreator.CreatorType
+  );
 
   const rawTypeId = Number(
     item.assetTypeId ||
@@ -718,20 +754,21 @@ function normalizeAsset(item = {}) {
     item.assetType?.Id
   );
 
-  const typeName =
-    item.assetType?.name ||
-    item.assetType?.Name ||
-    item.assetTypeName ||
-    ASSET_TYPE_NAMES[rawTypeId] ||
-    item.itemType ||
-    "Asset";
+  const typeName = firstNonEmptyString(
+    item.assetType?.name,
+    item.assetType?.Name,
+    item.assetTypeName,
+    item.AssetTypeName,
+    ASSET_TYPE_NAMES[rawTypeId],
+    item.itemType
+  ) || "Asset";
 
-  const rawName =
-    item.name ||
-    item.Name ||
-    item.assetName ||
-    item.AssetName ||
-    "";
+  const rawName = firstNonEmptyString(
+    item.name,
+    item.Name,
+    item.assetName,
+    item.AssetName
+  );
 
   const price = firstNumber(
     item.price,
@@ -752,12 +789,12 @@ function normalizeAsset(item = {}) {
     item.resaleLowestPrice
   );
 
-  const priceStatus =
-    item.priceStatus ||
-    item.PriceStatus ||
-    item.saleStatus ||
-    item.SaleStatus ||
-    null;
+  const priceStatus = firstNonEmptyString(
+    item.priceStatus,
+    item.PriceStatus,
+    item.saleStatus,
+    item.SaleStatus
+  );
 
   const isForSale =
     item.isForSale ??
@@ -795,14 +832,16 @@ function normalizeAsset(item = {}) {
       name: typeName
     },
     assetTypeName: typeName,
-    creatorName,
-    creatorId,
+    creatorName: creatorName || null,
+    creatorId: creatorId ?? null,
+    creatorType: creatorType || null,
     price,
     lowestPrice,
-    priceStatus,
+    priceStatus: priceStatus || null,
     isForSale,
     isLimited,
     isFree,
+    collectibleItemId: item.collectibleItemId || item.CollectibleItemId || null,
     detailsSource: item.detailsSource || item.source || null
   };
 }
@@ -835,29 +874,68 @@ function mergeAssetDetails(base = {}, extra = {}) {
       ? extraTypeName
       : (baseTypeName || ASSET_TYPE_NAMES[rawTypeId] || "Asset");
 
+  const creatorName = firstNonEmptyString(
+    extra.creatorName,
+    extra.CreatorName,
+    extra.creatorTargetName,
+    extra.CreatorTargetName,
+    extra.creator?.name,
+    extra.creator?.Name,
+    extra.Creator?.Name,
+    base.creatorName,
+    base.CreatorName,
+    base.creatorTargetName,
+    base.CreatorTargetName,
+    base.creator?.name,
+    base.creator?.Name,
+    base.Creator?.Name
+  );
+
+  const creatorId = firstNumberAllowZero(
+    extra.creatorId,
+    extra.CreatorId,
+    extra.creatorTargetId,
+    extra.CreatorTargetId,
+    extra.creator?.id,
+    extra.creator?.Id,
+    extra.Creator?.Id,
+    base.creatorId,
+    base.CreatorId,
+    base.creatorTargetId,
+    base.CreatorTargetId,
+    base.creator?.id,
+    base.creator?.Id,
+    base.Creator?.Id
+  );
+
+  const creatorType = firstNonEmptyString(
+    extra.creatorType,
+    extra.CreatorType,
+    extra.creator?.type,
+    extra.creator?.Type,
+    extra.Creator?.Type,
+    base.creatorType,
+    base.CreatorType,
+    base.creator?.type,
+    base.creator?.Type,
+    base.Creator?.Type
+  );
+
   return {
     ...base,
     ...extra,
     id,
     name: bestName,
-    creatorName:
-      extra.creatorName ||
-      base.creatorName ||
-      extra.creator?.name ||
-      base.creator?.name ||
-      null,
-    creatorId:
-      extra.creatorId ||
-      base.creatorId ||
-      extra.creator?.id ||
-      base.creator?.id ||
-      null,
+    creatorName: creatorName || null,
+    creatorId: creatorId ?? null,
+    creatorType: creatorType || null,
     price: extra.price ?? base.price ?? null,
     lowestPrice: extra.lowestPrice ?? base.lowestPrice ?? null,
     priceStatus: extra.priceStatus || base.priceStatus || null,
     isForSale: extra.isForSale ?? base.isForSale ?? null,
     isLimited: extra.isLimited ?? base.isLimited ?? false,
     isFree: extra.isFree ?? base.isFree ?? false,
+    collectibleItemId: extra.collectibleItemId || base.collectibleItemId || null,
     detailsSource: extra.detailsSource || base.detailsSource || null,
     assetType: extra.assetType || base.assetType || {
       id: Number.isFinite(rawTypeId) ? rawTypeId : undefined,
@@ -879,6 +957,7 @@ function getAssetTypeName(item = {}) {
     item.assetType?.name ||
     item.assetType?.Name ||
     item.assetTypeName ||
+    item.AssetTypeName ||
     ASSET_TYPE_NAMES[rawTypeId] ||
     null
   );
@@ -896,11 +975,12 @@ function isFallbackAssetName(name, id) {
 
 function pickAssetName(id, ...items) {
   for (const item of items) {
-    const name =
-      item?.name ||
-      item?.Name ||
-      item?.assetName ||
-      item?.AssetName;
+    const name = firstNonEmptyString(
+      item?.name,
+      item?.Name,
+      item?.assetName,
+      item?.AssetName
+    );
 
     if (!isFallbackAssetName(name, id)) {
       return name;
@@ -916,18 +996,13 @@ function pickAssetName(id, ...items) {
   return `Asset ${id}`;
 }
 
-function firstNumber(...values) {
-  for (const value of values) {
-    if (value === undefined || value === null || value === "") continue;
-
-    const n = Number(value);
-
-    if (Number.isFinite(n)) {
-      return n;
-    }
-  }
-
-  return null;
+function summarizeCreators(items) {
+  const withCreator = items.filter(item => item.creatorName).length;
+  return {
+    total: items.length,
+    withCreator,
+    unknownCreator: items.length - withCreator
+  };
 }
 
 async function robloxJson(url, opts = {}, label = "Roblox API") {
@@ -991,6 +1066,32 @@ async function robloxJson(url, opts = {}, label = "Roblox API") {
   }
 
   return data;
+}
+
+async function mapLimit(items, limit, mapper) {
+  const results = new Array(items.length);
+  let nextIndex = 0;
+
+  async function worker() {
+    while (nextIndex < items.length) {
+      const index = nextIndex++;
+
+      try {
+        results[index] = {
+          status: "fulfilled",
+          value: await mapper(items[index], index)
+        };
+      } catch (reason) {
+        results[index] = {
+          status: "rejected",
+          reason
+        };
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
 }
 
 function thumbnailKind(imageUrl) {
@@ -1062,4 +1163,41 @@ function duplicateCounts(arr) {
       id,
       count
     }));
+}
+
+function firstNumber(...values) {
+  for (const value of values) {
+    if (value === undefined || value === null || value === "") continue;
+
+    const n = Number(value);
+
+    if (Number.isFinite(n)) {
+      return n;
+    }
+  }
+
+  return null;
+}
+
+function firstNumberAllowZero(...values) {
+  for (const value of values) {
+    if (value === undefined || value === null || value === "") continue;
+
+    const n = Number(value);
+
+    if (Number.isFinite(n)) {
+      return n;
+    }
+  }
+
+  return null;
+}
+
+function firstNonEmptyString(...values) {
+  for (const value of values) {
+    const s = String(value ?? "").trim();
+    if (s) return s;
+  }
+
+  return "";
 }
