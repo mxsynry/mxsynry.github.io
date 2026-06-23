@@ -6,7 +6,6 @@ on:
       - main
       - master
     paths-ignore:
-      - "README.md"
       - "tree.json"
   workflow_dispatch:
 
@@ -25,13 +24,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate README.md from HTML pages
+      - name: Generate pages section in README.md
         shell: bash
         run: |
           python3 <<'PY'
           from pathlib import Path
-          import os
+          from urllib.parse import quote
           from datetime import datetime, timezone
+          import os
 
           repo = os.environ["GITHUB_REPOSITORY"]
           owner, repo_name = repo.split("/")
@@ -53,25 +53,37 @@ jobs:
               "workers",
           }
 
+          ignored_files = {
+              "README.md",
+              "tree.json",
+          }
+
+          def encode_url_path(path_text):
+              return "/".join(quote(part) for part in path_text.split("/"))
+
           html_files = []
 
           for path in Path(".").rglob("*.html"):
               if any(part in ignored_dirs for part in path.parts):
                   continue
+
+              if path.name in ignored_files:
+                  continue
+
               html_files.append(path)
 
           html_files = sorted(html_files, key=lambda p: str(p).lower())
 
-          lines = []
-          lines.append("# Site Pages")
-          lines.append("")
-          lines.append("This README is automatically generated from the HTML files in this repository.")
-          lines.append("")
-          lines.append("## Pages")
-          lines.append("")
+          section = []
+          section.append("<!-- pages-index:start -->")
+          section.append("")
+          section.append("## Site Pages")
+          section.append("")
+          section.append("| Page | File | URL |")
+          section.append("|---|---|---|")
 
           if not html_files:
-              lines.append("_No HTML pages found._")
+              section.append("| No HTML pages found | — | — |")
           else:
               for path in html_files:
                   rel = path.as_posix()
@@ -84,23 +96,41 @@ jobs:
                           url = f"{base_url}/"
                       else:
                           label = folder
-                          url = f"{base_url}/{folder}/"
+                          encoded_folder = encode_url_path(folder)
+                          url = f"{base_url}/{encoded_folder}/"
                   else:
                       label = rel
-                      url = f"{base_url}/{rel}"
+                      encoded_rel = encode_url_path(rel)
+                      url = f"{base_url}/{encoded_rel}"
 
-                  lines.append(f"- [{label}]({url})")
-                  lines.append(f"  - File: `{rel}`")
+                  section.append(f"| [{label}]({url}) | `{rel}` | {url} |")
 
-          lines.append("")
-          lines.append("## Updated")
-          lines.append("")
-          lines.append(f"Last generated: `{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}`")
-          lines.append("")
-          lines.append("<!-- generated-by: update-readme-pages -->")
-          lines.append("")
+          section.append("")
+          section.append(f"_Last generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}_")
+          section.append("")
+          section.append("<!-- pages-index:end -->")
+          section.append("")
 
-          Path("README.md").write_text("\n".join(lines), encoding="utf-8")
+          new_section = "\n".join(section)
+
+          readme_path = Path("README.md")
+
+          if readme_path.exists():
+              old = readme_path.read_text(encoding="utf-8")
+          else:
+              old = "# mxsynry.github.io\n\n"
+
+          start = "<!-- pages-index:start -->"
+          end = "<!-- pages-index:end -->"
+
+          if start in old and end in old:
+              before = old.split(start)[0].rstrip()
+              after = old.split(end, 1)[1].lstrip()
+              final = before + "\n\n" + new_section + "\n" + after
+          else:
+              final = old.rstrip() + "\n\n" + new_section + "\n"
+
+          readme_path.write_text(final, encoding="utf-8")
           PY
 
       - name: Commit README.md if changed
