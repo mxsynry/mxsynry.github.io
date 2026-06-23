@@ -1,8 +1,8 @@
 --i converted the UiLib to Fluent using AI, don't come crying to me saying it's unethical and lazy.
-if _G.DVNScriptLoaded then
-    pcall(_G.UnloadDVNScript)
+if getgenv().DVNScriptLoaded then
+    pcall(getgenv().UnloadDVNScript)
 end
-_G.DVNScriptLoaded = true
+getgenv().DVNScriptLoaded = true
 local ScriptAlive = true
 
 -- ====================================================================
@@ -14,7 +14,7 @@ local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.
 
 local Window = Fluent:CreateWindow{
     Title = "Ryu's Dummies VS Noobs",
-    SubTitle = "I love my husband fr",
+    SubTitle = "Optimized Edition",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = true,
@@ -254,8 +254,46 @@ local function ForceFuelMax(tool)
     end
 end
 
+-- Offloaded loop for fuel and PCU to save Heartbeat performance
+task.spawn(function()
+    while ScriptAlive do
+        if EquipExploits.AerorigFuel then
+            local aeroTool = FindEquippedToolByName("Aerorig")
+            if aeroTool then ForceFuelMax(aeroTool) end
+        end
+        if EquipExploits.InfiniteJetpack then
+            local jpTool = FindEquippedToolByName("Jetpack")
+            if jpTool then ForceFuelMax(jpTool) end
+        end
+        if EquipExploits.UnlimitedPCU then
+            local pcuVal = LocalPlayer:GetAttribute("PCU")
+            local maxPCU = LocalPlayer:GetAttribute("MaxPCU")
+            if pcuVal ~= nil and maxPCU ~= nil then
+                if pcuVal < maxPCU then pcall(function() LocalPlayer:SetAttribute("PCU", maxPCU) end) end
+            end
+            local char = LocalPlayer.Character
+            if char and char.Parent then
+                local cPcu = char:GetAttribute("PCU")
+                local cMax = char:GetAttribute("MaxPCU")
+                if cPcu ~= nil and cMax ~= nil then
+                    if cPcu < cMax then pcall(function() char:SetAttribute("PCU", cMax) end) end
+                end
+            end
+            local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
+            if leaderstats then
+                local pcuLs = leaderstats:FindFirstChild("PCU")
+                local maxLs = leaderstats:FindFirstChild("MaxPCU")
+                if pcuLs and maxLs then
+                    if pcuLs.Value < maxLs.Value then pcall(function() pcuLs.Value = maxLs.Value end) end
+                end
+            end
+        end
+        task.wait(0.2)
+    end
+end)
+
 -- ====================================================================
--- [[ MAP PROMPT FINDER — Recursive ]]
+-- [[ MAP PROMPT FINDER ]]
 -- ====================================================================
 local function FindPromptInContainer(parent, targetName)
     if not parent then return nil end
@@ -274,21 +312,13 @@ end
 
 local function FindMapPrompt(buildingName)
     local mapFolder = Workspace:FindFirstChild("Map")
-    if not mapFolder then
-        return nil, "Map folder not found in Workspace"
-    end
+    if not mapFolder then return nil, "Map folder not found in Workspace" end
     local pp = FindPromptInContainer(mapFolder, buildingName)
-    if not pp then
-        return nil, "No ProximityPrompt found inside any '" .. buildingName .. "' in Map"
-    end
+    if not pp then return nil, "No ProximityPrompt found inside any '" .. buildingName .. "' in Map" end
     return pp, nil
 end
 
--- ====================================================================
--- [[ FIRE PROMPT — Native fireproximityprompt first, fallback second ]]
--- ====================================================================
 local HasFirePrompt = (fireproximityprompt ~= nil)
-
 if fireproximityprompt then 
     game:GetService("ProximityPromptService").PromptButtonHoldBegan:Connect(function(prompt)
         fireproximityprompt(prompt)
@@ -297,21 +327,13 @@ end
 
 local function FirePrompt(prompt)
     if not prompt then return false, "nil prompt" end
-    if not prompt:IsA("ProximityPrompt") then
-        return false, "not a ProximityPrompt (got " .. tostring(prompt.ClassName) .. ")"
-    end
+    if not prompt:IsA("ProximityPrompt") then return false, "not a ProximityPrompt" end
 
-    -- Method 1: Executor native function (best, no side effects)
     if HasFirePrompt then
         local ok, err = pcall(fireproximityprompt, prompt)
         if ok then return true, nil end
-        -- If native failed, warn and fall through to manual
-        warn("[Ryu] fireproximityprompt failed: " .. tostring(err) .. " — falling back to manual")
-    else
-        warn("[Ryu] fireproximityprompt not available in this executor — using manual fallback")
     end
 
-    -- Method 2: Manual InputHoldBegin/End (fallback)
     local origHold = prompt.HoldDuration
     local origLOS = prompt.RequiresLineOfSight
     local origDist = prompt.MaxActivationDistance
@@ -335,19 +357,19 @@ end
 -- [[ NPC CACHE ]]
 -- ====================================================================
 local UnitsFolder = ReplicatedStorage:WaitForChild("Units", 5) and ReplicatedStorage.Units:WaitForChild("Noobs", 5)
-local enemyNames = UnitsFolder and UnitsFolder:GetChildren() or {}
+local enemyDict = {}
+if UnitsFolder then
+    for _, v in ipairs(UnitsFolder:GetChildren()) do
+        enemyDict[v.Name] = true
+    end
+end
 
 local activeNPCs = {}
 local function updateNPCCache()
     activeNPCs = {}
-    for _, v in Workspace:GetChildren() do
-        if v:FindFirstChild("Head") then
-            for _, x in ipairs(enemyNames) do
-                if tostring(x) == v.Name then 
-                    activeNPCs[v] = true
-                    break 
-                end
-            end
+    for _, v in ipairs(Workspace:GetChildren()) do
+        if v:FindFirstChild("Head") and enemyDict[v.Name] then
+            activeNPCs[v] = true
         end
     end
 end
@@ -355,18 +377,13 @@ updateNPCCache()
 
 Workspace.ChildAdded:Connect(function(v)
     task.wait()
-    for _, x in ipairs(enemyNames) do 
-        if tostring(x) == v.Name then 
-            activeNPCs[v] = true
-            break 
-        end 
+    if enemyDict[v.Name] then 
+        activeNPCs[v] = true
     end
 end)
 
 Workspace.ChildRemoved:Connect(function(v) 
-    if activeNPCs[v] then 
-        activeNPCs[v] = nil 
-    end 
+    activeNPCs[v] = nil 
 end)
 
 -- ====================================================================
@@ -494,7 +511,7 @@ LocalPlayer.CharacterAdded:Connect(function(char)
 end)
 
 -- ====================================================================
--- [[ HIGHLIGHT HELPER ]]
+-- [[ HITBOX & HIGHLIGHT HELPERS ]]
 -- ====================================================================
 local function GetOrCreateHighlight(cache, obj, name, alwaysOnTop)
     if not cache[obj] then
@@ -510,37 +527,79 @@ local function GetOrCreateHighlight(cache, obj, name, alwaysOnTop)
     return cache[obj]
 end
 
+local function ApplyNPCHeadHitbox(head, size)
+    if head.Size.X ~= size then head.Size = Vector3.new(size, size, size) end
+    if not head:GetAttribute("HB_Modified") then
+        head.Massless = true
+        head.CanCollide = false
+        head.Transparency = 0.6
+        head.BrickColor = BrickColor.new("Really red")
+        head.Material = Enum.Material.Neon
+        head:SetAttribute("HB_Modified", true)
+    end
+end
+
+local function ResetNPCHead(head)
+    if head:GetAttribute("HB_Modified") then
+        head.Size = Vector3.new(1,1,1)
+        head.Transparency = 0
+        head.Material = Enum.Material.Plastic
+        head.BrickColor = BrickColor.new("Medium stone grey")
+        head.Massless = false
+        head.CanCollide = true
+        head:SetAttribute("HB_Modified", false)
+    end
+end
+
+local function ApplyPlayerHeadHitbox(head, size)
+    if head.Size.X ~= size then head.Size = Vector3.new(size, size, size) end
+    if not head:GetAttribute("HB_Modified") then
+        head.Massless = true
+        head.CanCollide = false
+        head.Transparency = 0.6
+        head.BrickColor = BrickColor.new("Really red")
+        head.Material = Enum.Material.Neon
+        head:SetAttribute("HB_Modified", true)
+    end
+end
+
+local function ResetPlayerHead(head)
+    if head:GetAttribute("HB_Modified") then
+        head.Size = Vector3.new(1,1,1)
+        head.Transparency = 0
+        head.Material = Enum.Material.Plastic
+        head.BrickColor = BrickColor.new("Medium stone grey")
+        head.Massless = false
+        head.CanCollide = true
+        head:SetAttribute("HB_Modified", false)
+    end
+end
+
 -- ====================================================================
--- [[ LANDMINE DETECTION ]]
+-- [[ THROTTLED LANDMINE DETECTION ]]
 -- ====================================================================
+local foundMines = {}
 local function ScanForLandmines()
-    local found = {}
+    table.clear(foundMines)
     local landmineFolder = Workspace:FindFirstChild("Landmine")
     if landmineFolder then
         for _, child in ipairs(landmineFolder:GetChildren()) do
             if child:IsA("BasePart") and child.Name == "Hitbox" and child.Parent then
-                found[child] = true
+                foundMines[child] = true
             end
         end
     end
     for _, child in ipairs(Workspace:GetChildren()) do
         if child.Name == "Landmine" and child ~= landmineFolder then
             if child:IsA("BasePart") then
-                found[child] = true
+                foundMines[child] = true
             elseif child:IsA("Model") then
                 local hitbox = child:FindFirstChild("Hitbox")
                 if hitbox and hitbox:IsA("BasePart") then
-                    found[hitbox] = true
+                    foundMines[hitbox] = true
                 else
-                    found[child] = true
+                    foundMines[child] = true
                 end
-            end
-        end
-    end
-    for _, child in ipairs(Workspace:GetDescendants()) do
-        if child.Name:find("Landmine") and child:IsA("BasePart") and child.Parent then
-            if child.Name == "Hitbox" or child.Parent.Name == "Landmine" then
-                found[child] = true
             end
         end
     end
@@ -549,65 +608,37 @@ local function ScanForLandmines()
         for _, child in ipairs(mapFolder:GetDescendants()) do
             if child.Name:find("Landmine") then
                 if child:IsA("BasePart") then
-                    found[child] = true
+                    foundMines[child] = true
                 elseif child:IsA("Model") then
                     local hitbox = child:FindFirstChild("Hitbox")
                     if hitbox and hitbox:IsA("BasePart") then
-                        found[hitbox] = true
+                        foundMines[hitbox] = true
                     else
-                        found[child] = true
+                        foundMines[child] = true
                     end
                 end
             end
         end
     end
-    return found
 end
 
--- ====================================================================
--- [[ SAFE HEAD RESIZE ]]
--- ====================================================================
-local function ApplyNPCHeadHitbox(head, size)
-    head.Size = Vector3.new(size, size, size)
-    head.Massless = true
-    head.CanCollide = false
-    head.Transparency = 0.6
-    head.BrickColor = BrickColor.new("Really red")
-    head.Material = Enum.Material.Neon
-end
-
-local function ResetNPCHead(head)
-    head.Size = Vector3.new(1,1,1)
-    head.Transparency = 0
-    head.Material = Enum.Material.Plastic
-    head.BrickColor = BrickColor.new("Medium stone grey")
-    head.Massless = false
-    head.CanCollide = true
-end
-
-local function ApplyPlayerHeadHitbox(head, size)
-    head.Size = Vector3.new(size, size, size)
-    head.Massless = true
-    head.CanCollide = false
-    head.Transparency = 0.6
-    head.BrickColor = BrickColor.new("Really red")
-    head.Material = Enum.Material.Neon
-end
-
-local function ResetPlayerHead(head)
-    head.Size = Vector3.new(1,1,1)
-    head.Transparency = 0
-    head.Material = Enum.Material.Plastic
-    head.BrickColor = BrickColor.new("Medium stone grey")
-    head.Massless = false
-    head.CanCollide = true
-end
+task.spawn(function()
+    while ScriptAlive do
+        if LandmineESP.Enabled then
+            ScanForLandmines()
+        end
+        task.wait(1) -- Run heavy scan every 1 second
+    end
+end)
 
 -- ====================================================================
 -- [[ MAIN LOOPS ]]
 -- ====================================================================
+local espThrottle = 0
+
 RunService.Heartbeat:Connect(function(dt)
     if not ScriptAlive then return end
+    
     if AntiStunEnabled and LocalPlayer.Character then 
         local h = LocalPlayer.Character:FindFirstChildOfClass("Humanoid") 
         if h and h.PlatformStand then h.PlatformStand = false end 
@@ -622,6 +653,7 @@ RunService.Heartbeat:Connect(function(dt)
 
     local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     
+    -- Hitbox Logic (Optimized to avoid setting properties every frame)
     for v, _ in pairs(activeNPCs) do
         if v and v.Parent and v:FindFirstChild("Head") and v:FindFirstChild("HumanoidRootPart") then
             local head = v.Head
@@ -635,9 +667,7 @@ RunService.Heartbeat:Connect(function(dt)
                 end
                 ApplyNPCHeadHitbox(head, size)
             else
-                if head.Size ~= Vector3.new(1,1,1) then 
-                    ResetNPCHead(head)
-                end
+                ResetNPCHead(head)
             end
         end
     end
@@ -655,51 +685,60 @@ RunService.Heartbeat:Connect(function(dt)
                 end
                 ApplyPlayerHeadHitbox(head, size)
             else
-                if head.Size ~= Vector3.new(1,1,1) then 
-                    ResetPlayerHead(head)
-                end
+                ResetPlayerHead(head)
             end
         end
     end
 
+    -- ESP Logic (Throttled creation, optimized property updates)
     if ESP_Config.Enabled then
         local enemyCol = ColorTable[ESP_Config.EnemyColor] or Color3.fromRGB(255,0,0)
         local teamCol = ColorTable[ESP_Config.TeamColor] or Color3.fromRGB(0,100,255)
         local outCol = ColorTable[ESP_Config.OutlineColor] or Color3.fromRGB(255,255,255)
-        for _, ent in ipairs(Workspace:GetChildren()) do
-            if ent:IsA("Model") and ent:FindFirstChildOfClass("Humanoid") and ent:FindFirstChild("HumanoidRootPart") and ent ~= LocalPlayer.Character then
-                local hum = ent:FindFirstChildOfClass("Humanoid")
-                if hum and hum.Health > 0 then
-                    local h = GetOrCreateHighlight(espCache, ent, "DVN_ESP", ESP_Config.ThroughWalls)
-                    local plr = Players:GetPlayerFromCharacter(ent)
-                    local isPlayerTeammate = plr ~= nil
-                    h.FillColor = isPlayerTeammate and teamCol or enemyCol
-                    h.OutlineColor = outCol
-                    h.FillTransparency = ESP_Config.Transparency
-                    h.OutlineTransparency = ESP_Config.OutlineTransparency
-                else
-                    if espCache[ent] then 
-                        espCache[ent]:Destroy()
-                        espCache[ent] = nil 
-                    end
+        
+        espThrottle = espThrottle + dt
+        if espThrottle >= 0.5 then -- Only scan workspace for new models every 0.5s
+            espThrottle = 0
+            for _, ent in ipairs(Workspace:GetChildren()) do
+                if ent:IsA("Model") and not espCache[ent] and ent:FindFirstChildOfClass("Humanoid") and ent:FindFirstChild("HumanoidRootPart") and ent ~= LocalPlayer.Character then
+                    GetOrCreateHighlight(espCache, ent, "DVN_ESP", ESP_Config.ThroughWalls)
                 end
+            end
+        end
+
+        for ent, h in pairs(espCache) do
+            local hum = ent:FindFirstChildOfClass("Humanoid")
+            if not ent.Parent or not hum or hum.Health <= 0 then
+                if h and h.Parent then h:Destroy() end
+                espCache[ent] = nil
+            else
+                local plr = Players:GetPlayerFromCharacter(ent)
+                local targetCol = plr and teamCol or enemyCol
+                
+                if h.FillColor ~= targetCol then h.FillColor = targetCol end
+                if h.OutlineColor ~= outCol then h.OutlineColor = outCol end
+                if h.FillTransparency ~= ESP_Config.Transparency then h.FillTransparency = ESP_Config.Transparency end
+                if h.OutlineTransparency ~= ESP_Config.OutlineTransparency then h.OutlineTransparency = ESP_Config.OutlineTransparency end
             end
         end
     end
 
+    -- Landmine ESP Logic (Uses cached results from background thread)
     if LandmineESP.Enabled then
         local fillCol = ColorTable[LandmineESP.Color] or Color3.fromRGB(255, 0, 0)
         local outCol = ColorTable[LandmineESP.OutlineColor] or Color3.fromRGB(255, 255, 255)
-        local foundMines = ScanForLandmines()
+        
         for obj, _ in pairs(foundMines) do
-            local h = GetOrCreateHighlight(landmineCache, obj, "DVN_Landmine_ESP", true)
-            h.FillColor = fillCol
-            h.OutlineColor = outCol
-            h.FillTransparency = LandmineESP.Transparency
-            h.OutlineTransparency = 0
+            if obj and obj.Parent then
+                local h = GetOrCreateHighlight(landmineCache, obj, "DVN_Landmine_ESP", true)
+                if h.FillColor ~= fillCol then h.FillColor = fillCol end
+                if h.OutlineColor ~= outCol then h.OutlineColor = outCol end
+                if h.FillTransparency ~= LandmineESP.Transparency then h.FillTransparency = LandmineESP.Transparency end
+            end
         end
     end
 
+    -- Terminal Velocity Logic
     local tvTool = FindTerminalVelocity()
     if tvTool and tvTool.Parent then
         if TV_Exploits.InfiniteFuel then
@@ -729,38 +768,6 @@ RunService.Heartbeat:Connect(function(dt)
             end
         end
     end
-
-    if EquipExploits.AerorigFuel then
-        local aeroTool = FindEquippedToolByName("Aerorig")
-        if aeroTool then ForceFuelMax(aeroTool) end
-    end
-    if EquipExploits.InfiniteJetpack then
-        local jpTool = FindEquippedToolByName("Jetpack")
-        if jpTool then ForceFuelMax(jpTool) end
-    end
-    if EquipExploits.UnlimitedPCU then
-        local pcuVal = LocalPlayer:GetAttribute("PCU")
-        local maxPCU = LocalPlayer:GetAttribute("MaxPCU")
-        if pcuVal ~= nil and maxPCU ~= nil then
-            if pcuVal < maxPCU then pcall(function() LocalPlayer:SetAttribute("PCU", maxPCU) end) end
-        end
-        local char = LocalPlayer.Character
-        if char and char.Parent then
-            local cPcu = char:GetAttribute("PCU")
-            local cMax = char:GetAttribute("MaxPCU")
-            if cPcu ~= nil and cMax ~= nil then
-                if cPcu < cMax then pcall(function() char:SetAttribute("PCU", cMax) end) end
-            end
-        end
-        local leaderstats = LocalPlayer:FindFirstChild("leaderstats")
-        if leaderstats then
-            local pcuLs = leaderstats:FindFirstChild("PCU")
-            local maxLs = leaderstats:FindFirstChild("MaxPCU")
-            if pcuLs and maxLs then
-                if pcuLs.Value < maxLs.Value then pcall(function() pcuLs.Value = maxLs.Value end) end
-            end
-        end
-    end
 end)
 
 -- ====================================================================
@@ -772,13 +779,6 @@ RunService.Heartbeat:Connect(function()
             if h and h.Parent then h:Destroy() end
             espCache[ent] = nil 
         end
-    else
-        for ent, h in pairs(espCache) do
-            if not ent.Parent or not ent:FindFirstChildOfClass("Humanoid") or ent:FindFirstChildOfClass("Humanoid").Health <= 0 then
-                if h and h.Parent then h:Destroy() end
-                espCache[ent] = nil
-            end
-        end
     end
 
     if not LandmineESP.Enabled then
@@ -788,7 +788,7 @@ RunService.Heartbeat:Connect(function()
         end
     else
         for obj, h in pairs(landmineCache) do
-            if not obj or not obj.Parent then
+            if not obj or not obj.Parent or not foundMines[obj] then
                 if h and h.Parent then h:Destroy() end
                 landmineCache[obj] = nil
             end
@@ -870,18 +870,9 @@ Tabs.Misc:CreateButton({
     Description = "Recursively finds AmmoFabricator in Map and fires its prompt.",
     Callback = function()
         local pp, err = FindMapPrompt("AmmoFabricator")
-        if not pp then
-            Fluent:Notify{Title = "Ammo Fabricator", Content = err or "Not found", Duration = 5}
-            warn("[Ryu] AmmoFabricator: " .. tostring(err))
-            return
-        end
+        if not pp then return Fluent:Notify{Title = "Ammo Fabricator", Content = err or "Not found", Duration = 5} end
         local ok, fireErr = FirePrompt(pp)
-        if ok then
-            Fluent:Notify{Title = "Ammo Fabricator", Content = "Prompt fired.", Duration = 3}
-        else
-            Fluent:Notify{Title = "Ammo Fabricator", Content = fireErr or "Failed", Duration = 5}
-            warn("[Ryu] AmmoFabricator fire: " .. tostring(fireErr))
-        end
+        Fluent:Notify{Title = "Ammo Fabricator", Content = ok and "Prompt fired." or fireErr or "Failed", Duration = ok and 3 or 5}
     end
 })
 Tabs.Misc:CreateButton({
@@ -889,18 +880,9 @@ Tabs.Misc:CreateButton({
     Description = "Recursively finds Armoury in Map and fires its prompt.",
     Callback = function()
         local pp, err = FindMapPrompt("Armoury")
-        if not pp then
-            Fluent:Notify{Title = "Armoury", Content = err or "Not found", Duration = 5}
-            warn("[Ryu] Armoury: " .. tostring(err))
-            return
-        end
+        if not pp then return Fluent:Notify{Title = "Armoury", Content = err or "Not found", Duration = 5} end
         local ok, fireErr = FirePrompt(pp)
-        if ok then
-            Fluent:Notify{Title = "Armoury", Content = "Prompt fired.", Duration = 3}
-        else
-            Fluent:Notify{Title = "Armoury", Content = fireErr or "Failed", Duration = 5}
-            warn("[Ryu] Armoury fire: " .. tostring(fireErr))
-        end
+        Fluent:Notify{Title = "Armoury", Content = ok and "Prompt fired." or fireErr or "Failed", Duration = ok and 3 or 5}
     end
 })
 Tabs.Misc:CreateButton({
@@ -908,18 +890,9 @@ Tabs.Misc:CreateButton({
     Description = "Recursively finds Modifier in Map and fires its prompt.",
     Callback = function()
         local pp, err = FindMapPrompt("Modifier")
-        if not pp then
-            Fluent:Notify{Title = "Modifier", Content = err or "Not found", Duration = 5}
-            warn("[Ryu] Modifier: " .. tostring(err))
-            return
-        end
+        if not pp then return Fluent:Notify{Title = "Modifier", Content = err or "Not found", Duration = 5} end
         local ok, fireErr = FirePrompt(pp)
-        if ok then
-            Fluent:Notify{Title = "Modifier", Content = "Prompt fired.", Duration = 3}
-        else
-            Fluent:Notify{Title = "Modifier", Content = fireErr or "Failed", Duration = 5}
-            warn("[Ryu] Modifier fire: " .. tostring(fireErr))
-        end
+        Fluent:Notify{Title = "Modifier", Content = ok and "Prompt fired." or fireErr or "Failed", Duration = ok and 3 or 5}
     end
 })
 
@@ -991,9 +964,7 @@ Tabs.Settings:CreateButton({
     Title = "Rejoin Server",
     Description = "Teleports you back into the same game server.",
     Callback = function()
-        pcall(function()
-            TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer)
-        end)
+        pcall(function() TeleportService:TeleportToPlaceInstance(game.PlaceId, game.JobId, LocalPlayer) end)
     end
 })
 
@@ -1002,9 +973,7 @@ Tabs.Settings:CreateButton({
     Description = "Opens the Dex++ explorer with decompiler fix.",
     Callback = function()
         task.spawn(function()
-            pcall(function()
-                loadstring(game:HttpGet("https://raw.githubusercontent.com/jodta/my-scripts/refs/heads/main/Dex%2B%2B/Decompiler%20Fix.lua"))()
-            end)
+            pcall(function() loadstring(game:HttpGet("https://raw.githubusercontent.com/jodta/my-scripts/refs/heads/main/Dex%2B%2B/Decompiler%20Fix.lua"))() end)
         end)
     end
 })
@@ -1012,29 +981,21 @@ Tabs.Settings:CreateButton({
 Tabs.Settings:CreateButton({Title = "Unload Script", Description = "Safely removes everything", Callback = function()
     ScriptAlive = false
     TV_Exploits.QKeyHeld = false
-    for ent, h in pairs(espCache) do 
-        if h and h.Parent then h:Destroy() end 
-    end
+    for ent, h in pairs(espCache) do if h and h.Parent then h:Destroy() end end
     espCache = {}
-    for obj, h in pairs(landmineCache) do
-        if h and h.Parent then h:Destroy() end
-    end
+    for obj, h in pairs(landmineCache) do if h and h.Parent then h:Destroy() end end
     landmineCache = {}
     for v, _ in pairs(activeNPCs) do
-        if v and v.Parent and v:FindFirstChild("Head") then
-            ResetNPCHead(v.Head)
-        end
+        if v and v.Parent and v:FindFirstChild("Head") then ResetNPCHead(v.Head) end
     end
     for _, player in ipairs(Players:GetPlayers()) do
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("Head") then
             ResetPlayerHead(player.Character.Head)
         end
     end
-    for _, conn in ipairs(ToolConns) do 
-        if conn then conn:Disconnect() end 
-    end
+    for _, conn in ipairs(ToolConns) do if conn then conn:Disconnect() end end
     pcall(function() Window:Destroy() end)
-    _G.DVNScriptLoaded = false
+    getgenv().DVNScriptLoaded = false
 end})
 
 -- ====================================================================
@@ -1108,7 +1069,7 @@ pcall(function() SaveManager:LoadAutoloadConfig() end)
 SyncSavedSettings()
 
 Window:SelectTab(1)
-Fluent:Notify{Title = "By Nanashi Ryu", Content = "Made with Love.", Duration = 5}
+Fluent:Notify{Title = "By Nanashi Ryu", Content = "Optimized Edition Loaded.", Duration = 5}
 
 if workspace.Camera.Folder.Body then
     workspace.Camera:ClearAllChildren()
