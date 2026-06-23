@@ -5,9 +5,9 @@ on:
     branches:
       - main
       - master
-    paths:
-      - "**/*.html"
-      - ".github/workflows/update-readme-pages.yml"
+    paths-ignore:
+      - "README.md"
+      - "tree.json"
   workflow_dispatch:
 
 permissions:
@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v4
 
       - name: Generate README.md from HTML pages
         shell: bash
@@ -31,13 +31,11 @@ jobs:
           python3 <<'PY'
           from pathlib import Path
           import os
-          import html
+          from datetime import datetime, timezone
 
           repo = os.environ["GITHUB_REPOSITORY"]
           owner, repo_name = repo.split("/")
 
-          # GitHub user/organization Pages repo:
-          # mxsynry.github.io -> https://mxsynry.github.io/
           if repo_name.lower() == f"{owner.lower()}.github.io":
               base_url = f"https://{owner}.github.io"
           else:
@@ -51,12 +49,14 @@ jobs:
               "build",
               ".next",
               ".vercel",
+              ".cloudflare",
+              "workers",
           }
 
           html_files = []
+
           for path in Path(".").rglob("*.html"):
-              parts = set(path.parts)
-              if parts & ignored_dirs:
+              if any(part in ignored_dirs for part in path.parts):
                   continue
               html_files.append(path)
 
@@ -65,7 +65,7 @@ jobs:
           lines = []
           lines.append("# Site Pages")
           lines.append("")
-          lines.append("This README is automatically updated by GitHub Actions whenever HTML files are added, removed, or changed.")
+          lines.append("This README is automatically generated from the HTML files in this repository.")
           lines.append("")
           lines.append("## Pages")
           lines.append("")
@@ -77,24 +77,27 @@ jobs:
                   rel = path.as_posix()
 
                   if path.name.lower() == "index.html":
-                      page_path = path.parent.as_posix()
-                      if page_path == ".":
-                          url = f"{base_url}/"
+                      folder = path.parent.as_posix()
+
+                      if folder == ".":
                           label = "Home"
+                          url = f"{base_url}/"
                       else:
-                          url = f"{base_url}/{page_path}/"
-                          label = page_path
+                          label = folder
+                          url = f"{base_url}/{folder}/"
                   else:
-                      url = f"{base_url}/{rel}"
                       label = rel
+                      url = f"{base_url}/{rel}"
 
                   lines.append(f"- [{label}]({url})")
                   lines.append(f"  - File: `{rel}`")
 
           lines.append("")
-          lines.append("## Last updated")
+          lines.append("## Updated")
           lines.append("")
-          lines.append("Updated automatically after the latest HTML-related push.")
+          lines.append(f"Last generated: `{datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}`")
+          lines.append("")
+          lines.append("<!-- generated-by: update-readme-pages -->")
           lines.append("")
 
           Path("README.md").write_text("\n".join(lines), encoding="utf-8")
@@ -103,14 +106,15 @@ jobs:
       - name: Commit README.md if changed
         shell: bash
         run: |
-          if git diff --quiet README.md; then
-            echo "README.md is already up to date."
-            exit 0
-          fi
-
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add README.md
-          git commit -m "Update README page index"
-          git push
+
+          if git diff --cached --quiet; then
+            echo "README.md is already up to date."
+            exit 0
+          fi
+
+          git commit -m "Update README page index [skip ci]"
+          git push origin HEAD:${GITHUB_REF_NAME}
