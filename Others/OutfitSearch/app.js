@@ -1,5 +1,7 @@
 const DEFAULT_API_BASE = "https://YOUR-WORKER.workers.dev";
 const API_STORAGE_KEY = "robloxOutfitApiBase";
+const LOG_STORAGE_KEY = "robloxOutfitDebugLogs";
+const MAX_LOGS = 300;
 
 const apiParam = new URL(location.href).searchParams.get("api");
 if (apiParam) {
@@ -7,6 +9,7 @@ if (apiParam) {
 }
 
 let API_BASE = (localStorage.getItem(API_STORAGE_KEY) || DEFAULT_API_BASE).replace(/\/$/, "");
+let debugLogs = loadLogs();
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const results = $("#results");
@@ -19,6 +22,13 @@ const apiBaseInput = $("#apiBaseInput");
 const apiStatus = $("#apiStatus");
 const changeApiBtn = $("#changeApiBtn");
 const saveApiBtn = $("#saveApiBtn");
+const consoleBtn = $("#consoleBtn");
+const instructionsBtn = $("#instructionsBtn");
+const consoleDialog = $("#consoleDialog");
+const instructionsDialog = $("#instructionsDialog");
+const debugConsole = $("#debugConsole");
+const copyConsoleBtn = $("#copyConsoleBtn");
+const clearConsoleBtn = $("#clearConsoleBtn");
 
 function hasConfiguredApi() {
   return API_BASE && API_BASE !== DEFAULT_API_BASE;
@@ -32,6 +42,8 @@ function refreshApiUi(message = "") {
 }
 
 refreshApiUi();
+renderConsole();
+logInfo("App loaded.", { apiConfigured: hasConfiguredApi(), apiBase: hasConfiguredApi() ? API_BASE : null });
 
 saveApiBtn.addEventListener("click", async () => {
   const v = apiBaseInput.value.trim().replace(/\/$/, "");
@@ -47,12 +59,15 @@ saveApiBtn.addEventListener("click", async () => {
   localStorage.setItem(API_STORAGE_KEY, v);
   API_BASE = v;
   refreshApiUi("API saved. Checking connection…");
+  logInfo("API URL saved.", { apiBase: API_BASE });
 
   try {
-    await api("/api/health");
+    const health = await api("/api/health");
+    logSuccess("API health check succeeded.", health);
     setStatus("API saved and connected. You can search now.");
   } catch (err) {
     setupPanel.style.display = "block";
+    logError("API health check failed.", err);
     setStatus(cleanError(err), true);
   }
 });
@@ -63,6 +78,7 @@ changeApiBtn.addEventListener("click", () => {
   results.innerHTML = "";
   refreshApiUi("API setting cleared. Paste your Cloudflare Worker URL again.");
   setStatus("API setting cleared. Paste your Cloudflare Worker URL again.");
+  logInfo("API setting cleared.");
   apiBaseInput.focus();
 });
 
@@ -71,6 +87,36 @@ $("#themeBtn").addEventListener("click", () => {
   localStorage.setItem("theme", document.documentElement.classList.contains("light") ? "light" : "dark");
 });
 if (localStorage.getItem("theme") === "light") document.documentElement.classList.add("light");
+
+instructionsBtn.addEventListener("click", () => openDialog(instructionsDialog));
+consoleBtn.addEventListener("click", () => {
+  renderConsole();
+  openDialog(consoleDialog);
+});
+
+for (const btn of document.querySelectorAll("[data-close-dialog]")) {
+  btn.addEventListener("click", () => {
+    const dlg = document.getElementById(btn.dataset.closeDialog);
+    dlg?.close();
+  });
+}
+
+copyConsoleBtn.addEventListener("click", async () => {
+  const text = debugLogs.map(formatLogLine).join("\n");
+  try {
+    await navigator.clipboard.writeText(text || "No logs yet.");
+    copyConsoleBtn.textContent = "Copied";
+    setTimeout(() => copyConsoleBtn.textContent = "Copy logs", 1000);
+  } catch {
+    setStatus("Could not copy logs from this browser.", true);
+  }
+});
+
+clearConsoleBtn.addEventListener("click", () => {
+  debugLogs = [];
+  saveLogs();
+  renderConsole();
+});
 
 searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -81,29 +127,46 @@ searchForm.addEventListener("submit", async (event) => {
   results.innerHTML = "";
   setStatus("Resolving account(s)…");
   searchBtn.disabled = true;
+  logInfo("Search started.", { query: q });
 
   try {
     const resolved = await api(`/api/resolve?q=${encodeURIComponent(q)}`);
+    addServerLogs("resolve", resolved.logs);
     const candidates = uniqueBy((resolved.users || []), u => u.id);
+    logSuccess("Resolve completed.", { count: candidates.length, users: candidates.map(u => ({ id: u.id, name: u.name, displayName: u.displayName })) });
 
     if (!candidates.length) {
       setStatus("No matching public Roblox users found.", true);
+      logInfo("Search stopped because no users were found.");
       return;
     }
 
     setStatus(`Found ${candidates.length} account(s). Loading outfit data…`);
 
+    let shown = 0;
     for (const user of candidates) {
       try {
+        logInfo("Loading account report.", { id: user.id, name: user.name });
         const report = await api(`/api/report/${user.id}`);
+        addServerLogs(`report:${user.id}`, report.debug?.logs);
         renderUser(report);
+        shown += 1;
+        logSuccess("Account report rendered.", {
+          id: user.id,
+          name: user.name,
+          wearing: report.currentlyWearing?.length || 0,
+          outfits: report.outfits?.length || 0,
+          duplicateIdsRemoved: report.debug?.duplicateIds || []
+        });
       } catch (err) {
         renderErrorCard(user, err);
+        logError("Account report failed.", err, { id: user.id, name: user.name });
       }
     }
 
-    setStatus(`Done. Showing ${candidates.length} account(s).`);
+    setStatus(`Done. Showing ${shown} account(s).`);
   } catch (err) {
+    logError("Search failed.", err);
     setStatus(cleanError(err), true);
   } finally {
     searchBtn.disabled = false;
@@ -112,37 +175,53 @@ searchForm.addEventListener("submit", async (event) => {
 
 async function api(path) {
   const url = `${API_BASE}${path}`;
-  let res;
+  const started = performance.now();
+  logInfo("API request started.", { path, url });
 
+  let res;
   try {
     res = await fetch(url, { method: "GET" });
   } catch (err) {
-    throw new Error(`Could not connect to ${API_BASE}. Check that your Worker URL is correct and deployed.`);
+    const wrapped = new Error(`Could not connect to ${API_BASE}. Check that your Worker URL is correct and deployed.`);
+    wrapped.original = err.message;
+    logError("API request network error.", wrapped, { path, url });
+    throw wrapped;
   }
 
   const text = await res.text();
+  const elapsedMs = Math.round(performance.now() - started);
   let data;
 
   try {
     data = text ? JSON.parse(text) : {};
   } catch {
-    const preview = text.slice(0, 160).replace(/\s+/g, " ");
+    const preview = text.slice(0, 600).replace(/\s+/g, " ").trim();
+    const htmlMessage = looksLikeGithub404(text, res)
+      ? "The saved API URL is returning a GitHub Pages 404 page, not your Cloudflare Worker. Click Change API and paste your Worker URL."
+      : `The API returned HTML or non-JSON instead of JSON. Status ${res.status}.`;
 
-    if (looksLikeGithub404(text, res)) {
-      throw new Error("The saved API URL is returning a GitHub Pages 404 page, not your Cloudflare Worker. Click Change API and paste your Worker URL.");
-    }
-
-    if (text.trim().startsWith("<")) {
-      throw new Error(`The API returned HTML instead of JSON. Your saved API URL is probably wrong: ${API_BASE}`);
-    }
-
-    throw new Error(`The API returned non-JSON text: ${preview}`);
+    const err = new Error(text.trim().startsWith("<") ? htmlMessage : `The API returned non-JSON text: ${preview.slice(0, 180)}`);
+    err.status = res.status;
+    err.preview = preview;
+    logError("API returned non-JSON response.", err, { path, url, status: res.status, elapsedMs, preview });
+    throw err;
   }
 
   if (!res.ok) {
     const message = data.error || data.message || data.errors?.[0]?.message || `HTTP ${res.status}`;
-    throw new Error(message);
+    const err = new Error(message);
+    err.status = res.status;
+    err.details = data.details || data;
+    logError("API request failed.", err, { path, url, status: res.status, elapsedMs, body: compactForLog(data) });
+    throw err;
   }
+
+  logSuccess("API request succeeded.", {
+    path,
+    status: res.status,
+    elapsedMs,
+    summary: summarizeApiData(data)
+  });
 
   return data;
 }
@@ -169,9 +248,9 @@ function renderUser(report) {
   chips.append(chip(`Display: ${p.displayName || "—"}`));
   chips.append(chip(`Username: ${p.name || "—"}`));
   chips.append(chip(p.isBanned ? "Banned" : "Not banned", p.isBanned ? "bad" : "good"));
-  if (report.sourceNote) chips.append(chip(report.sourceNote));
+  if (report.debug?.duplicateIds?.length) chips.append(chip(`Deduped ${report.debug.duplicateIds.length} repeated ID(s)`));
 
-  const wearing = report.currentlyWearing || [];
+  const wearing = uniqueBy((report.currentlyWearing || []), item => item.id);
   $(".wearing-count", tpl).textContent = `${wearing.length} item${wearing.length === 1 ? "" : "s"}`;
   const wearingGrid = $(".wearing-grid", tpl);
   if (!wearing.length) wearingGrid.innerHTML = `<div class="empty">No public currently-wearing assets returned.</div>`;
@@ -190,26 +269,32 @@ function renderUser(report) {
 function assetCard(item) {
   const el = document.createElement("article");
   el.className = "asset";
-  const name = escapeHtml(item.name || `Asset ${item.id}`);
+  const id = Number(item.id);
+  const name = escapeHtml(item.name || `Asset ${id}`);
   const img = escapeAttr(item.imageUrl || "");
-  const creator = escapeHtml(item.creatorName || item.creator?.name || "Unknown creator");
-  const price = item.price !== undefined && item.price !== null ? `${item.price} Robux` : (item.lowestPrice ? `${item.lowestPrice} Robux+` : "Price unavailable");
-  const type = escapeHtml(item.assetType?.name || item.itemType || "Asset");
+  const creator = escapeHtml(item.creatorName || item.creator?.name || item.creator?.Name || "Unknown creator");
+  const price = item.price !== undefined && item.price !== null
+    ? `${item.price} Robux`
+    : (item.lowestPrice ? `${item.lowestPrice} Robux+` : "Price unavailable");
+  const type = escapeHtml(item.assetType?.name || item.assetType?.Name || item.assetTypeName || item.itemType || "Asset");
+  const fallbackText = escapeHtml((item.name || `Asset ${id}`).slice(0, 2).toUpperCase());
 
   el.innerHTML = `
-    <img src="${img}" alt="${name}" loading="lazy">
+    <div class="thumb-wrap">
+      ${img ? `<img src="${img}" alt="${name}" loading="lazy">` : `<div class="no-thumb">${fallbackText}</div>`}
+    </div>
     <div class="asset-body">
-      <p class="item-name">${name}</p>
-      <p class="item-meta">${type} • ID ${item.id}</p>
+      <p class="item-name" title="${name}">${name}</p>
+      <p class="item-meta">${type} • ID ${id}</p>
       <p class="item-meta">${creator}</p>
       <p class="item-meta">${escapeHtml(price)}</p>
       <div class="item-links">
-        <a target="_blank" rel="noopener" href="https://www.roblox.com/catalog/${item.id}">Catalog</a>
-        <button class="small-btn" type="button" data-copy="${item.id}">Copy ID</button>
+        <a target="_blank" rel="noopener" href="https://www.roblox.com/catalog/${id}">Catalog</a>
+        <button class="small-btn" type="button" data-copy="${id}">Copy ID</button>
       </div>
     </div>`;
 
-  $("[data-copy]", el).addEventListener("click", () => navigator.clipboard?.writeText(String(item.id)));
+  $("[data-copy]", el).addEventListener("click", () => navigator.clipboard?.writeText(String(id)));
   return el;
 }
 
@@ -219,9 +304,11 @@ function outfitCard(outfit) {
   const name = escapeHtml(outfit.name || `Outfit ${outfit.id}`);
 
   el.innerHTML = `
-    <img src="${escapeAttr(outfit.imageUrl || "")}" alt="${name}" loading="lazy">
+    <div class="thumb-wrap">
+      ${outfit.imageUrl ? `<img src="${escapeAttr(outfit.imageUrl)}" alt="${name}" loading="lazy">` : `<div class="no-thumb">OUTFIT</div>`}
+    </div>
     <div class="outfit-body">
-      <p class="item-name">${name}</p>
+      <p class="item-name" title="${name}">${name}</p>
       <p class="item-meta">Outfit ID ${outfit.id}</p>
       <div class="item-links">
         <button class="small-btn" type="button">View items</button>
@@ -239,16 +326,19 @@ function outfitCard(outfit) {
 
     try {
       const detail = await api(`/api/outfit/${outfit.id}`);
-      const assets = detail.assets || [];
+      addServerLogs(`outfit:${outfit.id}`, detail.debug?.logs);
+      const assets = uniqueBy((detail.assets || []), a => a.id);
       box.innerHTML = `<h4>${escapeHtml(outfit.name || `Outfit ${outfit.id}`)} items (${assets.length})</h4>`;
       const grid = document.createElement("div");
       grid.className = "asset-grid";
       if (!assets.length) grid.innerHTML = `<div class="empty">No assets returned for this outfit.</div>`;
       assets.forEach(a => grid.append(assetCard(a)));
       box.append(grid);
+      logSuccess("Outfit items rendered.", { outfitId: outfit.id, assets: assets.length });
     } catch (err) {
       box.textContent = cleanError(err);
       box.style.color = "var(--danger)";
+      logError("Outfit items failed.", err, { outfitId: outfit.id });
     }
   });
 
@@ -285,7 +375,7 @@ function uniqueBy(arr, fn) {
   const seen = new Set();
   return arr.filter(x => {
     const k = fn(x);
-    if (seen.has(k)) return false;
+    if (k === undefined || k === null || seen.has(k)) return false;
     seen.add(k);
     return true;
   });
@@ -306,6 +396,97 @@ function downloadJson(name, data) {
   a.download = name;
   a.click();
   URL.revokeObjectURL(url);
+}
+
+function openDialog(dialog) {
+  if (typeof dialog.showModal === "function") dialog.showModal();
+  else dialog.setAttribute("open", "");
+}
+
+function addServerLogs(scope, logs = []) {
+  for (const msg of logs || []) logInfo(`Worker ${scope}: ${msg}`);
+}
+
+function logInfo(message, data = undefined) {
+  pushLog("info", message, data);
+}
+
+function logSuccess(message, data = undefined) {
+  pushLog("success", message, data);
+}
+
+function logError(message, err, data = undefined) {
+  pushLog("error", message, {
+    ...(data || {}),
+    error: err?.message || String(err),
+    status: err?.status,
+    details: err?.details,
+    preview: err?.preview,
+    original: err?.original
+  });
+}
+
+function pushLog(level, message, data = undefined) {
+  debugLogs.push({
+    time: new Date().toISOString(),
+    level,
+    message,
+    data: compactForLog(data)
+  });
+
+  if (debugLogs.length > MAX_LOGS) debugLogs = debugLogs.slice(-MAX_LOGS);
+  saveLogs();
+  renderConsole();
+}
+
+function compactForLog(data) {
+  if (data === undefined) return undefined;
+  try {
+    return JSON.parse(JSON.stringify(data, (_, value) => {
+      if (typeof value === "string" && value.length > 800) return value.slice(0, 800) + "…";
+      return value;
+    }));
+  } catch {
+    return String(data);
+  }
+}
+
+function summarizeApiData(data) {
+  if (!data || typeof data !== "object") return data;
+  return {
+    ok: data.ok,
+    count: data.count,
+    users: Array.isArray(data.users) ? data.users.length : undefined,
+    currentlyWearing: Array.isArray(data.currentlyWearing) ? data.currentlyWearing.length : undefined,
+    outfits: Array.isArray(data.outfits) ? data.outfits.length : undefined,
+    assets: Array.isArray(data.assets) ? data.assets.length : undefined,
+    debug: data.debug ? {
+      duplicateIds: data.debug.duplicateIds,
+      logs: Array.isArray(data.debug.logs) ? data.debug.logs.length : undefined
+    } : undefined
+  };
+}
+
+function loadLogs() {
+  try {
+    return JSON.parse(localStorage.getItem(LOG_STORAGE_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
+
+function saveLogs() {
+  localStorage.setItem(LOG_STORAGE_KEY, JSON.stringify(debugLogs));
+}
+
+function renderConsole() {
+  if (!debugConsole) return;
+  debugConsole.textContent = debugLogs.length ? debugLogs.map(formatLogLine).join("\n") : "No logs yet.";
+}
+
+function formatLogLine(entry) {
+  const data = entry.data === undefined ? "" : `\n${JSON.stringify(entry.data, null, 2)}`;
+  return `[${entry.time}] ${entry.level.toUpperCase()} ${entry.message}${data}`;
 }
 
 function escapeHtml(v) {
