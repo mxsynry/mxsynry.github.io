@@ -35,3 +35,10 @@ Only paste the public Worker URL. Do not paste Cloudflare API tokens, Roblox coo
 - Better handling for nonexistent users and non-JSON error pages.
 - Deduplicated currently-wearing item IDs.
 - Uses richer avatar asset data before falling back to catalog/economy details.
+
+
+## 2026-06-23 update
+
+- Item details now try catalog batch first, then economy asset details for missing/old assets, so fewer cards fall back to `Asset <id>`.
+- Saved outfits now stay as outfit cards only. Clicking an outfit fills a separate Selected outfit items section below.
+- Redeploy `worker.js` after replacing the GitHub Pages files.

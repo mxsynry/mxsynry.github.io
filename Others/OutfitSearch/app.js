@@ -259,8 +259,14 @@ function renderUser(report) {
   const outfits = report.outfits || [];
   $(".outfit-count", tpl).textContent = `${outfits.length} outfit${outfits.length === 1 ? "" : "s"}`;
   const outfitGrid = $(".outfit-grid", tpl);
+  const selectedOutfit = {
+    section: $(".selected-outfit-section", tpl),
+    title: $(".selected-outfit-title", tpl),
+    count: $(".selected-outfit-count", tpl),
+    grid: $(".selected-outfit-grid", tpl)
+  };
   if (!outfits.length) outfitGrid.innerHTML = `<div class="empty">No saved outfits returned, or the account has no public saved outfits.</div>`;
-  for (const outfit of outfits) outfitGrid.append(outfitCard(outfit));
+  for (const outfit of outfits) outfitGrid.append(outfitCard(outfit, selectedOutfit));
 
   $(".json-btn", tpl).addEventListener("click", () => downloadJson(`roblox-${p.id}-outfits.json`, report));
   results.append(tpl);
@@ -270,22 +276,27 @@ function assetCard(item) {
   const el = document.createElement("article");
   el.className = "asset";
   const id = Number(item.id);
-  const name = escapeHtml(item.name || `Asset ${id}`);
+  const rawName = item.name || item.Name || "";
+  const missingName = isFallbackAssetName(rawName, id);
+  if (missingName) el.classList.add("missing-name");
+
+  const displayName = escapeHtml(missingName ? "Name unavailable" : rawName);
   const img = escapeAttr(item.imageUrl || "");
   const creator = escapeHtml(item.creatorName || item.creator?.name || item.creator?.Name || "Unknown creator");
   const price = item.price !== undefined && item.price !== null
     ? `${item.price} Robux`
     : (item.lowestPrice ? `${item.lowestPrice} Robux+` : "Price unavailable");
   const type = escapeHtml(item.assetType?.name || item.assetType?.Name || item.assetTypeName || item.itemType || "Asset");
-  const fallbackText = escapeHtml((item.name || `Asset ${id}`).slice(0, 2).toUpperCase());
+  const source = item.detailsSource ? ` • ${escapeHtml(item.detailsSource)}` : "";
+  const fallbackText = escapeHtml((missingName ? "?" : rawName).slice(0, 2).toUpperCase());
 
   el.innerHTML = `
     <div class="thumb-wrap">
-      ${img ? `<img src="${img}" alt="${name}" loading="lazy">` : `<div class="no-thumb">${fallbackText}</div>`}
+      ${img ? `<img src="${img}" alt="${displayName}" loading="lazy">` : `<div class="no-thumb">${fallbackText}</div>`}
     </div>
     <div class="asset-body">
-      <p class="item-name" title="${name}">${name}</p>
-      <p class="item-meta">${type} • ID ${id}</p>
+      <p class="item-name" title="${displayName}">${displayName}</p>
+      <p class="item-meta">${type} • ID ${id}${source}</p>
       <p class="item-meta">${creator}</p>
       <p class="item-meta">${escapeHtml(price)}</p>
       <div class="item-links">
@@ -298,7 +309,7 @@ function assetCard(item) {
   return el;
 }
 
-function outfitCard(outfit) {
+function outfitCard(outfit, selectedOutfit) {
   const el = document.createElement("article");
   el.className = "outfit";
   const name = escapeHtml(outfit.name || `Outfit ${outfit.id}`);
@@ -311,38 +322,45 @@ function outfitCard(outfit) {
       <p class="item-name" title="${name}">${name}</p>
       <p class="item-meta">Outfit ID ${outfit.id}</p>
       <div class="item-links">
-        <button class="small-btn" type="button">View items</button>
+        <button class="small-btn" type="button">Show items below</button>
       </div>
     </div>`;
 
   $("button", el).addEventListener("click", async () => {
-    const existing = el.nextElementSibling;
-    if (existing?.classList.contains("outfit-assets")) return existing.remove();
-
-    const box = document.createElement("div");
-    box.className = "outfit-assets";
-    box.textContent = "Loading outfit items…";
-    el.after(box);
+    selectedOutfit.section.hidden = false;
+    selectedOutfit.title.textContent = `${outfit.name || `Outfit ${outfit.id}`} items`;
+    selectedOutfit.count.textContent = "Loading…";
+    selectedOutfit.grid.innerHTML = `<div class="empty">Loading outfit items…</div>`;
+    selectedOutfit.section.scrollIntoView({ behavior: "smooth", block: "start" });
 
     try {
       const detail = await api(`/api/outfit/${outfit.id}`);
       addServerLogs(`outfit:${outfit.id}`, detail.debug?.logs);
       const assets = uniqueBy((detail.assets || []), a => a.id);
-      box.innerHTML = `<h4>${escapeHtml(outfit.name || `Outfit ${outfit.id}`)} items (${assets.length})</h4>`;
-      const grid = document.createElement("div");
-      grid.className = "asset-grid";
-      if (!assets.length) grid.innerHTML = `<div class="empty">No assets returned for this outfit.</div>`;
-      assets.forEach(a => grid.append(assetCard(a)));
-      box.append(grid);
+      selectedOutfit.count.textContent = `${assets.length} item${assets.length === 1 ? "" : "s"}`;
+      selectedOutfit.grid.innerHTML = "";
+      if (!assets.length) {
+        selectedOutfit.grid.innerHTML = `<div class="empty">No assets returned for this outfit.</div>`;
+      } else {
+        assets.forEach(a => selectedOutfit.grid.append(assetCard(a)));
+      }
       logSuccess("Outfit items rendered.", { outfitId: outfit.id, assets: assets.length });
     } catch (err) {
-      box.textContent = cleanError(err);
-      box.style.color = "var(--danger)";
+      selectedOutfit.count.textContent = "Error";
+      selectedOutfit.grid.innerHTML = `<div class="empty danger-text">${escapeHtml(cleanError(err))}</div>`;
       logError("Outfit items failed.", err, { outfitId: outfit.id });
     }
   });
 
   return el;
+}
+
+function isFallbackAssetName(name, id) {
+  const s = String(name || "").trim();
+  if (!s) return true;
+  if (/^asset$/i.test(s)) return true;
+  if (/^asset\s+\d+$/i.test(s)) return true;
+  return Number.isFinite(Number(id)) && s === `Asset ${id}`;
 }
 
 function renderErrorCard(user, err) {

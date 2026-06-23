@@ -35,7 +35,7 @@ export default {
         return json({
           ok: true,
           name: "roblox-outfit-viewer-api",
-          version: "2026-06-23.2",
+          version: "2026-06-23.3",
           routes: ["/api/resolve?q=USERNAME", "/api/report/USER_ID", "/api/outfit/OUTFIT_ID"]
         });
       }
@@ -207,7 +207,7 @@ async function getReport(userId) {
       logs.push(`Asset thumbnails failed: ${err.message}`);
       return {};
     }),
-    getCatalogDetails(assetIds).catch(err => {
+    getCatalogDetails(assetIds, logs).catch(err => {
       logs.push(`Catalog details failed: ${err.message}`);
       return {};
     }),
@@ -224,7 +224,7 @@ async function getReport(userId) {
       id,
       ...fromAvatar,
       ...fromCatalog,
-      name: fromCatalog.name || fromAvatar.name || `Asset ${id}`,
+      name: pickAssetName(id, fromCatalog, fromAvatar),
       assetType: fromCatalog.assetType || fromAvatar.assetType || null,
       imageUrl: assetThumbs[id]?.imageUrl || null
     });
@@ -265,7 +265,7 @@ async function getOutfitDetails(outfitId) {
       logs.push(`Outfit asset thumbnails failed: ${err.message}`);
       return {};
     }),
-    getCatalogDetails(ids).catch(err => {
+    getCatalogDetails(ids, logs).catch(err => {
       logs.push(`Outfit catalog details failed: ${err.message}`);
       return {};
     })
@@ -279,7 +279,7 @@ async function getOutfitDetails(outfitId) {
       id,
       ...(rawMap[id] || {}),
       ...(catalog[id] || {}),
-      name: catalog[id]?.name || rawMap[id]?.name || `Asset ${id}`,
+      name: pickAssetName(id, catalog[id], rawMap[id]),
       imageUrl: thumbs[id]?.imageUrl || null
     })),
     bodyColors: detail.bodyColors || null,
@@ -356,8 +356,63 @@ async function getOutfitThumbnails(outfitIds) {
   return out;
 }
 
-async function getCatalogDetails(assetIds) {
+const ASSET_TYPE_NAMES = {
+  1: "Image",
+  2: "T-Shirt",
+  3: "Audio",
+  4: "Mesh",
+  8: "Hat",
+  9: "Place",
+  10: "Model",
+  11: "Shirt",
+  12: "Pants",
+  13: "Decal",
+  17: "Head",
+  18: "Face",
+  19: "Gear",
+  21: "Badge",
+  24: "Animation",
+  27: "Torso",
+  28: "Right Arm",
+  29: "Left Arm",
+  30: "Left Leg",
+  31: "Right Leg",
+  32: "Package",
+  41: "Hair Accessory",
+  42: "Face Accessory",
+  43: "Neck Accessory",
+  44: "Shoulder Accessory",
+  45: "Front Accessory",
+  46: "Back Accessory",
+  47: "Waist Accessory",
+  48: "Climb Animation",
+  49: "Death Animation",
+  50: "Fall Animation",
+  51: "Idle Animation",
+  52: "Jump Animation",
+  53: "Run Animation",
+  54: "Swim Animation",
+  55: "Walk Animation",
+  56: "Pose Animation",
+  61: "Emote Animation",
+  64: "T-Shirt Accessory",
+  65: "Shirt Accessory",
+  66: "Pants Accessory",
+  67: "Jacket Accessory",
+  68: "Sweater Accessory",
+  69: "Shorts Accessory",
+  70: "Left Shoe Accessory",
+  71: "Right Shoe Accessory",
+  72: "Dress Skirt Accessory",
+  76: "Eyebrow Accessory",
+  77: "Eyelash Accessory"
+};
+
+async function getCatalogDetails(assetIds, logs = []) {
   const out = {};
+  let catalogNamed = 0;
+  let economyNamed = 0;
+  let missingAfterFallback = 0;
 
   for (const chunk of chunks(unique(assetIds), 100)) {
     if (!chunk.length) continue;
@@ -369,41 +424,125 @@ async function getCatalogDetails(assetIds) {
       }, "catalog batch details");
 
       for (const item of data.data || []) {
-        out[item.id] = normalizeAsset(item);
-      }
-    } catch (_) {
-      // Public fallback. Slower but useful when catalog batch details rejects old/classic assets.
-      await Promise.all(chunk.map(async id => {
-        try {
-          const data = await robloxJson(`https://economy.roblox.com/v2/assets/${id}/details`, {}, `economy asset ${id}`);
-          out[id] = normalizeAsset(data);
-        } catch {
-          out[id] = { id, name: `Asset ${id}` };
+        const normalized = normalizeAsset({ ...item, detailsSource: "catalog" });
+        if (Number.isFinite(normalized.id)) {
+          out[normalized.id] = mergeAssetDetails(out[normalized.id], normalized);
+          if (!isFallbackAssetName(out[normalized.id].name, normalized.id)) catalogNamed += 1;
         }
-      }));
+      }
+    } catch (err) {
+      logs.push(`Catalog batch details failed for ${chunk.length} item(s): ${err.message}`);
     }
+
+    // The catalog batch endpoint often skips classic body parts, layered clothing pieces,
+    // or older assets. Fetch only the missing/weak entries from the economy endpoint.
+    const needsFallback = chunk.filter(id => {
+      const item = out[id];
+      return !item || isFallbackAssetName(item.name, id) || !item.creatorName || !getAssetTypeName(item);
+    });
+
+    if (needsFallback.length) {
+      const results = await Promise.allSettled(needsFallback.map(async id => {
+        const data = await robloxJson(`https://economy.roblox.com/v2/assets/${id}/details`, {}, `economy asset ${id}`);
+        return normalizeAsset({ ...data, id, detailsSource: "economy" });
+      }));
+
+      results.forEach((result, index) => {
+        const id = needsFallback[index];
+        if (result.status === "fulfilled") {
+          out[id] = mergeAssetDetails(out[id], result.value);
+          if (!isFallbackAssetName(out[id].name, id)) economyNamed += 1;
+        } else if (!out[id]) {
+          out[id] = normalizeAsset({ id, name: `Asset ${id}`, detailsSource: "fallback" });
+        }
+      });
+    }
+
+    for (const id of chunk) {
+      if (!out[id]) out[id] = normalizeAsset({ id, name: `Asset ${id}`, detailsSource: "fallback" });
+      if (isFallbackAssetName(out[id].name, id)) missingAfterFallback += 1;
+    }
+  }
+
+  if (assetIds.length) {
+    logs.push(`Item detail lookup: catalog named ${catalogNamed}, economy fallback named ${economyNamed}, still unnamed ${missingAfterFallback}.`);
   }
 
   return out;
 }
 
-function normalizeAsset(item) {
-  const id = Number(item.id || item.assetId || item.targetId);
-  const creatorName = item.creatorName || item.creatorTargetName || item.creator?.name || item.creator?.Name || null;
-  const creatorId = item.creatorId || item.creatorTargetId || item.creator?.id || item.creator?.Id || null;
-  const typeName = item.assetType?.name || item.assetType?.Name || item.assetTypeName || item.itemType || "Asset";
+function normalizeAsset(item = {}) {
+  const id = Number(item.id || item.Id || item.assetId || item.AssetId || item.targetId);
+  const creatorName = item.creatorName || item.creatorTargetName || item.creator?.name || item.creator?.Name || item.Creator?.Name || null;
+  const creatorId = item.creatorId || item.creatorTargetId || item.creator?.id || item.creator?.Id || item.Creator?.Id || null;
+  const rawTypeId = Number(item.assetTypeId || item.AssetTypeId || item.assetType?.id || item.assetType?.Id);
+  const typeName = item.assetType?.name || item.assetType?.Name || item.assetTypeName || ASSET_TYPE_NAMES[rawTypeId] || item.itemType || "Asset";
+  const rawName = item.name || item.Name || item.assetName || item.AssetName || "";
 
   return {
     ...item,
     id,
-    name: item.name || item.Name || `Asset ${id}`,
+    name: rawName || `Asset ${id}`,
     itemType: item.itemType || "Asset",
-    assetType: item.assetType || (typeName ? { name: typeName } : null),
+    assetType: item.assetType || (typeName ? { id: Number.isFinite(rawTypeId) ? rawTypeId : undefined, name: typeName } : null),
+    assetTypeName: typeName,
     creatorName,
     creatorId,
-    price: item.price ?? item.PriceInRobux ?? item.priceInRobux ?? null,
-    lowestPrice: item.lowestPrice ?? item.lowestResalePrice ?? null
+    price: item.price ?? item.PriceInRobux ?? item.priceInRobux ?? item.Price ?? null,
+    lowestPrice: item.lowestPrice ?? item.lowestResalePrice ?? item.LowestPrice ?? null,
+    detailsSource: item.detailsSource || item.source || null
   };
+}
+
+function mergeAssetDetails(base = {}, extra = {}) {
+  const id = Number(extra.id || base.id);
+  const baseName = base.name || base.Name;
+  const extraName = extra.name || extra.Name;
+  const bestName = !isFallbackAssetName(extraName, id)
+    ? extraName
+    : (!isFallbackAssetName(baseName, id) ? baseName : `Asset ${id}`);
+
+  const merged = {
+    ...base,
+    ...extra,
+    id,
+    name: bestName,
+    creatorName: extra.creatorName || base.creatorName || extra.creator?.name || base.creator?.name || null,
+    creatorId: extra.creatorId || base.creatorId || extra.creator?.id || base.creator?.id || null,
+    price: extra.price ?? base.price ?? null,
+    lowestPrice: extra.lowestPrice ?? base.lowestPrice ?? null,
+    detailsSource: extra.detailsSource || base.detailsSource || null
+  };
+
+  const extraTypeName = getAssetTypeName(extra);
+  const baseTypeName = getAssetTypeName(base);
+  const rawTypeId = Number(extra.assetType?.id || extra.assetType?.Id || extra.assetTypeId || extra.AssetTypeId || base.assetType?.id || base.assetType?.Id || base.assetTypeId || base.AssetTypeId);
+  const bestType = extraTypeName && extraTypeName !== "Asset" ? extraTypeName : (baseTypeName || ASSET_TYPE_NAMES[rawTypeId] || "Asset");
+  merged.assetType = extra.assetType || base.assetType || { id: Number.isFinite(rawTypeId) ? rawTypeId : undefined, name: bestType };
+  merged.assetTypeName = bestType;
+
+  return merged;
+}
+
+function getAssetTypeName(item = {}) {
+  const rawTypeId = Number(item.assetType?.id || item.assetType?.Id || item.assetTypeId || item.AssetTypeId);
+  return item.assetType?.name || item.assetType?.Name || item.assetTypeName || ASSET_TYPE_NAMES[rawTypeId] || null;
+}
+
+function isFallbackAssetName(name, id) {
+  const s = String(name || "").trim();
+  if (!s) return true;
+  if (/^asset$/i.test(s)) return true;
+  if (/^asset\s+\d+$/i.test(s)) return true;
+  return Number.isFinite(Number(id)) && s === `Asset ${id}`;
+}
+
+function pickAssetName(id, ...items) {
+  for (const item of items) {
+    const name = item?.name || item?.Name || item?.assetName || item?.AssetName;
+    if (!isFallbackAssetName(name, id)) return name;
+  }
+  return `Asset ${id}`;
 }
 
 async function robloxJson(url, opts = {}, label = "Roblox API") {

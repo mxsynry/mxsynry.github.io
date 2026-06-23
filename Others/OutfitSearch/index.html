@@ -12,7 +12,7 @@
     <div>
       <p class="eyebrow">Public Roblox avatar lookup</p>
       <h1>Roblox Outfit Viewer</h1>
-      <p class="lede">Look up public accounts by username or user ID, compare duplicate-looking accounts, and list current avatar items plus saved outfits.</p>
+      <p class="lede">Look up public accounts by username or user ID, compare duplicate-looking accounts, and list current avatar items plus saved outfits and selected outfit items.</p>
     </div>
     <div class="header-actions">
       <button id="instructionsBtn" class="ghost" type="button" title="Show setup instructions">Instructions</button>
@@ -107,6 +107,13 @@
           <span class="outfit-count pill"></span>
         </div>
         <div class="outfit-grid"></div>
+      </section>
+      <section class="selected-outfit-section" hidden>
+        <div class="section-title">
+          <h3 class="selected-outfit-title">Selected outfit items</h3>
+          <span class="selected-outfit-count pill"></span>
+        </div>
+        <div class="asset-grid selected-outfit-grid"></div>
       </section>
     </article>
   </template>
