@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Roblox Outfit Viewer</title>
+  <meta name="description" content="Public Roblox outfit and currently-wearing avatar viewer by username or user ID." />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <div>
+      <p class="eyebrow">Public Roblox avatar lookup</p>
+      <h1>Roblox Outfit Viewer</h1>
+      <p class="lede">Look up public accounts by username or user ID, compare duplicate-looking accounts, and list current avatar items plus saved outfits and selected outfit items.</p>
+    </div>
+    <div class="header-actions">
+      <button id="instructionsBtn" class="ghost" type="button">Instructions</button>
+      <button id="consoleBtn" class="ghost" type="button">View console</button>
+      <button id="changeApiBtn" class="ghost" type="button">Change API</button>
+      <button id="themeBtn" class="ghost" type="button">Theme</button>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel setup" id="setupPanel">
+      <h2>API setup</h2>
+      <p>This GitHub Pages app needs a small Cloudflare Worker because many Roblox API calls are blocked by browser CORS. Paste your Worker URL once and it will be saved locally in this browser.</p>
+      <div class="row">
+        <input id="apiBaseInput" placeholder="https://your-worker-name.your-subdomain.workers.dev" />
+        <button id="saveApiBtn" type="button">Save API</button>
+      </div>
+      <p class="hint">Tip: you can also append <code>?api=https://your-worker.workers.dev</code> to the page URL. Use the <strong>Change API</strong> button if you saved the wrong URL.</p>
+      <p id="apiStatus" class="hint"></p>
+    </section>
+
+    <section class="panel search-panel">
+      <form id="searchForm">
+        <label for="query">Username, user ID, or multiple values</label>
+        <div class="row">
+          <input id="query" autocomplete="off" spellcheck="false" placeholder="Roblox, id:1, 156, search: builderman" />
+          <button id="searchBtn" type="submit">Search</button>
+        </div>
+        <p class="hint">Supports comma/newline separated values. Use <code>id:12345</code> for exact ID. Use <code>search:keyword</code> to show possible matching accounts.</p>
+      </form>
+    </section>
+
+    <section id="status" class="status" aria-live="polite"></section>
+    <section id="results" class="results"></section>
+  </main>
+
+  <dialog id="instructionsDialog" class="modal">
+    <div class="modal-head">
+      <h2>Simple setup instructions</h2>
+      <button class="ghost icon-btn" type="button" data-close-dialog="instructionsDialog">×</button>
+    </div>
+    <ol class="steps">
+      <li>Open Cloudflare → <strong>Workers & Pages</strong> → <strong>Create application</strong> → <strong>Worker</strong>.</li>
+      <li>Name it something like <code>roblox-outfit-api</code>, then deploy the starter Worker.</li>
+      <li>Click <strong>Edit code</strong>, delete the starter code, paste this project’s <code>worker.js</code>, then <strong>Save and deploy</strong>.</li>
+      <li>Copy the public URL ending in <code>.workers.dev</code>, for example <code>https://roblox-outfit-api.yourname.workers.dev</code>.</li>
+      <li>Come back here, click <strong>Change API</strong>, paste that Worker URL, and click <strong>Save API</strong>.</li>
+    </ol>
+    <p class="hint danger-text">Do not paste a Cloudflare API token, Roblox cookie, GitHub token, or your GitHub Pages URL. Only paste the public <code>.workers.dev</code> URL.</p>
+  </dialog>
+
+  <dialog id="consoleDialog" class="modal wide-modal">
+    <div class="modal-head">
+      <h2>Debug console</h2>
+      <button class="ghost icon-btn" type="button" data-close-dialog="consoleDialog">×</button>
+    </div>
+    <div class="console-actions">
+      <button id="copyConsoleBtn" class="ghost" type="button">Copy logs</button>
+      <button id="clearConsoleBtn" class="ghost" type="button">Clear logs</button>
+    </div>
+    <pre id="debugConsole" class="debug-console">No logs yet.</pre>
+  </dialog>
+
+  <template id="userCardTpl">
+    <article class="user-card panel">
+      <div class="profile-head">
+        <img class="avatar-img" alt="Avatar thumbnail" loading="lazy" />
+        <div>
+          <h2 class="profile-title"></h2>
+          <p class="muted profile-meta"></p>
+          <div class="chips"></div>
+          <div class="actions">
+            <a class="profile-link" target="_blank" rel="noopener">Profile</a>
+            <button class="json-btn" type="button">Export JSON</button>
+          </div>
+        </div>
+      </div>
+
+      <details class="description-block">
+        <summary>Description</summary>
+        <p class="description-text"></p>
+      </details>
+
+      <section>
+        <div class="section-title">
+          <h3>Currently wearing</h3>
+          <span class="wearing-count pill"></span>
+        </div>
+        <div class="asset-grid wearing-grid"></div>
+      </section>
+
+      <section>
+        <div class="section-title">
+          <h3>Saved outfits</h3>
+          <span class="outfit-count pill"></span>
+        </div>
+        <div class="outfit-grid"></div>
+      </section>
+
+      <section class="selected-outfit-section" hidden>
+        <div class="section-title">
+          <h3 class="selected-outfit-title">Selected outfit items</h3>
+          <span class="selected-outfit-count pill"></span>
+        </div>
+        <div class="asset-grid selected-outfit-grid"></div>
+      </section>
+    </article>
+  </template>
+
+  <script src="app.js"></script>
+</body>
+</html>
