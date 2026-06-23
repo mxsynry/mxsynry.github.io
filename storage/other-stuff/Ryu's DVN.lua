@@ -15,7 +15,7 @@ local Window = Fluent:CreateWindow{
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = true,
-    Theme = "Dark",
+    Theme = "Rose",
     MinimizeKey = Enum.KeyCode.LeftControl
 }
 
@@ -121,10 +121,10 @@ end
 local WeaponSettings = { Firerate = 1000, BulletSpeed = 500, Spread = 0, Ammo = 999, Recoil = 0, Kickback = 0 }
 local IgnoredWeapons = { ["RPG"] = true, ["Parabolic Hydra"] = true, ["Grenade Launcher"] = true, ["Shockwave Device"] = true, ["Intraplanar Device"] = true, ["Rocket Stormer"] = true }
 
-local Farm = { Enabled = false, MaxRange = 300, GunDelay = 50, MeleeDelay = 150 }
+local Farm = { Enabled = false, MaxRange = 300, GunDelay = 50, MeleeDelay = 150, MultiTarget = false }
 
-local NPC_HB = { Enabled = false, Dynamic = false, StaticSize = 20, Min = 2, Max = 30, Near = 2, Far = 30, Part = "Random" }
-local Player_HB = { Enabled = false, Dynamic = false, StaticSize = 20, Min = 2, Max = 30, Near = 2, Far = 30, Part = "Random" }
+local NPC_HB = { Enabled = false, Dynamic = false, StaticSize = 20, Min = 2, Max = 30, Near = 2, Far = 30, Part = "Random", Fallback = false }
+local Player_HB = { Enabled = false, Dynamic = false, StaticSize = 20, Min = 2, Max = 30, Near = 2, Far = 30, Part = "Random", Fallback = false }
 
 local ColorTable = {
     ["Bright Red"] = Color3.fromRGB(255, 0, 0), ["Dark Red"] = Color3.fromRGB(139, 0, 0),
@@ -393,7 +393,7 @@ local function AutoAttack()
     local verifyFire = tool:FindFirstChild("VerifyFire")
     if not verifyHit then return end 
     
-    local bestPart, bestHum, bestDist = nil, nil, math.huge
+    local targets = {}
     
     for _, ent in ipairs(Workspace:GetChildren()) do
         if ent:IsA("Model") and ent:FindFirstChild("HumanoidRootPart") and ent ~= myChar and not Players:GetPlayerFromCharacter(ent) then 
@@ -402,44 +402,55 @@ local function AutoAttack()
                 local targetPart = GetBossTarget(ent)
                 if targetPart and targetPart.Parent then
                     local dist = (myRoot.Position - targetPart.Position).Magnitude
-                    if dist <= Farm.MaxRange and dist < bestDist then
-                        bestDist = dist
-                        bestPart = targetPart
-                        bestHum = hum
+                    if dist <= Farm.MaxRange then
+                        table.insert(targets, {Part = targetPart, Hum = hum, Dist = dist})
                     end
                 end
             end
         end
     end
     
-    if not bestPart then return end
+    if #targets == 0 then return end
+    
+    if not Farm.MultiTarget then
+        table.sort(targets, function(a, b) return a.Dist < b.Dist end)
+        targets = {targets[1]}
+    end
     
     if isGun then
         pcall(function() verifyFire:FireServer() end)
         task.delay(0.03, function()
-            if not ScriptAlive or not bestPart or not bestPart.Parent then return end
-            if Remotes.bullet then
-                local dir = (bestPart.Position - myHead.Position).Unit
-                pcall(function()
-                    Remotes.bullet:FireServer(myHead.Position, dir, 3000, {
-                        HighFidelitySegmentSize = 0.5, Acceleration = Vector3.new(0,0,0),
-                        RaycastParams = RaycastParams.new{FilterDescendantsInstances = {myChar, Camera}, FilterType = Enum.RaycastFilterType.Exclude},
-                        MaxDistance = 3000, AutoIgnoreContainer = true, HighFidelityBehavior = 1
-                    })
-                end)
-            end
-            if bestHum and bestHum.Parent and bestHum.Health > 0 then
-                pcall(function() verifyHit:FireServer(bestHum, bestPart.Position, myHead.Position) end)
-            else
-                pcall(function() verifyHit:FireServer(bestPart, bestPart.Position, myHead.Position) end)
+            if not ScriptAlive then return end
+            for _, t in ipairs(targets) do
+                if t.Part and t.Part.Parent then
+                    if Remotes.bullet then
+                        local dir = (t.Part.Position - myHead.Position).Unit
+                        pcall(function()
+                            Remotes.bullet:FireServer(myHead.Position, dir, 3000, {
+                                HighFidelitySegmentSize = 0.5, Acceleration = Vector3.new(0,0,0),
+                                RaycastParams = RaycastParams.new{FilterDescendantsInstances = {myChar, Camera}, FilterType = Enum.RaycastFilterType.Exclude},
+                                MaxDistance = 3000, AutoIgnoreContainer = true, HighFidelityBehavior = 1
+                            })
+                        end)
+                    end
+                    if t.Hum and t.Hum.Parent and t.Hum.Health > 0 then
+                        pcall(function() verifyHit:FireServer(t.Hum, t.Part.Position, myHead.Position) end)
+                    else
+                        pcall(function() verifyHit:FireServer(t.Part, t.Part.Position, myHead.Position) end)
+                    end
+                end
             end
             if Remotes.sound then pcall(function() Remotes.sound:FireServer("rbxassetid://6731036217", math.random(90,110)/100) end) end
         end)
     else
-        if bestHum and bestHum.Parent and bestHum.Health > 0 then
-            pcall(function() verifyHit:FireServer(bestHum, bestPart.Position, myHead.Position) end)
-        else
-            pcall(function() verifyHit:FireServer(bestPart, bestPart.Position, myHead.Position) end)
+        for _, t in ipairs(targets) do
+            if t.Part and t.Part.Parent then
+                if t.Hum and t.Hum.Parent and t.Hum.Health > 0 then
+                    pcall(function() verifyHit:FireServer(t.Hum, t.Part.Position, myHead.Position) end)
+                else
+                    pcall(function() verifyHit:FireServer(t.Part, t.Part.Position, myHead.Position) end)
+                end
+            end
         end
         if Remotes.sound then pcall(function() Remotes.sound:FireServer("rbxassetid://6241709963", math.random(60,80)/100) end) end
     end
@@ -540,7 +551,7 @@ local function ResetHitbox(part)
     end
 end
 
-local function GetTargetPart(character, partName)
+local function GetTargetPart(character, partName, useFallback)
     if not character then return nil end
     
     local storedTarget = character:FindFirstChild("HB_StoredTarget")
@@ -549,21 +560,31 @@ local function GetTargetPart(character, partName)
     end
 
     local target = nil
+    
     if partName == "Random" then
         local validParts = {}
         for _, name in ipairs({"Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}) do
             local p = character:FindFirstChild(name)
             if p and p:IsA("BasePart") then table.insert(validParts, p) end
         end
+        if useFallback then
+            for _, child in ipairs(character:GetChildren()) do
+                if child:IsA("BasePart") and not table.find(validParts, child) then
+                    table.insert(validParts, child)
+                end
+            end
+        end
         if #validParts > 0 then
             target = validParts[math.random(1, #validParts)]
         end
     else
         local p = character:FindFirstChild(partName)
-        if p and p:IsA("BasePart") then target = p end
+        if p and p:IsA("BasePart") then 
+            target = p 
+        end
     end
 
-    if not target then
+    if not target and useFallback then
         target = character:FindFirstChild("Torso")
         if not target or not target:IsA("BasePart") then
             target = character:FindFirstChild("HumanoidRootPart")
@@ -690,7 +711,7 @@ RunService.Heartbeat:Connect(function(dt)
     for v, _ in pairs(activeNPCs) do
         if v and v.Parent and v:FindFirstChild("HumanoidRootPart") then
             if NPC_HB.Enabled then
-                local targetPart = GetTargetPart(v, NPC_HB.Part)
+                local targetPart = GetTargetPart(v, NPC_HB.Part, NPC_HB.Fallback)
                 if targetPart then
                     local size = NPC_HB.StaticSize
                     if NPC_HB.Dynamic and myRoot then
@@ -717,7 +738,7 @@ RunService.Heartbeat:Connect(function(dt)
         if player ~= LocalPlayer and player.Character and player.Character:FindFirstChild("HumanoidRootPart") then
             local char = player.Character
             if Player_HB.Enabled then
-                local targetPart = GetTargetPart(char, Player_HB.Part)
+                local targetPart = GetTargetPart(char, Player_HB.Part, Player_HB.Fallback)
                 if targetPart then
                     local size = Player_HB.StaticSize
                     if Player_HB.Dynamic and myRoot then
@@ -852,6 +873,7 @@ Tabs.Weapons:CreateSlider("BulletSpeed", {Title = "Projectile Velocity", Default
 
 Tabs.Weapons:CreateParagraph("FarmHeader", {Title = "━━ Silent Auto-Farm (NPCs Only) ━━", Content = "Automatically attacks nearest NPC. Hold a gun or melee."})
 Tabs.Weapons:CreateToggle("AutoFarm", {Title = "Enable Auto-Farm", Default = false}):OnChanged(function() Farm.Enabled = Fluent.Options.AutoFarm.Value end)
+Tabs.Weapons:CreateToggle("FarmMultiTarget", {Title = "Multi-Target Farm", Default = false}):OnChanged(function() Farm.MultiTarget = Fluent.Options.FarmMultiTarget.Value end)
 Tabs.Weapons:CreateSlider("FarmRange", {Title = "Max Kill Range (Studs)", Default = 300, Min = 50, Max = 1000, Rounding = 10, Callback = function(v) Farm.MaxRange = v end})
 Tabs.Weapons:CreateSlider("GunDelay", {Title = "Gun Attack Delay (ms)", Default = 50, Min = 10, Max = 1000, Rounding = 10, Callback = function(v) Farm.GunDelay = v end})
 Tabs.Weapons:CreateSlider("MeleeDelay", {Title = "Melee Attack Delay (ms)", Default = 150, Min = 50, Max = 2000, Rounding = 10, Callback = function(v) Farm.MeleeDelay = v end})
@@ -860,6 +882,7 @@ Tabs.Hitbox:CreateParagraph("HitboxInfo", {Title = "Dynamic Logic", Content = "S
 
 Tabs.Hitbox:CreateToggle("NPC_HB", {Title = "Enable NPC Hitbox", Default = false}):OnChanged(function() NPC_HB.Enabled = Fluent.Options.NPC_HB.Value end)
 Tabs.Hitbox:CreateDropdown("NPC_Part", {Title = "NPC Body Part", Values = {"Random", "Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}, Default = 1, Callback = function(v) NPC_HB.Part = v; ClearStoredTargets() end})
+Tabs.Hitbox:CreateToggle("NPC_Fallback", {Title = "NPC Use Fallback Hitboxes?", Default = false}):OnChanged(function() NPC_HB.Fallback = Fluent.Options.NPC_Fallback.Value; ClearStoredTargets() end)
 Tabs.Hitbox:CreateToggle("NPC_Dynamic", {Title = "NPC Use Dynamic Size?", Default = false}):OnChanged(function() NPC_HB.Dynamic = Fluent.Options.NPC_Dynamic.Value end)
 Tabs.Hitbox:CreateSlider("NPC_Static", {Title = "NPC Static Size", Default = 20, Min = 2, Max = 50, Rounding = 1, Callback = function(v) NPC_HB.StaticSize = v end})
 Tabs.Hitbox:CreateSlider("NPC_Min", {Title = "NPC Min Size (Close)", Default = 2, Min = 1, Max = 10, Rounding = 1, Callback = function(v) NPC_HB.Min = v end})
@@ -869,6 +892,7 @@ Tabs.Hitbox:CreateSlider("NPC_Far", {Title = "NPC Max Out Dist (Studs)", Default
 
 Tabs.Hitbox:CreateToggle("Player_HB", {Title = "Enable Player Hitbox", Default = false}):OnChanged(function() Player_HB.Enabled = Fluent.Options.Player_HB.Value end)
 Tabs.Hitbox:CreateDropdown("Player_Part", {Title = "Player Body Part", Values = {"Random", "Head", "Torso", "Left Arm", "Right Arm", "Left Leg", "Right Leg"}, Default = 1, Callback = function(v) Player_HB.Part = v; ClearStoredTargets() end})
+Tabs.Hitbox:CreateToggle("Player_Fallback", {Title = "Player Use Fallback Hitboxes?", Default = false}):OnChanged(function() Player_HB.Fallback = Fluent.Options.Player_Fallback.Value; ClearStoredTargets() end)
 Tabs.Hitbox:CreateToggle("Player_Dynamic", {Title = "Player Use Dynamic Size?", Default = false}):OnChanged(function() Player_HB.Dynamic = Fluent.Options.Player_Dynamic.Value end)
 Tabs.Hitbox:CreateSlider("Player_Static", {Title = "Player Static Size", Default = 20, Min = 2, Max = 50, Rounding = 1, Callback = function(v) Player_HB.StaticSize = v end})
 Tabs.Hitbox:CreateSlider("Player_Min", {Title = "Player Min Size (Close)", Default = 2, Min = 1, Max = 10, Rounding = 1, Callback = function(v) Player_HB.Min = v end})
@@ -1040,6 +1064,7 @@ local function SyncSavedSettings()
     WeaponSettings.Firerate = Fluent.Options.Firerate.Value
     WeaponSettings.BulletSpeed = Fluent.Options.BulletSpeed and Fluent.Options.BulletSpeed.Value or 500
     Farm.Enabled = Fluent.Options.AutoFarm.Value
+    Farm.MultiTarget = Fluent.Options.FarmMultiTarget and Fluent.Options.FarmMultiTarget.Value or false
     Farm.MaxRange = Fluent.Options.FarmRange.Value
     Farm.GunDelay = Fluent.Options.GunDelay.Value
     Farm.MeleeDelay = Fluent.Options.MeleeDelay.Value
@@ -1051,6 +1076,8 @@ local function SyncSavedSettings()
     NPC_HB.Max = Fluent.Options.NPC_Max.Value
     NPC_HB.Near = Fluent.Options.NPC_Near and Fluent.Options.NPC_Near.Value or 2
     NPC_HB.Far = Fluent.Options.NPC_Far and Fluent.Options.NPC_Far.Value or 30
+    NPC_HB.Part = Fluent.Options.NPC_Part.Value
+    NPC_HB.Fallback = Fluent.Options.NPC_Fallback and Fluent.Options.NPC_Fallback.Value or false
     
     Player_HB.Enabled = Fluent.Options.Player_HB.Value
     Player_HB.Dynamic = Fluent.Options.Player_Dynamic.Value
@@ -1059,6 +1086,8 @@ local function SyncSavedSettings()
     Player_HB.Max = Fluent.Options.Player_Max.Value
     Player_HB.Near = Fluent.Options.Player_Near and Fluent.Options.Player_Near.Value or 2
     Player_HB.Far = Fluent.Options.Player_Far and Fluent.Options.Player_Far.Value or 30
+    Player_HB.Part = Fluent.Options.Player_Part.Value
+    Player_HB.Fallback = Fluent.Options.Player_Fallback and Fluent.Options.Player_Fallback.Value or false
     
     ESP_Config.Enabled = Fluent.Options.ESP.Value
     ESP_Config.ThroughWalls = Fluent.Options.ESPThroughWalls and Fluent.Options.ESPThroughWalls.Value or false
