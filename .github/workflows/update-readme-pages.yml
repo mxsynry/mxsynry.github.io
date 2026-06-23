@@ -5,8 +5,9 @@ on:
     branches:
       - main
       - master
-    paths-ignore:
-      - "tree.json"
+    paths:
+      - "**/*.html"
+      - ".github/workflows/update-readme-pages.yml"
   workflow_dispatch:
 
 permissions:
@@ -24,14 +25,14 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Generate pages section in README.md
+      - name: Update generated pages section
         shell: bash
         run: |
           python3 <<'PY'
           from pathlib import Path
           from urllib.parse import quote
-          from datetime import datetime, timezone
           import os
+          import re
 
           repo = os.environ["GITHUB_REPOSITORY"]
           owner, repo_name = repo.split("/")
@@ -53,11 +54,6 @@ jobs:
               "workers",
           }
 
-          ignored_files = {
-              "README.md",
-              "tree.json",
-          }
-
           def encode_url_path(path_text):
               return "/".join(quote(part) for part in path_text.split("/"))
 
@@ -66,48 +62,39 @@ jobs:
           for path in Path(".").rglob("*.html"):
               if any(part in ignored_dirs for part in path.parts):
                   continue
-
-              if path.name in ignored_files:
-                  continue
-
               html_files.append(path)
 
           html_files = sorted(html_files, key=lambda p: str(p).lower())
 
           section = []
           section.append("<!-- pages-index:start -->")
-          section.append("")
           section.append("## Site Pages")
           section.append("")
-          section.append("| Page | File | URL |")
-          section.append("|---|---|---|")
+          section.append("This section is automatically generated from the HTML files in this repository.")
+          section.append("")
+          section.append("| Page | File |")
+          section.append("|---|---|")
 
           if not html_files:
-              section.append("| No HTML pages found | — | — |")
+              section.append("| No HTML pages found | — |")
           else:
               for path in html_files:
                   rel = path.as_posix()
 
                   if path.name.lower() == "index.html":
                       folder = path.parent.as_posix()
-
                       if folder == ".":
                           label = "Home"
                           url = f"{base_url}/"
                       else:
                           label = folder
-                          encoded_folder = encode_url_path(folder)
-                          url = f"{base_url}/{encoded_folder}/"
+                          url = f"{base_url}/{encode_url_path(folder)}/"
                   else:
                       label = rel
-                      encoded_rel = encode_url_path(rel)
-                      url = f"{base_url}/{encoded_rel}"
+                      url = f"{base_url}/{encode_url_path(rel)}"
 
-                  section.append(f"| [{label}]({url}) | `{rel}` | {url} |")
+                  section.append(f"| [{label}]({url}) | `{rel}` |")
 
-          section.append("")
-          section.append(f"_Last generated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}_")
-          section.append("")
           section.append("<!-- pages-index:end -->")
           section.append("")
 
@@ -123,12 +110,20 @@ jobs:
           start = "<!-- pages-index:start -->"
           end = "<!-- pages-index:end -->"
 
-          if start in old and end in old:
-              before = old.split(start)[0].rstrip()
-              after = old.split(end, 1)[1].lstrip()
-              final = before + "\n\n" + new_section + "\n" + after
-          else:
-              final = old.rstrip() + "\n\n" + new_section + "\n"
+          pattern = re.compile(
+              r"\n*<!-- pages-index:start -->.*?<!-- pages-index:end -->\n*",
+              re.DOTALL
+          )
+
+          # Remove every existing generated block, including accidental duplicates.
+          cleaned = pattern.sub("\n\n", old).strip()
+
+          # Optional cleanup for the old full-README format if it exists.
+          old_auto_text = "This README is automatically generated from the HTML files in this repository."
+          if cleaned.startswith("# Site Pages") and old_auto_text in cleaned:
+              cleaned = "# mxsynry.github.io"
+
+          final = cleaned.rstrip() + "\n\n" + new_section
 
           readme_path.write_text(final, encoding="utf-8")
           PY
