@@ -35,8 +35,12 @@ export default {
         return json({
           ok: true,
           name: "roblox-outfit-viewer-api",
-          version: "2026-06-23.4",
-          routes: ["/api/resolve?q=USERNAME", "/api/report/USER_ID", "/api/outfit/OUTFIT_ID"]
+          version: "2026-06-23.5",
+          routes: [
+            "/api/resolve?q=USERNAME",
+            "/api/report/USER_ID",
+            "/api/outfit/OUTFIT_ID"
+          ]
         });
       }
 
@@ -73,7 +77,9 @@ async function cacheOrRun(request, ctx, producer) {
   }
 
   const data = await producer();
-  const res = json(data, 200, { "cache-control": `public, max-age=${CACHE_TTL_SECONDS}` });
+  const res = json(data, 200, {
+    "cache-control": `public, max-age=${CACHE_TTL_SECONDS}`
+  });
 
   try {
     ctx.waitUntil(cache.put(key, res.clone()));
@@ -86,14 +92,23 @@ async function cacheOrRun(request, ctx, producer) {
 
 function withCors(res) {
   const headers = new Headers(res.headers);
-  for (const [k, v] of Object.entries(JSON_HEADERS)) headers.set(k, v);
-  return new Response(res.body, { status: res.status, headers });
+  for (const [k, v] of Object.entries(JSON_HEADERS)) {
+    headers.set(k, v);
+  }
+
+  return new Response(res.body, {
+    status: res.status,
+    headers
+  });
 }
 
 function json(data, status = 200, extraHeaders = {}) {
   return new Response(JSON.stringify(data, null, 2), {
     status,
-    headers: { ...JSON_HEADERS, ...extraHeaders }
+    headers: {
+      ...JSON_HEADERS,
+      ...extraHeaders
+    }
   });
 }
 
@@ -119,7 +134,13 @@ async function resolveUsers(rawQuery) {
   const logs = [];
 
   if (!parts.length) {
-    return { ok: true, users: [], logs: ["No query entered."] };
+    return {
+      ok: true,
+      users: [],
+      count: 0,
+      logs: ["No query entered."],
+      fetchedAt: new Date().toISOString()
+    };
   }
 
   for (const part of parts) {
@@ -144,7 +165,11 @@ async function resolveUsers(rawQuery) {
 
       const exact = await usersByUsernames([q]);
       users.push(...exact);
-      logs.push(exact.length ? `Exact username "${q}" returned ${exact.length} account(s).` : `Exact username "${q}" returned no accounts.`);
+      logs.push(
+        exact.length
+          ? `Exact username "${q}" returned ${exact.length} account(s).`
+          : `Exact username "${q}" returned no accounts.`
+      );
 
       const searchMatches = await searchUsers(q, true).catch(err => {
         logs.push(`Extra duplicate-friendly search for "${q}" failed: ${err.message}`);
@@ -152,7 +177,10 @@ async function resolveUsers(rawQuery) {
       });
 
       users.push(...searchMatches);
-      if (searchMatches.length) logs.push(`Extra search found ${searchMatches.length} exact-name match(es) for "${q}".`);
+
+      if (searchMatches.length) {
+        logs.push(`Extra search found ${searchMatches.length} exact-name match(es) for "${q}".`);
+      }
     } catch (err) {
       logs.push(`Input "${part}" failed: ${err.message}`);
     }
@@ -171,6 +199,7 @@ async function resolveUsers(rawQuery) {
 
 async function getReport(userId) {
   assertId(userId, "Roblox user ID");
+
   const logs = [];
 
   const [profile, avatar, currently, outfits, avatarThumb] = await Promise.all([
@@ -204,13 +233,21 @@ async function getReport(userId) {
   const assetIds = unique(currentIdsRaw);
 
   if (duplicatedIds.length) {
-    logs.push(`Removed duplicate currently-wearing IDs: ${duplicatedIds.map(x => `${x.id} x${x.count}`).join(", ")}.`);
+    logs.push(
+      `Removed duplicate currently-wearing IDs: ${duplicatedIds
+        .map(x => `${x.id} x${x.count}`)
+        .join(", ")}.`
+    );
   }
 
   const avatarAssetMap = mapBy(avatarAssets, a => a.id);
 
   if (avatarAssets.length) {
-    const avatarNamed = avatarAssets.filter(a => !isFallbackAssetName(a.name || a.Name || a.assetName || a.AssetName, a.id)).length;
+    const avatarNamed = avatarAssets.filter(a => {
+      const name = a.name || a.Name || a.assetName || a.AssetName;
+      return !isFallbackAssetName(name, a.id);
+    }).length;
+
     logs.push(`Avatar details returned ${avatarAssets.length} asset record(s), ${avatarNamed} with public names.`);
   }
 
@@ -258,7 +295,7 @@ async function getReport(userId) {
 
   logs.push(`Loaded profile for @${profile.name || userId}.`);
   logs.push(`Loaded ${currentlyWearing.length} unique currently-wearing item(s).`);
-  logs.push(`Loaded ${normalizedOutfits.length} saved outfit(s).`);
+  logs.push(`Loaded ${normalizedOutfits.length} saved outfit/costume entrie(s).`);
 
   return {
     ok: true,
@@ -278,9 +315,15 @@ async function getReport(userId) {
 
 async function getOutfitDetails(outfitId) {
   assertId(outfitId, "Roblox outfit ID");
+
   const logs = [];
 
-  const detail = await robloxJson(`https://avatar.roblox.com/v3/outfits/${outfitId}/details`, {}, "outfit details");
+  const detail = await robloxJson(
+    `https://avatar.roblox.com/v3/outfits/${outfitId}/details`,
+    {},
+    "outfit details"
+  );
+
   const rawAssets = Array.isArray(detail.assets) ? detail.assets : [];
   const ids = unique(rawAssets.map(a => a.id).filter(Number.isFinite));
   const rawMap = mapBy(rawAssets, a => a.id);
@@ -300,18 +343,25 @@ async function getOutfitDetails(outfitId) {
     ok: true,
     id: outfitId,
     name: detail.name,
-    assets: ids.map(id => normalizeAsset({
-      id,
-      ...(rawMap[id] || {}),
-      ...(catalog[id] || {}),
-      name: pickAssetName(id, catalog[id], rawMap[id]),
-      imageUrl: thumbs[id]?.imageUrl || null,
-      imageKind: thumbnailKind(thumbs[id]?.imageUrl || null)
-    })),
+    assets: ids.map(id => {
+      const raw = rawMap[id] || {};
+      const full = catalog[id] || {};
+
+      return normalizeAsset({
+        id,
+        ...raw,
+        ...full,
+        name: pickAssetName(id, full, raw),
+        imageUrl: thumbs[id]?.imageUrl || null,
+        imageKind: thumbnailKind(thumbs[id]?.imageUrl || null)
+      });
+    }),
     bodyColors: detail.bodyColors || null,
     scale: detail.scale || null,
     playerAvatarType: detail.playerAvatarType || null,
-    debug: { logs },
+    debug: {
+      logs
+    },
     fetchedAt: new Date().toISOString()
   };
 }
@@ -322,10 +372,17 @@ async function getUser(userId) {
 }
 
 async function usersByUsernames(usernames) {
-  const data = await robloxJson("https://users.roblox.com/v1/usernames/users", {
-    method: "POST",
-    body: JSON.stringify({ usernames, excludeBannedUsers: false })
-  }, "username lookup");
+  const data = await robloxJson(
+    "https://users.roblox.com/v1/usernames/users",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        usernames,
+        excludeBannedUsers: false
+      })
+    },
+    "username lookup"
+  );
 
   return data.data || [];
 }
@@ -357,7 +414,12 @@ async function getOutfits(userId) {
       ? `itemsPerPage=100&cursor=${encodeURIComponent(cursor)}`
       : `itemsPerPage=100&page=${page}`;
 
-    const data = await robloxJson(`https://avatar.roblox.com/v1/users/${userId}/outfits?${qs}`, {}, "saved outfits");
+    const data = await robloxJson(
+      `https://avatar.roblox.com/v1/users/${userId}/outfits?${qs}`,
+      {},
+      "saved outfits"
+    );
+
     all.push(...(data.data || []));
 
     if (data.nextPageCursor) {
@@ -482,19 +544,32 @@ async function getCatalogDetails(assetIds, logs = []) {
     if (!chunk.length) continue;
 
     try {
-      const data = await robloxJson("https://catalog.roblox.com/v1/catalog/items/details", {
-        method: "POST",
-        body: JSON.stringify({
-          items: chunk.map(id => ({ itemType: "Asset", id }))
-        })
-      }, "catalog batch details");
+      const data = await robloxJson(
+        "https://catalog.roblox.com/v1/catalog/items/details",
+        {
+          method: "POST",
+          body: JSON.stringify({
+            items: chunk.map(id => ({
+              itemType: "Asset",
+              id
+            }))
+          })
+        },
+        "catalog batch details"
+      );
 
       for (const item of data.data || []) {
-        const normalized = normalizeAsset({ ...item, detailsSource: "catalog" });
+        const normalized = normalizeAsset({
+          ...item,
+          detailsSource: "catalog"
+        });
 
         if (Number.isFinite(normalized.id)) {
           out[normalized.id] = mergeAssetDetails(out[normalized.id], normalized);
-          if (!isFallbackAssetName(out[normalized.id].name, normalized.id)) catalogNamed += 1;
+
+          if (!isFallbackAssetName(out[normalized.id].name, normalized.id)) {
+            catalogNamed += 1;
+          }
         }
       }
     } catch (err) {
@@ -503,48 +578,101 @@ async function getCatalogDetails(assetIds, logs = []) {
 
     const needsFallback = chunk.filter(id => {
       const item = out[id];
-      return !item || isFallbackAssetName(item.name, id) || !item.creatorName || !getAssetTypeName(item);
+
+      return (
+        !item ||
+        isFallbackAssetName(item.name, id) ||
+        !item.creatorName ||
+        !getAssetTypeName(item) ||
+        item.price === null ||
+        item.price === undefined
+      );
     });
 
     if (needsFallback.length) {
-      const results = await Promise.allSettled(needsFallback.map(async id => {
-        const data = await robloxJson(`https://economy.roblox.com/v2/assets/${id}/details`, {}, `economy asset ${id}`);
-        return normalizeAsset({ ...data, id, detailsSource: "economy" });
-      }));
+      const results = await Promise.allSettled(
+        needsFallback.map(async id => {
+          const data = await robloxJson(
+            `https://economy.roblox.com/v2/assets/${id}/details`,
+            {},
+            `economy asset ${id}`
+          );
+
+          return normalizeAsset({
+            ...data,
+            id,
+            detailsSource: "economy"
+          });
+        })
+      );
 
       results.forEach((result, index) => {
         const id = needsFallback[index];
 
         if (result.status === "fulfilled") {
           out[id] = mergeAssetDetails(out[id], result.value);
-          if (!isFallbackAssetName(out[id].name, id)) economyNamed += 1;
+
+          if (!isFallbackAssetName(out[id].name, id)) {
+            economyNamed += 1;
+          }
         } else if (!out[id]) {
-          out[id] = normalizeAsset({ id, name: `Asset ${id}`, detailsSource: "fallback" });
+          out[id] = normalizeAsset({
+            id,
+            name: `Asset ${id}`,
+            detailsSource: "fallback"
+          });
         }
       });
     }
 
-    const needsLegacy = chunk.filter(id => !out[id] || isFallbackAssetName(out[id].name, id));
+    const needsLegacy = chunk.filter(id => {
+      const item = out[id];
+
+      return (
+        !item ||
+        isFallbackAssetName(item.name, id) ||
+        item.price === null ||
+        item.price === undefined
+      );
+    });
 
     if (needsLegacy.length) {
-      const legacyResults = await Promise.allSettled(needsLegacy.map(async id => {
-        const data = await robloxJson(`https://api.roblox.com/marketplace/productinfo?assetId=${id}`, {}, `legacy product info ${id}`);
-        return normalizeAsset({ ...data, id, detailsSource: "legacy-productinfo" });
-      }));
+      const legacyResults = await Promise.allSettled(
+        needsLegacy.map(async id => {
+          const data = await robloxJson(
+            `https://api.roblox.com/marketplace/productinfo?assetId=${id}`,
+            {},
+            `legacy product info ${id}`
+          );
+
+          return normalizeAsset({
+            ...data,
+            id,
+            detailsSource: "legacy-productinfo"
+          });
+        })
+      );
 
       legacyResults.forEach((result, index) => {
         const id = needsLegacy[index];
 
         if (result.status === "fulfilled") {
           out[id] = mergeAssetDetails(out[id], result.value);
-          if (!isFallbackAssetName(out[id].name, id)) legacyNamed += 1;
+
+          if (!isFallbackAssetName(out[id].name, id)) {
+            legacyNamed += 1;
+          }
         }
       });
     }
 
     for (const id of chunk) {
       if (!out[id]) {
-        out[id] = normalizeAsset({ id, name: `Asset ${id}`, detailsSource: "fallback" });
+        out[id] = normalizeAsset({
+          id,
+          name: `Asset ${id}`,
+          detailsSource: "fallback"
+        });
       }
 
       if (isFallbackAssetName(out[id].name, id)) {
@@ -554,7 +682,9 @@ async function getCatalogDetails(assetIds, logs = []) {
   }
 
   if (assetIds.length) {
-    logs.push(`Item detail lookup: catalog named ${catalogNamed}, economy fallback named ${economyNamed}, legacy fallback named ${legacyNamed}, still unnamed ${missingAfterFallback}.`);
+    logs.push(
+      `Item detail lookup: catalog named ${catalogNamed}, economy fallback named ${economyNamed}, legacy fallback named ${legacyNamed}, still unnamed ${missingAfterFallback}.`
+    );
   }
 
   return out;
@@ -562,26 +692,117 @@ async function getCatalogDetails(assetIds, logs = []) {
 
 function normalizeAsset(item = {}) {
   const id = Number(item.id || item.Id || item.assetId || item.AssetId || item.targetId);
-  const creatorName = item.creatorName || item.creatorTargetName || item.creator?.name || item.creator?.Name || item.Creator?.Name || null;
-  const creatorId = item.creatorId || item.creatorTargetId || item.creator?.id || item.creator?.Id || item.Creator?.Id || null;
-  const rawTypeId = Number(item.assetTypeId || item.AssetTypeId || item.assetType?.id || item.assetType?.Id);
-  const typeName = item.assetType?.name || item.assetType?.Name || item.assetTypeName || ASSET_TYPE_NAMES[rawTypeId] || item.itemType || "Asset";
-  const rawName = item.name || item.Name || item.assetName || item.AssetName || "";
+
+  const creatorName =
+    item.creatorName ||
+    item.creatorTargetName ||
+    item.creator?.name ||
+    item.creator?.Name ||
+    item.Creator?.Name ||
+    item.creator?.creatorName ||
+    null;
+
+  const creatorId =
+    item.creatorId ||
+    item.creatorTargetId ||
+    item.creator?.id ||
+    item.creator?.Id ||
+    item.Creator?.Id ||
+    item.creator?.creatorId ||
+    null;
+
+  const rawTypeId = Number(
+    item.assetTypeId ||
+    item.AssetTypeId ||
+    item.assetType?.id ||
+    item.assetType?.Id
+  );
+
+  const typeName =
+    item.assetType?.name ||
+    item.assetType?.Name ||
+    item.assetTypeName ||
+    ASSET_TYPE_NAMES[rawTypeId] ||
+    item.itemType ||
+    "Asset";
+
+  const rawName =
+    item.name ||
+    item.Name ||
+    item.assetName ||
+    item.AssetName ||
+    "";
+
+  const price = firstNumber(
+    item.price,
+    item.Price,
+    item.priceInRobux,
+    item.PriceInRobux,
+    item.robuxPrice,
+    item.RobuxPrice,
+    item.lowestPrice,
+    item.lowestResalePrice,
+    item.LowestPrice
+  );
+
+  const lowestPrice = firstNumber(
+    item.lowestPrice,
+    item.lowestResalePrice,
+    item.LowestPrice,
+    item.resaleLowestPrice
+  );
+
+  const priceStatus =
+    item.priceStatus ||
+    item.PriceStatus ||
+    item.saleStatus ||
+    item.SaleStatus ||
+    null;
+
+  const isForSale =
+    item.isForSale ??
+    item.IsForSale ??
+    item.forSale ??
+    item.ForSale ??
+    null;
+
+  const itemRestrictions = Array.isArray(item.itemRestrictions)
+    ? item.itemRestrictions
+    : [];
+
+  const isLimited = Boolean(
+    item.isLimited ||
+    item.IsLimited ||
+    item.isLimitedUnique ||
+    item.IsLimitedUnique ||
+    itemRestrictions.includes("Limited") ||
+    itemRestrictions.includes("LimitedUnique")
+  );
+
+  const isFree =
+    price === 0 ||
+    item.isPublicDomain === true ||
+    item.IsPublicDomain === true ||
+    String(priceStatus || "").toLowerCase() === "free";
 
   return {
     ...item,
     id,
     name: rawName || `Asset ${id}`,
     itemType: item.itemType || "Asset",
-    assetType: item.assetType || (typeName ? {
+    assetType: item.assetType || {
       id: Number.isFinite(rawTypeId) ? rawTypeId : undefined,
       name: typeName
-    } : null),
+    },
     assetTypeName: typeName,
     creatorName,
     creatorId,
-    price: item.price ?? item.PriceInRobux ?? item.priceInRobux ?? item.Price ?? null,
-    lowestPrice: item.lowestPrice ?? item.lowestResalePrice ?? item.LowestPrice ?? null,
+    price,
+    lowestPrice,
+    priceStatus,
+    isForSale,
+    isLimited,
+    isFree,
     detailsSource: item.detailsSource || item.source || null
   };
 }
@@ -614,15 +835,29 @@ function mergeAssetDetails(base = {}, extra = {}) {
       ? extraTypeName
       : (baseTypeName || ASSET_TYPE_NAMES[rawTypeId] || "Asset");
 
-  const merged = {
+  return {
     ...base,
     ...extra,
     id,
     name: bestName,
-    creatorName: extra.creatorName || base.creatorName || extra.creator?.name || base.creator?.name || null,
-    creatorId: extra.creatorId || base.creatorId || extra.creator?.id || base.creator?.id || null,
+    creatorName:
+      extra.creatorName ||
+      base.creatorName ||
+      extra.creator?.name ||
+      base.creator?.name ||
+      null,
+    creatorId:
+      extra.creatorId ||
+      base.creatorId ||
+      extra.creator?.id ||
+      base.creator?.id ||
+      null,
     price: extra.price ?? base.price ?? null,
     lowestPrice: extra.lowestPrice ?? base.lowestPrice ?? null,
+    priceStatus: extra.priceStatus || base.priceStatus || null,
+    isForSale: extra.isForSale ?? base.isForSale ?? null,
+    isLimited: extra.isLimited ?? base.isLimited ?? false,
+    isFree: extra.isFree ?? base.isFree ?? false,
     detailsSource: extra.detailsSource || base.detailsSource || null,
     assetType: extra.assetType || base.assetType || {
       id: Number.isFinite(rawTypeId) ? rawTypeId : undefined,
@@ -630,18 +865,23 @@ function mergeAssetDetails(base = {}, extra = {}) {
     },
     assetTypeName: bestType
   };
-
-  return merged;
 }
 
 function getAssetTypeName(item = {}) {
-  const rawTypeId = Number(item.assetType?.id || item.assetType?.Id || item.assetTypeId || item.AssetTypeId);
+  const rawTypeId = Number(
+    item.assetType?.id ||
+    item.assetType?.Id ||
+    item.assetTypeId ||
+    item.AssetTypeId
+  );
 
-  return item.assetType?.name ||
+  return (
+    item.assetType?.name ||
     item.assetType?.Name ||
     item.assetTypeName ||
     ASSET_TYPE_NAMES[rawTypeId] ||
-    null;
+    null
+  );
 }
 
 function isFallbackAssetName(name, id) {
@@ -656,21 +896,45 @@ function isFallbackAssetName(name, id) {
 
 function pickAssetName(id, ...items) {
   for (const item of items) {
-    const name = item?.name || item?.Name || item?.assetName || item?.AssetName;
+    const name =
+      item?.name ||
+      item?.Name ||
+      item?.assetName ||
+      item?.AssetName;
 
     if (!isFallbackAssetName(name, id)) {
       return name;
     }
   }
 
+  const typeName = getAssetTypeName(items.find(Boolean) || {});
+
+  if (typeName && typeName !== "Asset") {
+    return `${typeName} #${id}`;
+  }
+
   return `Asset ${id}`;
+}
+
+function firstNumber(...values) {
+  for (const value of values) {
+    if (value === undefined || value === null || value === "") continue;
+
+    const n = Number(value);
+
+    if (Number.isFinite(n)) {
+      return n;
+    }
+  }
+
+  return null;
 }
 
 async function robloxJson(url, opts = {}, label = "Roblox API") {
   const method = opts.method || "GET";
 
   const headers = {
-    "accept": "application/json",
+    accept: "application/json",
     ...(method !== "GET" ? { "content-type": "application/json" } : {}),
     ...(opts.headers || {})
   };
@@ -696,17 +960,27 @@ async function robloxJson(url, opts = {}, label = "Roblox API") {
   try {
     data = text ? JSON.parse(text) : {};
   } catch {
-    data = { raw: text.slice(0, 500) };
+    data = {
+      raw: text.slice(0, 500)
+    };
   }
 
   if (!res.ok) {
-    const msg = data.errors?.[0]?.message ||
+    const msg =
+      data.errors?.[0]?.message ||
       data.error ||
       data.message ||
       `${method} ${url} failed with HTTP ${res.status}`;
 
     const err = new Error(`${label}: ${msg}`);
-    err.status = res.status === 404 ? 404 : (res.status === 429 ? 429 : 502);
+
+    err.status =
+      res.status === 404
+        ? 404
+        : res.status === 429
+          ? 429
+          : 502;
+
     err.details = {
       robloxStatus: res.status,
       url,
@@ -784,5 +1058,8 @@ function duplicateCounts(arr) {
 
   return [...counts.entries()]
     .filter(([, count]) => count > 1)
-    .map(([id, count]) => ({ id, count }));
+    .map(([id, count]) => ({
+      id,
+      count
+    }));
 }
