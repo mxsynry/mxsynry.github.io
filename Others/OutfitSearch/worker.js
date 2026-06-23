@@ -150,6 +150,7 @@ async function resolveUsers(rawQuery) {
         logs.push(`Extra duplicate-friendly search for "${q}" failed: ${err.message}`);
         return [];
       });
+
       users.push(...searchMatches);
       if (searchMatches.length) logs.push(`Extra search found ${searchMatches.length} exact-name match(es) for "${q}".`);
     } catch (err) {
@@ -158,6 +159,7 @@ async function resolveUsers(rawQuery) {
   }
 
   const deduped = uniqueBy(users, u => u.id).filter(u => Number.isSafeInteger(u.id));
+
   return {
     ok: true,
     users: deduped,
@@ -192,6 +194,7 @@ async function getReport(userId) {
   ]);
 
   const avatarAssets = Array.isArray(avatar.assets) ? avatar.assets : [];
+
   const currentIdsRaw = [
     ...(currently.assetIds || []),
     ...avatarAssets.map(a => a.id)
@@ -199,9 +202,13 @@ async function getReport(userId) {
 
   const duplicatedIds = duplicateCounts(currentIdsRaw);
   const assetIds = unique(currentIdsRaw);
-  if (duplicatedIds.length) logs.push(`Removed duplicate currently-wearing IDs: ${duplicatedIds.map(x => `${x.id} x${x.count}`).join(", ")}.`);
+
+  if (duplicatedIds.length) {
+    logs.push(`Removed duplicate currently-wearing IDs: ${duplicatedIds.map(x => `${x.id} x${x.count}`).join(", ")}.`);
+  }
 
   const avatarAssetMap = mapBy(avatarAssets, a => a.id);
+
   if (avatarAssets.length) {
     const avatarNamed = avatarAssets.filter(a => !isFallbackAssetName(a.name || a.Name || a.assetName || a.AssetName, a.id)).length;
     logs.push(`Avatar details returned ${avatarAssets.length} asset record(s), ${avatarNamed} with public names.`);
@@ -225,6 +232,7 @@ async function getReport(userId) {
   const currentlyWearing = assetIds.map(id => {
     const fromAvatar = avatarAssetMap[id] || {};
     const fromCatalog = catalogDetails[id] || {};
+
     return normalizeAsset({
       id,
       ...fromAvatar,
@@ -239,6 +247,7 @@ async function getReport(userId) {
   const normalizedOutfits = outfits.map(o => {
     const imageUrl = outfitThumbs[o.id]?.imageUrl || null;
     const imageKind = thumbnailKind(imageUrl);
+
     return {
       ...o,
       imageUrl,
@@ -270,6 +279,7 @@ async function getReport(userId) {
 async function getOutfitDetails(outfitId) {
   assertId(outfitId, "Roblox outfit ID");
   const logs = [];
+
   const detail = await robloxJson(`https://avatar.roblox.com/v3/outfits/${outfitId}/details`, {}, "outfit details");
   const rawAssets = Array.isArray(detail.assets) ? detail.assets : [];
   const ids = unique(rawAssets.map(a => a.id).filter(Number.isFinite));
@@ -316,18 +326,29 @@ async function usersByUsernames(usernames) {
     method: "POST",
     body: JSON.stringify({ usernames, excludeBannedUsers: false })
   }, "username lookup");
+
   return data.data || [];
 }
 
 async function searchUsers(keyword, exactOnly) {
   if (!keyword) return [];
-  const data = await robloxJson(`https://users.roblox.com/v1/users/search?keyword=${encodeURIComponent(keyword)}&limit=${MAX_SEARCH_RESULTS}`, {}, "user search");
+
+  const data = await robloxJson(
+    `https://users.roblox.com/v1/users/search?keyword=${encodeURIComponent(keyword)}&limit=${MAX_SEARCH_RESULTS}`,
+    {},
+    "user search"
+  );
+
   const list = data.data || [];
-  return exactOnly ? list.filter(u => (u.name || "").toLowerCase() === keyword.toLowerCase()) : list;
+
+  return exactOnly
+    ? list.filter(u => (u.name || "").toLowerCase() === keyword.toLowerCase())
+    : list;
 }
 
 async function getOutfits(userId) {
   assertId(userId, "Roblox user ID");
+
   const all = [];
   let cursor = "";
 
@@ -335,11 +356,15 @@ async function getOutfits(userId) {
     const qs = cursor
       ? `itemsPerPage=100&cursor=${encodeURIComponent(cursor)}`
       : `itemsPerPage=100&page=${page}`;
+
     const data = await robloxJson(`https://avatar.roblox.com/v1/users/${userId}/outfits?${qs}`, {}, "saved outfits");
     all.push(...(data.data || []));
 
-    if (data.nextPageCursor) cursor = data.nextPageCursor;
-    else if (!data.data || data.data.length < 100) break;
+    if (data.nextPageCursor) {
+      cursor = data.nextPageCursor;
+    } else if (!data.data || data.data.length < 100) {
+      break;
+    }
   }
 
   return uniqueBy(all, o => o.id).slice(0, MAX_OUTFITS);
@@ -348,27 +373,49 @@ async function getOutfits(userId) {
 async function getUserAvatarThumbnails(userIds) {
   const ids = unique(userIds);
   if (!ids.length) return {};
-  const data = await robloxJson(`https://thumbnails.roblox.com/v1/users/avatar?userIds=${ids.join(",")}&size=420x420&format=Png&isCircular=false`, {}, "user avatar thumbnails");
+
+  const data = await robloxJson(
+    `https://thumbnails.roblox.com/v1/users/avatar?userIds=${ids.join(",")}&size=420x420&format=Png&isCircular=false`,
+    {},
+    "user avatar thumbnails"
+  );
+
   return mapBy(data.data || [], x => x.targetId);
 }
 
 async function getAssetThumbnails(assetIds) {
   const out = {};
+
   for (const chunk of chunks(unique(assetIds), 100)) {
     if (!chunk.length) continue;
-    const data = await robloxJson(`https://thumbnails.roblox.com/v1/assets?assetIds=${chunk.join(",")}&returnPolicy=PlaceHolder&size=150x150&format=Png&isCircular=false`, {}, "asset thumbnails");
+
+    const data = await robloxJson(
+      `https://thumbnails.roblox.com/v1/assets?assetIds=${chunk.join(",")}&returnPolicy=PlaceHolder&size=150x150&format=Png&isCircular=false`,
+      {},
+      "asset thumbnails"
+    );
+
     Object.assign(out, mapBy(data.data || [], x => x.targetId));
   }
+
   return out;
 }
 
 async function getOutfitThumbnails(outfitIds) {
   const out = {};
+
   for (const chunk of chunks(unique(outfitIds), 100)) {
     if (!chunk.length) continue;
-    const data = await robloxJson(`https://thumbnails.roblox.com/v1/users/outfits?userOutfitIds=${chunk.join(",")}&size=150x150&format=Png&isCircular=false`, {}, "outfit thumbnails");
+
+    const data = await robloxJson(
+      `https://thumbnails.roblox.com/v1/users/outfits?userOutfitIds=${chunk.join(",")}&size=150x150&format=Png&isCircular=false`,
+      {},
+      "outfit thumbnails"
+    );
+
     Object.assign(out, mapBy(data.data || [], x => x.targetId));
   }
+
   return out;
 }
 
@@ -437,11 +484,14 @@ async function getCatalogDetails(assetIds, logs = []) {
     try {
       const data = await robloxJson("https://catalog.roblox.com/v1/catalog/items/details", {
         method: "POST",
-        body: JSON.stringify({ items: chunk.map(id => ({ itemType: "Asset", id })) })
+        body: JSON.stringify({
+          items: chunk.map(id => ({ itemType: "Asset", id }))
+        })
       }, "catalog batch details");
 
       for (const item of data.data || []) {
         const normalized = normalizeAsset({ ...item, detailsSource: "catalog" });
+
         if (Number.isFinite(normalized.id)) {
           out[normalized.id] = mergeAssetDetails(out[normalized.id], normalized);
           if (!isFallbackAssetName(out[normalized.id].name, normalized.id)) catalogNamed += 1;
@@ -451,8 +501,6 @@ async function getCatalogDetails(assetIds, logs = []) {
       logs.push(`Catalog batch details failed for ${chunk.length} item(s): ${err.message}`);
     }
 
-    // The catalog batch endpoint often skips classic body parts, layered clothing pieces,
-    // or older assets. Fetch only the missing/weak entries from the economy endpoint.
     const needsFallback = chunk.filter(id => {
       const item = out[id];
       return !item || isFallbackAssetName(item.name, id) || !item.creatorName || !getAssetTypeName(item);
@@ -466,6 +514,7 @@ async function getCatalogDetails(assetIds, logs = []) {
 
       results.forEach((result, index) => {
         const id = needsFallback[index];
+
         if (result.status === "fulfilled") {
           out[id] = mergeAssetDetails(out[id], result.value);
           if (!isFallbackAssetName(out[id].name, id)) economyNamed += 1;
@@ -476,6 +525,7 @@ async function getCatalogDetails(assetIds, logs = []) {
     }
 
     const needsLegacy = chunk.filter(id => !out[id] || isFallbackAssetName(out[id].name, id));
+
     if (needsLegacy.length) {
       const legacyResults = await Promise.allSettled(needsLegacy.map(async id => {
         const data = await robloxJson(`https://api.roblox.com/marketplace/productinfo?assetId=${id}`, {}, `legacy product info ${id}`);
@@ -484,6 +534,7 @@ async function getCatalogDetails(assetIds, logs = []) {
 
       legacyResults.forEach((result, index) => {
         const id = needsLegacy[index];
+
         if (result.status === "fulfilled") {
           out[id] = mergeAssetDetails(out[id], result.value);
           if (!isFallbackAssetName(out[id].name, id)) legacyNamed += 1;
@@ -492,8 +543,13 @@ async function getCatalogDetails(assetIds, logs = []) {
     }
 
     for (const id of chunk) {
-      if (!out[id]) out[id] = normalizeAsset({ id, name: `Asset ${id}`, detailsSource: "fallback" });
-      if (isFallbackAssetName(out[id].name, id)) missingAfterFallback += 1;
+      if (!out[id]) {
+        out[id] = normalizeAsset({ id, name: `Asset ${id}`, detailsSource: "fallback" });
+      }
+
+      if (isFallbackAssetName(out[id].name, id)) {
+        missingAfterFallback += 1;
+      }
     }
   }
 
@@ -517,7 +573,10 @@ function normalizeAsset(item = {}) {
     id,
     name: rawName || `Asset ${id}`,
     itemType: item.itemType || "Asset",
-    assetType: item.assetType || (typeName ? { id: Number.isFinite(rawTypeId) ? rawTypeId : undefined, name: typeName } : null),
+    assetType: item.assetType || (typeName ? {
+      id: Number.isFinite(rawTypeId) ? rawTypeId : undefined,
+      name: typeName
+    } : null),
     assetTypeName: typeName,
     creatorName,
     creatorId,
@@ -531,9 +590,29 @@ function mergeAssetDetails(base = {}, extra = {}) {
   const id = Number(extra.id || base.id);
   const baseName = base.name || base.Name;
   const extraName = extra.name || extra.Name;
+
   const bestName = !isFallbackAssetName(extraName, id)
     ? extraName
     : (!isFallbackAssetName(baseName, id) ? baseName : `Asset ${id}`);
+
+  const extraTypeName = getAssetTypeName(extra);
+  const baseTypeName = getAssetTypeName(base);
+
+  const rawTypeId = Number(
+    extra.assetType?.id ||
+    extra.assetType?.Id ||
+    extra.assetTypeId ||
+    extra.AssetTypeId ||
+    base.assetType?.id ||
+    base.assetType?.Id ||
+    base.assetTypeId ||
+    base.AssetTypeId
+  );
+
+  const bestType =
+    extraTypeName && extraTypeName !== "Asset"
+      ? extraTypeName
+      : (baseTypeName || ASSET_TYPE_NAMES[rawTypeId] || "Asset");
 
   const merged = {
     ...base,
@@ -544,42 +623,52 @@ function mergeAssetDetails(base = {}, extra = {}) {
     creatorId: extra.creatorId || base.creatorId || extra.creator?.id || base.creator?.id || null,
     price: extra.price ?? base.price ?? null,
     lowestPrice: extra.lowestPrice ?? base.lowestPrice ?? null,
-    detailsSource: extra.detailsSource || base.detailsSource || null
+    detailsSource: extra.detailsSource || base.detailsSource || null,
+    assetType: extra.assetType || base.assetType || {
+      id: Number.isFinite(rawTypeId) ? rawTypeId : undefined,
+      name: bestType
+    },
+    assetTypeName: bestType
   };
-
-  const extraTypeName = getAssetTypeName(extra);
-  const baseTypeName = getAssetTypeName(base);
-  const rawTypeId = Number(extra.assetType?.id || extra.assetType?.Id || extra.assetTypeId || extra.AssetTypeId || base.assetType?.id || base.assetType?.Id || base.assetTypeId || base.AssetTypeId);
-  const bestType = extraTypeName && extraTypeName !== "Asset" ? extraTypeName : (baseTypeName || ASSET_TYPE_NAMES[rawTypeId] || "Asset");
-  merged.assetType = extra.assetType || base.assetType || { id: Number.isFinite(rawTypeId) ? rawTypeId : undefined, name: bestType };
-  merged.assetTypeName = bestType;
 
   return merged;
 }
 
 function getAssetTypeName(item = {}) {
   const rawTypeId = Number(item.assetType?.id || item.assetType?.Id || item.assetTypeId || item.AssetTypeId);
-  return item.assetType?.name || item.assetType?.Name || item.assetTypeName || ASSET_TYPE_NAMES[rawTypeId] || null;
+
+  return item.assetType?.name ||
+    item.assetType?.Name ||
+    item.assetTypeName ||
+    ASSET_TYPE_NAMES[rawTypeId] ||
+    null;
 }
 
 function isFallbackAssetName(name, id) {
   const s = String(name || "").trim();
+
   if (!s) return true;
   if (/^asset$/i.test(s)) return true;
   if (/^asset\s+\d+$/i.test(s)) return true;
+
   return Number.isFinite(Number(id)) && s === `Asset ${id}`;
 }
 
 function pickAssetName(id, ...items) {
   for (const item of items) {
     const name = item?.name || item?.Name || item?.assetName || item?.AssetName;
-    if (!isFallbackAssetName(name, id)) return name;
+
+    if (!isFallbackAssetName(name, id)) {
+      return name;
+    }
   }
+
   return `Asset ${id}`;
 }
 
 async function robloxJson(url, opts = {}, label = "Roblox API") {
   const method = opts.method || "GET";
+
   const headers = {
     "accept": "application/json",
     ...(method !== "GET" ? { "content-type": "application/json" } : {}),
@@ -587,8 +676,13 @@ async function robloxJson(url, opts = {}, label = "Roblox API") {
   };
 
   let res;
+
   try {
-    res = await fetch(url, { method, headers, body: opts.body });
+    res = await fetch(url, {
+      method,
+      headers,
+      body: opts.body
+    });
   } catch (err) {
     const e = new Error(`${label} network error: ${err.message}`);
     e.status = 502;
@@ -596,7 +690,9 @@ async function robloxJson(url, opts = {}, label = "Roblox API") {
   }
 
   const text = await res.text();
+
   let data;
+
   try {
     data = text ? JSON.parse(text) : {};
   } catch {
@@ -604,10 +700,19 @@ async function robloxJson(url, opts = {}, label = "Roblox API") {
   }
 
   if (!res.ok) {
-    const msg = data.errors?.[0]?.message || data.error || data.message || `${method} ${url} failed with HTTP ${res.status}`;
+    const msg = data.errors?.[0]?.message ||
+      data.error ||
+      data.message ||
+      `${method} ${url} failed with HTTP ${res.status}`;
+
     const err = new Error(`${label}: ${msg}`);
     err.status = res.status === 404 ? 404 : (res.status === 429 ? 429 : 502);
-    err.details = { robloxStatus: res.status, url, preview: typeof data.raw === "string" ? data.raw : undefined };
+    err.details = {
+      robloxStatus: res.status,
+      url,
+      preview: typeof data.raw === "string" ? data.raw : undefined
+    };
+
     throw err;
   }
 
@@ -633,9 +738,14 @@ function unique(arr) {
 
 function uniqueBy(arr, fn) {
   const seen = new Set();
+
   return arr.filter(x => {
     const k = fn(x);
-    if (k === undefined || k === null || seen.has(k)) return false;
+
+    if (k === undefined || k === null || seen.has(k)) {
+      return false;
+    }
+
     seen.add(k);
     return true;
   });
@@ -643,22 +753,35 @@ function uniqueBy(arr, fn) {
 
 function mapBy(arr, fn) {
   const out = {};
+
   for (const item of arr) {
     const key = fn(item);
-    if (key !== undefined && key !== null) out[key] = item;
+
+    if (key !== undefined && key !== null) {
+      out[key] = item;
+    }
   }
+
   return out;
 }
 
 function chunks(arr, size) {
   const out = [];
-  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+
+  for (let i = 0; i < arr.length; i += size) {
+    out.push(arr.slice(i, i + size));
+  }
+
   return out;
 }
 
 function duplicateCounts(arr) {
   const counts = new Map();
-  for (const id of arr) counts.set(id, (counts.get(id) || 0) + 1);
+
+  for (const id of arr) {
+    counts.set(id, (counts.get(id) || 0) + 1);
+  }
+
   return [...counts.entries()]
     .filter(([, count]) => count > 1)
     .map(([id, count]) => ({ id, count }));
