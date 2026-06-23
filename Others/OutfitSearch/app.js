@@ -1,7 +1,12 @@
 const DEFAULT_API_BASE = "https://YOUR-WORKER.workers.dev";
+const API_STORAGE_KEY = "robloxOutfitApiBase";
+
 const apiParam = new URL(location.href).searchParams.get("api");
-if (apiParam) localStorage.setItem("robloxOutfitApiBase", apiParam.replace(/\/$/, ""));
-let API_BASE = (localStorage.getItem("robloxOutfitApiBase") || DEFAULT_API_BASE).replace(/\/$/, "");
+if (apiParam) {
+  localStorage.setItem(API_STORAGE_KEY, apiParam.trim().replace(/\/$/, ""));
+}
+
+let API_BASE = (localStorage.getItem(API_STORAGE_KEY) || DEFAULT_API_BASE).replace(/\/$/, "");
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const results = $("#results");
@@ -11,17 +16,54 @@ const queryInput = $("#query");
 const searchBtn = $("#searchBtn");
 const setupPanel = $("#setupPanel");
 const apiBaseInput = $("#apiBaseInput");
+const apiStatus = $("#apiStatus");
+const changeApiBtn = $("#changeApiBtn");
+const saveApiBtn = $("#saveApiBtn");
 
-apiBaseInput.value = API_BASE === DEFAULT_API_BASE ? "" : API_BASE;
-setupPanel.style.display = API_BASE === DEFAULT_API_BASE ? "block" : "none";
+function hasConfiguredApi() {
+  return API_BASE && API_BASE !== DEFAULT_API_BASE;
+}
 
-$("#saveApiBtn").addEventListener("click", () => {
+function refreshApiUi(message = "") {
+  apiBaseInput.value = hasConfiguredApi() ? API_BASE : "";
+  setupPanel.style.display = hasConfiguredApi() ? "none" : "block";
+  changeApiBtn.style.display = hasConfiguredApi() ? "inline-flex" : "none";
+  apiStatus.textContent = message || (hasConfiguredApi() ? `Saved API: ${API_BASE}` : "No API saved yet.");
+}
+
+refreshApiUi();
+
+saveApiBtn.addEventListener("click", async () => {
   const v = apiBaseInput.value.trim().replace(/\/$/, "");
-  if (!/^https:\/\//i.test(v)) return setStatus("Use a full https:// Worker URL.", true);
-  localStorage.setItem("robloxOutfitApiBase", v);
+
+  if (!/^https:\/\//i.test(v)) {
+    return setStatus("Use a full https:// Cloudflare Worker URL.", true);
+  }
+
+  if (v.includes("github.io")) {
+    return setStatus("That looks like a GitHub Pages URL. Paste your Cloudflare Worker URL instead.", true);
+  }
+
+  localStorage.setItem(API_STORAGE_KEY, v);
   API_BASE = v;
-  setupPanel.style.display = "none";
-  setStatus("API saved. You can search now.");
+  refreshApiUi("API saved. Checking connection…");
+
+  try {
+    await api("/api/health");
+    setStatus("API saved and connected. You can search now.");
+  } catch (err) {
+    setupPanel.style.display = "block";
+    setStatus(cleanError(err), true);
+  }
+});
+
+changeApiBtn.addEventListener("click", () => {
+  localStorage.removeItem(API_STORAGE_KEY);
+  API_BASE = DEFAULT_API_BASE;
+  results.innerHTML = "";
+  refreshApiUi("API setting cleared. Paste your Cloudflare Worker URL again.");
+  setStatus("API setting cleared. Paste your Cloudflare Worker URL again.");
+  apiBaseInput.focus();
 });
 
 $("#themeBtn").addEventListener("click", () => {
@@ -34,18 +76,23 @@ searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const q = queryInput.value.trim();
   if (!q) return;
-  if (API_BASE === DEFAULT_API_BASE) return setStatus("Set your Cloudflare Worker URL first.", true);
+  if (!hasConfiguredApi()) return setStatus("Set your Cloudflare Worker URL first.", true);
+
   results.innerHTML = "";
   setStatus("Resolving account(s)…");
   searchBtn.disabled = true;
+
   try {
     const resolved = await api(`/api/resolve?q=${encodeURIComponent(q)}`);
     const candidates = uniqueBy((resolved.users || []), u => u.id);
+
     if (!candidates.length) {
       setStatus("No matching public Roblox users found.", true);
       return;
     }
+
     setStatus(`Found ${candidates.length} account(s). Loading outfit data…`);
+
     for (const user of candidates) {
       try {
         const report = await api(`/api/report/${user.id}`);
@@ -54,6 +101,7 @@ searchForm.addEventListener("submit", async (event) => {
         renderErrorCard(user, err);
       }
     }
+
     setStatus(`Done. Showing ${candidates.length} account(s).`);
   } catch (err) {
     setStatus(cleanError(err), true);
@@ -63,24 +111,60 @@ searchForm.addEventListener("submit", async (event) => {
 });
 
 async function api(path) {
-  const res = await fetch(`${API_BASE}${path}`);
+  const url = `${API_BASE}${path}`;
+  let res;
+
+  try {
+    res = await fetch(url, { method: "GET" });
+  } catch (err) {
+    throw new Error(`Could not connect to ${API_BASE}. Check that your Worker URL is correct and deployed.`);
+  }
+
   const text = await res.text();
   let data;
-  try { data = text ? JSON.parse(text) : {}; } catch { data = { error: text }; }
-  if (!res.ok) throw new Error(data.error || data.message || `HTTP ${res.status}`);
+
+  try {
+    data = text ? JSON.parse(text) : {};
+  } catch {
+    const preview = text.slice(0, 160).replace(/\s+/g, " ");
+
+    if (looksLikeGithub404(text, res)) {
+      throw new Error("The saved API URL is returning a GitHub Pages 404 page, not your Cloudflare Worker. Click Change API and paste your Worker URL.");
+    }
+
+    if (text.trim().startsWith("<")) {
+      throw new Error(`The API returned HTML instead of JSON. Your saved API URL is probably wrong: ${API_BASE}`);
+    }
+
+    throw new Error(`The API returned non-JSON text: ${preview}`);
+  }
+
+  if (!res.ok) {
+    const message = data.error || data.message || data.errors?.[0]?.message || `HTTP ${res.status}`;
+    throw new Error(message);
+  }
+
   return data;
+}
+
+function looksLikeGithub404(text, res) {
+  return (
+    res.status === 404 &&
+    (text.includes("Page not found") || text.includes("GitHub Pages") || text.includes("File not found"))
+  );
 }
 
 function renderUser(report) {
   const tpl = $("#userCardTpl").content.cloneNode(true);
-  const card = $(".user-card", tpl);
   const p = report.profile || {};
   const avatarUrl = report.avatarThumbnail?.imageUrl || "";
+
   $(".avatar-img", tpl).src = avatarUrl;
   $(".profile-title", tpl).textContent = `${p.displayName || p.name || "Unknown"} ${p.hasVerifiedBadge ? "✓" : ""}`;
   $(".profile-meta", tpl).textContent = `@${p.name || "unknown"} • ID ${p.id} • joined ${formatDate(p.created)}`;
   $(".profile-link", tpl).href = `https://www.roblox.com/users/${p.id}/profile`;
   $(".description-text", tpl).textContent = p.description || "No public description.";
+
   const chips = $(".chips", tpl);
   chips.append(chip(`Display: ${p.displayName || "—"}`));
   chips.append(chip(`Username: ${p.name || "—"}`));
@@ -111,6 +195,7 @@ function assetCard(item) {
   const creator = escapeHtml(item.creatorName || item.creator?.name || "Unknown creator");
   const price = item.price !== undefined && item.price !== null ? `${item.price} Robux` : (item.lowestPrice ? `${item.lowestPrice} Robux+` : "Price unavailable");
   const type = escapeHtml(item.assetType?.name || item.itemType || "Asset");
+
   el.innerHTML = `
     <img src="${img}" alt="${name}" loading="lazy">
     <div class="asset-body">
@@ -123,6 +208,7 @@ function assetCard(item) {
         <button class="small-btn" type="button" data-copy="${item.id}">Copy ID</button>
       </div>
     </div>`;
+
   $("[data-copy]", el).addEventListener("click", () => navigator.clipboard?.writeText(String(item.id)));
   return el;
 }
@@ -131,6 +217,7 @@ function outfitCard(outfit) {
   const el = document.createElement("article");
   el.className = "outfit";
   const name = escapeHtml(outfit.name || `Outfit ${outfit.id}`);
+
   el.innerHTML = `
     <img src="${escapeAttr(outfit.imageUrl || "")}" alt="${name}" loading="lazy">
     <div class="outfit-body">
@@ -140,13 +227,16 @@ function outfitCard(outfit) {
         <button class="small-btn" type="button">View items</button>
       </div>
     </div>`;
+
   $("button", el).addEventListener("click", async () => {
     const existing = el.nextElementSibling;
     if (existing?.classList.contains("outfit-assets")) return existing.remove();
+
     const box = document.createElement("div");
     box.className = "outfit-assets";
     box.textContent = "Loading outfit items…";
     el.after(box);
+
     try {
       const detail = await api(`/api/outfit/${outfit.id}`);
       const assets = detail.assets || [];
@@ -161,6 +251,7 @@ function outfitCard(outfit) {
       box.style.color = "var(--danger)";
     }
   });
+
   return el;
 }
 
@@ -177,21 +268,36 @@ function chip(text, kind = "") {
   el.textContent = text;
   return el;
 }
+
 function setStatus(msg, isError = false) {
   statusEl.textContent = msg || "";
   statusEl.classList.toggle("error", Boolean(isError));
 }
-function cleanError(err) { return err?.message || String(err); }
+
+function cleanError(err) {
+  let message = err?.message || String(err);
+  message = message.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
+  if (message.length > 260) message = message.slice(0, 260) + "…";
+  return message;
+}
+
 function uniqueBy(arr, fn) {
   const seen = new Set();
-  return arr.filter(x => { const k = fn(x); if (seen.has(k)) return false; seen.add(k); return true; });
+  return arr.filter(x => {
+    const k = fn(x);
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
 }
+
 function formatDate(value) {
   if (!value) return "unknown";
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return "unknown";
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
+
 function downloadJson(name, data) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
   const url = URL.createObjectURL(blob);
@@ -201,7 +307,11 @@ function downloadJson(name, data) {
   a.click();
   URL.revokeObjectURL(url);
 }
+
 function escapeHtml(v) {
-  return String(v ?? "").replace(/[&<>'"]/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"}[ch]));
+  return String(v ?? "").replace(/[&<>'"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[ch]));
 }
-function escapeAttr(v) { return escapeHtml(v).replace(/`/g, "&#96;"); }
+
+function escapeAttr(v) {
+  return escapeHtml(v).replace(/`/g, "&#96;");
+}

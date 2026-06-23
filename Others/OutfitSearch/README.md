@@ -1,6 +1,8 @@
 # Roblox Outfit Viewer
 
-A GitHub Pages friendly Roblox avatar/outfit viewer. It accepts usernames, user IDs, and multiple comma/newline-separated values. It shows:
+A GitHub Pages friendly Roblox avatar/outfit viewer. It accepts usernames, user IDs, and multiple comma/newline-separated values.
+
+It shows:
 
 - public profile data
 - current full-body avatar thumbnail
@@ -15,37 +17,65 @@ This project is read-only and uses public Roblox endpoints only. Do not add `.RO
 
 GitHub Pages is static, so the browser may be blocked by CORS if it calls Roblox directly. Deploy the included Cloudflare Worker as a tiny proxy/aggregator, then paste the Worker URL into the page.
 
-## Deploy
+## Where to put this in your repo
 
-### 1) GitHub Pages
-
-Upload these files to your repo:
+This ZIP is already structured for your GitHub Pages repo:
 
 ```text
-index.html
-styles.css
-app.js
-README.md
+Others/OutfitSearch/index.html
+Others/OutfitSearch/styles.css
+Others/OutfitSearch/app.js
+Others/OutfitSearch/worker.js
+Others/OutfitSearch/README.md
 ```
 
-Enable Pages in GitHub: Settings → Pages → Deploy from branch → main → root.
+After pushing it, your page should be here:
 
-### 2) Cloudflare Worker
+```text
+https://mxsynry.github.io/Others/OutfitSearch/
+```
 
-Create a Worker and paste `worker.js` into it. Deploy it. Visit:
+## Cloudflare Worker setup
+
+Create a Cloudflare Worker and paste the contents of:
+
+```text
+Others/OutfitSearch/worker.js
+```
+
+Deploy it. Visit:
 
 ```text
 https://your-worker.workers.dev/api/health
 ```
 
-It should return JSON with `ok: true`.
+It should return JSON like:
 
-### 3) Connect the site to the Worker
+```json
+{"ok":true,"name":"roblox-outfit-viewer-api"}
+```
 
-Open your GitHub Pages site and paste the Worker URL into the API setup box, or open:
+## Connect the page to the Worker
+
+Open your GitHub Pages site and paste the Worker URL into the API setup box.
+
+You can also set it through the URL:
 
 ```text
-https://yourname.github.io/yourrepo/?api=https://your-worker.workers.dev
+https://mxsynry.github.io/Others/OutfitSearch/?api=https://your-worker.workers.dev
+```
+
+## Fixing a bad saved API URL
+
+This version includes a **Change API** button.
+
+If you accidentally saved your GitHub Pages URL instead of your Worker URL, click **Change API** and paste the real Cloudflare Worker URL.
+
+You can also clear it manually in the browser console:
+
+```js
+localStorage.removeItem("robloxOutfitApiBase");
+location.reload();
 ```
 
 ## Input examples

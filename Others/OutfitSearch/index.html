@@ -1,3 +1,4 @@
+
 <!doctype html>
 <html lang="en">
 <head>
@@ -14,18 +15,22 @@
       <h1>Roblox Outfit Viewer</h1>
       <p class="lede">Look up public accounts by username or user ID, compare duplicate-looking accounts, and list current avatar items plus saved outfits.</p>
     </div>
-    <button id="themeBtn" class="ghost" type="button" title="Toggle theme">Theme</button>
+    <div class="header-actions">
+      <button id="changeApiBtn" class="ghost" type="button" title="Clear or change the saved API URL">Change API</button>
+      <button id="themeBtn" class="ghost" type="button" title="Toggle theme">Theme</button>
+    </div>
   </header>
 
   <main>
     <section class="panel setup" id="setupPanel">
       <h2>API setup</h2>
-      <p>This GitHub Pages app needs a small Cloudflare Worker because many Roblox API calls are blocked by browser CORS. Paste your Worker URL once and it will be saved locally.</p>
+      <p>This GitHub Pages app needs a small Cloudflare Worker because many Roblox API calls are blocked by browser CORS. Paste your Worker URL once and it will be saved locally in this browser.</p>
       <div class="row">
         <input id="apiBaseInput" placeholder="https://your-worker-name.your-subdomain.workers.dev" />
         <button id="saveApiBtn" type="button">Save API</button>
       </div>
-      <p class="hint">Tip: you can also append <code>?api=https://your-worker.workers.dev</code> to the page URL.</p>
+      <p class="hint">Tip: you can also append <code>?api=https://your-worker.workers.dev</code> to the page URL. Use the <strong>Change API</strong> button if you saved the wrong URL.</p>
+      <p id="apiStatus" class="hint"></p>
     </section>
 
     <section class="panel search-panel">
