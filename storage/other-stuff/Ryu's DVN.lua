@@ -14,7 +14,7 @@ local InterfaceManager = loadstring(game:HttpGet("https://raw.githubusercontent.
 
 local Window = Fluent:CreateWindow{
     Title = "Ryu's Dummies VS Noobs",
-    SubTitle = "Optimized Edition",
+    SubTitle = "i love my husband sm",
     TabWidth = 160,
     Size = UDim2.fromOffset(580, 460),
     Acrylic = true,
@@ -653,7 +653,6 @@ RunService.Heartbeat:Connect(function(dt)
 
     local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
     
-    -- Hitbox Logic (Optimized to avoid setting properties every frame)
     for v, _ in pairs(activeNPCs) do
         if v and v.Parent and v:FindFirstChild("Head") and v:FindFirstChild("HumanoidRootPart") then
             local head = v.Head
@@ -690,14 +689,13 @@ RunService.Heartbeat:Connect(function(dt)
         end
     end
 
-    -- ESP Logic (Throttled creation, optimized property updates)
     if ESP_Config.Enabled then
         local enemyCol = ColorTable[ESP_Config.EnemyColor] or Color3.fromRGB(255,0,0)
         local teamCol = ColorTable[ESP_Config.TeamColor] or Color3.fromRGB(0,100,255)
         local outCol = ColorTable[ESP_Config.OutlineColor] or Color3.fromRGB(255,255,255)
         
         espThrottle = espThrottle + dt
-        if espThrottle >= 0.5 then -- Only scan workspace for new models every 0.5s
+        if espThrottle >= 0.5 then
             espThrottle = 0
             for _, ent in ipairs(Workspace:GetChildren()) do
                 if ent:IsA("Model") and not espCache[ent] and ent:FindFirstChildOfClass("Humanoid") and ent:FindFirstChild("HumanoidRootPart") and ent ~= LocalPlayer.Character then
@@ -1069,7 +1067,7 @@ pcall(function() SaveManager:LoadAutoloadConfig() end)
 SyncSavedSettings()
 
 Window:SelectTab(1)
-Fluent:Notify{Title = "By Nanashi Ryu", Content = "Optimized Edition Loaded.", Duration = 5}
+Fluent:Notify{Title = "By Nanashi Ryu", Content = "Made with Love.", Duration = 5}
 
 if workspace.Camera.Folder.Body then
     workspace.Camera:ClearAllChildren()
