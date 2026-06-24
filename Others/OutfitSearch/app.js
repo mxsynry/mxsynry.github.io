@@ -284,6 +284,9 @@ function renderUser(report) {
   if (!wearing.length) wearingGrid.innerHTML = `<div class="empty">No public currently-wearing assets returned.</div>`;
   for (const item of wearing) wearingGrid.append(assetCard(item));
 
+  const emoteSection = createEmoteSection(report.emotes || [], report.debug?.emoteLogs || []);
+  wearingGrid.closest("section")?.after(emoteSection);
+
   const allOutfits = report.outfits || [];
   const outfitGroups = splitOutfits(allOutfits);
   const outfits = outfitGroups.saved;
@@ -357,6 +360,7 @@ function assetCard(item) {
       <p class="item-meta">${type} • ID ${id}${display.bundleId ? ` • Bundle ${display.bundleId}` : ""}${source}</p>
       <p class="item-meta">${creator}</p>
       <p class="item-meta">${escapeHtml(price)}</p>
+      ${display.componentNote ? `<p class="item-note">${escapeHtml(display.componentNote)}</p>` : ""}
       <div class="item-links">
         <a target="_blank" rel="noopener" href="${url}">${linkLabel}</a>
         <button class="small-btn" type="button" data-copy="${id}">Copy ID</button>
@@ -373,6 +377,28 @@ function getDisplayItem(item = {}) {
   const rawName = item.name || item.Name || "";
   const missingName = isFallbackAssetName(rawName, id);
   const assetType = item.assetType?.name || item.assetType?.Name || item.assetTypeName || item.itemType || "Asset";
+
+  if (item.componentDisplayMode === "pack-component") {
+    const bundleName = bundle?.name || item.bundleName || "Animation pack";
+    return {
+      ...item,
+      id,
+      name: missingName ? fallbackAssetLabel(item, id) : rawName,
+      missingName,
+      creatorName: item.creatorName || bundle?.creatorName || "Roblox",
+      price: null,
+      lowestPrice: null,
+      priceStatus: "Included in pack",
+      isForSale: false,
+      isFree: false,
+      purchasableType: "Bundle",
+      bundleId: bundle?.id || item.bundleId || null,
+      url: bundle?.url || (bundle?.id ? `https://www.roblox.com/bundles/${bundle.id}` : `https://www.roblox.com/catalog/${id}`),
+      metaType: `${assetType} component`,
+      detailsSource: item.detailsSource || "pack-component",
+      componentNote: `Included in ${bundleName}. Not sold as a standalone avatar item.`
+    };
+  }
 
   if (bundle?.id) {
     return {
@@ -433,22 +459,25 @@ function outfitCard(outfit, selectedOutfit, label = "Outfit") {
     try {
       const detail = await api(`/api/outfit/${outfit.id}`);
       addServerLogs(`outfit:${outfit.id}`, detail.debug?.logs);
-      const prepared = prepareDisplayAssets(detail.assets || []);
+      const entryKind = classifyOutfitEntry(outfit);
+      const prepared = prepareDisplayAssets(detail.assets || [], { mode: entryKind === "animation" ? "animationPack" : "normal", outfitName: detail.name || outfit.name || "Animation pack" });
       const assets = prepared.assets;
       selectedOutfit.count.textContent = `${assets.length} item${assets.length === 1 ? "" : "s"}`;
       selectedOutfit.grid.innerHTML = "";
       if (!assets.length) {
-        selectedOutfit.grid.innerHTML = `<div class="empty">No purchasable/displayable assets returned for this outfit.</div>`;
+        selectedOutfit.grid.innerHTML = `<div class="empty">No displayable assets returned for this entry.</div>`;
       } else {
         assets.forEach(a => selectedOutfit.grid.append(assetCard(a)));
         if (prepared.hiddenStandaloneAnimations || prepared.groupedBundleComponents) {
           const note = document.createElement("div");
           note.className = "empty";
-          note.textContent = `Grouped ${prepared.groupedBundleComponents} bundle component(s) and hid ${prepared.hiddenStandaloneAnimations} standalone non-emote animation asset(s).`;
+          note.textContent = prepared.packComponentMode
+            ? `Showing ${prepared.packComponentsShown} animation-pack component(s). Purchase/use the pack itself, not the internal component IDs.`
+            : `Grouped ${prepared.groupedBundleComponents} bundle component(s) and hid ${prepared.hiddenStandaloneAnimations} standalone non-emote animation asset(s).`;
           selectedOutfit.grid.append(note);
         }
       }
-      logSuccess("Outfit items rendered.", { outfitId: outfit.id, assets: assets.length, hiddenStandaloneAnimations: prepared.hiddenStandaloneAnimations, groupedBundleComponents: prepared.groupedBundleComponents });
+      logSuccess("Outfit items rendered.", { outfitId: outfit.id, assets: assets.length, hiddenStandaloneAnimations: prepared.hiddenStandaloneAnimations, groupedBundleComponents: prepared.groupedBundleComponents, packComponentsShown: prepared.packComponentsShown });
     } catch (err) {
       selectedOutfit.count.textContent = "Error";
       selectedOutfit.grid.innerHTML = `<div class="empty danger-text">${escapeHtml(cleanError(err))}</div>`;
@@ -457,6 +486,30 @@ function outfitCard(outfit, selectedOutfit, label = "Outfit") {
   });
 
   return el;
+}
+
+function createEmoteSection(emotes = [], logs = []) {
+  const section = document.createElement("section");
+  section.className = "emote-section";
+  const visible = Array.isArray(emotes) ? emotes.filter(Boolean) : [];
+  const logText = logs.length ? logs.join(" ") : "Roblox did not return public equipped-emote data for this user.";
+  section.innerHTML = `
+    <div class="section-title">
+      <div>
+        <h3>Equipped emotes</h3>
+        <p class="section-note">Only public emote data returned by Roblox is shown here.</p>
+      </div>
+      <span class="pill">${visible.length} ${visible.length === 1 ? "emote" : "emotes"}</span>
+    </div>
+    <div class="asset-grid emote-grid"></div>`;
+
+  const grid = $(".emote-grid", section);
+  if (!visible.length) {
+    grid.innerHTML = `<div class="empty">${escapeHtml(logText)}</div>`;
+  } else {
+    visible.forEach(e => grid.append(assetCard({ ...e, itemType: "Emote", assetTypeName: "Emote Animation" })));
+  }
+  return section;
 }
 
 function splitOutfits(outfits = []) {
@@ -532,18 +585,31 @@ function createCostumeSection(items, selectedOutfit) {
   );
 }
 
-function prepareDisplayAssets(rawAssets = []) {
+function prepareDisplayAssets(rawAssets = [], options = {}) {
+  const mode = options.mode || "normal";
   const assets = uniqueBy(rawAssets, a => Number(a.id || a.assetId));
   const output = [];
   const seenBundles = new Set();
   let hiddenStandaloneAnimations = 0;
   let groupedBundleComponents = 0;
+  let packComponentsShown = 0;
 
   for (const asset of assets) {
     const type = getAssetTypeText(asset);
     const isAnimation = /Animation/i.test(type);
-    const isEmote = /EmoteAnimation/i.test(type);
+    const isEmote = /EmoteAnimation|Emote Animation/i.test(type);
     const bundle = asset.parentBundle;
+
+    if (mode === "animationPack") {
+      output.push({
+        ...asset,
+        componentDisplayMode: "pack-component",
+        parentBundle: bundle || asset.parentBundle || null,
+        bundleName: bundle?.name || options.outfitName || "Animation pack"
+      });
+      packComponentsShown += 1;
+      continue;
+    }
 
     if (isAnimation && !isEmote) {
       if (bundle?.id) {
@@ -570,7 +636,7 @@ function prepareDisplayAssets(rawAssets = []) {
     output.push(asset);
   }
 
-  return { assets: output, hiddenStandaloneAnimations, groupedBundleComponents };
+  return { assets: output, hiddenStandaloneAnimations, groupedBundleComponents, packComponentsShown, packComponentMode: mode === "animationPack" };
 }
 
 function makeBundleDisplayAsset(asset, bundle) {

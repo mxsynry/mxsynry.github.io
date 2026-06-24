@@ -1,7 +1,7 @@
 // Cloudflare Worker for Roblox Outfit Viewer
 // Public, read-only Roblox API proxy. No Roblox cookies, no private tokens.
 
-const WORKER_VERSION = "2026-06-24.2-bundle-pack-filter";
+const WORKER_VERSION = "2026-06-24.3-pack-components-emotes-ui";
 const CACHE_TTL_SECONDS = 20;
 const MAX_INPUTS = 20;
 const MAX_SEARCH_RESULTS = 25;
@@ -238,6 +238,36 @@ async function getReport(userId) {
     });
   });
 
+  const emoteLogs = [];
+  const rawEmotes = await getPublicUserEmotes(userId, avatar, emoteLogs).catch(err => {
+    emoteLogs.push(`Public emote lookup failed: ${err.message}`);
+    return [];
+  });
+  const emoteIds = unique(rawEmotes.map(e => Number(e.id || e.assetId)).filter(Number.isFinite));
+  const rawEmoteMap = mapBy(rawEmotes.map(normalizeAsset), e => e.id);
+  const [emoteThumbs, emoteCatalog] = await Promise.all([
+    getAssetThumbnails(emoteIds).catch(err => {
+      emoteLogs.push(`Emote thumbnails failed: ${err.message}`);
+      return {};
+    }),
+    getCatalogDetails(emoteIds, emoteLogs).catch(err => {
+      emoteLogs.push(`Emote catalog details failed: ${err.message}`);
+      return {};
+    })
+  ]);
+  const emotes = emoteIds.map(id => normalizeAsset({
+    id,
+    ...(rawEmoteMap[id] || {}),
+    ...(emoteCatalog[id] || {}),
+    name: pickAssetName(id, emoteCatalog[id], rawEmoteMap[id]),
+    assetTypeName: "Emote Animation",
+    itemType: "Emote",
+    imageUrl: emoteThumbs[id]?.imageUrl || null,
+    imageKind: thumbnailKind(emoteThumbs[id]?.imageUrl || null)
+  }));
+  if (emotes.length) logs.push(`Loaded ${emotes.length} public equipped emote(s).`);
+  else logs.push(`No public equipped emotes returned. ${emoteLogs.join(" ")}`.trim());
+
   const normalizedOutfits = outfits.map(o => {
     const imageUrl = outfitThumbs[o.id]?.imageUrl || null;
     const imageKind = thumbnailKind(imageUrl);
@@ -251,6 +281,7 @@ async function getReport(userId) {
 
   logs.push(`Loaded profile for @${profile.name || userId}.`);
   logs.push(`Loaded ${currentlyWearing.length} unique currently-wearing item(s).`);
+  logs.push(`Loaded ${emotes.length} emote item(s).`);
   logs.push(`Loaded ${normalizedOutfits.length} saved outfit(s).`);
 
   return {
@@ -258,11 +289,13 @@ async function getReport(userId) {
     profile,
     avatarThumbnail: avatarThumb[userId] || null,
     currentlyWearing,
+    emotes,
     outfits: normalizedOutfits,
     debug: {
       rawCurrentlyWearingCount: currentIdsRaw.length,
       uniqueCurrentlyWearingCount: assetIds.length,
       duplicateIds: duplicatedIds,
+      emoteLogs,
       logs
     },
     fetchedAt: new Date().toISOString()
@@ -630,12 +663,17 @@ function normalizeAsset(item = {}) {
     item.assetType?.Id
   );
 
+  const assetTypeValue = typeof item.assetType === "string" ? item.assetType : "";
   const typeName =
     item.assetType?.name ||
     item.assetType?.Name ||
+    assetTypeValue ||
     item.assetTypeName ||
+    item.AssetTypeName ||
+    item.assetTypeDisplayName ||
+    item.AssetTypeDisplayName ||
     ASSET_TYPE_NAMES[rawTypeId] ||
-    item.itemType ||
+    (item.itemType && item.itemType !== "Asset" ? item.itemType : "") ||
     "Asset";
 
   const rawName =
@@ -795,7 +833,16 @@ function firstNumber(...values) {
 
 function getAssetTypeName(item = {}) {
   const rawTypeId = Number(item.assetType?.id || item.assetType?.Id || item.assetTypeId || item.AssetTypeId);
-  return item.assetType?.name || item.assetType?.Name || item.assetTypeName || ASSET_TYPE_NAMES[rawTypeId] || null;
+  const assetTypeValue = typeof item.assetType === "string" ? item.assetType : "";
+  return item.assetType?.name ||
+    item.assetType?.Name ||
+    assetTypeValue ||
+    item.assetTypeName ||
+    item.AssetTypeName ||
+    item.assetTypeDisplayName ||
+    item.AssetTypeDisplayName ||
+    ASSET_TYPE_NAMES[rawTypeId] ||
+    null;
 }
 
 function isFallbackAssetName(name, id) {
@@ -814,6 +861,69 @@ function pickAssetName(id, ...items) {
   return `Asset ${id}`;
 }
 
+
+async function getPublicUserEmotes(userId, avatarPayload = {}, logs = []) {
+  const fromAvatar = extractEmotesFromPayload(avatarPayload);
+  if (fromAvatar.length) {
+    logs.push(`Avatar payload returned ${fromAvatar.length} emote record(s).`);
+    return fromAvatar;
+  }
+
+  const candidateUrls = [
+    `https://avatar.roblox.com/v1/users/${userId}/emotes`,
+    `https://avatar.roblox.com/v1/users/${userId}/emotes?includeAssetIds=true`
+  ];
+
+  for (const url of candidateUrls) {
+    try {
+      const data = await robloxJson(url, {}, "user emotes");
+      const found = extractEmotesFromPayload(data);
+      if (found.length) {
+        logs.push(`Public emote endpoint returned ${found.length} emote record(s).`);
+        return found;
+      }
+      logs.push(`Public emote endpoint responded but contained no emote list.`);
+    } catch (err) {
+      logs.push(`Public emote endpoint unavailable: ${err.message}`);
+    }
+  }
+
+  return [];
+}
+
+function extractEmotesFromPayload(payload = {}) {
+  const out = [];
+
+  const pushMaybe = (value, slot = null) => {
+    if (!value) return;
+    if (typeof value === "number" || typeof value === "string") {
+      const id = Number(value);
+      if (Number.isFinite(id)) out.push({ id, assetId: id, slot, assetTypeName: "Emote Animation", itemType: "Emote" });
+      return;
+    }
+    const id = Number(value.id || value.assetId || value.AssetId || value.emoteAssetId || value.EmoteAssetId);
+    if (Number.isFinite(id)) {
+      out.push({
+        ...value,
+        id,
+        assetId: id,
+        slot: value.slot ?? value.position ?? value.Position ?? slot,
+        assetTypeName: value.assetTypeName || value.AssetTypeName || "Emote Animation",
+        itemType: "Emote"
+      });
+    }
+  };
+
+  const candidates = [payload.emotes, payload.Emotes, payload.data, payload.equippedEmotes, payload.equippedEmoteAssets];
+  for (const candidate of candidates) {
+    if (Array.isArray(candidate)) candidate.forEach(pushMaybe);
+    else if (candidate && typeof candidate === "object") {
+      for (const [slot, value] of Object.entries(candidate)) pushMaybe(value, slot);
+    }
+  }
+
+  return uniqueBy(out, e => Number(e.id || e.assetId));
+}
 
 function shouldResolveParentBundle(item, id) {
   if (!item) return true;
