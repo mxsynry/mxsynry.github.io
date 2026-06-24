@@ -288,6 +288,8 @@ function renderUser(report) {
   const outfitGroups = splitOutfits(allOutfits);
   const outfits = outfitGroups.saved;
   const costumeLike = outfitGroups.costumeLike;
+  const animationPacks = outfitGroups.animationPacks;
+  const characterPackages = outfitGroups.characterPackages;
 
   $(".outfit-count", tpl).textContent = `${outfits.length} outfit${outfits.length === 1 ? "" : "s"}`;
   const outfitGrid = $(".outfit-grid", tpl);
@@ -300,6 +302,26 @@ function renderUser(report) {
   if (!outfits.length) outfitGrid.innerHTML = `<div class="empty">No normal saved outfits returned.</div>`;
   for (const outfit of outfits) outfitGrid.append(outfitCard(outfit, selectedOutfit));
 
+  if (characterPackages.length) {
+    selectedOutfit.section.before(createExtraOutfitSection(
+      "Character/package presets",
+      "Roblox returned these through saved outfits, but they are marketplace character or package presets rather than custom saved outfits.",
+      characterPackages,
+      selectedOutfit,
+      "Package entry"
+    ));
+  }
+
+  if (animationPacks.length) {
+    selectedOutfit.section.before(createExtraOutfitSection(
+      "Animation packs",
+      "Animation packs are purchasable packs. Their internal run/walk/jump/etc. animation assets are hidden unless an asset is an emote.",
+      animationPacks,
+      selectedOutfit,
+      "Animation pack"
+    ));
+  }
+
   if (costumeLike.length) {
     const costumeSection = createCostumeSection(costumeLike, selectedOutfit);
     selectedOutfit.section.before(costumeSection);
@@ -310,21 +332,21 @@ function renderUser(report) {
 }
 
 function assetCard(item) {
+  const display = getDisplayItem(item);
   const el = document.createElement("article");
   el.className = "asset";
-  const id = Number(item.id);
-  const rawName = item.name || item.Name || "";
-  const missingName = isFallbackAssetName(rawName, id);
-  if (missingName) el.classList.add("missing-name");
+  if (display.missingName) el.classList.add("missing-name");
 
-  const displayLabel = missingName ? fallbackAssetLabel(item, id) : rawName;
-  const displayName = escapeHtml(displayLabel);
-  const img = escapeAttr(item.imageUrl || "");
-  const creator = escapeHtml(item.creatorName || item.creator?.name || item.creator?.Name || "Unknown creator");
-  const price = formatPrice(item);
-  const type = escapeHtml(item.assetType?.name || item.assetType?.Name || item.assetTypeName || item.itemType || "Asset");
-  const source = item.detailsSource ? ` • ${escapeHtml(item.detailsSource)}` : "";
-  const fallbackText = escapeHtml((missingName ? getShortTypeLabel(item) : rawName).slice(0, 2).toUpperCase());
+  const id = Number(item.id || display.id);
+  const displayName = escapeHtml(display.name);
+  const img = escapeAttr(item.imageUrl || display.imageUrl || "");
+  const creator = escapeHtml(display.creatorName || "Unknown creator");
+  const price = formatPrice(display);
+  const type = escapeHtml(display.metaType || "Asset");
+  const source = display.detailsSource ? ` • ${escapeHtml(display.detailsSource)}` : "";
+  const fallbackText = escapeHtml((display.metaType || "Asset").slice(0, 2).toUpperCase());
+  const url = escapeAttr(display.url || `https://www.roblox.com/catalog/${id}`);
+  const linkLabel = display.purchasableType === "Bundle" ? "Bundle" : "Catalog";
 
   el.innerHTML = `
     <div class="thumb-wrap">
@@ -332,17 +354,56 @@ function assetCard(item) {
     </div>
     <div class="asset-body">
       <p class="item-name" title="${displayName}">${displayName}</p>
-      <p class="item-meta">${type} • ID ${id}${source}</p>
+      <p class="item-meta">${type} • ID ${id}${display.bundleId ? ` • Bundle ${display.bundleId}` : ""}${source}</p>
       <p class="item-meta">${creator}</p>
       <p class="item-meta">${escapeHtml(price)}</p>
       <div class="item-links">
-        <a target="_blank" rel="noopener" href="https://www.roblox.com/catalog/${id}">Catalog</a>
+        <a target="_blank" rel="noopener" href="${url}">${linkLabel}</a>
         <button class="small-btn" type="button" data-copy="${id}">Copy ID</button>
       </div>
     </div>`;
 
   $("[data-copy]", el).addEventListener("click", () => navigator.clipboard?.writeText(String(id)));
   return el;
+}
+
+function getDisplayItem(item = {}) {
+  const id = Number(item.id || item.assetId);
+  const bundle = item.parentBundle || null;
+  const rawName = item.name || item.Name || "";
+  const missingName = isFallbackAssetName(rawName, id);
+  const assetType = item.assetType?.name || item.assetType?.Name || item.assetTypeName || item.itemType || "Asset";
+
+  if (bundle?.id) {
+    return {
+      ...item,
+      id,
+      name: bundle.name || rawName || `Bundle ${bundle.id}`,
+      missingName: false,
+      creatorName: bundle.creatorName || item.creatorName || item.creator?.name || null,
+      price: bundle.price ?? item.price ?? null,
+      lowestPrice: bundle.lowestPrice ?? item.lowestPrice ?? null,
+      priceStatus: bundle.priceStatus || item.priceStatus || null,
+      isForSale: bundle.isForSale ?? item.isForSale ?? null,
+      isFree: bundle.isFree ?? item.isFree ?? false,
+      purchasableType: "Bundle",
+      bundleId: bundle.id,
+      url: bundle.url || `https://www.roblox.com/bundles/${bundle.id}`,
+      metaType: `${bundle.bundleType || "Bundle"} component: ${assetType}`,
+      detailsSource: item.detailsSource || bundle.detailsSource || null
+    };
+  }
+
+  return {
+    ...item,
+    id,
+    name: missingName ? fallbackAssetLabel(item, id) : rawName,
+    missingName,
+    creatorName: item.creatorName || item.creator?.name || item.creator?.Name || null,
+    url: item.purchasableUrl || `https://www.roblox.com/catalog/${id}`,
+    metaType: assetType,
+    detailsSource: item.detailsSource || null
+  };
 }
 
 function outfitCard(outfit, selectedOutfit, label = "Outfit") {
@@ -372,15 +433,22 @@ function outfitCard(outfit, selectedOutfit, label = "Outfit") {
     try {
       const detail = await api(`/api/outfit/${outfit.id}`);
       addServerLogs(`outfit:${outfit.id}`, detail.debug?.logs);
-      const assets = uniqueBy((detail.assets || []), a => a.id);
+      const prepared = prepareDisplayAssets(detail.assets || []);
+      const assets = prepared.assets;
       selectedOutfit.count.textContent = `${assets.length} item${assets.length === 1 ? "" : "s"}`;
       selectedOutfit.grid.innerHTML = "";
       if (!assets.length) {
-        selectedOutfit.grid.innerHTML = `<div class="empty">No assets returned for this outfit.</div>`;
+        selectedOutfit.grid.innerHTML = `<div class="empty">No purchasable/displayable assets returned for this outfit.</div>`;
       } else {
         assets.forEach(a => selectedOutfit.grid.append(assetCard(a)));
+        if (prepared.hiddenStandaloneAnimations || prepared.groupedBundleComponents) {
+          const note = document.createElement("div");
+          note.className = "empty";
+          note.textContent = `Grouped ${prepared.groupedBundleComponents} bundle component(s) and hid ${prepared.hiddenStandaloneAnimations} standalone non-emote animation asset(s).`;
+          selectedOutfit.grid.append(note);
+        }
       }
-      logSuccess("Outfit items rendered.", { outfitId: outfit.id, assets: assets.length });
+      logSuccess("Outfit items rendered.", { outfitId: outfit.id, assets: assets.length, hiddenStandaloneAnimations: prepared.hiddenStandaloneAnimations, groupedBundleComponents: prepared.groupedBundleComponents });
     } catch (err) {
       selectedOutfit.count.textContent = "Error";
       selectedOutfit.grid.innerHTML = `<div class="empty danger-text">${escapeHtml(cleanError(err))}</div>`;
@@ -394,36 +462,150 @@ function outfitCard(outfit, selectedOutfit, label = "Outfit") {
 function splitOutfits(outfits = []) {
   const saved = [];
   const costumeLike = [];
+  const animationPacks = [];
+  const characterPackages = [];
 
   for (const outfit of outfits) {
-    if (isCostumeLikeOutfit(outfit)) costumeLike.push(outfit);
+    const kind = classifyOutfitEntry(outfit);
+    if (kind === "costume") costumeLike.push(outfit);
+    else if (kind === "animation") animationPacks.push(outfit);
+    else if (kind === "package") characterPackages.push(outfit);
     else saved.push(outfit);
   }
 
-  return { saved, costumeLike };
+  return { saved, costumeLike, animationPacks, characterPackages };
+}
+
+function classifyOutfitEntry(outfit = {}) {
+  const name = normalizeName(outfit.name || "");
+  const text = `${outfit.imageKind || ""} ${outfit.outfitKind || ""} ${outfit.thumbnailType || ""} ${outfit.imageUrl || ""} ${name}`;
+
+  if (/DynamicHeadCostume|Costume/i.test(text)) return "costume";
+  if (/\b(animation pack|animation package)\b/i.test(name)) return "animation";
+
+  const knownPackages = new Set([
+    "roblox girl",
+    "roblox boy",
+    "man",
+    "woman",
+    "city life woman",
+    "city life man",
+    "knights of redcliff paladin",
+    "rthro normal",
+    "rthro animation package"
+  ]);
+
+  if (knownPackages.has(name.toLowerCase())) return /animation/i.test(name) ? "animation" : "package";
+  if (/\b(character|package|bundle)\b/i.test(name) && !/outfit/i.test(name)) return "package";
+  return "saved";
 }
 
 function isCostumeLikeOutfit(outfit = {}) {
-  const text = `${outfit.imageKind || ""} ${outfit.outfitKind || ""} ${outfit.thumbnailType || ""} ${outfit.imageUrl || ""}`;
-  return /DynamicHeadCostume|BundleThumbnail|Costume/i.test(text);
+  return classifyOutfitEntry(outfit) === "costume";
 }
 
-function createCostumeSection(items, selectedOutfit) {
+function createExtraOutfitSection(title, note, items, selectedOutfit, label) {
   const section = document.createElement("section");
   section.className = "costume-like-section";
   section.innerHTML = `
     <div class="section-title">
       <div>
-        <h3>Avatar costume entries</h3>
-        <p class="section-note">Roblox returned these through the saved-outfits API, but their thumbnails are costume/item-style entries, so they are separated from normal outfit cards.</p>
+        <h3>${escapeHtml(title)}</h3>
+        <p class="section-note">${escapeHtml(note)}</p>
       </div>
-      <span class="pill">${items.length} entr${items.length === 1 ? "y" : "ies"}</span>
+      <span class="pill">${items.length} ${items.length === 1 ? "entry" : "entries"}</span>
     </div>
     <div class="outfit-grid"></div>`;
 
   const grid = $(".outfit-grid", section);
-  items.forEach(item => grid.append(outfitCard(item, selectedOutfit, "Costume entry")));
+  items.forEach(item => grid.append(outfitCard(item, selectedOutfit, label)));
   return section;
+}
+
+function createCostumeSection(items, selectedOutfit) {
+  return createExtraOutfitSection(
+    "Avatar costume entries",
+    "Roblox returned these through the saved-outfits API, but their thumbnails are costume/item-style entries, so they are separated from normal outfit cards.",
+    items,
+    selectedOutfit,
+    "Costume entry"
+  );
+}
+
+function prepareDisplayAssets(rawAssets = []) {
+  const assets = uniqueBy(rawAssets, a => Number(a.id || a.assetId));
+  const output = [];
+  const seenBundles = new Set();
+  let hiddenStandaloneAnimations = 0;
+  let groupedBundleComponents = 0;
+
+  for (const asset of assets) {
+    const type = getAssetTypeText(asset);
+    const isAnimation = /Animation/i.test(type);
+    const isEmote = /EmoteAnimation/i.test(type);
+    const bundle = asset.parentBundle;
+
+    if (isAnimation && !isEmote) {
+      if (bundle?.id) {
+        if (!seenBundles.has(bundle.id)) {
+          output.push(makeBundleDisplayAsset(asset, bundle));
+          seenBundles.add(bundle.id);
+        }
+        groupedBundleComponents += 1;
+      } else {
+        hiddenStandaloneAnimations += 1;
+      }
+      continue;
+    }
+
+    if (bundle?.id && shouldGroupAsBundle(asset)) {
+      if (!seenBundles.has(bundle.id)) {
+        output.push(makeBundleDisplayAsset(asset, bundle));
+        seenBundles.add(bundle.id);
+      }
+      groupedBundleComponents += 1;
+      continue;
+    }
+
+    output.push(asset);
+  }
+
+  return { assets: output, hiddenStandaloneAnimations, groupedBundleComponents };
+}
+
+function makeBundleDisplayAsset(asset, bundle) {
+  return {
+    ...asset,
+    id: asset.id,
+    name: bundle.name || asset.name || `Bundle ${bundle.id}`,
+    parentBundle: bundle,
+    creatorName: bundle.creatorName || asset.creatorName || null,
+    price: bundle.price ?? asset.price ?? null,
+    lowestPrice: bundle.lowestPrice ?? asset.lowestPrice ?? null,
+    isForSale: bundle.isForSale ?? asset.isForSale ?? null,
+    isFree: bundle.isFree ?? asset.isFree ?? false,
+    purchasableType: "Bundle",
+    purchasableId: bundle.id,
+    purchasableUrl: bundle.url || `https://www.roblox.com/bundles/${bundle.id}`,
+    assetTypeName: bundle.bundleType || "Bundle",
+    itemType: "Bundle",
+    detailsSource: "bundle-group"
+  };
+}
+
+function shouldGroupAsBundle(asset = {}) {
+  const type = getAssetTypeText(asset);
+  const name = String(asset.name || "");
+  return /DynamicHead|MoodAnimation|Torso|Right Arm|Left Arm|Right Leg|Left Leg|Head/i.test(type)
+    || /Dynamic Head|Animation Pack|Animation Package|Bundle|Package/i.test(name);
+}
+
+function getAssetTypeText(asset = {}) {
+  return String(asset.assetType?.name || asset.assetType?.Name || asset.assetTypeName || asset.itemType || "Asset");
+}
+
+function normalizeName(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
 }
 
 function fallbackAssetLabel(item, id) {
@@ -664,19 +846,21 @@ function escapeAttr(v) {
 
 
 function formatPrice(item = {}) {
-  if (item.isFree === true) return "Free";
+  const source = item.parentBundle || item;
 
-  const direct = Number(item.price);
+  if (source.isFree === true) return "Free";
+
+  const direct = Number(source.price);
   if (Number.isFinite(direct)) return direct === 0 ? "Free" : `${direct} Robux`;
 
-  const lowest = Number(item.lowestPrice ?? item.resaleLowestPrice);
+  const lowest = Number(source.lowestPrice ?? source.resaleLowestPrice);
   if (Number.isFinite(lowest)) return `${lowest} Robux+`;
 
-  const status = String(item.priceStatus || "").trim();
+  const status = String(source.priceStatus || item.priceStatus || "").trim();
   if (status) return status;
 
-  if (item.isLimited || item.collectibleItemId) return "Limited / no listings";
-  if (item.isForSale === false) return "Off sale";
+  if (source.isLimited || source.collectibleItemId || item.collectibleItemId) return "Limited / no listings";
+  if (source.isForSale === false) return "Off sale";
 
   return "Price unavailable";
 }
