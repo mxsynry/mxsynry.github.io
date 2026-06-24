@@ -161,6 +161,39 @@ h1 {
 .setup p { line-height: 1.55; }
 .quick-help { display: grid; gap: 6px; margin-top: 12px; }
 .quick-help p, .hint { margin: 0; font-size: 13px; line-height: 1.45; }
+.search-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 12px;
+}
+.lazy-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 100%;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.045);
+  color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 750;
+  line-height: 1.25;
+  cursor: pointer;
+  user-select: none;
+}
+.lazy-option:hover { border-color: var(--border-strong); color: var(--text); }
+.lazy-option input {
+  width: 18px;
+  height: 18px;
+  min-width: 18px;
+  accent-color: var(--accent);
+  padding: 0;
+  box-shadow: none;
+}
+.lazy-option span { overflow-wrap: anywhere; }
+
 code {
   border: 1px solid var(--border);
   background: rgba(255, 255, 255, 0.055);

@@ -1,28 +1,20 @@
 # Roblox Outfit Viewer
 
-Static GitHub Pages frontend plus Cloudflare Worker API for public Roblox avatar lookups.
+Static GitHub Pages frontend plus a Cloudflare Worker API proxy.
 
-## Direct URL lookups
+## Deploy
 
-These run automatically when the Worker URL has already been saved in the browser:
+1. Upload `index.html`, `styles.css`, and `app.js` to `Others/OutfitSearch/`.
+2. Paste `worker.js` into your Cloudflare Worker and deploy it.
+3. Open `/Others/OutfitSearch/`, click **Change API**, and paste your Worker URL.
+
+## Direct links
 
 - `?username=zxwnvc`
 - `?id=8625608859`
 - `?search=builderman`
 - `?q=Roblox,id:1`
 
-You can also set the API from the URL once:
+## Version
 
-- `?api=https://your-worker.yourname.workers.dev&username=zxwnvc`
-
-## Deploy
-
-Put these files in:
-
-```txt
-Others/OutfitSearch/
-```
-
-Deploy `worker.js` to Cloudflare Workers, then paste the public `.workers.dev` URL into the page.
-
-Do not paste API tokens, Roblox cookies, or GitHub tokens into the app.
+Worker: `2026-06-24.3-pack-components-emotes-ui`

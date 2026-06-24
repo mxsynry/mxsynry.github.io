@@ -1,7 +1,12 @@
 const DEFAULT_API_BASE = "https://YOUR-WORKER.workers.dev";
 const API_STORAGE_KEY = "robloxOutfitApiBase";
 const LOG_STORAGE_KEY = "robloxOutfitDebugLogs";
+const LAZY_LOAD_STORAGE_KEY = "robloxOutfitLazyLoading";
 const MAX_LOGS = 300;
+const PREFETCH_LIMIT = 24;
+const PREFETCH_DELAY_MS = 275;
+
+const outfitDetailCache = new Map();
 
 const apiParam = new URL(location.href).searchParams.get("api");
 if (apiParam) {
@@ -30,6 +35,7 @@ const debugConsole = $("#debugConsole");
 const copyConsoleBtn = $("#copyConsoleBtn");
 const clearConsoleBtn = $("#clearConsoleBtn");
 const copyLinkBtn = $("#copyLinkBtn");
+const lazyLoadToggle = $("#lazyLoadToggle");
 
 function hasConfiguredApi() {
   return API_BASE && API_BASE !== DEFAULT_API_BASE;
@@ -43,8 +49,13 @@ function refreshApiUi(message = "") {
 }
 
 refreshApiUi();
+initLazyLoadingOption();
 renderConsole();
-logInfo("App loaded.", { apiConfigured: hasConfiguredApi(), apiBase: hasConfiguredApi() ? API_BASE : null });
+logInfo("App loaded.", {
+  apiConfigured: hasConfiguredApi(),
+  apiBase: hasConfiguredApi() ? API_BASE : null,
+  lazyLoading: isLazyLoadingEnabled()
+});
 
 saveApiBtn.addEventListener("click", async () => {
   const v = apiBaseInput.value.trim().replace(/\/$/, "");
@@ -117,6 +128,14 @@ clearConsoleBtn.addEventListener("click", () => {
   debugLogs = [];
   saveLogs();
   renderConsole();
+});
+
+lazyLoadToggle?.addEventListener("change", () => {
+  localStorage.setItem(LAZY_LOAD_STORAGE_KEY, lazyLoadToggle.checked ? "on" : "off");
+  logInfo("Lazy loading option changed.", { lazyLoading: lazyLoadToggle.checked });
+  setStatus(lazyLoadToggle.checked
+    ? "Lazy loading enabled. Outfit items load only when clicked."
+    : "Lazy loading disabled. Outfit details will be prefetched after each search.");
 });
 
 copyLinkBtn?.addEventListener("click", async () => {
@@ -254,6 +273,64 @@ async function api(path) {
   return data;
 }
 
+
+async function getOutfitDetail(outfitId) {
+  const key = String(outfitId);
+  if (outfitDetailCache.has(key)) {
+    const cached = outfitDetailCache.get(key);
+    logInfo("Outfit detail cache hit.", { outfitId });
+    return cached;
+  }
+
+  const detail = await api(`/api/outfit/${outfitId}`);
+  addServerLogs(`outfit:${outfitId}`, detail.debug?.logs);
+  outfitDetailCache.set(key, detail);
+  return detail;
+}
+
+async function prefetchOutfitDetails(entries = [], userId = null) {
+  const uniqueEntries = uniqueBy(entries, entry => entry.id).slice(0, PREFETCH_LIMIT);
+  if (!uniqueEntries.length || isLazyLoadingEnabled()) return;
+
+  logInfo("Lazy loading disabled; prefetching outfit entry details in the background.", {
+    userId,
+    entries: uniqueEntries.length,
+    limit: PREFETCH_LIMIT,
+    note: "using lazy loading to prevent spamming is appreciated, mwah"
+  });
+
+  for (const entry of uniqueEntries) {
+    if (isLazyLoadingEnabled()) {
+      logInfo("Prefetch stopped because lazy loading was re-enabled.", { userId });
+      return;
+    }
+
+    try {
+      await getOutfitDetail(entry.id);
+      logSuccess("Prefetched outfit entry detail.", { id: entry.id, name: entry.name || null });
+    } catch (err) {
+      logError("Prefetch outfit entry failed.", err, { id: entry.id, name: entry.name || null });
+    }
+
+    await sleep(PREFETCH_DELAY_MS);
+  }
+
+  logSuccess("Background outfit detail prefetch finished.", { userId, entries: uniqueEntries.length });
+}
+
+function initLazyLoadingOption() {
+  if (!lazyLoadToggle) return;
+  lazyLoadToggle.checked = isLazyLoadingEnabled();
+}
+
+function isLazyLoadingEnabled() {
+  return localStorage.getItem(LAZY_LOAD_STORAGE_KEY) !== "off";
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 function looksLikeGithub404(text, res) {
   return (
     res.status === 404 &&
@@ -332,6 +409,11 @@ function renderUser(report) {
 
   $(".json-btn", tpl).addEventListener("click", () => downloadJson(`roblox-${p.id}-outfits.json`, report));
   results.append(tpl);
+
+  const prefetchEntries = [...outfits, ...characterPackages, ...animationPacks, ...costumeLike];
+  if (!isLazyLoadingEnabled() && prefetchEntries.length) {
+    prefetchOutfitDetails(prefetchEntries, p.id);
+  }
 }
 
 function assetCard(item) {
@@ -457,8 +539,7 @@ function outfitCard(outfit, selectedOutfit, label = "Outfit") {
     selectedOutfit.section.scrollIntoView({ behavior: "smooth", block: "start" });
 
     try {
-      const detail = await api(`/api/outfit/${outfit.id}`);
-      addServerLogs(`outfit:${outfit.id}`, detail.debug?.logs);
+      const detail = await getOutfitDetail(outfit.id);
       const entryKind = classifyOutfitEntry(outfit);
       const prepared = prepareDisplayAssets(detail.assets || [], { mode: entryKind === "animation" ? "animationPack" : "normal", outfitName: detail.name || outfit.name || "Animation pack" });
       const assets = prepared.assets;
