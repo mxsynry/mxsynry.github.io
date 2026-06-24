@@ -4,60 +4,90 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Roblox Outfit Viewer</title>
-  <meta name="description" content="Public Roblox outfit and currently-wearing avatar viewer by username or user ID." />
+  <meta name="description" content="Public Roblox outfit, currently wearing items, saved outfits, animation packs, and emotes by username or user ID." />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="hero">
-    <div>
-      <p class="eyebrow">Public Roblox avatar lookup</p>
-      <h1>Roblox Outfit Viewer</h1>
-      <p class="lede">Look up public accounts by username or user ID, compare duplicate-looking accounts, and list current avatar items plus saved outfits and selected outfit items.</p>
-    </div>
-    <div class="header-actions">
-      <button id="instructionsBtn" class="ghost" type="button" title="Show setup instructions">Instructions</button>
-      <button id="consoleBtn" class="ghost" type="button" title="Open debug console">View console</button>
-      <button id="changeApiBtn" class="ghost" type="button" title="Clear or change the saved API URL">Change API</button>
-      <button id="themeBtn" class="ghost" type="button" title="Toggle theme">Theme</button>
-    </div>
-  </header>
-
-  <main>
-    <section class="panel setup" id="setupPanel">
-      <h2>API setup</h2>
-      <p>This GitHub Pages app needs a small Cloudflare Worker because many Roblox API calls are blocked by browser CORS. Paste your Worker URL once and it will be saved locally in this browser.</p>
-      <div class="row">
-        <input id="apiBaseInput" placeholder="https://your-worker-name.your-subdomain.workers.dev" />
-        <button id="saveApiBtn" type="button">Save API</button>
-      </div>
-      <p class="hint">Tip: you can also append <code>?api=https://your-worker.workers.dev</code> to the page URL. Use the <strong>Change API</strong> button if you saved the wrong URL.</p>
-      <p id="apiStatus" class="hint"></p>
-    </section>
-
-    <section class="panel search-panel">
-      <form id="searchForm">
-        <label for="query">Username, user ID, or multiple values</label>
-        <div class="row">
-          <input id="query" autocomplete="off" spellcheck="false" placeholder="Roblox, id:1, 156, search: builderman" />
-          <button id="searchBtn" type="submit">Search</button>
-          <button id="copyLinkBtn" class="ghost" type="button">Copy search link</button>
+  <div class="app-shell">
+    <header class="site-header">
+      <div class="brand-block">
+        <a class="brand-mark" href="/" aria-label="Back to mxsynry.github.io home">
+          <img src="/Others/Synchrose/globe.ico" alt="" onerror="this.style.display='none'" />
+          <span>OS</span>
+        </a>
+        <div class="brand-copy">
+          <div class="title-row">
+            <p class="eyebrow">Public Roblox avatar lookup</p>
+            <span class="badge">OutfitSearch</span>
+          </div>
+          <h1>Roblox Outfit Viewer</h1>
+          <p class="lede">Search public Roblox accounts, inspect currently-wearing items, split saved outfits from packages, and open animation pack components without cramped cards.</p>
         </div>
-        <p class="hint">Supports comma/newline separated values. Use <code>id:12345</code> for exact ID. Use <code>search:keyword</code> to show possible matching accounts.</p>
-        <p class="hint">Direct links work too: <code>?username=zxwnvc</code>, <code>?id=8625608859</code>, <code>?search=builderman</code>, or <code>?q=Roblox,id:1</code>.</p>
-      </form>
-    </section>
+      </div>
 
-    <section id="status" class="status" aria-live="polite"></section>
-    <section id="results" class="results"></section>
-  </main>
+      <nav class="header-actions" aria-label="Page actions">
+        <a class="ghost nav-link" href="/">Site index</a>
+        <button id="instructionsBtn" class="ghost" type="button" title="Show setup instructions">Instructions</button>
+        <button id="consoleBtn" class="ghost" type="button" title="Open debug console">View console</button>
+        <button id="changeApiBtn" class="ghost" type="button" title="Clear or change the saved API URL">Change API</button>
+        <button id="themeBtn" class="ghost" type="button" title="Toggle theme">Theme</button>
+      </nav>
+    </header>
+
+    <main class="content-wrap">
+      <section class="panel setup" id="setupPanel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow small">One-time setup</p>
+            <h2>API setup</h2>
+          </div>
+          <span class="pill">Cloudflare Worker</span>
+        </div>
+        <p>This GitHub Pages app needs a small Cloudflare Worker because many Roblox API calls are blocked by browser CORS. Paste your Worker URL once and it will be saved locally in this browser.</p>
+        <div class="row input-row">
+          <input id="apiBaseInput" placeholder="https://your-worker-name.your-subdomain.workers.dev" />
+          <button id="saveApiBtn" type="button">Save API</button>
+        </div>
+        <p class="hint">Tip: you can also append <code>?api=https://your-worker.workers.dev</code> to the page URL. Use <strong>Change API</strong> if you saved the wrong URL.</p>
+        <p id="apiStatus" class="hint"></p>
+      </section>
+
+      <section class="panel search-panel">
+        <form id="searchForm">
+          <div class="panel-heading search-heading">
+            <div>
+              <p class="eyebrow small">Lookup</p>
+              <label for="query">Username, user ID, or multiple values</label>
+            </div>
+            <span class="pill">username · id · search</span>
+          </div>
+          <div class="row search-row">
+            <input id="query" autocomplete="off" spellcheck="false" placeholder="Roblox, id:1, 156, search: builderman" />
+            <button id="searchBtn" type="submit">Search</button>
+            <button id="copyLinkBtn" class="ghost" type="button">Copy link</button>
+          </div>
+          <div class="quick-help">
+            <p>Supports comma/newline separated values. Use <code>id:12345</code> for exact ID or <code>search:keyword</code> for broad matches.</p>
+            <p>Direct links: <code>?username=zxwnvc</code>, <code>?id=8625608859</code>, <code>?search=builderman</code>, <code>?q=Roblox,id:1</code>.</p>
+          </div>
+        </form>
+      </section>
+
+      <section id="status" class="status" aria-live="polite"></section>
+      <section id="results" class="results"></section>
+    </main>
+  </div>
 
   <dialog id="instructionsDialog" class="modal">
     <div class="modal-head">
-      <h2>Simple setup instructions</h2>
-      <button class="ghost icon-btn" type="button" data-close-dialog="instructionsDialog">×</button>
+      <div>
+        <p class="eyebrow small">Setup guide</p>
+        <h2>Simple setup instructions</h2>
+      </div>
+      <button class="ghost icon-btn" type="button" data-close-dialog="instructionsDialog" aria-label="Close instructions">×</button>
     </div>
     <ol class="steps">
-      <li>Open Cloudflare → <strong>Workers & Pages</strong> → <strong>Create application</strong> → <strong>Worker</strong>.</li>
+      <li>Open Cloudflare → <strong>Workers &amp; Pages</strong> → <strong>Create application</strong> → <strong>Worker</strong>.</li>
       <li>Name it something like <code>roblox-outfit-api</code>, then deploy the starter Worker.</li>
       <li>Click <strong>Edit code</strong>, delete the starter code, paste this project’s <code>worker.js</code>, then <strong>Save and deploy</strong>.</li>
       <li>Copy the public URL ending in <code>.workers.dev</code>, for example <code>https://roblox-outfit-api.yourname.workers.dev</code>.</li>
@@ -69,8 +99,11 @@
 
   <dialog id="consoleDialog" class="modal wide-modal">
     <div class="modal-head">
-      <h2>Debug console</h2>
-      <button class="ghost icon-btn" type="button" data-close-dialog="consoleDialog">×</button>
+      <div>
+        <p class="eyebrow small">Diagnostics</p>
+        <h2>Debug console</h2>
+      </div>
+      <button class="ghost icon-btn" type="button" data-close-dialog="consoleDialog" aria-label="Close console">×</button>
     </div>
     <div class="console-actions">
       <button id="copyConsoleBtn" class="ghost" type="button">Copy logs</button>
@@ -83,7 +116,7 @@
     <article class="user-card panel">
       <div class="profile-head">
         <img class="avatar-img" alt="Avatar thumbnail" loading="lazy" />
-        <div>
+        <div class="profile-copy">
           <h2 class="profile-title"></h2>
           <p class="muted profile-meta"></p>
           <div class="chips"></div>
@@ -93,27 +126,40 @@
           </div>
         </div>
       </div>
+
       <details class="description-block">
         <summary>Description</summary>
         <p class="description-text"></p>
       </details>
-      <section>
+
+      <section class="result-section wearing-section">
         <div class="section-title">
-          <h3>Currently wearing</h3>
+          <div>
+            <p class="eyebrow small">Avatar</p>
+            <h3>Currently wearing</h3>
+          </div>
           <span class="wearing-count pill"></span>
         </div>
         <div class="asset-grid wearing-grid"></div>
       </section>
-      <section>
+
+      <section class="result-section outfits-section">
         <div class="section-title">
-          <h3>Saved outfits</h3>
+          <div>
+            <p class="eyebrow small">Saved looks</p>
+            <h3>Saved outfits</h3>
+          </div>
           <span class="outfit-count pill"></span>
         </div>
         <div class="outfit-grid"></div>
       </section>
-      <section class="selected-outfit-section" hidden>
+
+      <section class="selected-outfit-section result-section" hidden>
         <div class="section-title">
-          <h3 class="selected-outfit-title">Selected outfit items</h3>
+          <div>
+            <p class="eyebrow small">Opened entry</p>
+            <h3 class="selected-outfit-title">Selected outfit items</h3>
+          </div>
           <span class="selected-outfit-count pill"></span>
         </div>
         <div class="asset-grid selected-outfit-grid"></div>
