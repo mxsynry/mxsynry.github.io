@@ -6831,15 +6831,7 @@ body.syn-desc-open .syn-desc-section:nth-of-type(n+6) { transition-delay: 235ms;
 
 
 <style id="synchrose-settings-default-is-reset-style">
-/* ============================================================
-   Settings fix:
-   - "Default" is NOT a preset/card.
-   - Reset to Defaults is the only default action.
-   - Adds more UI element toggles.
-   - Cleans visual defaults to be less AI/neon by default.
-============================================================ */
 
-/* Hide the old Balanced preset card. Default is reset button, not a preset. */
 .preset-card[data-preset="balanced"] {
     display: none !important;
 }
@@ -6863,7 +6855,6 @@ body.syn-desc-open .syn-desc-section:nth-of-type(n+6) { transition-delay: 235ms;
     color: #fff;
 }
 
-/* Description button must always feel clickable/selectable. */
 .btn-description-wide,
 .feature-tag-button,
 .syn-desc-close {
@@ -8398,7 +8389,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
 
         function readCachedVoxlisFolders() {
             try {
-                const cached = JSON.parse(localStorage.getItem('voxlisFolders:dynamic:v1') || '[]');
+                const cached = JSON.parse(localStorage.getItem('voxlisFolders:dynamic') || '[]');
                 return Array.isArray(cached) ? cached.filter(Boolean) : [];
             } catch {
                 return [];
@@ -8408,7 +8399,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
         function writeCachedVoxlisFolders(folders) {
             try {
                 if (Array.isArray(folders) && folders.length) {
-                    localStorage.setItem('voxlisFolders:dynamic:v1', JSON.stringify(folders));
+                    localStorage.setItem('voxlisFolders:dynamic', JSON.stringify(folders));
                 }
             } catch {
                 // localStorage can be blocked in private browsing; ignore.
@@ -12444,7 +12435,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
 // ============================================================
 
 (() => {
-    const SETTINGS_KEY = 'synchrose:visual-settings:v1';
+    const SETTINGS_KEY = 'synchrose:visual-settings';
 
     const DEFAULT_SETTINGS = {
         preset: 'original',
@@ -12776,7 +12767,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
    Makes settings actually remove/disable expensive effects.
 ============================================================ */
 (() => {
-    const KEY = window.__synFxKey || 'synchrose:visual-settings:v1';
+    const KEY = window.__synFxKey || 'synchrose:visual-settings';
     const PRESETS = window.__synFxPresets || {
         original: { intro:true, heroVideo:true, glass:true, animations:true, glow:true, tilt3d:true, lookAtCursor:true, canvasParticles:true, smoothScroll:true, textEffects:true, statEffects:true, versionEffects:true, marquee:true, buttonShine:true, cardGlint:true, musicPlayer:true },
         balanced: { intro:true, heroVideo:true, glass:true, animations:true, glow:false, tilt3d:true, lookAtCursor:false, canvasParticles:false, smoothScroll:false, textEffects:true, statEffects:true, versionEffects:true, marquee:true, buttonShine:true, cardGlint:true, musicPlayer:true },
@@ -13077,7 +13068,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
    Fixes: closing settings should save/apply immediately, no refresh needed.
 ============================================================ */
 (() => {
-    const KEY = 'synchrose:visual-settings:v1';
+    const KEY = 'synchrose:visual-settings';
 
     const PRESETS = {
         original: {
@@ -13983,13 +13974,9 @@ body.fx-rounded-corners-off .mx-music-player::before {
 
 
 <script id="synchrose-settings-default-is-reset-script">
-/* ============================================================
-   Default is reset button, not a preset.
-   Adds more toggles and makes reset apply clean/professional defaults.
-============================================================ */
 (() => {
-    const KEY = 'synchrose:visual-settings:v1';
-    const MIGRATION_KEY = 'synchrose:default-is-reset:v1';
+    const KEY = 'synchrose:visual-settings';
+    const MIGRATION_KEY = 'synchrose:default-is-reset';
 
     const DEFAULT_EFFECTS = {
         intro: true,
@@ -14318,7 +14305,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
 
 <script id="synchrose-clean-professional-default-script">
 (() => {
-    const KEY = 'synchrose:visual-settings:v1';
+    const KEY = 'synchrose:visual-settings';
 
     const CLEAN_DEFAULT_EFFECTS = {
         intro: true,
@@ -14329,7 +14316,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
         tilt3d: false,
         lookAtCursor: false,
         canvasParticles: false,
-        smoothScroll: false,
+        smoothScroll: true,
         textEffects: false,
         statEffects: false,
         versionEffects: false,
@@ -14482,7 +14469,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
 
 <script id="synchrose-presets-balanced-fix-script">
 (() => {
-    const KEY = 'synchrose:visual-settings:v1';
+    const KEY = 'synchrose:visual-settings';
 
     const BALANCED_EFFECTS = {
         intro: true,
@@ -14644,7 +14631,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
 
 <script id="synchrose-compare-name-rounded-cleanup-script">
 (() => {
-    const KEY = 'synchrose:visual-settings:v1';
+    const KEY = 'synchrose:visual-settings';
 
     function parse(raw) {
         try { return JSON.parse(raw); } catch { return null; }

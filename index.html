@@ -169,6 +169,9 @@ button, select, input { font: inherit; }
 .preview-body { flex: 1; overflow: auto; padding: 14px; min-height: 180px; display: flex; align-items: center; justify-content: center; }
 .preview-body img, .preview-body video { display: block; max-width: 100%; max-height: 70vh; border-radius: 12px; background: var(--crust); }
 .preview-body video { width: min(100%, 1000px); height: auto; }
+.audio-preview { width: min(100%, 760px); display: grid; gap: 12px; padding: 18px; border: 1px solid var(--surface1); border-radius: 14px; background: var(--mantle); }
+.audio-preview .audio-name { font-weight: 800; color: var(--text); word-break: break-word; }
+.audio-preview audio { width: 100%; }
 .preview-body pre { width: 100%; min-height: 100%; background: var(--crust); border: 1px solid var(--border); border-radius: 12px; padding: 14px; color: var(--text); font-size: 13px; line-height: 1.55; overflow: auto; white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .loading { color: var(--subtext0); padding: 30px; }
 .toast { position: fixed; right: 16px; bottom: 16px; z-index: 200; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--surface1); background: var(--mantle); color: var(--text); box-shadow: var(--shadow); opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity .16s ease, transform .16s ease; }
@@ -191,6 +194,7 @@ button, select, input { font: inherit; }
   .preview-box { width: 100%; max-height: calc(100dvh - 16px); border-radius: 14px; }
   .preview-body { padding: 8px; align-items: center; }
   .preview-body img, .preview-body video { max-height: 62dvh; width: 100%; }
+  .audio-preview { width: 100%; padding: 12px; }
 }
 </style>
 </head>
@@ -308,6 +312,7 @@ function getIcon(node) {
     md: { char: '📄', color: 'var(--text)' }, txt: { char: '📄', color: 'var(--text)' },
     yml: { char: '⚙️', color: 'var(--text-muted)' }, yaml: { char: '⚙️', color: 'var(--text-muted)' }, json: { char: '📦', color: 'var(--archive)' },
     mp4: { char: '🎬', color: 'var(--media)' }, webm: { char: '🎬', color: 'var(--media)' }, mov: { char: '🎬', color: 'var(--media)' },
+    mp3: { char: '🎧', color: 'var(--green)' }, wav: { char: '🎧', color: 'var(--green)' }, ogg: { char: '🎧', color: 'var(--green)' }, m4a: { char: '🎧', color: 'var(--green)' }, flac: { char: '🎧', color: 'var(--green)' },
     png: { char: '🖼️', color: 'var(--media)' }, jpg: { char: '🖼️', color: 'var(--media)' }, jpeg: { char: '🖼️', color: 'var(--media)' }, gif: { char: '🖼️', color: 'var(--media)' }, webp: { char: '🖼️', color: 'var(--media)' }, svg: { char: '🖼️', color: 'var(--media)' }, ico: { char: '🖼️', color: 'var(--media)' },
     rar: { char: '🗜️', color: 'var(--archive)' }, zip: { char: '🗜️', color: 'var(--archive)' }, tar: { char: '🗜️', color: 'var(--archive)' }, gz: { char: '🗜️', color: 'var(--archive)' }
   };
@@ -578,12 +583,17 @@ function previewFile(item, path) {
   const ext = extOf(item.name);
   const isImage = ['png','jpg','jpeg','gif','ico','webp','svg'].includes(ext);
   const isVideo = ['mp4','webm','mov'].includes(ext);
+  const isAudio = ['mp3','wav','ogg','m4a','flac'].includes(ext);
   const isText = ['html','htm','css','js','ts','lua','luau','md','json','yml','yaml','txt','rb'].includes(ext) || String(item.name).toLowerCase() === 'gemfile' || (item.size && item.size < 500000);
 
   if (isImage) body.innerHTML = `<img src="${escapeHtml(raw)}" alt="${escapeHtml(item.name)}">`;
   else if (isVideo) {
     const type = ext === 'mp4' ? 'video/mp4' : ext === 'webm' ? 'video/webm' : ext === 'mov' ? 'video/quicktime' : '';
     body.innerHTML = `<video controls playsinline preload="metadata"><source src="${escapeHtml(raw)}"${type ? ` type="${type}"` : ''}>Your browser cannot preview this video. Use Raw / Download below.</video>`;
+  }
+  else if (isAudio) {
+    const type = ext === 'mp3' ? 'audio/mpeg' : ext === 'wav' ? 'audio/wav' : ext === 'ogg' ? 'audio/ogg' : ext === 'm4a' ? 'audio/mp4' : ext === 'flac' ? 'audio/flac' : '';
+    body.innerHTML = `<div class="audio-preview"><div class="audio-name">${escapeHtml(item.name)}</div><audio controls preload="metadata"><source src="${escapeHtml(raw)}"${type ? ` type="${type}"` : ''}>Your browser cannot preview this audio. Use Raw / Download below.</audio></div>`;
   }
   else if (isText) {
     fetch(raw)
