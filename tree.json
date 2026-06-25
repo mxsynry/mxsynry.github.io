@@ -29,7 +29,7 @@
       "name": "index.html",
       "path": "index.html",
       "type": "file",
-      "size": 39569,
+      "size": 36667,
       "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/index.html",
       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/index.html"
     },
@@ -7334,7 +7334,7 @@
               "name": "index.html",
               "path": "Others/OutfitSearch/index.html",
               "type": "file",
-              "size": 8262,
+              "size": 14690,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/OutfitSearch/index.html",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/OutfitSearch/index.html"
             },
@@ -7345,14 +7345,6 @@
               "size": 487,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/OutfitSearch/README.md",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/OutfitSearch/README.md"
-            },
-            {
-              "name": "styles.css",
-              "path": "Others/OutfitSearch/styles.css",
-              "type": "file",
-              "size": 15630,
-              "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/OutfitSearch/styles.css",
-              "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/OutfitSearch/styles.css"
             },
             {
               "name": "worker.js",
@@ -8018,14 +8010,6 @@
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/iyr-execution.lua"
             },
             {
-              "name": "Minecraft_ 1.20.4 - Singleplayer 2025-02-17 17-46-49.mp4",
-              "path": "storage/other-stuff/Minecraft_ 1.20.4 - Singleplayer 2025-02-17 17-46-49.mp4",
-              "type": "file",
-              "size": 39682523,
-              "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Minecraft_%201.20.4%20-%20Singleplayer%202025-02-17%2017-46-49.mp4",
-              "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Minecraft_%201.20.4%20-%20Singleplayer%202025-02-17%2017-46-49.mp4"
-            },
-            {
               "name": "mods.rar",
               "path": "storage/other-stuff/mods.rar",
               "type": "file",
@@ -8040,14 +8024,6 @@
               "size": 75046,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/NamelessAnimation.luau",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/NamelessAnimation.luau"
-            },
-            {
-              "name": "Natives.mp4",
-              "path": "storage/other-stuff/Natives.mp4",
-              "type": "file",
-              "size": 4636787,
-              "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Natives.mp4",
-              "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Natives.mp4"
             },
             {
               "name": "never-knew-people-are-this-desperate.mp4",
