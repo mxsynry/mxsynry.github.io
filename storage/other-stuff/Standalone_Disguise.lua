@@ -1483,4 +1483,4 @@ if PLAY_INTRO and not getgenv().Ryu_Disguise_IntroPlayed then
 end
 
 print(string.format("✅ Ryu's Disguise Script loaded – Mode %d | Identity: %d | User: %s (%s) | ID: %d | Avatar Delay: %.2fs",
-    MODE, newIdentity, DISGUISE_NAME, DISGUISE_DISPLAY, DISGUISE_USER_ID, AVATAR_DELAY)
+    MODE, newIdentity, DISGUISE_NAME, DISGUISE_DISPLAY, DISGUISE_USER_ID, AVATAR_DELAY))
