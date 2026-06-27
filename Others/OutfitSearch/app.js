@@ -1045,20 +1045,21 @@ function escapeAttr(v) {
 
 function formatPrice(item = {}) {
   const source = item.parentBundle || item;
-
-  if (source.isFree === true) return "Free";
+  const status = String(source.priceStatus || item.priceStatus || "").trim();
 
   const direct = Number(source.price);
   if (Number.isFinite(direct)) return direct === 0 ? "Free" : `${direct} Robux`;
 
   const lowest = Number(source.lowestPrice ?? source.resaleLowestPrice);
-  if (Number.isFinite(lowest)) return `${lowest} Robux+`;
+  if (Number.isFinite(lowest) && lowest > 0) return `${lowest} Robux+`;
 
-  const status = String(source.priceStatus || item.priceStatus || "").trim();
-  if (status) return status;
+  if (/^free$/i.test(status)) return "Free";
+  if (status && !/^off\s*sale$/i.test(status)) return status;
 
   if (source.isLimited || source.collectibleItemId || item.collectibleItemId) return "Limited / no listings";
-  if (source.isForSale === false) return "Off sale";
+  if (source.isForSale === false || /^off\s*sale$/i.test(status)) return "Off sale";
 
+  // Older/fallback API records can contain isFree=true even when Roblox did not return
+  // a real price. Do not show “Free” unless price or priceStatus proves it.
   return "Price unavailable";
 }

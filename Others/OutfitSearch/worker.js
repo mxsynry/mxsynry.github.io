@@ -1,8 +1,8 @@
 // Cloudflare Worker for Roblox Outfit Viewer
 // Public, read-only Roblox API proxy. No Roblox cookies, no private tokens.
 
-const WORKER_VERSION = "2026-06-24.3-pack-components-emotes-ui";
-const CACHE_TTL_SECONDS = 20;
+const WORKER_VERSION = "2026-06-24.4-price-stability";
+const CACHE_TTL_SECONDS = 180;
 const MAX_INPUTS = 20;
 const MAX_SEARCH_RESULTS = 25;
 const MAX_OUTFITS = 300;
@@ -75,6 +75,9 @@ async function cacheOrRun(request, ctx, producer) {
   }
 
   const data = await producer();
+  if (data?.ok === false || data?.rateLimited) {
+    return json(data, data?.rateLimited ? 429 : 500, { "cache-control": "no-store" });
+  }
   const res = json(data, 200, { "cache-control": `public, max-age=${CACHE_TTL_SECONDS}` });
 
   try {
@@ -147,15 +150,21 @@ async function resolveUsers(rawQuery) {
       const exact = await usersByUsernames([q]);
       users.push(...exact);
       logs.push(exact.length ? `Exact username "${q}" returned ${exact.length} account(s).` : `Exact username "${q}" returned no accounts.`);
-
-      const searchMatches = await searchUsers(q, true).catch(err => {
-        logs.push(`Extra duplicate-friendly search for "${q}" failed: ${err.message}`);
-        return [];
-      });
-      users.push(...searchMatches);
-      if (searchMatches.length) logs.push(`Extra search found ${searchMatches.length} exact-name match(es) for "${q}".`);
+      logs.push(`Skipped broad duplicate-friendly search for "${q}". Use search:${q} if you want broad search results.`);
     } catch (err) {
       logs.push(`Input "${part}" failed: ${err.message}`);
+      if (err.status === 429) {
+        return {
+          ok: false,
+          rateLimited: true,
+          retryAfterSeconds: err.retryAfterSeconds || 300,
+          error: "Roblox is rate-limiting lookups. Wait a few minutes before searching again.",
+          users: [],
+          count: 0,
+          logs,
+          fetchedAt: new Date().toISOString()
+        };
+      }
     }
   }
 
@@ -506,14 +515,14 @@ async function getCatalogDetails(assetIds, logs = []) {
     });
 
     if (needsSingleCatalog.length) {
-      const results = await Promise.allSettled(needsSingleCatalog.map(async id => {
+      const results = await mapSettledLimit(needsSingleCatalog, 4, async id => {
         const data = await robloxJson(
           `https://catalog.roblox.com/v1/catalog/items/${id}/details?itemType=Asset`,
           {},
           `catalog item details ${id}`
         );
         return normalizeAsset({ ...data, id, detailsSource: "catalog-single" });
-      }));
+      });
 
       results.forEach((result, index) => {
         const id = needsSingleCatalog[index];
@@ -551,10 +560,10 @@ async function getCatalogDetails(assetIds, logs = []) {
     });
 
     if (needsEconomy.length) {
-      const results = await Promise.allSettled(needsEconomy.map(async id => {
+      const results = await mapSettledLimit(needsEconomy, 3, async id => {
         const data = await robloxJson(`https://economy.roblox.com/v2/assets/${id}/details`, {}, `economy asset ${id}`);
         return normalizeAsset({ ...data, id, detailsSource: "economy" });
-      }));
+      });
 
       results.forEach((result, index) => {
         const id = needsEconomy[index];
@@ -574,7 +583,7 @@ async function getCatalogDetails(assetIds, logs = []) {
       .filter(item => item?.collectibleItemId && (item.lowestPrice === null || item.lowestPrice === undefined));
 
     if (collectible.length) {
-      const results = await Promise.allSettled(collectible.map(async item => {
+      const results = await mapSettledLimit(collectible, 3, async item => {
         const data = await robloxJson(
           `https://apis.roblox.com/marketplace-sales/v1/item/${encodeURIComponent(item.collectibleItemId)}/resellers?limit=10`,
           {},
@@ -585,7 +594,7 @@ async function getCatalogDetails(assetIds, logs = []) {
           .filter(Number.isFinite);
         const lowest = prices.length ? Math.min(...prices) : null;
         return { id: item.id, lowestPrice: lowest, resaleLowestPrice: lowest, resaleListings: prices.length, detailsSource: "marketplace-sales" };
-      }));
+      });
 
       results.forEach((result) => {
         if (result.status === "fulfilled" && Number.isFinite(result.value.lowestPrice)) {
@@ -603,10 +612,10 @@ async function getCatalogDetails(assetIds, logs = []) {
     });
 
     if (needsLegacy.length) {
-      const legacyResults = await Promise.allSettled(needsLegacy.map(async id => {
+      const legacyResults = await mapSettledLimit(needsLegacy, 3, async id => {
         const data = await robloxJson(`https://api.roblox.com/marketplace/productinfo?assetId=${id}`, {}, `legacy product info ${id}`);
         return normalizeAsset({ ...data, id, detailsSource: "legacy-productinfo" });
-      }));
+      });
 
       legacyResults.forEach((result, index) => {
         const id = needsLegacy[index];
@@ -689,17 +698,17 @@ function normalizeAsset(item = {}) {
     item.priceInRobux,
     item.PriceInRobux,
     item.robuxPrice,
-    item.RobuxPrice,
-    item.minimumPrice,
-    item.MinimumPrice
+    item.RobuxPrice
   );
 
-  const lowestPrice = firstNumber(
+  const lowestPrice = firstPositiveNumber(
     item.lowestPrice,
     item.lowestResalePrice,
     item.LowestPrice,
     item.resaleLowestPrice,
-    item.lowestAvailablePrice
+    item.lowestAvailablePrice,
+    item.minimumPrice,
+    item.MinimumPrice
   );
 
   const priceStatus =
@@ -730,11 +739,11 @@ function normalizeAsset(item = {}) {
     item.collectibleItemId
   );
 
+  // Do not use isPublicDomain/IsPublicDomain as a price signal. Roblox can mark
+  // some public assets this way even when they are not actually free catalog items.
   const isFree =
     price === 0 ||
-    item.isPublicDomain === true ||
-    item.IsPublicDomain === true ||
-    String(priceStatus || "").toLowerCase() === "free";
+    String(priceStatus || "").trim().toLowerCase() === "free";
 
   return {
     ...item,
@@ -827,6 +836,15 @@ function firstNumber(...values) {
     if (value === undefined || value === null || value === "") continue;
     const n = Number(value);
     if (Number.isFinite(n)) return n;
+  }
+  return null;
+}
+
+function firstPositiveNumber(...values) {
+  for (const value of values) {
+    if (value === undefined || value === null || value === "") continue;
+    const n = Number(value);
+    if (Number.isFinite(n) && n > 0) return n;
   }
   return null;
 }
@@ -931,8 +949,7 @@ function shouldResolveParentBundle(item, id) {
   const type = String(getAssetTypeName(item) || item.assetTypeName || "");
   const name = String(item.name || "");
   return /DynamicHead|MoodAnimation|ClimbAnimation|DeathAnimation|FallAnimation|IdleAnimation|JumpAnimation|RunAnimation|SwimAnimation|WalkAnimation|PoseAnimation|Torso|Right Arm|Left Arm|Left Leg|Right Leg|Head/i.test(type)
-    || /Animation Pack|Animation Package|Dynamic Head|Recolorable|Bundle|Package/i.test(name)
-    || item.price === 0;
+    || /Animation Pack|Animation Package|Dynamic Head|Recolorable|Bundle|Package/i.test(name);
 }
 
 async function getParentBundlesForAssets(assetIds, logs = []) {
@@ -940,7 +957,7 @@ async function getParentBundlesForAssets(assetIds, logs = []) {
   const bundleIds = new Set();
   const assetToBundleId = {};
 
-  const results = await Promise.allSettled(unique(assetIds).map(async id => {
+  const results = await mapSettledLimit(unique(assetIds), 4, async id => {
     const data = await robloxJson(
       `https://catalog.roblox.com/v1/assets/${id}/bundles?limit=10&sortOrder=Asc`,
       {},
@@ -952,7 +969,7 @@ async function getParentBundlesForAssets(assetIds, logs = []) {
       assetToBundleId[id] = Number(best.id);
       bundleIds.add(Number(best.id));
     }
-  }));
+  });
 
   const rejected = results.filter(r => r.status === "rejected").length;
   if (rejected) logs.push(`Bundle parent lookup failed for ${rejected} asset(s).`);
@@ -1072,32 +1089,71 @@ async function robloxJson(url, opts = {}, label = "Roblox API") {
     ...(opts.headers || {})
   };
 
-  let res;
-  try {
-    res = await fetch(url, { method, headers, body: opts.body });
-  } catch (err) {
-    const e = new Error(`${label} network error: ${err.message}`);
-    e.status = 502;
-    throw e;
-  }
+  const maxAttempts = method === "GET" ? 3 : 1;
+  let lastErr = null;
 
-  const text = await res.text();
-  let data;
-  try {
-    data = text ? JSON.parse(text) : {};
-  } catch {
-    data = { raw: text.slice(0, 500) };
-  }
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    let res;
+    try {
+      res = await fetch(url, { method, headers, body: opts.body });
+    } catch (err) {
+      const e = new Error(`${label} network error: ${err.message}`);
+      e.status = 502;
+      throw e;
+    }
 
-  if (!res.ok) {
+    const text = await res.text();
+    let data;
+    try {
+      data = text ? JSON.parse(text) : {};
+    } catch {
+      data = { raw: text.slice(0, 500) };
+    }
+
+    if (res.ok) return data;
+
     const msg = data.errors?.[0]?.message || data.error || data.message || `${method} ${url} failed with HTTP ${res.status}`;
     const err = new Error(`${label}: ${msg}`);
     err.status = res.status === 404 ? 404 : (res.status === 429 ? 429 : 502);
+    err.retryAfterSeconds = Number(res.headers.get("retry-after")) || undefined;
     err.details = { robloxStatus: res.status, url, preview: typeof data.raw === "string" ? data.raw : undefined };
-    throw err;
+    lastErr = err;
+
+    if (method !== "GET" || ![429, 500, 502, 503, 504].includes(res.status) || attempt === maxAttempts) {
+      throw err;
+    }
+
+    const waitMs = err.retryAfterSeconds
+      ? Math.min(err.retryAfterSeconds * 1000, 2500)
+      : 350 * attempt;
+    await delay(waitMs);
   }
 
-  return data;
+  throw lastErr || new Error(`${label}: request failed`);
+}
+
+async function mapSettledLimit(items, limit, mapper) {
+  const input = Array.from(items || []);
+  const results = new Array(input.length);
+  let next = 0;
+
+  async function worker() {
+    while (next < input.length) {
+      const index = next++;
+      try {
+        results[index] = { status: "fulfilled", value: await mapper(input[index], index) };
+      } catch (reason) {
+        results[index] = { status: "rejected", reason };
+      }
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, input.length) }, worker));
+  return results;
+}
+
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 function thumbnailKind(imageUrl) {
