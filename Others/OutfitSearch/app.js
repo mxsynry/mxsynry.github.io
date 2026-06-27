@@ -2,6 +2,7 @@ const DEFAULT_API_BASE = "https://YOUR-WORKER.workers.dev";
 const API_STORAGE_KEY = "robloxOutfitApiBase";
 const LOG_STORAGE_KEY = "robloxOutfitDebugLogs";
 const LAZY_LOAD_STORAGE_KEY = "robloxOutfitLazyLoading";
+const THEME_STORAGE_KEY = "robloxOutfitTheme";
 const MAX_LOGS = 300;
 const PREFETCH_LIMIT = 24;
 const PREFETCH_DELAY_MS = 275;
@@ -36,6 +37,8 @@ const copyConsoleBtn = $("#copyConsoleBtn");
 const clearConsoleBtn = $("#clearConsoleBtn");
 const copyLinkBtn = $("#copyLinkBtn");
 const lazyLoadToggle = $("#lazyLoadToggle");
+const themeBtn = $("#themeBtn");
+applyTheme(getSavedTheme());
 
 function hasConfiguredApi() {
   return API_BASE && API_BASE !== DEFAULT_API_BASE;
@@ -94,11 +97,13 @@ changeApiBtn.addEventListener("click", () => {
   apiBaseInput.focus();
 });
 
-$("#themeBtn").addEventListener("click", () => {
-  document.documentElement.classList.toggle("light");
-  localStorage.setItem("theme", document.documentElement.classList.contains("light") ? "light" : "dark");
+themeBtn?.addEventListener("click", () => {
+  const nextTheme = document.documentElement.classList.contains("light") ? "dark" : "light";
+  applyTheme(nextTheme);
+  localStorage.setItem(THEME_STORAGE_KEY, nextTheme);
+  localStorage.setItem("theme", nextTheme);
+  logInfo("Theme changed.", { theme: nextTheme });
 });
-if (localStorage.getItem("theme") === "light") document.documentElement.classList.add("light");
 
 instructionsBtn.addEventListener("click", () => openDialog(instructionsDialog));
 consoleBtn.addEventListener("click", () => {
@@ -144,7 +149,7 @@ copyLinkBtn?.addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText(url);
     copyLinkBtn.textContent = "Copied link";
-    setTimeout(() => copyLinkBtn.textContent = "Copy search link", 1100);
+    setTimeout(() => copyLinkBtn.textContent = "Copy link", 1100);
     logSuccess("Search link copied.", { url });
   } catch {
     setStatus(`Share link: ${url}`, false);
@@ -318,6 +323,23 @@ async function prefetchOutfitDetails(entries = [], userId = null) {
   logSuccess("Background outfit detail prefetch finished.", { userId, entries: uniqueEntries.length });
 }
 
+function getSavedTheme() {
+  const saved = localStorage.getItem(THEME_STORAGE_KEY) || localStorage.getItem("theme");
+  if (saved === "light" || saved === "dark") return saved;
+  return window.matchMedia?.("(prefers-color-scheme: light)")?.matches ? "light" : "dark";
+}
+
+function applyTheme(theme) {
+  const isLight = theme === "light";
+  document.documentElement.classList.toggle("light", isLight);
+  document.documentElement.dataset.theme = isLight ? "light" : "dark";
+  if (themeBtn) {
+    themeBtn.textContent = isLight ? "Dark mode" : "Light mode";
+    themeBtn.setAttribute("aria-pressed", String(isLight));
+    themeBtn.title = isLight ? "Switch to dark mode" : "Switch to Catppuccin Latte light mode";
+  }
+}
+
 function initLazyLoadingOption() {
   if (!lazyLoadToggle) return;
   lazyLoadToggle.checked = isLazyLoadingEnabled();
@@ -343,7 +365,12 @@ function renderUser(report) {
   const p = report.profile || {};
   const avatarUrl = report.avatarThumbnail?.imageUrl || "";
 
-  $(".avatar-img", tpl).src = avatarUrl;
+  const avatarImg = $(".avatar-img", tpl);
+  avatarImg.src = avatarUrl;
+  avatarImg.onerror = () => {
+    avatarImg.removeAttribute("src");
+    avatarImg.classList.add("avatar-empty");
+  };
   $(".profile-title", tpl).textContent = `${p.displayName || p.name || "Unknown"} ${p.hasVerifiedBadge ? "✓" : ""}`;
   $(".profile-meta", tpl).textContent = `@${p.name || "unknown"} • ID ${p.id} • joined ${formatDate(p.created)}`;
   $(".profile-link", tpl).href = `https://www.roblox.com/users/${p.id}/profile`;
@@ -416,6 +443,28 @@ function renderUser(report) {
   }
 }
 
+function thumbnailMarkup(img, fallbackText) {
+  return `
+    <div class="thumb-placeholder" aria-hidden="true"><span>${fallbackText || "ITEM"}</span></div>
+    ${img ? `<img src="${img}" alt="" loading="lazy" data-thumb-img>` : ""}
+  `;
+}
+
+function hydrateThumbs(root) {
+  for (const img of root.querySelectorAll("[data-thumb-img]")) {
+    const wrap = img.closest(".thumb-wrap");
+    const markLoaded = () => wrap?.classList.add("has-image");
+    const markFailed = () => {
+      wrap?.classList.remove("has-image");
+      img.remove();
+    };
+
+    img.addEventListener("load", markLoaded, { once: true });
+    img.addEventListener("error", markFailed, { once: true });
+    if (img.complete && img.naturalWidth > 0) markLoaded();
+  }
+}
+
 function assetCard(item) {
   const display = getDisplayItem(item);
   const el = document.createElement("article");
@@ -434,8 +483,8 @@ function assetCard(item) {
   const linkLabel = display.purchasableType === "Bundle" ? "Bundle" : "Catalog";
 
   el.innerHTML = `
-    <div class="thumb-wrap">
-      ${img ? `<img src="${img}" alt="${displayName}" loading="lazy">` : `<div class="no-thumb">${fallbackText}</div>`}
+    <div class="thumb-wrap" aria-label="${displayName}">
+      ${thumbnailMarkup(img, fallbackText)}
     </div>
     <div class="asset-body">
       <p class="item-name" title="${displayName}">${displayName}</p>
@@ -449,6 +498,7 @@ function assetCard(item) {
       </div>
     </div>`;
 
+  hydrateThumbs(el);
   $("[data-copy]", el).addEventListener("click", () => navigator.clipboard?.writeText(String(id)));
   return el;
 }
@@ -520,8 +570,8 @@ function outfitCard(outfit, selectedOutfit, label = "Outfit") {
   const name = escapeHtml(outfit.name || `Outfit ${outfit.id}`);
 
   el.innerHTML = `
-    <div class="thumb-wrap">
-      ${outfit.imageUrl ? `<img src="${escapeAttr(outfit.imageUrl)}" alt="${name}" loading="lazy">` : `<div class="no-thumb">OUTFIT</div>`}
+    <div class="thumb-wrap" aria-label="${name}">
+      ${thumbnailMarkup(escapeAttr(outfit.imageUrl || ""), "OUTFIT")}
     </div>
     <div class="outfit-body">
       <p class="item-name" title="${name}">${name}</p>
@@ -531,6 +581,7 @@ function outfitCard(outfit, selectedOutfit, label = "Outfit") {
       </div>
     </div>`;
 
+  hydrateThumbs(el);
   $("button", el).addEventListener("click", async () => {
     selectedOutfit.section.hidden = false;
     selectedOutfit.title.textContent = `${outfit.name || `Outfit ${outfit.id}`} items`;

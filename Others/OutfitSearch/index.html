@@ -1,54 +1,36 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-  <meta name="theme-color" content="#1e1e2e">
-  <meta name="description" content="Public Roblox outfit lookup by username or user ID.">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Roblox Outfit Viewer</title>
-  <style>
-:root {
-  color-scheme: dark;
-  --rosewater:#f5e0dc; --flamingo:#f2cdcd; --pink:#f5c2e7; --mauve:#cba6f7; --red:#f38ba8; --maroon:#eba0ac; --peach:#fab387; --yellow:#f9e2af; --green:#a6e3a1; --teal:#94e2d5; --sky:#89dceb; --sapphire:#74c7ec; --blue:#89b4fa; --lavender:#b4befe;
-  --text:#cdd6f4; --subtext1:#bac2de; --subtext0:#a6adc8; --overlay2:#9399b2; --overlay1:#7f849c; --overlay0:#6c7086; --surface2:#585b70; --surface1:#45475a; --surface0:#313244; --base:#1e1e2e; --mantle:#181825; --crust:#11111b;
-  --border: var(--surface0); --radius:14px; --radius-sm:10px; --shadow:0 18px 40px rgba(0,0,0,.28);
-}
-* { box-sizing:border-box; margin:0; padding:0; }
-html { scrollbar-width:thin; scrollbar-color:var(--surface2) var(--crust); }
-body {
-  min-height:100vh; background:var(--base); color:var(--text);
-  font-family:ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
-  line-height:1.5;
-}
-::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-track{background:var(--crust)}::-webkit-scrollbar-thumb{background:var(--surface1);border-radius:999px;border:2px solid var(--crust)}::-webkit-scrollbar-thumb:hover{background:var(--surface2)}
-a{color:inherit} button,input{font:inherit} code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;color:var(--peach)}
-.app-shell{min-height:100vh;display:flex;flex-direction:column}.content-wrap{width:min(1180px,100%);margin:0 auto;padding:18px;display:flex;flex-direction:column;gap:14px}.site-header{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;gap:16px;align-items:flex-start;padding:14px 18px;border-bottom:1px solid var(--border);background:var(--mantle)}
-.brand-block{display:flex;align-items:flex-start;gap:14px;min-width:0}.brand-mark{width:40px;height:40px;flex:0 0 40px;border-radius:12px;border:1px solid var(--surface1);background:var(--surface0);display:grid;place-items:center;text-decoration:none;color:var(--mauve);font-weight:900}.brand-mark img{width:24px;height:24px;object-fit:contain}.brand-copy{min-width:0}.title-row,.panel-heading,.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}.eyebrow{color:var(--mauve);font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.eyebrow.small{font-size:10px}h1{font-size:clamp(22px,4vw,34px);letter-spacing:-.04em;line-height:1.05}h2{font-size:20px;letter-spacing:-.02em}h3{font-size:16px}.lede{margin-top:5px;color:var(--subtext0);max-width:780px}.header-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.panel{border:1px solid var(--border);background:var(--mantle);border-radius:var(--radius);padding:14px}.setup,.search-panel{box-shadow:none}.row{display:flex;gap:8px;align-items:center}.input-row,.search-row{margin-top:12px}.search-row input,.input-row input{flex:1;min-width:0}input{width:100%;border:1px solid var(--surface1);background:var(--crust);color:var(--text);border-radius:999px;padding:11px 13px;outline:none}input::placeholder{color:var(--overlay1)}input:focus{border-color:var(--mauve);box-shadow:0 0 0 3px rgba(203,166,247,.16)}button,.ghost,.profile-link,.json-btn{border:1px solid var(--surface1);background:var(--surface0);color:var(--text);border-radius:999px;padding:10px 13px;cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap}button:hover,.ghost:hover,.profile-link:hover,.json-btn:hover{border-color:var(--mauve);background:var(--surface1)}button[type="submit"],#saveApiBtn{background:var(--mauve);border-color:var(--mauve);color:var(--crust);font-weight:800}.badge,.pill{display:inline-flex;align-items:center;gap:6px;background:var(--surface0);border:1px solid var(--surface1);color:var(--subtext0);border-radius:999px;padding:4px 9px;font-size:12px;white-space:nowrap}.hint,.muted,.quick-help{color:var(--subtext0);font-size:13px}.hint{margin-top:10px}.danger-text{color:var(--red)}.search-options{margin-top:10px}.lazy-option{display:flex;align-items:center;gap:8px;color:var(--subtext0);font-size:13px}.lazy-option input{width:auto}.quick-help{display:grid;gap:4px;margin-top:10px}.status{min-height:0;color:var(--subtext0)}.results{display:grid;gap:16px}.user-card{padding:16px}.profile-head{display:grid;grid-template-columns:92px minmax(0,1fr);gap:14px;align-items:center}.avatar-img{width:92px;height:92px;border-radius:18px;border:1px solid var(--surface1);background:var(--surface0);object-fit:cover}.profile-copy{min-width:0}.profile-title{word-break:break-word}.profile-meta{margin-top:2px}.chips,.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.description-block{margin-top:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--base);padding:10px}.description-block summary{cursor:pointer;color:var(--subtext1);font-weight:750}.description-text{margin-top:8px;color:var(--subtext0);white-space:pre-wrap}.result-section{margin-top:16px}.asset-grid,.wearing-grid,.selected-outfit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:10px}.outfit-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:10px;margin-top:10px}.asset-card,.outfit-card,.item-card,.asset,.outfit{border:1px solid var(--border);background:var(--base);border-radius:var(--radius-sm);padding:10px;min-width:0}.asset-card:hover,.outfit-card:hover,.item-card:hover,.asset:hover,.outfit:hover{border-color:var(--mauve);background:var(--surface0)}.asset-card img,.outfit-card img,.item-card img,.asset img,.outfit img{width:100%;max-height:180px;object-fit:contain;border-radius:10px;background:var(--crust)}.asset-card a,.outfit-card a,.item-card a{color:var(--blue);text-decoration:none}.asset-card a:hover,.outfit-card a:hover,.item-card a:hover{text-decoration:underline}.modal{width:min(760px,calc(100vw - 24px));border:1px solid var(--surface1);border-radius:18px;background:var(--base);color:var(--text);padding:0;box-shadow:var(--shadow)}.modal::backdrop{background:rgba(17,17,27,.78)}.wide-modal{width:min(980px,calc(100vw - 24px))}.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding:14px;border-bottom:1px solid var(--border);background:var(--mantle)}.icon-btn{width:34px;height:34px;padding:0;font-size:22px}.steps{padding:16px 18px 16px 36px;color:var(--subtext0)}.steps li{margin:7px 0}.console-actions{display:flex;gap:8px;padding:12px 14px;border-bottom:1px solid var(--border)}.debug-console{margin:14px;background:var(--crust);border:1px solid var(--border);border-radius:12px;padding:14px;color:var(--text);font-size:12px;line-height:1.5;overflow:auto;max-height:60vh;white-space:pre-wrap}
-@media (max-width:760px){.site-header{position:static;flex-direction:column;padding:12px}.header-actions{justify-content:flex-start}.content-wrap{padding:12px}.row,.search-row,.input-row{flex-direction:column;align-items:stretch}.profile-head{grid-template-columns:1fr}.avatar-img{width:82px;height:82px}.asset-grid,.wearing-grid,.selected-outfit-grid,.outfit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.panel{padding:12px}button,.ghost,.profile-link,.json-btn{width:100%}.brand-block{width:100%}.brand-mark{width:36px;height:36px;flex-basis:36px}.quick-help{display:none}}
-@media (max-width:430px){.asset-grid,.wearing-grid,.selected-outfit-grid,.outfit-grid{grid-template-columns:1fr}}
-  </style>
+  <meta name="description" content="Public Roblox outfit, currently wearing items, saved outfits, animation packs, and emotes by username or user ID." />
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="app-shell">
     <header class="site-header">
       <div class="brand-block">
-        <a class="brand-mark" href="/" aria-label="Back home">
-          <img src="/Others/Synchrose/globe.ico" alt="" onerror="this.style.display='none'">
+        <a class="brand-mark" href="/" aria-label="Back to mxsynry.github.io home">
+          <img src="/Others/Synchrose/globe.ico" alt="" onerror="this.remove()" />
+          <span class="brand-fallback">OS</span>
         </a>
         <div class="brand-copy">
           <div class="title-row">
             <p class="eyebrow">Public Roblox avatar lookup</p>
+            <span class="badge">OutfitSearch</span>
           </div>
           <h1>Roblox Outfit Viewer</h1>
           <p class="lede">Search public accounts, view current items, saved outfits, packs, and emotes.</p>
         </div>
       </div>
+
       <nav class="header-actions" aria-label="Page actions">
         <a class="ghost nav-link" href="/">Site index</a>
-        <button id="instructionsBtn" class="ghost" type="button">Instructions</button>
-        <button id="consoleBtn" class="ghost" type="button">Console</button>
-        <button id="changeApiBtn" class="ghost" type="button">Change API</button>
-        <button id="themeBtn" class="ghost" type="button">Theme</button>
+        <button id="instructionsBtn" class="ghost" type="button" title="Show setup instructions">Instructions</button>
+        <button id="consoleBtn" class="ghost" type="button" title="Open debug console">Console</button>
+        <button id="changeApiBtn" class="ghost" type="button" title="Clear or change the saved API URL">Change API</button>
+        <button id="themeBtn" class="ghost" type="button" title="Toggle theme">Theme</button>
       </nav>
     </header>
 
@@ -61,12 +43,12 @@ a{color:inherit} button,input{font:inherit} code{font-family:ui-monospace,SFMono
           </div>
           <span class="pill">Cloudflare Worker</span>
         </div>
-        <p class="hint">Paste the public Worker URL used to proxy Roblox API requests. It is saved in this browser only.</p>
+        <p>This GitHub Pages app needs a small Cloudflare Worker because many Roblox API calls are blocked by browser CORS. Paste your Worker URL once and it will be saved locally in this browser.</p>
         <div class="row input-row">
-          <input id="apiBaseInput" placeholder="https://your-worker-name.your-subdomain.workers.dev">
+          <input id="apiBaseInput" placeholder="https://your-worker-name.your-subdomain.workers.dev" />
           <button id="saveApiBtn" type="button">Save API</button>
         </div>
-        <p class="hint">URL shortcut: <code>?api=https://your-worker.workers.dev</code>. Never paste tokens or cookies.</p>
+        <p class="hint">Tip: you can also append <code>?api=https://your-worker.workers.dev</code> to the page URL. Use <strong>Change API</strong> if you saved the wrong URL.</p>
         <p id="apiStatus" class="hint"></p>
       </section>
 
@@ -80,15 +62,16 @@ a{color:inherit} button,input{font:inherit} code{font-family:ui-monospace,SFMono
             <span class="pill">username · id · search</span>
           </div>
           <div class="row search-row">
-            <input id="query" autocomplete="off" spellcheck="false" placeholder="Roblox, id:1, search:builderman">
+            <input id="query" autocomplete="off" spellcheck="false" placeholder="zxwnvc" />
             <button id="searchBtn" type="submit">Search</button>
             <button id="copyLinkBtn" class="ghost" type="button">Copy link</button>
           </div>
           <div class="search-options" aria-label="Search options">
-            <label class="lazy-option" title="Fetch outfit items only when opened.">
-              <input id="lazyLoadToggle" type="checkbox" checked>
+            <label class="lazy-option" title="When enabled, outfit items and pack components are fetched only when you click them.">
+              <input id="lazyLoadToggle" type="checkbox" checked />
               <span>Lazy-load outfit items</span>
             </label>
+            <p class="lazy-note">using lazy loading to prevent spamming is appreciated, mwah</p>
           </div>
           <div class="quick-help">
             <p>Use comma/newline separated values. Exact ID: <code>id:12345</code>. Broad search: <code>search:keyword</code>.</p>
@@ -117,7 +100,7 @@ a{color:inherit} button,input{font:inherit} code{font-family:ui-monospace,SFMono
       <li>Save/deploy and copy the public <code>.workers.dev</code> URL.</li>
       <li>Paste that URL here with <strong>Change API</strong>.</li>
     </ol>
-    <p class="hint danger-text" style="padding:0 16px 16px">Only paste the public Worker URL. Do not paste Cloudflare tokens, Roblox cookies, or GitHub tokens.</p>
+    <p class="hint danger-text">Only paste the public Worker URL. Do not paste Cloudflare tokens, Roblox cookies, or GitHub tokens.</p>
   </dialog>
 
   <dialog id="consoleDialog" class="modal wide-modal">
@@ -138,7 +121,7 @@ a{color:inherit} button,input{font:inherit} code{font-family:ui-monospace,SFMono
   <template id="userCardTpl">
     <article class="user-card panel">
       <div class="profile-head">
-        <img class="avatar-img" alt="Avatar thumbnail" loading="lazy">
+        <img class="avatar-img" alt="Avatar thumbnail" loading="lazy" />
         <div class="profile-copy">
           <h2 class="profile-title"></h2>
           <p class="muted profile-meta"></p>
