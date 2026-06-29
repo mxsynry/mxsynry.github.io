@@ -8106,6 +8106,14 @@
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/uhh_very_sigma.png"
             },
             {
+              "name": "Vanity.luau",
+              "path": "storage/other-stuff/Vanity.luau",
+              "type": "file",
+              "size": 51208,
+              "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Vanity.luau",
+              "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Vanity.luau"
+            },
+            {
               "name": "vulntestsource.lua",
               "path": "storage/other-stuff/vulntestsource.lua",
               "type": "file",
