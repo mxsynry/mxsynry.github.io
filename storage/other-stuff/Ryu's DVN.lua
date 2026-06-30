@@ -3,7 +3,6 @@
     Dummies VS Noobs Hub
     open source, don't reupload or obfuscate ty, or else i'll come and remove your sigma license
 ]]
-
 if getgenv().DVNScriptLoaded then
     pcall(getgenv().UnloadDVNScript)
 end
@@ -47,7 +46,7 @@ local State = {
         Player = { Enabled = true, Dynamic = false, Static = 10, Min = 2, Max = 25, Near = 2, Far = 30, Part = "Head", Fallback = false },
     },
     ESP = { Enabled = true, EnemyColor = "Orange", TeamColor = "Bright Green", OutlineColor = "White", Transparency = 0.7, OutlineTransparency = 1, ThroughWalls = true },
-    LandmineDestroyer = { Enabled = true, ScanInterval = 1, DeleteMethod = "Destroy" },
+    LandmineCleaner = { Enabled = true },
     Solvers = { Prometheus = true, Hermes = true, Platform = true, Tank = true, TridentQTE = true },
     TV = { SlamSpam = true, SpamDelay = 0.11, RemoveGlide = true, RemoveDirectCharge = true, InfiniteFuel = true, QKeyHeld = false, LastSlamTime = 0, GlideThrottle = 0 },
     Equip = { AerorigFuel = true, InfiniteJetpack = true, UnlimitedPCU = true },
@@ -304,109 +303,42 @@ local function DestroyHighlight(cache, obj)
     end
 end
 
-local function RemoveTouchInterests(obj)
-    if not obj then return end
-    for _, child in ipairs(obj:GetDescendants()) do
-        if child:IsA("TouchInterest") or child:IsA("TouchTransmitter") then
-            pcall(function() child:Destroy() end)
+local function removeTouch(obj)
+    if not obj then return 0 end
+    local count = 0
+    for _, desc in ipairs(obj:GetDescendants()) do
+        if desc:IsA("TouchInterest") or desc:IsA("TouchTransmitter") then
+            pcall(function() desc:Destroy() end)
+            count = count + 1
         end
     end
     if obj:IsA("TouchInterest") or obj:IsA("TouchTransmitter") then
         pcall(function() obj:Destroy() end)
+        count = count + 1
     end
+    return count
 end
 
-local function DestroyLandmines()
+local function killLandmines()
+    local total = 0
+    local folders = {Workspace}
     local mapFolder = Workspace:FindFirstChild("Map")
-    for _, child in ipairs(Workspace:GetChildren()) do
-        if child.Name == "Landmine" or child.Name == "Hitbox" then
-            RemoveTouchInterests(child)
-            if child:IsA("BasePart") then
-                pcall(function()
-                    if State.LandmineDestroyer.DeleteMethod == "Destroy" then
-                        child:Destroy()
-                    elseif State.LandmineDestroyer.DeleteMethod == "Clear" then
-                        child:ClearAllChildren()
-                        child:Destroy()
-                    else
-                        child.Parent = nil
-                    end
-                end)
-            elseif child:IsA("Model") then
-                local hb = child:FindFirstChild("Hitbox")
-                if hb and hb:IsA("BasePart") then
-                    RemoveTouchInterests(hb)
-                    pcall(function()
-                        if State.LandmineDestroyer.DeleteMethod == "Destroy" then
-                            hb:Destroy()
-                        elseif State.LandmineDestroyer.DeleteMethod == "Clear" then
-                            hb:ClearAllChildren()
-                            hb:Destroy()
-                        else
-                            hb.Parent = nil
-                        end
-                    end)
-                else
-                    RemoveTouchInterests(child)
-                    pcall(function()
-                        if State.LandmineDestroyer.DeleteMethod == "Destroy" then
-                            child:Destroy()
-                        elseif State.LandmineDestroyer.DeleteMethod == "Clear" then
-                            child:ClearAllChildren()
-                            child:Destroy()
-                        else
-                            child.Parent = nil
-                        end
-                    end)
+    if mapFolder then table.insert(folders, mapFolder) end
+
+    for _, folder in ipairs(folders) do
+        for _, child in ipairs(folder:IsA("Instance") and folder:GetChildren() or {}) do
+            if child.Name == "Landmine" or child.Name == "Hitbox" then
+                total = total + removeTouch(child)
+            end
+            if child.Name:find("Landmine") or child.Name:find("landmine") then
+                total = total + removeTouch(child)
+                for _, sub in ipairs(child:GetChildren()) do
+                    total = total + removeTouch(sub)
                 end
             end
         end
     end
-    if mapFolder then
-        for _, child in ipairs(mapFolder:GetDescendants()) do
-            if child.Name:find("Landmine") then
-                RemoveTouchInterests(child)
-                if child:IsA("BasePart") then
-                    pcall(function()
-                        if State.LandmineDestroyer.DeleteMethod == "Destroy" then
-                            child:Destroy()
-                        elseif State.LandmineDestroyer.DeleteMethod == "Clear" then
-                            child:ClearAllChildren()
-                            child:Destroy()
-                        else
-                            child.Parent = nil
-                        end
-                    end)
-                elseif child:IsA("Model") then
-                    local hb = child:FindFirstChild("Hitbox")
-                    if hb and hb:IsA("BasePart") then
-                        RemoveTouchInterests(hb)
-                        pcall(function()
-                            if State.LandmineDestroyer.DeleteMethod == "Destroy" then
-                                hb:Destroy()
-                            elseif State.LandmineDestroyer.DeleteMethod == "Clear" then
-                                hb:ClearAllChildren()
-                                hb:Destroy()
-                            else
-                                hb.Parent = nil
-                            end
-                        end)
-                    else
-                        pcall(function()
-                            if State.LandmineDestroyer.DeleteMethod == "Destroy" then
-                                child:Destroy()
-                            elseif State.LandmineDestroyer.DeleteMethod == "Clear" then
-                                child:ClearAllChildren()
-                                child:Destroy()
-                            else
-                                child.Parent = nil
-                            end
-                        end)
-                    end
-                end
-            end
-        end
-    end
+    return total
 end
 
 local function AutoAttack()
@@ -427,49 +359,50 @@ local function AutoAttack()
     local verifyFire = tool:FindFirstChild("VerifyFire")
     local isGun = verifyFire ~= nil
 
-    local targets = {}
+    local targetData = {}
     for ent, _ in pairs(activeNPCs) do
         if ent and ent.Parent and ent:FindFirstChild("HumanoidRootPart") then
             local hum = ent:FindFirstChildOfClass("Humanoid")
             if hum and hum.Health > 0 then
-                local targetPart = GetBossTarget(ent) or ent:FindFirstChild("Head") or ent:FindFirstChild("HumanoidRootPart")
-                if targetPart and targetPart.Parent then
-                    local dist = (myRoot.Position - targetPart.Position).Magnitude
-                    if dist <= State.Farm.MaxRange then
-                        table.insert(targets, { Part = targetPart, Hum = hum, Dist = dist })
-                    end
+                local dist = (myRoot.Position - ent.HumanoidRootPart.Position).Magnitude
+                if dist <= State.Farm.MaxRange then
+                    table.insert(targetData, { Entity = ent, Hum = hum, Dist = dist })
                 end
             end
         end
     end
 
-    if #targets == 0 then return end
+    if #targetData == 0 then return end
 
     if not State.Farm.MultiTarget then
-        table.sort(targets, function(a, b) return a.Dist < b.Dist end)
-        targets = { targets[1] }
+        table.sort(targetData, function(a, b) return a.Dist < b.Dist end)
+        targetData = { targetData[1] }
     end
 
     if isGun then
         pcall(function() verifyFire:FireServer() end)
         task.delay(0.03, function()
             if not ScriptAlive then return end
-            for _, t in ipairs(targets) do
-                if t.Part and t.Part.Parent and t.Hum and t.Hum.Parent and t.Hum.Health > 0 then
-                    if Remotes.bullet then
-                        local dir = (t.Part.Position - myHead.Position).Unit
-                        pcall(function()
-                            Remotes.bullet:FireServer(myHead.Position, dir, 3000, {
-                                HighFidelitySegmentSize = 0.5, Acceleration = Vector3.new(0,0,0),
-                                RaycastParams = RaycastParams.new {
-                                    FilterDescendantsInstances = { myChar, Camera },
-                                    FilterType = Enum.RaycastFilterType.Exclude
-                                },
-                                MaxDistance = 3000, AutoIgnoreContainer = true, HighFidelityBehavior = 1
-                            })
-                        end)
+            for _, td in ipairs(targetData) do
+                local ent, hum = td.Entity, td.Hum
+                if ent and ent.Parent and hum and hum.Parent and hum.Health > 0 then
+                    local targetPart = GetBossTarget(ent) or ent:FindFirstChild("Head") or ent:FindFirstChild("HumanoidRootPart")
+                    if targetPart and targetPart.Parent then
+                        if Remotes.bullet then
+                            local dir = (targetPart.Position - myHead.Position).Unit
+                            pcall(function()
+                                Remotes.bullet:FireServer(myHead.Position, dir, 3000, {
+                                    HighFidelitySegmentSize = 0.5, Acceleration = Vector3.new(0,0,0),
+                                    RaycastParams = RaycastParams.new {
+                                        FilterDescendantsInstances = { myChar, Camera },
+                                        FilterType = Enum.RaycastFilterType.Exclude
+                                    },
+                                    MaxDistance = 3000, AutoIgnoreContainer = true, HighFidelityBehavior = 1
+                                })
+                            end)
+                        end
+                        pcall(function() verifyHit:FireServer(hum, targetPart.Position, myHead.Position) end)
                     end
-                    pcall(function() verifyHit:FireServer(t.Hum, t.Part.Position, myHead.Position) end)
                 end
             end
             if Remotes.sound then
@@ -477,9 +410,20 @@ local function AutoAttack()
             end
         end)
     else
-        for _, t in ipairs(targets) do
-            if t.Part and t.Part.Parent and t.Hum and t.Hum.Parent and t.Hum.Health > 0 then
-                pcall(function() verifyHit:FireServer(t.Hum, t.Part.Position, myHead.Position) end)
+        for _, td in ipairs(targetData) do
+            local ent, hum = td.Entity, td.Hum
+            if ent and ent.Parent and hum and hum.Parent and hum.Health > 0 then
+                local hitParts = {}
+                for _, child in ipairs(ent:GetDescendants()) do
+                    if child:IsA("BasePart") and child.Name ~= "HumanoidRootPart" then
+                        table.insert(hitParts, child)
+                    end
+                end
+                for _, part in ipairs(hitParts) do
+                    if part and part.Parent then
+                        pcall(function() verifyHit:FireServer(hum, part.Position, myHead.Position) end)
+                    end
+                end
             end
         end
         if Remotes.sound then
@@ -504,6 +448,16 @@ local function ModifyTool(tool)
     lock("Spread", S.Spread)
     lock("Recoil", S.Recoil)
     lock("Kickback", S.Kickback)
+    table.insert(ToolConns, tool.AttributeChanged:Connect(function()
+        if State.WeaponMods.Enabled then
+            lock("Ammo", S.Ammo)
+            lock("Firerate", S.Firerate)
+            lock("BulletSpeed", S.BulletSpeed)
+            lock("Spread", S.Spread)
+            lock("Recoil", S.Recoil)
+            lock("Kickback", S.Kickback)
+        end
+    end))
 end
 
 local function WatchContainer(container)
@@ -529,11 +483,21 @@ end)
 
 local function FindTerminalVelocity()
     local char = LocalPlayer.Character
-    if not char then return nil end
+    if not char or not char.Parent then return nil end
     for _, child in ipairs(char:GetChildren()) do
         if child:IsA("Tool") and child.Name == "Terminal Velocity" then return child end
-        if child:IsA("Tool") and child:FindFirstChild("Propell") and child:FindFirstChild("Slam") and child:FindFirstChild("Meter") then
-            return child
+    end
+    local backpack = LocalPlayer:FindFirstChild("Backpack")
+    if backpack then
+        for _, child in ipairs(backpack:GetChildren()) do
+            if child:IsA("Tool") and child.Name == "Terminal Velocity" then return child end
+        end
+    end
+    for _, child in ipairs(char:GetChildren()) do
+        if child:IsA("Tool") then
+            if child:FindFirstChild("Propell") and child:FindFirstChild("Slam") and child:FindFirstChild("Meter") then
+                return child
+            end
         end
     end
     return nil
@@ -575,6 +539,31 @@ end
 
 local function ForceFuelMax(tool)
     if not tool or not tool.Parent then return end
+    local name = tool.Name
+
+    if name == "Terminal Velocity" then
+        local meter = tool:FindFirstChild("Meter")
+        if meter and meter.Value < 100 then pcall(function() meter.Value = 100 end) end
+        return
+    end
+
+    if name == "Jetpack" then
+        local meter = tool:FindFirstChild("Meter")
+        if meter and meter.Value < 100 then pcall(function() meter.Value = 100 end) end
+        return
+    end
+
+    if name == "Aerorig" then
+        local fuelAttr = tool:GetAttribute("Fuel")
+        local maxFuelAttr = tool:GetAttribute("FuelInSeconds") or 12
+        if fuelAttr ~= nil and fuelAttr < maxFuelAttr then
+            pcall(function() tool:SetAttribute("Fuel", maxFuelAttr) end)
+        end
+        local bar = tool:FindFirstChild("Bar")
+        if bar and bar.Value < 100 then pcall(function() bar.Value = 100 end) end
+        return
+    end
+
     local meter = tool:FindFirstChild("Meter")
     if meter and meter.Value < 100 then pcall(function() meter.Value = 100 end) end
     local fuel = tool:FindFirstChild("Fuel")
@@ -593,15 +582,30 @@ local function ForceFuelMax(tool)
     end
 end
 
+local function FindEquippedTool(name)
+    local char = LocalPlayer.Character
+    if not char or not char.Parent then return nil end
+    for _, child in ipairs(char:GetChildren()) do
+        if child:IsA("Tool") and child.Name == name then return child end
+    end
+    local bp = LocalPlayer:FindFirstChild("Backpack")
+    if bp then
+        for _, child in ipairs(bp:GetChildren()) do
+            if child:IsA("Tool") and child.Name == name then return child end
+        end
+    end
+    return nil
+end
+
 task.spawn(function()
     while ScriptAlive do
         if State.Equip.AerorigFuel then
-            local t = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Aerorig")
-            if t and t:IsA("Tool") then ForceFuelMax(t) end
+            local t = FindEquippedTool("Aerorig")
+            if t then ForceFuelMax(t) end
         end
         if State.Equip.InfiniteJetpack then
-            local t = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Jetpack")
-            if t and t:IsA("Tool") then ForceFuelMax(t) end
+            local t = FindEquippedTool("Jetpack")
+            if t then ForceFuelMax(t) end
         end
         if State.Equip.UnlimitedPCU then
             local maxPCU = LocalPlayer:GetAttribute("MaxPCU")
@@ -664,7 +668,25 @@ local function FindMapPrompt(buildingName)
     return nil
 end
 
--- Q key is now handled by SlamSpamBind keybind (Hold mode), see UI section
+local slamKey = Enum.KeyCode.Q
+local function updateSlamKey()
+    local bind = Fluent.Options.SlamSpamBind
+    if bind and bind.Value then
+        local name = bind.Value
+        if name == "LeftMousebutton" then name = "MB1" end
+        if name == "RightMousebutton" then name = "MB2" end
+        local code = Enum.KeyCode[name]
+        if code then slamKey = code end
+    end
+end
+
+SafeConnect(UserInputService.InputBegan, function(input, gp)
+    if gp then return end
+    if input.KeyCode == slamKey then State.TV.QKeyHeld = true end
+end)
+SafeConnect(UserInputService.InputEnded, function(input)
+    if input.KeyCode == slamKey then State.TV.QKeyHeld = false end
+end)
 SafeConnect(UserInputService.JumpRequest, function()
     if State.Misc.InfJump and ScriptAlive then
         pcall(function() LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping") end)
@@ -764,9 +786,9 @@ SafeConnect(RunService.Heartbeat, function(dt)
     end
 
     mineScanTimer = mineScanTimer + dt
-    if State.LandmineDestroyer.Enabled and mineScanTimer >= State.LandmineDestroyer.ScanInterval then
+    if State.LandmineCleaner.Enabled and mineScanTimer >= 2 then
         mineScanTimer = 0
-        DestroyLandmines()
+        killLandmines()
     end
 
     local tvTool = FindTerminalVelocity()
@@ -929,16 +951,11 @@ Tabs.Visuals:CreateDropdown("OutlineColor", {Title = "Outline Color", Values = c
 Tabs.Visuals:CreateSlider("Transparency", {Title = "Fill Transparency", Default = 70, Min = 0, Max = 100, Rounding = 1, Callback = function(v) State.ESP.Transparency = v / 100 end})
 Tabs.Visuals:CreateSlider("OutlineTransparency", {Title = "Outline Transparency", Default = 100, Min = 0, Max = 100, Rounding = 1, Callback = function(v) State.ESP.OutlineTransparency = v / 100 end})
 
-Tabs.Visuals:CreateParagraph("LandmineDestroyerHeader", {Title = "━━ Anti Landmine ━━", Content = "Automatically destroys landmines and their TouchInterests."})
-Tabs.Visuals:CreateToggle("LandmineDestroyer", {Title = "Enable Anti Landmine", Default = true}):OnChanged(function() State.LandmineDestroyer.Enabled = Fluent.Options.LandmineDestroyer.Value end)
-Tabs.Visuals:CreateDropdown("LandmineDeleteMethod", {Title = "Delete Method", Values = {"Destroy", "Clear", "Parent"}, Default = 1, Callback = function(v) State.LandmineDestroyer.DeleteMethod = v end})
-Tabs.Visuals:CreateSlider("LandmineScanInterval", {Title = "Scan Interval (sec)", Default = 1, Min = 0.5, Max = 10, Rounding = 1, Callback = function(v) State.LandmineDestroyer.ScanInterval = v end})
-
 Tabs.Misc:CreateParagraph("MapHeader", {Title = "━━ Map Interactions ━━", Content = "Uses " .. (HasFirePrompt and "fireproximityprompt (native)" or "manual fallback") .. " to trigger prompts."})
 for _, building in ipairs({"AmmoFabricator", "Armoury", "Modifier"}) do
     Tabs.Misc:CreateButton({
         Title = "Open " .. building,
-        Description = "Recursively finds " .. building .. " in Map and fires its prompt.",
+        Description = "Finds" .. building .. " in the Map folder and fires its prompt.",
         Callback = function()
             local pp = FindMapPrompt(building)
             if not pp then return Fluent:Notify{Title = building, Content = "Not found in Map", Duration = 5} end
@@ -948,12 +965,13 @@ for _, building in ipairs({"AmmoFabricator", "Armoury", "Modifier"}) do
     })
 end
 
+Tabs.Misc:CreateToggle("LandmineCleaner", {Title = "Anti Landmine", Default = true}):OnChanged(function() State.LandmineCleaner.Enabled = Fluent.Options.LandmineCleaner.Value end)
 Tabs.Misc:CreateButton({
-    Title = "Clear Landmines Now",
-    Description = "Instantly destroys all landmines and removes their TouchInterests recursively.",
+    Title = "Strip Landmines Now",
+    Description = "Removes all TouchInterests from landmines so they can't hurt you.",
     Callback = function()
-        DestroyLandmines()
-        Fluent:Notify{Title = "Landmine Cleaner", Content = "Cleared all landmines.", Duration = 3}
+        local n = killLandmines()
+        Fluent:Notify{Title = "Anti Landmine", Content = n > 0 and ("Stripped " .. n .. " TouchInterest(s)") or "No TouchInterests found", Duration = 3}
     end
 })
 
@@ -990,36 +1008,58 @@ end)
 Tabs.Misc:CreateSlider("WalkSpeed", {Title = "WalkSpeed", Default = 40, Min = 16, Max = 200, Rounding = 1, Callback = function(v) State.Misc.WalkSpeed = v end})
 
 Tabs.Misc:CreateParagraph("KeybindsHeader", {Title = "━━ Keybinds ━━", Content = "Click the key button to rebind. Supports Toggle and Hold modes."})
-Tabs.Misc:CreateKeybind("AutoFarmBind", {Title = "Auto-Farm", Mode = "Toggle", Default = "LeftAlt", Callback = function(v)
-    State.Farm.Enabled = v
-    Fluent.Options.AutoFarm:SetValue(v)
+Tabs.Misc:CreateKeybind("AutoFarmBind", {Title = "Auto-Farm", Mode = "Toggle", Default = "F8", Callback = function(v)
+    pcall(function()
+        State.Farm.Enabled = v
+        Fluent.Options.AutoFarm:SetValue(v)
+        Fluent:Notify{Title = "Auto-Farm", Content = v and "Enabled" or "Disabled", Duration = 2}
+    end)
 end})
 Tabs.Misc:CreateKeybind("InfJumpBind", {Title = "Infinite Jump", Mode = "Toggle", Default = "Backspace", Callback = function(v)
-    State.Misc.InfJump = v
-    Fluent.Options.InfJump:SetValue(v)
+    pcall(function()
+        State.Misc.InfJump = v
+        Fluent.Options.InfJump:SetValue(v)
+        Fluent:Notify{Title = "Inf Jump", Content = v and "Enabled" or "Disabled", Duration = 2}
+    end)
 end})
 Tabs.Misc:CreateKeybind("AntiStunBind", {Title = "Anti Stun", Mode = "Toggle", Default = "K", Callback = function(v)
-    State.Misc.AntiStun = v
-    Fluent.Options.AntiStun:SetValue(v)
+    pcall(function()
+        State.Misc.AntiStun = v
+        Fluent.Options.AntiStun:SetValue(v)
+        Fluent:Notify{Title = "Anti Stun", Content = v and "Enabled" or "Disabled", Duration = 2}
+    end)
 end})
 Tabs.Misc:CreateKeybind("WalkSpeedBind", {Title = "Custom WalkSpeed", Mode = "Toggle", Default = "J", Callback = function(v)
-    State.Misc.WalkSpeedEnabled = v
-    Fluent.Options.WalkSpeedToggle:SetValue(v)
-    if not v then
-        local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-        if h then pcall(function() h.WalkSpeed = 16 end) end
-    end
+    pcall(function()
+        State.Misc.WalkSpeedEnabled = v
+        Fluent.Options.WalkSpeedToggle:SetValue(v)
+        if not v then
+            local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if h then pcall(function() h.WalkSpeed = 16 end) end
+        end
+        Fluent:Notify{Title = "WalkSpeed", Content = v and "Enabled" or "Disabled", Duration = 2}
+    end)
 end})
 Tabs.Misc:CreateKeybind("ESPBind", {Title = "ESP Toggle", Mode = "Toggle", Default = "B", Callback = function(v)
-    State.ESP.Enabled = v
-    Fluent.Options.ESP:SetValue(v)
+    pcall(function()
+        State.ESP.Enabled = v
+        Fluent.Options.ESP:SetValue(v)
+        Fluent:Notify{Title = "ESP", Content = v and "Enabled" or "Disabled", Duration = 2}
+    end)
 end})
 Tabs.Misc:CreateKeybind("NPCHitboxBind", {Title = "NPC Hitbox", Mode = "Toggle", Default = "H", Callback = function(v)
-    State.Hitbox.NPC.Enabled = v
-    Fluent.Options.NPC_HB:SetValue(v)
+    pcall(function()
+        State.Hitbox.NPC.Enabled = v
+        Fluent.Options.NPC_HB:SetValue(v)
+        Fluent:Notify{Title = "NPC Hitbox", Content = v and "Enabled" or "Disabled", Duration = 2}
+    end)
 end})
 Tabs.Misc:CreateKeybind("SlamSpamBind", {Title = "TV Slam Spam", Mode = "Hold", Default = "Q", Callback = function(v)
-    State.TV.QKeyHeld = v
+    pcall(function()
+        State.TV.QKeyHeld = v
+    end)
+end, ChangedCallback = function()
+    pcall(updateSlamKey)
 end})
 
 Tabs.Settings:CreateParagraph("UtilityHeader", {Title = "━━ Utilities ━━", Content = "External tools and server actions."})
@@ -1045,7 +1085,6 @@ Tabs.Settings:CreateButton({
 getgenv().UnloadDVNScript = function()
     ScriptAlive = false
     State.TV.QKeyHeld = false
-    -- reset walkspeed back to normal
     if State.Misc.WalkSpeedEnabled then
         local h = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
         if h then pcall(function() h.WalkSpeed = 16 end) end
@@ -1061,7 +1100,7 @@ getgenv().UnloadDVNScript = function()
     getgenv().DVNScriptLoaded = false
 end
 
-Tabs.Settings:CreateButton({Title = "Unload Script", Description = "Safely removes everything", Callback = getgenv().UnloadDVNScript})
+Tabs.Settings:CreateButton({Title = "Unload Script", Callback = getgenv().UnloadDVNScript})
 
 SaveManager:SetLibrary(Fluent)
 InterfaceManager:SetLibrary(Fluent)
@@ -1074,6 +1113,6 @@ pcall(function() SaveManager:LoadAutoloadConfig() end)
 Window:SelectTab(1)
 Fluent:Notify{Title = "By Nanashi Ryu", Content = "Made with Love.", Duration = 5}
 
-if workspace.Camera.Folder and workspace.Camera.Folder.Body then
-    workspace.Camera:ClearAllChildren()
+if workspace.Camera:FindFirstChild("Folder") then
+    pcall(function() workspace.Camera:ClearAllChildren() end)
 end
