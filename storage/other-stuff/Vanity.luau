@@ -9,18 +9,18 @@
       print(V.disassemble(scriptInstance))        -- try disassembly fallback chain where supported
 
     Default fallback chain:
-      1) StudioSource                             -> returns .Source when accessible in Studio
-      2) Fission                                  -> rbxcli.decompile(..., {DecompilationKind="Luau"})
-      3) LuaExpert                                -> https://api.lua.expert/decompile
+      1) Fission                                  -> rbxcli.decompile(..., {DecompilationKind="Luau"})
+      2) LuaExpert                                -> https://api.lua.expert/decompile
+      3) Konstant                                 -> plusgiant5 Konstant API
       4) AdvancedV3                               -> w-a-e Advanced-Decompiler-V3
-      5) Konstant                                 -> plusgiant5 Konstant API
-      6) LunaUX                                   -> self-hosted local LunaUX server
-      7) ShinyMedal                               -> self-hosted local Shiny/Medal server
+      5) LunaUX                                   -> self-hosted local LunaUX server
+      6) ShinyMedal                               -> self-hosted local Shiny/Medal server
+      7) StudioSource                             -> returns .Source when accessible in Studio
 
-    Not in default chain:
-      BetterDecompiler                            -> cleanup wrapper; requires an existing base decompile()
-      PseudoLua                                   -> runtime tracer; explicit only
-      KurbyHub                                    -> clean reconstructed KurbyHub dump-style module; explicit only
+    Not in default chain (explicit only):
+      1) KurbyHub                                 -> clean reconstructed KurbyHub dump-style module
+      2) PseudoLua                                -> runtime tracer
+      3) BetterDecompiler                         -> cleanup wrapper; requires an existing base decompile()
 ]]
 
 --[[
@@ -36,6 +36,13 @@
       Config.Konstant.API
       Config.KurbyHub.Settings
 ]]
+
+-- ==================== PRE-FLIGHT COMPATIBILITY CHECK ====================
+if not getscriptbytecode then
+    warn("[Vanity] getscriptbytecode is not available in this executor. " ..
+         "Bytecode-based decompilers (LuaExpert, Konstant, LunaUX, ShinyMedal) will be skipped. " ..
+         "StudioSource and Fission (if available) will still function.")
+end
 
 -- ==================== GLOBAL / ENV FALLBACK ====================
 local G = (getgenv and getgenv()) or _G
@@ -71,13 +78,13 @@ Vanity.Config = Vanity.Config or {}
 local Config = Vanity.Config
 
 Config.DefaultChain = Config.DefaultChain or {
-    "StudioSource",
     "Fission",
     "LuaExpert",
-    "AdvancedV3",
     "Konstant",
+    "AdvancedV3",
     "LunaUX",
     "ShinyMedal",
+    "StudioSource",
 }
 
 -- StudioSource: not a decompiler; useful in Studio where .Source is readable.
@@ -223,7 +230,7 @@ KurbyHub.DEFAULT_SETTINGS = {
     maxSegmentChars = 1200,
     includeEmptySource = false,
     useVanityFallback = true,
-    vanityChain = {"StudioSource", "Fission", "LuaExpert", "AdvancedV3", "Konstant", "LunaUX", "ShinyMedal"},
+    vanityChain = {"Fission", "LuaExpert", "Konstant", "AdvancedV3", "LunaUX", "ShinyMedal", "StudioSource"},
 }
 
 local function copy(t)
@@ -786,7 +793,8 @@ function Vanity.syncGlobals()
     if type(G.decompile) == "function" then mirror_global("decompile", G.decompile) end
     if type(G.disassemble) == "function" then mirror_global("disassemble", G.disassemble) end
 
-    -- KurbyHub recovered settings were originally global _G flags.
+    if type(G.base64_encode) == "function" then mirror_global("base64_encode", G.base64_encode) end
+
     local kh = Config.KurbyHub and Config.KurbyHub.Settings
     if type(kh) == "table" then
         for _, key in ipairs({
@@ -806,8 +814,19 @@ function Vanity.syncGlobals()
 end
 
 -- ==================== BASIC HELPERS ====================
+--   local httpservice = cloneref and cloneref(game:GetService("HttpService")) or game:GetService("HttpService")
 local HttpService = nil
-pcall(function() HttpService = game:GetService("HttpService") end)
+pcall(function()
+    HttpService = cloneref and cloneref(game:GetService("HttpService")) or game:GetService("HttpService")
+end)
+
+local function safe_get_service(name)
+    local ok, svc = pcall(function()
+        return cloneref and cloneref(game:GetService(name)) or game:GetService(name)
+    end)
+    if ok then return svc end
+    return nil
+end
 
 local function get_request()
     return (syn and syn.request)
@@ -847,6 +866,7 @@ local function http_post(url, body, headers)
         local status = tonumber(res.StatusCode or res.status_code or res.Status or 0) or 0
         local text = res.Body or res.body or ""
         if status == 0 or (status >= 200 and status < 300) then return true, text, status end
+        -- when status is non-2xx (matches official script's StatusCode ~= 200 check).
         return false, text, status
     end
     if HttpService and HttpService.PostAsync then
@@ -929,6 +949,13 @@ local function pure_base64_encode(data)
 end
 
 local function base64_encode(data)
+    -- lua.expert script's pattern: local encoder = base64_encode
+    local preExisting = G.base64_encode
+    if type(preExisting) == "function" then
+        local ok, res = pcall(preExisting, data)
+        if ok and type(res) == "string" and res ~= "" then return res end
+    end
+
     local candidates = {
         function() return crypt and crypt.base64 and crypt.base64.encode and crypt.base64.encode(data) end,
         function() return crypt and crypt.base64encode and crypt.base64encode(data) end,
@@ -942,6 +969,10 @@ local function base64_encode(data)
     end
     return pure_base64_encode(data)
 end
+
+-- (including the official lua.expert script if loaded later) can find it.
+G.base64_encode = base64_encode
+mirror_global("base64_encode", base64_encode)
 
 local function json_encode(tbl)
     if HttpService then
@@ -967,7 +998,22 @@ local function json_encode(tbl)
 end
 
 local function looks_like_success(text)
-    return type(text) == "string" and text ~= "" and not text:match("^%s*%-%-%[%[") and not text:lower():match("failed")
+    -- The official script returns "-- failed to read script bytecode\n--[[ ... ]]"
+    -- and "-- api request error\n--[[ ... ]]" on failure. These must not be
+    -- treated as successful decompilation output.
+    if type(text) ~= "string" or text == "" then return false end
+    -- Match the official script's two known failure prefixes
+    if text:match("^%s*%-%-%s*failed to read script bytecode") then return false end
+    if text:match("^%s*%-%-%s*api request error") then return false end
+    -- Generic: if the result starts with a Lua comment block and contains
+    -- "failed" or "error" in the first few lines, it's likely an error payload
+    local firstLine = text:match("^(.-)\n") or text
+    if firstLine:match("^%-%-%%[%[") then
+        -- Starting with --[[ is suspicious; check if it's an error block
+        local preview = text:sub(1, 200)
+        if preview:lower():match("failed") or preview:lower():match("error") then return false end
+    end
+    return true
 end
 
 -- ==================== ENGINE: StudioSource ====================
@@ -1008,20 +1054,39 @@ local luaexpert_last_call = 0
 local function Decompile_LuaExpert(target, options)
     if Config.LuaExpert.Enabled == false then return nil, "LuaExpert disabled" end
     local okByte, bytecode = try_get_bytecode(target)
-    if not okByte then return nil, bytecode end
+    if not okByte then
+        -- lua.expert comment-block style for consistency.
+        return nil, "-- failed to read script bytecode\n--[[\n" .. tostring(bytecode) .. "\n--]]"
+    end
 
+    --   local elapsed = os.clock() - last
+    --   if elapsed < 0.12 then task.wait(0.12 - elapsed) end
+    -- Vanity uses 0.13s (more conservative) but the pattern is identical.
     local elapsed = now_clock() - luaexpert_last_call
-    if elapsed < Config.LuaExpert.RateLimit then wait_seconds(Config.LuaExpert.RateLimit - elapsed) end
+    if elapsed < Config.LuaExpert.RateLimit then
+        wait_seconds(Config.LuaExpert.RateLimit - elapsed)
+    end
 
     local payload = json_encode({ script = base64_encode(bytecode) })
+
     local okPost, body, status = http_post(Config.LuaExpert.API, payload, {
-        ["Content-Type"] = "application/json",
+        ["Content-Type"] = Config.LuaExpert.ContentType,
     })
     luaexpert_last_call = now_clock()
-    if okPost and type(body) == "string" and body ~= "" then
+
+    --   if not res or res.StatusCode ~= 200 then
+    --       return "-- api request error\n--[[\n" .. (res and res.Body or "no response") .. "\n--]]"
+    --   end
+    if not okPost or status ~= 200 then
+        local errorBody = body or "no response"
+        return nil, "-- api request error\n--[[\n" .. tostring(errorBody) .. "\n--]]"
+    end
+
+    if type(body) == "string" and body ~= "" then
         return body, {engine = "LuaExpert", status = status}
     end
-    return nil, string.format("HTTP %s: %s", tostring(status), tostring(body))
+
+    return nil, "-- api request error\n--[[\n" .. tostring(body or "empty response") .. "\n--]]"
 end
 
 -- ==================== ENGINE: Advanced Decompiler V3 ====================
@@ -1327,6 +1392,27 @@ function Vanity.load(name)
     return false, b
 end
 
+-- When all decompiler fallbacks fail, the output now matches the official
+-- lua.expert script's comment-block style so downstream tools/consumers
+-- expecting that format still work correctly.
+local function format_chain_failure(target, errors)
+    local name = safe_name(target)
+    local parts = {
+        "-- All decompiler fallbacks failed for " .. name,
+        "--",
+    }
+    for _, err in ipairs(errors) do
+        parts[#parts + 1] = "-- " .. err
+    end
+    -- Also include the errors in a comment block for structured parsing
+    parts[#parts + 1] = "--[["
+    for _, err in ipairs(errors) do
+        parts[#parts + 1] = err
+    end
+    parts[#parts + 1] = "--]]"
+    return table.concat(parts, "\n")
+end
+
 local function run_chain(kind, target, options)
     options = options or {}
     local chain = options.chain or Config.DefaultChain
@@ -1340,12 +1426,13 @@ local function run_chain(kind, target, options)
             if ok and looks_like_success(result) then
                 return result, {engine = engineName, meta = meta, errors = errors}
             end
-            errors[#errors + 1] = string.format("%s: %s", tostring(engineName), tostring(ok and result or result))
+            local errDetail = ok and tostring(result or "empty result") or tostring(result)
+            errors[#errors + 1] = string.format("%s: %s", tostring(engineName), errDetail)
         else
             errors[#errors + 1] = string.format("%s: no %s function", tostring(engineName), kind)
         end
     end
-    return table.concat({"-- All decompiler fallbacks failed for " .. safe_name(target), "--", table.concat(errors, "\n")}, "\n"), {engine = nil, errors = errors}
+    return format_chain_failure(target, errors), {engine = nil, errors = errors}
 end
 
 function Vanity.decompile(target, options)
@@ -1369,5 +1456,5 @@ G.load_decompile = Vanity.load
 
 if type(Vanity.syncGlobals) == "function" then Vanity.syncGlobals() end
 
-notify("Vanity", "Fallback loader ready. Use Vanity.list() or decompile(script).")
+notify("Vanity", "Loader ready. Use Vanity.list() or decompile(script).")
 return Vanity
