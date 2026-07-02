@@ -40,7 +40,7 @@ app.get('/files', async (req, res) => {
         res.json(sortedFiles);
     } catch (err) {
         console.error('Error reading directory:', err);
-        res.status(500).send('Error reading directory');
+        res.status(500).json({ error: 'Error reading directory', code: err.code || null, message: err.message });
     }
 });
 
@@ -55,7 +55,10 @@ app.get('/files', async (req, res) => {
       res.send(`${filename} has been deleted.`);
     } catch (err) {
       console.error('Error deleting file:', err);
-      res.status(500).send('Error deleting file');
+      if (err.code === 'ENOENT') {
+        return res.status(404).json({ error: 'File not found', code: err.code, message: err.message });
+      }
+      res.status(500).json({ error: 'Error deleting file', code: err.code || null, message: err.message });
     }
   });
   
@@ -72,9 +75,9 @@ app.post('/addtab/:filename', async (req, res) => {
     } catch (err) {
         console.error('Error creating file:', err);
         if (err.code === 'EEXIST') {
-            return res.status(409).send(`${filename}.lua already exists.`);
+            return res.status(409).json({ error: `${filename}.lua already exists.`, code: err.code });
         }
-        res.status(500).send('Error creating file');
+        res.status(500).json({ error: 'Error creating file', code: err.code || null, message: err.message });
     }
 });
 
@@ -87,7 +90,10 @@ app.get('/opentab/:filename', async (req, res) => {
         res.send(data);
     } catch (error) {
         console.error('Error reading file:', error);
-        res.status(500).send('Error reading file');
+        if (error.code === 'ENOENT') {
+            return res.status(404).json({ error: 'File not found', code: error.code, message: error.message });
+        }
+        res.status(500).json({ error: 'Error reading file', code: error.code || null, message: error.message });
     }
 });
 
@@ -103,7 +109,7 @@ app.post('/savetab/:filename', async (req, res) => {
         res.send('File saved successfully');
     } catch (error) {
         console.error('Error saving file:', error);
-        res.status(500).send('Error saving file');
+        res.status(500).json({ error: 'Error saving file', code: error.code || null, message: error.message });
     }
 });
 

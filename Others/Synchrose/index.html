@@ -8401,8 +8401,8 @@ body.fx-rounded-corners-off .mx-music-player::before {
                 if (Array.isArray(folders) && folders.length) {
                     localStorage.setItem('voxlisFolders:dynamic', JSON.stringify(folders));
                 }
-            } catch {
-                // localStorage can be blocked in private browsing; ignore.
+            } catch (e) {
+                console.warn('localStorage write blocked (private browsing?):', e);
             }
         }
 
@@ -11015,7 +11015,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
                 const playButton = document.getElementById('mxMusicPlay');
                 if (!audio || !playButton || !audio.paused) return;
 
-                try { playButton.click(); } catch {}
+                try { playButton.click(); } catch (e) { console.warn('Music play button click failed:', e); }
 
                 if (audio.paused && typeof audio.play === 'function') {
                     const promise = audio.play();
@@ -12804,7 +12804,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
 
     function save(settings) {
         const normalized = normalize(settings);
-        try { localStorage.setItem(KEY, JSON.stringify(normalized)); } catch {}
+        try { localStorage.setItem(KEY, JSON.stringify(normalized)); } catch (e) { console.warn('Settings save failed:', e); }
         return normalized;
     }
 
@@ -13122,7 +13122,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
         const normalized = normalize(settings);
         try {
             localStorage.setItem(KEY, JSON.stringify(normalized));
-        } catch {}
+        } catch (e) { console.warn('Settings save failed:', e); }
         window.__synFxCurrentSettings = normalized;
         return normalized;
     }
@@ -13411,7 +13411,8 @@ body.fx-rounded-corners-off .mx-music-player::before {
     function itemById(id) {
         try {
             return allData.find(item => String(item.id) === String(id));
-        } catch {
+        } catch (e) {
+            console.warn('itemById lookup failed for id:', id, e);
             return null;
         }
     }
@@ -13739,7 +13740,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
             if (item.badges?.length) features.push(...item.badges.map(tag => String(tag).replace(/-/g, ' ')));
             return [...new Set(features.filter(Boolean))];
         };
-    } catch {}
+    } catch (e) { console.warn('Failed to patch getFeatures:', e); }
 
     // Override grid renderer to include the wide Descriptions button above Website/Discord/Buy,
     // and make tags clickable.
@@ -13876,7 +13877,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
 
             bindCardTilt();
         };
-    } catch {}
+    } catch (e) { console.warn('Failed to patch renderGrid:', e); }
 
     // Also make comparison cards use the richer viewer instead of only a plain truncated paragraph.
     try {
@@ -13932,14 +13933,14 @@ body.fx-rounded-corners-off .mx-music-player::before {
                 </div>
             `;
         };
-    } catch {}
+    } catch (e) { console.warn('Failed to patch renderComparison:', e); }
 
     // If data already rendered before this patch loaded, refresh the visible view.
     setTimeout(() => {
         try {
             const activeGrid = document.getElementById('gridTab')?.classList.contains('active');
             if (activeGrid && Array.isArray(filteredData) && filteredData.length) renderGrid();
-        } catch {}
+        } catch (e) { console.warn('Post-patch grid refresh failed:', e); }
     }, 50);
 })();
 </script>
@@ -14071,7 +14072,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
 
     function save(settings) {
         const normalized = normalize(settings);
-        try { localStorage.setItem(KEY, JSON.stringify(normalized)); } catch {}
+        try { localStorage.setItem(KEY, JSON.stringify(normalized)); } catch (e) { console.warn('Settings save failed:', e); }
         window.__synFxCurrentSettings = normalized;
         return normalized;
     }
@@ -14084,7 +14085,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
         if (!migrated || settings.preset === 'balanced') {
             settings = { preset: 'custom', isDefault: true, effects: { ...DEFAULT_EFFECTS } };
             save(settings);
-            try { localStorage.setItem(MIGRATION_KEY, '1'); } catch {}
+            try { localStorage.setItem(MIGRATION_KEY, '1'); } catch (e) { console.warn('Migration flag save failed:', e); }
         }
 
         return normalize(settings);
@@ -14341,7 +14342,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
     }
 
     function save(settings) {
-        try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch {}
+        try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch (e) { console.warn('Settings save failed:', e); }
         window.__synFxCurrentSettings = settings;
         return settings;
     }
@@ -14505,7 +14506,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
     }
 
     function save(settings) {
-        try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch {}
+        try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch (e) { console.warn('Settings save failed:', e); }
         window.__synFxCurrentSettings = settings;
         return settings;
     }
@@ -14638,7 +14639,7 @@ body.fx-rounded-corners-off .mx-music-player::before {
     }
 
     function write(settings) {
-        try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch {}
+        try { localStorage.setItem(KEY, JSON.stringify(settings)); } catch (e) { console.warn('Settings save failed:', e); }
         window.__synFxCurrentSettings = settings;
         return settings;
     }
