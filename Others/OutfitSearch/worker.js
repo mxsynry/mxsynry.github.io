@@ -1205,3 +1205,29 @@ function duplicateCounts(arr) {
     .filter(([, count]) => count > 1)
     .map(([id, count]) => ({ id, count }));
 }
+
+export {
+  ASSET_TYPE_NAMES,
+  normalizeAsset,
+  mergeAssetDetails,
+  normalizeBundle,
+  isFallbackAssetName,
+  pickAssetName,
+  firstNumber,
+  firstPositiveNumber,
+  firstNonEmptyString,
+  slugify,
+  assertId,
+  unique,
+  uniqueBy,
+  mapBy,
+  chunks,
+  duplicateCounts,
+  thumbnailKind,
+  errorPayload,
+  extractEmotesFromPayload,
+  chooseBestBundle,
+  shouldResolveParentBundle,
+  getAssetTypeName,
+  mapSettledLimit,
+};
