@@ -916,22 +916,7 @@ function cleanError(err) {
   return message;
 }
 
-function uniqueBy(arr, fn) {
-  const seen = new Set();
-  return arr.filter(x => {
-    const k = fn(x);
-    if (k === undefined || k === null || seen.has(k)) return false;
-    seen.add(k);
-    return true;
-  });
-}
-
-function formatDate(value) {
-  if (!value) return "unknown";
-  const d = new Date(value);
-  if (Number.isNaN(d.getTime())) return "unknown";
-  return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
-}
+// uniqueBy and formatDate are provided by /assets/js/shared-utils.js
 
 function downloadJson(name, data) {
   const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
@@ -1034,13 +1019,7 @@ function formatLogLine(entry) {
   return `[${entry.time}] ${entry.level.toUpperCase()} ${entry.message}${data}`;
 }
 
-function escapeHtml(v) {
-  return String(v ?? "").replace(/[&<>'"]/g, ch => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" }[ch]));
-}
-
-function escapeAttr(v) {
-  return escapeHtml(v).replace(/`/g, "&#96;");
-}
+// escapeHtml and escapeAttr are provided by /assets/js/shared-utils.js
 
 
 function formatPrice(item = {}) {
