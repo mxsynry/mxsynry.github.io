@@ -599,7 +599,7 @@ function previewFile(item, path) {
     fetch(raw)
       .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
       .then(text => { body.innerHTML = `<pre>${escapeHtml(text)}</pre>`; })
-      .catch(() => { body.innerHTML = '<div class="empty">Could not load preview.</div>'; });
+      .catch(err => { console.warn('File preview fetch failed:', err); body.innerHTML = `<div class="empty">Could not load preview: ${escapeHtml(err.message || 'unknown error')}</div>`; });
   } else {
     body.innerHTML = `<div class="empty"><div><strong>Preview not available.</strong><br><br><a class="mini-btn primary" href="${escapeHtml(raw)}" target="_blank" rel="noopener" download>Download file</a></div></div>`;
   }
@@ -676,20 +676,29 @@ async function fetchSnapshot() {
   try {
     const local = await fetch('./tree.json', { cache: 'no-store' });
     if (local.ok) return normalizeNode(await local.json());
-  } catch (_) {}
+  } catch (localErr) {
+    console.warn('tree.json fetch failed:', localErr);
+  }
 
   const branches = [CONFIG.branch, 'master'];
+  const branchErrors = [];
   for (const branch of branches) {
     try {
       const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/git/trees/${branch}?recursive=1`;
       const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github+json' } });
-      if (!res.ok) continue;
+      if (!res.ok) {
+        branchErrors.push(`${branch}: HTTP ${res.status}`);
+        continue;
+      }
       const data = await res.json();
       CONFIG.branch = branch;
       return buildSnapshotFromGitTree(data.tree || []);
-    } catch (_) {}
+    } catch (apiErr) {
+      branchErrors.push(`${branch}: ${apiErr.message}`);
+      console.warn(`GitHub API tree fetch failed for branch ${branch}:`, apiErr);
+    }
   }
-  throw new Error('Failed to load tree.json and GitHub API fallback.');
+  throw new Error(`Failed to load tree.json and GitHub API fallback. ${branchErrors.join('; ')}`);
 }
 
 async function init() {

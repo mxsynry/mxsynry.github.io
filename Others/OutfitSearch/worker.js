@@ -70,8 +70,8 @@ async function cacheOrRun(request, ctx, producer) {
   try {
     const hit = await cache.match(key);
     if (hit) return withCors(hit);
-  } catch (_) {
-    // Cache is helpful, not required.
+  } catch (cacheReadErr) {
+    console.warn("Cache read failed (non-fatal):", cacheReadErr?.message || cacheReadErr);
   }
 
   const data = await producer();
@@ -82,8 +82,8 @@ async function cacheOrRun(request, ctx, producer) {
 
   try {
     ctx.waitUntil(cache.put(key, res.clone()));
-  } catch (_) {
-    // Never break the API response because cache failed.
+  } catch (cacheWriteErr) {
+    console.warn("Cache write failed (non-fatal):", cacheWriteErr?.message || cacheWriteErr);
   }
 
   return res;
@@ -1106,8 +1106,9 @@ async function robloxJson(url, opts = {}, label = "Roblox API") {
     let data;
     try {
       data = text ? JSON.parse(text) : {};
-    } catch {
-      data = { raw: text.slice(0, 500) };
+    } catch (parseErr) {
+      console.warn(`${label}: JSON parse failed for ${method} ${url} (status ${res.status}):`, parseErr?.message);
+      data = { raw: text.slice(0, 500), parseError: parseErr?.message };
     }
 
     if (res.ok) return data;

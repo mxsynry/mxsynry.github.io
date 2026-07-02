@@ -124,7 +124,8 @@ copyConsoleBtn.addEventListener("click", async () => {
     await navigator.clipboard.writeText(text || "No logs yet.");
     copyConsoleBtn.textContent = "Copied";
     setTimeout(() => copyConsoleBtn.textContent = "Copy logs", 1000);
-  } catch {
+  } catch (err) {
+    logError("Clipboard copy failed.", err);
     setStatus("Could not copy logs from this browser.", true);
   }
 });
@@ -151,7 +152,8 @@ copyLinkBtn?.addEventListener("click", async () => {
     copyLinkBtn.textContent = "Copied link";
     setTimeout(() => copyLinkBtn.textContent = "Copy link", 1100);
     logSuccess("Search link copied.", { url });
-  } catch {
+  } catch (err) {
+    logError("Clipboard copy link failed.", err);
     setStatus(`Share link: ${url}`, false);
   }
 });
@@ -991,7 +993,8 @@ function compactForLog(data) {
       if (typeof value === "string" && value.length > 800) return value.slice(0, 800) + "…";
       return value;
     }));
-  } catch {
+  } catch (err) {
+    console.warn("compactForLog serialization failed:", err);
     return String(data);
   }
 }
@@ -1015,7 +1018,8 @@ function summarizeApiData(data) {
 function loadLogs() {
   try {
     return JSON.parse(localStorage.getItem(LOG_STORAGE_KEY) || "[]");
-  } catch {
+  } catch (err) {
+    console.warn("Failed to parse stored debug logs, resetting:", err);
     return [];
   }
 }
