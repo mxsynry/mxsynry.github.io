@@ -99,6 +99,7 @@
 	<link href="https://kit-pro.fontawesome.com/releases/v6.2.0/css/pro.min.css" rel="stylesheet">
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.4/jquery.min.js" integrity="sha512-pumBsjNRGGqkPzKHndZMaAG+bir374sORyzM3uulLV14lN5LyykqNk8eEeUlUkB3U0M4FApyaHraT65ihJhDpQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 	<link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+	<script src="/assets/js/shared-utils.js"></script>
 </head>
 <div class="modal fade bg-glass" id="addtab" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
 		<div class="modal-dialog">
@@ -162,11 +163,13 @@
     return String(base || '').replace(/\/$/, '') + '/' + String(path || '').replace(/^\//, '');
   }
 
-  function escapeHtml(value) {
+  // escapeHtml is provided by /assets/js/shared-utils.js
+  // Falls back to window.escapeHtml (the global from shared-utils)
+  var escapeHtml = window.escapeHtml || function(value) {
     return String(value ?? '').replace(/[&<>"']/g, ch => ({
       '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[ch]));
-  }
+  };
 
   function safeFileName(name) {
     const cleaned = String(name || '').trim().replace(/[\\/:*?"<>|]/g, '_');
