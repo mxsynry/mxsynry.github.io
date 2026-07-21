@@ -1,0 +1,269 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Synchrose architecture, data-source, API and maintenance documentation.">
+  <meta name="color-scheme" content="dark">
+  <title>Synchrose Documentation</title>
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <a class="skip-link" href="#content">Skip to documentation</a>
+
+  <header class="topbar">
+    <a class="brand" href="#overview" aria-label="Synchrose documentation home">
+      <span class="brand-mark">S</span>
+      <span><strong>Synchrose</strong><small>Documentation</small></span>
+    </a>
+    <div class="top-actions">
+      <button class="mobile-menu" id="menuButton" type="button" aria-expanded="false" aria-controls="sidebar">Menu</button>
+      <a class="button ghost" href="../">Repository browser</a>
+      <a class="button" href="../Others/Synchrose/">Open Synchrose</a>
+    </div>
+  </header>
+
+  <div class="shell">
+    <aside class="sidebar" id="sidebar">
+      <label class="search-label" for="docSearch">Search documentation</label>
+      <input id="docSearch" class="search" type="search" placeholder="Search topics and fields…" autocomplete="off">
+      <nav aria-label="Documentation">
+        <a href="#overview">Overview</a>
+        <a href="#architecture">Architecture</a>
+        <a href="#sources">Data sources</a>
+        <a href="#weao">WEAO API</a>
+        <a href="#voxlis">Voxlis data</a>
+        <a href="#rdd">RDD reference</a>
+        <a href="#model">Normalized model</a>
+        <a href="#merge">Merge rules</a>
+        <a href="#operations">Operations</a>
+        <a href="#security">Safety &amp; legal</a>
+        <a href="#contributing">Contributing</a>
+      </nav>
+      <div class="source-note">
+        <span class="status reviewed"></span>
+        Source audit: 21 July 2026
+      </div>
+    </aside>
+
+    <main id="content">
+      <section id="overview" data-search="overview purpose scope dashboard documentation">
+        <p class="eyebrow">Project guide</p>
+        <h1>Synchrose documentation</h1>
+        <p class="lead">Synchrose is a static, client-side dashboard that combines documented WEAO status data with public Voxlis repository data. It helps readers compare metadata; it does not host, verify or guarantee third-party binaries.</p>
+        <div class="callout warning"><strong>Accuracy boundary.</strong> “Updated”, “detected”, scores, prices and links are third-party claims. Always display the source and retrieval time, and never describe an item as safe solely because a source does.</div>
+        <div class="card-grid metrics">
+          <article><strong>2</strong><span>integrated sources</span></article>
+          <article><strong>Static</strong><span>GitHub Pages runtime</span></article>
+          <article><strong>Read-only</strong><span>external data use</span></article>
+          <article><strong>0</strong><span>official Pulsery/Inject APIs found</span></article>
+        </div>
+      </section>
+
+      <section id="architecture" data-search="architecture github pages workflow cache fetch normalize merge render">
+        <p class="eyebrow">System design</p>
+        <h2>Architecture</h2>
+        <p>The current application is a large single HTML file. The target design separates data refresh, normalization, presentation and documentation so a source change does not require editing the whole interface.</p>
+        <div class="flow" role="img" aria-label="External documented sources flow through scheduled snapshot jobs, validation, normalization and the Synchrose dashboard">
+          <div><b>Documented sources</b><span>WEAO API · Voxlis repository</span></div>
+          <i>→</i><div><b>Scheduled snapshot</b><span>GitHub Actions with provenance</span></div>
+          <i>→</i><div><b>Normalize &amp; validate</b><span>Schema checks · aliases · timestamps</span></div>
+          <i>→</i><div><b>Static dashboard</b><span>GitHub Pages · cached JSON</span></div>
+        </div>
+        <h3>Why snapshots are preferable</h3>
+        <ul>
+          <li>WEAO requires a specific <code>User-Agent</code>; browser JavaScript cannot reliably set that forbidden request header.</li>
+          <li>A scheduled job can respect rate limits, keep a last-known-good snapshot and record when each source was fetched.</li>
+          <li>The page remains usable when an upstream source is offline or blocks CORS.</li>
+        </ul>
+      </section>
+
+      <section id="sources" data-search="source matrix weao voxlis pulsery inject today authority provenance official api">
+        <p class="eyebrow">Provenance</p>
+        <h2>Data-source matrix</h2>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Source</th><th>Observed interface</th><th>Use in Synchrose</th><th>Policy</th></tr></thead>
+            <tbody>
+              <tr><td><a href="https://weao.xyz" rel="noopener">WEAO</a></td><td>Documented public JSON API</td><td><span class="pill good">Integrated</span> versions and status metadata</td><td>Required user-agent, polite polling, 429 backoff</td></tr>
+              <tr><td><a href="https://voxlis.net" rel="noopener">Voxlis</a></td><td>Public GitHub JSON/Markdown dataset</td><td><span class="pill good">Integrated</span> descriptions, tags, reviews and prices</td><td>Pin a commit or record the fetched SHA</td></tr>
+              <tr><td><a href="https://pulsery.gg" rel="noopener">Pulsery</a></td><td>Dynamic catalog plus a branded <a href="https://pulsery.gg/rdd" rel="noopener">RDD deployment UI</a>; no official API documentation found</td><td><span class="pill neutral">UX/RDD reference</span></td><td>Do not depend on private/internal endpoints</td></tr>
+              <tr><td><a href="https://inject.today" rel="noopener">Inject.today</a></td><td>Public landing page plus an <a href="https://inject.today/rdd" rel="noopener">RDD route</a>; no official API documentation found</td><td><span class="pill neutral">RDD host reference</span></td><td>Do not infer or endpoint-hunt</td></tr>
+              <tr><td><a href="https://rdd.weao.gg" rel="noopener">WEAO RDD</a></td><td>Public RDD fork with deployment controls, exploit selector and direct URL parameters</td><td><span class="pill neutral">RDD host reference</span></td><td>Fork identifies its trusted WEAO domains; retain upstream attribution</td></tr>
+              <tr><td><a href="https://rdd.latte.to" rel="noopener">RDD upstream</a></td><td>MIT-licensed static browser tool by Latte Softworks</td><td><span class="pill neutral">Upstream reference</span></td><td>Verify differences among forks and hosts</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="callout info"><strong>Rule:</strong> a visible website is not automatically a public API. Only consume interfaces the owner documents or explicitly permits.</div>
+      </section>
+
+      <section id="weao" data-search="weao api endpoints versions current future past exploits status sunc user agent rate limit schema">
+        <p class="eyebrow">Documented integration</p>
+        <h2>WEAO API</h2>
+        <p>Base domains documented by WEAO include <code>weao.xyz</code>, <code>whatexpsare.online</code>, <code>weao.gg</code> and <code>whatexploitsaretra.sh</code>. Use one primary and one fallback; do not fan out requests to every domain.</p>
+        <div class="endpoint"><div><span>GET</span><code>https://weao.xyz/api/versions/current</code></div><button data-copy="https://weao.xyz/api/versions/current">Copy</button></div>
+        <div class="endpoint"><div><span>GET</span><code>https://weao.xyz/api/versions/future</code></div><button data-copy="https://weao.xyz/api/versions/future">Copy</button></div>
+        <div class="endpoint"><div><span>GET</span><code>https://weao.xyz/api/versions/past</code></div><button data-copy="https://weao.xyz/api/versions/past">Copy</button></div>
+        <div class="endpoint"><div><span>GET</span><code>https://weao.xyz/api/status/exploits</code></div><button data-copy="https://weao.xyz/api/status/exploits">Copy</button></div>
+        <div class="endpoint"><div><span>GET</span><code>https://weao.xyz/api/status/exploits/{exploit}</code></div><button data-copy="https://weao.xyz/api/status/exploits/{exploit}">Copy</button></div>
+        <div class="endpoint"><div><span>GET</span><code>https://weao.xyz/api/sunc</code></div><button data-copy="https://weao.xyz/api/sunc">Copy</button></div>
+        <h3>Required request behavior</h3>
+        <ul>
+          <li>Send <code>User-Agent: WEAO-3PService</code> from the scheduled fetch job.</li>
+          <li>On <code>429</code>, honor the returned reset information and keep the last-known-good snapshot.</li>
+          <li>Store <code>fetchedAt</code>, source domain and a content hash beside the response.</li>
+          <li>Treat undocumented response properties as optional; never make rendering depend on them.</li>
+        </ul>
+        <details><summary>Main exploit fields used by Synchrose</summary>
+          <div class="table-wrap compact"><table><thead><tr><th>Field</th><th>Type</th><th>Meaning in UI</th></tr></thead><tbody>
+            <tr><td><code>title</code></td><td>string</td><td>Display name and merge key input</td></tr>
+            <tr><td><code>version</code>, <code>rbxversion</code></td><td>string</td><td>Product and supported Roblox versions</td></tr>
+            <tr><td><code>updateStatus</code>, <code>detected</code></td><td>boolean</td><td>Source-attributed status, never a safety guarantee</td></tr>
+            <tr><td><code>platform</code>, <code>extype</code></td><td>string</td><td>Platform and product type filters</td></tr>
+            <tr><td><code>free</code>, <code>cost</code></td><td>boolean, string</td><td>Pricing display; preserve source text</td></tr>
+            <tr><td><code>suncPercentage</code>, <code>uncPercentage</code></td><td>number</td><td>Compatibility scores, with source label</td></tr>
+            <tr><td><code>websitelink</code>, <code>discordlink</code>, <code>purchaselink</code></td><td>string</td><td>Untrusted external links; validate protocol</td></tr>
+          </tbody></table></div>
+        </details>
+      </section>
+
+      <section id="voxlis" data-search="voxlis github data files info points review modals prices json markdown commit sha">
+        <p class="eyebrow">Public repository data</p>
+        <h2>Voxlis dataset</h2>
+        <p>Voxlis is a static frontend backed by JSON and Markdown in <code>localscripts/voxlis.NET</code>. Synchrose should read the documented data files, not scrape rendered cards.</p>
+        <pre><code>public/data/roblox/
+├── prices.json
+└── {Product}/
+    ├── info.json      # platforms, links, tags, badges, visibility
+    ├── points.json    # pro, neutral and con summaries
+    ├── review.md      # long-form editorial review
+    └── modals.json    # optional warnings and notes</code></pre>
+        <h3>Integration rules</h3>
+        <ul>
+          <li>Use a pinned commit SHA for reproducible builds, or update the pin through an auditable scheduled pull request.</li>
+          <li>Skip entries with <code>hidden: true</code>; tolerate optional or missing files.</li>
+          <li>Render Markdown as text through a vetted sanitizer. Never inject upstream HTML directly.</li>
+          <li>Keep editorial text attributed to Voxlis and separate it from factual status fields.</li>
+        </ul>
+      </section>
+
+      <section id="rdd" data-search="rdd roblox deployment downloader binary type channel version hash windows player studio mac query parameters official host mit">
+        <p class="eyebrow">External tool reference</p>
+        <h2>RDD — Roblox Deployment Downloader</h2>
+        <p>RDD is an MIT-licensed static browser application by Latte Softworks. Its public documentation says it assembles Roblox deployment resources in the browser from Roblox-hosted content. WEAO, Pulsery and Inject each expose an RDD route or deployment interface; these are separate deployments and may not have identical code or behavior.</p>
+        <div class="table-wrap compact"><table><thead><tr><th>Deployment</th><th>Observed public behavior</th><th>Documentation status</th></tr></thead><tbody>
+          <tr><td><a href="https://rdd.weao.gg/" rel="noopener">rdd.weao.gg</a></td><td>Windows/Mac Player and Studio, channel/hash selection, compression, launcher controls, exploit selector and shareable parameters</td><td>Usage and parameters visible on page; self-described unofficial RDD fork</td></tr>
+          <tr><td><a href="https://pulsery.gg/rdd" rel="noopener">pulsery.gg/rdd</a></td><td>Branded deployment UI with platform/type, compression, source manifest, executor match, channel and version controls</td><td>Public UI observed; no separate public API reference found</td></tr>
+          <tr><td><a href="https://inject.today/rdd" rel="noopener">inject.today/rdd</a></td><td>Public RDD route confirmed; page content is JavaScript-rendered and was not exposed to the text index used for this audit</td><td>No separate public API reference found</td></tr>
+          <tr><td><a href="https://rdd.latte.to/" rel="noopener">rdd.latte.to</a></td><td>Upstream static browser application</td><td>Public source and MIT license</td></tr>
+        </tbody></table></div>
+        <div class="callout warning"><strong>Trust boundary.</strong> Host branding and compatible query parameters do not prove that deployments are byte-for-byte identical. Document each host separately and retain upstream attribution.</div>
+        <h3>Documented URL parameters</h3>
+        <div class="table-wrap compact"><table><thead><tr><th>Parameter</th><th>Values</th><th>Notes</th></tr></thead><tbody>
+          <tr><td><code>channel</code></td><td>Channel name</td><td>Defaults to <code>LIVE</code></td></tr>
+          <tr><td><code>binaryType</code></td><td><code>WindowsPlayer</code>, <code>WindowsStudio64</code>, <code>MacPlayer</code>, <code>MacStudio</code></td><td>Deployment family</td></tr>
+          <tr><td><code>arch</code></td><td>Architecture when supported</td><td>Defined by the selected deployment</td></tr>
+          <tr><td><code>version</code></td><td>Version hash</td><td>Omit for current; validate before use</td></tr>
+        </tbody></table></div>
+        <p>Recommended Synchrose behavior: provide a neutral host selector with clear ownership labels and a link to the upstream project. Do not auto-select older builds based on executor metadata, and do not claim a deployment is safe or undetected.</p>
+      </section>
+
+      <section id="model" data-search="normalized model schema typescript status price platforms provenance fetched at source raw">
+        <p class="eyebrow">Internal contract</p>
+        <h2>Normalized data model</h2>
+        <pre><code>type CatalogItem = {
+  id: string;
+  name: string;
+  platforms: string[];
+  productType?: string;
+  version?: string;
+  robloxVersion?: string;
+  updated?: boolean | null;
+  detected?: boolean | null;
+  pricing: { label: string; free?: boolean; source: SourceRef };
+  scores: { sunc?: number; unc?: number; source: SourceRef };
+  links: { website?: string; discord?: string; purchase?: string };
+  tags: string[];
+  editorial?: { summary?: string; review?: string; source: SourceRef };
+  provenance: SourceRef[];
+};
+
+type SourceRef = {
+  name: 'weao' | 'voxlis';
+  fetchedAt: string;
+  sourceUrl: string;
+  revision?: string;
+};</code></pre>
+        <p>Use <code>null</code> for “unknown”; do not convert unknown status to <code>false</code>. This avoids presenting missing data as a negative claim.</p>
+      </section>
+
+      <section id="merge" data-search="merge rules aliases conflicts precedence provenance disagreement names price status">
+        <p class="eyebrow">Deterministic behavior</p>
+        <h2>Merge rules</h2>
+        <ol>
+          <li>Normalize names for matching only; preserve the source display name.</li>
+          <li>Apply an explicit, reviewed alias table. Do not use fuzzy matching for automatic merges.</li>
+          <li>WEAO owns live update/detection fields; Voxlis owns its editorial review, tags and price catalog.</li>
+          <li>When both sources provide a factual field and disagree, show “sources disagree” with both values—do not silently choose one.</li>
+          <li>Every rendered status, score, price and review must retain provenance and retrieval time.</li>
+        </ol>
+      </section>
+
+      <section id="operations" data-search="operations runbook github actions refresh cache stale failure monitoring testing performance">
+        <p class="eyebrow">Maintenance</p>
+        <h2>Operations runbook</h2>
+        <div class="card-grid">
+          <article><h3>Refresh</h3><p>Run the snapshot workflow on a conservative schedule and by manual dispatch. Commit only when normalized content changes.</p></article>
+          <article><h3>Failure</h3><p>Keep the last-known-good JSON, mark it stale in the UI and record the upstream error without exposing sensitive headers.</p></article>
+          <article><h3>Validation</h3><p>Reject malformed URLs, impossible percentages and entries without names. Quarantine schema-breaking rows instead of breaking the page.</p></article>
+          <article><h3>Performance</h3><p>Split the 500+ KB monolith into modules, lazy-load media and move audio outside the documentation route.</p></article>
+        </div>
+        <h3>Release checklist</h3>
+        <ul class="checklist">
+          <li>Keyboard navigation and mobile layout tested</li>
+          <li>Source fetch and stale-data paths tested</li>
+          <li>External URLs restricted to <code>https:</code></li>
+          <li>No upstream HTML inserted unsanitized</li>
+          <li>Attributions, licenses and source timestamps visible</li>
+          <li>GitHub Pages checked from a clean browser session</li>
+        </ul>
+      </section>
+
+      <section id="security" data-search="security safety legal privacy terms links malware claims third party roblox">
+        <p class="eyebrow">Guardrails</p>
+        <h2>Safety, privacy and legal</h2>
+        <ul>
+          <li>Synchrose is an informational aggregator, not a malware scanner, endorsement or guarantee.</li>
+          <li>External downloads and purchase links are untrusted. Use clear domain labels and <code>rel="noopener noreferrer"</code>.</li>
+          <li>Do not reproduce paid content, private APIs or third-party binaries.</li>
+          <li>Review music, images and video committed to the repository for redistribution rights; large bundled media also inflates clones and Pages deployment.</li>
+          <li>Document source terms and remove integrations promptly when a provider withdraws permission.</li>
+        </ul>
+      </section>
+
+      <section id="contributing" data-search="contributing pull request style tests source adapter documentation">
+        <p class="eyebrow">Project workflow</p>
+        <h2>Contributing</h2>
+        <ol>
+          <li>Open an issue describing the source or UI change and its documented permission.</li>
+          <li>Add or update one source adapter; keep rendering independent of upstream response shape.</li>
+          <li>Add fixtures for success, partial data, disagreement, 429 and offline behavior.</li>
+          <li>Update this documentation and <code>source-audit.json</code> in the same pull request.</li>
+          <li>Use a draft pull request and include the GitHub Pages preview or screenshots.</li>
+        </ol>
+        <div class="footer-links">
+          <a href="https://github.com/mxsynry/mxsynry.github.io">Repository</a>
+          <a href="https://docs.weao.xyz">WEAO API docs</a>
+          <a href="https://github.com/localscripts/voxlis.NET">Voxlis source</a>
+          <a href="https://github.com/latte-soft/rdd">RDD source</a>
+        </div>
+      </section>
+
+      <p id="noResults" class="no-results" hidden>No documentation sections match your search.</p>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="./app.js" defer></script>
+</body>
+</html>
