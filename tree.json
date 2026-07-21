@@ -55,14 +55,6 @@
           "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/docs/public-interface-audit.md"
         },
         {
-          "name": "README.md",
-          "path": "docs/README.md",
-          "type": "file",
-          "size": 808,
-          "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/docs/README.md",
-          "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/docs/README.md"
-        },
-        {
           "name": "source-audit.json",
           "path": "docs/source-audit.json",
           "type": "file",
