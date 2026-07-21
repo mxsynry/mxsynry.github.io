@@ -26,6 +26,61 @@
       ]
     },
     {
+      "name": "docs",
+      "path": "docs",
+      "type": "dir",
+      "children": [
+        {
+          "name": "app.js",
+          "path": "docs/app.js",
+          "type": "file",
+          "size": 2644,
+          "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/docs/app.js",
+          "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/docs/app.js"
+        },
+        {
+          "name": "index.html",
+          "path": "docs/index.html",
+          "type": "file",
+          "size": 20208,
+          "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/docs/index.html",
+          "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/docs/index.html"
+        },
+        {
+          "name": "public-interface-audit.md",
+          "path": "docs/public-interface-audit.md",
+          "type": "file",
+          "size": 1792,
+          "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/docs/public-interface-audit.md",
+          "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/docs/public-interface-audit.md"
+        },
+        {
+          "name": "README.md",
+          "path": "docs/README.md",
+          "type": "file",
+          "size": 808,
+          "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/docs/README.md",
+          "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/docs/README.md"
+        },
+        {
+          "name": "source-audit.json",
+          "path": "docs/source-audit.json",
+          "type": "file",
+          "size": 2356,
+          "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/docs/source-audit.json",
+          "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/docs/source-audit.json"
+        },
+        {
+          "name": "styles.css",
+          "path": "docs/styles.css",
+          "type": "file",
+          "size": 8991,
+          "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/docs/styles.css",
+          "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/docs/styles.css"
+        }
+      ]
+    },
+    {
       "name": "index.html",
       "path": "index.html",
       "type": "file",
