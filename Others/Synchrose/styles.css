@@ -500,6 +500,269 @@ html.is-booting body {
   opacity: 1;
 }
 
+.intro-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% 48%, rgba(105, 48, 145, 0.2), transparent 34%),
+    #07050a;
+  color: #f9f5ff;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", monospace;
+  opacity: 1;
+  isolation: isolate;
+  transition: opacity 440ms cubic-bezier(.7, 0, .2, 1);
+}
+
+.intro-screen::before {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background-image: radial-gradient(rgba(255, 255, 255, 0.18) 0.55px, transparent 0.55px);
+  background-size: 23px 23px;
+  mask-image: radial-gradient(circle, #000, transparent 78%);
+  opacity: 0.14;
+  pointer-events: none;
+  content: "";
+}
+
+.intro-screen.is-leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-screen.is-gone {
+  display: none;
+}
+
+.intro-skip {
+  position: absolute;
+  top: 18px;
+  right: 20px;
+  z-index: 40;
+  padding: 8px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  border-radius: 3px;
+  background: rgba(15, 9, 20, 0.52);
+  color: rgba(255, 255, 255, 0.62);
+  font-family: inherit;
+  font-size: 0.67rem;
+  letter-spacing: 0.08em;
+}
+
+.intro-skip:hover {
+  border-color: rgba(255, 255, 255, 0.62);
+  color: #fff;
+}
+
+.intro-frame {
+  position: absolute;
+  inset: clamp(30px, 5vw, 74px);
+  z-index: 4;
+  border: 1px solid rgba(206, 158, 244, 0.16);
+}
+
+.intro-frame::before,
+.intro-frame::after {
+  position: absolute;
+  width: 46px;
+  height: 46px;
+  border-color: rgba(205, 151, 248, 0.78);
+  content: "";
+}
+
+.intro-frame::before {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid;
+  border-left: 2px solid;
+}
+
+.intro-frame::after {
+  right: -1px;
+  bottom: -1px;
+  border-right: 2px solid;
+  border-bottom: 2px solid;
+}
+
+.intro-corner {
+  position: absolute;
+  top: 18px;
+  color: rgba(219, 188, 239, 0.58);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.intro-corner-left {
+  left: 20px;
+}
+
+.intro-corner-right {
+  right: 20px;
+}
+
+.intro-japanese-side {
+  position: absolute;
+  top: 50%;
+  right: 18px;
+  color: rgba(209, 168, 237, 0.62);
+  font-size: 0.72rem;
+  letter-spacing: 0.28em;
+  writing-mode: vertical-rl;
+  transform: translateY(-50%);
+}
+
+.intro-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 4;
+  width: min(760px, 80vw);
+  text-align: center;
+  transform: translate(-50%, -50%);
+}
+
+.intro-center > span {
+  display: block;
+  color: #bb8ee0;
+  font-size: clamp(0.66rem, 1.2vw, 0.82rem);
+  letter-spacing: 0.22em;
+}
+
+.intro-center > strong {
+  display: block;
+  margin-top: 10px;
+  color: transparent;
+  background: linear-gradient(105deg, #fff, #c6a3ef 48%, #ff8ac9);
+  background-clip: text;
+  -webkit-background-clip: text;
+  font-family: Inter, ui-sans-serif, sans-serif;
+  font-size: clamp(4.2rem, 12vw, 9.5rem);
+  font-weight: 850;
+  line-height: 0.9;
+  letter-spacing: -0.08em;
+  filter: drop-shadow(0 0 35px rgba(169, 120, 255, 0.2));
+}
+
+.intro-center > p {
+  margin: 22px 0 0;
+  color: rgba(230, 213, 239, 0.56);
+  font-size: clamp(0.62rem, 1vw, 0.76rem);
+  letter-spacing: 0.2em;
+}
+
+.intro-axis {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 2;
+  display: block;
+  background: linear-gradient(90deg, transparent, rgba(187, 124, 235, 0.35), transparent);
+  opacity: 0.48;
+  transform: translate(-50%, -50%);
+}
+
+.intro-axis-x {
+  width: min(1050px, 78vw);
+  height: 1px;
+}
+
+.intro-axis-y {
+  width: 1px;
+  height: min(620px, 68vh);
+  background: linear-gradient(transparent, rgba(187, 124, 235, 0.24), transparent);
+}
+
+.intro-white-flash {
+  position: absolute;
+  inset: 0;
+  z-index: 30;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.intro-hint {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  z-index: 35;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.58);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  white-space: nowrap;
+  transform: translateX(-50%);
+}
+
+.intro-screen.is-entering .intro-center {
+  animation: introCenterExit 760ms cubic-bezier(.2, .72, .18, 1) forwards;
+}
+
+.intro-screen.is-entering .intro-axis-x {
+  animation: introAxisX 650ms ease-in forwards;
+}
+
+.intro-screen.is-entering .intro-axis-y {
+  animation: introAxisY 650ms ease-in forwards;
+}
+
+.intro-screen.is-entering .intro-corner,
+.intro-screen.is-entering .intro-japanese-side,
+.intro-screen.is-entering .intro-hint {
+  animation: introLabelsOut 520ms ease forwards;
+}
+
+.intro-screen.is-entering .intro-white-flash {
+  animation: introWhiteFlash 900ms ease-in forwards;
+}
+
+.intro-screen.is-fast {
+  transition-duration: 220ms;
+}
+
+.intro-screen.is-fast .intro-center,
+.intro-screen.is-fast .intro-axis,
+.intro-screen.is-fast .intro-corner,
+.intro-screen.is-fast .intro-japanese-side,
+.intro-screen.is-fast .intro-hint {
+  animation-duration: 180ms;
+}
+
+.intro-screen.is-fast .intro-white-flash {
+  animation: introWhiteFlashFast 300ms ease-in forwards;
+}
+
+@keyframes introCenterExit {
+  0% { opacity: 1; filter: blur(0); transform: translate(-50%, -50%) scale(1); }
+  62% { opacity: 1; filter: blur(0); transform: translate(-50%, -50%) scale(1.035); }
+  100% { opacity: 0; filter: blur(12px); transform: translate(-50%, -50%) scale(1.16); }
+}
+
+@keyframes introAxisX {
+  to { opacity: 1; transform: translate(-50%, -50%) scaleX(1.7); }
+}
+
+@keyframes introAxisY {
+  to { opacity: 1; transform: translate(-50%, -50%) scaleY(1.7); }
+}
+
+@keyframes introLabelsOut {
+  to { opacity: 0; }
+}
+
+@keyframes introWhiteFlash {
+  0%, 58% { opacity: 0; }
+  80%, 100% { opacity: 1; }
+}
+
+@keyframes introWhiteFlashFast {
+  0%, 24% { opacity: 0; }
+  72%, 100% { opacity: 1; }
+}
+
 .site-header {
   position: sticky;
   top: 0;
@@ -1969,9 +2232,10 @@ body.boot-active .music-player {
 }
 
 .music-seek-label {
-  display: block;
-  height: 16px;
-  margin-top: 10px;
+  display: flex;
+  height: 30px;
+  align-items: center;
+  margin: 10px 0 7px;
 }
 
 .music-seek-label input,
@@ -1990,7 +2254,7 @@ body.boot-active .music-player {
   grid-template-columns: auto minmax(86px, 1fr) minmax(128px, auto);
   align-items: center;
   gap: 14px;
-  margin-top: 4px;
+  margin-top: 0;
 }
 
 .music-buttons {
@@ -2510,6 +2774,45 @@ body.boot-active .music-player {
     bottom: 12px;
     width: 100%;
     text-align: center;
+  }
+
+  .intro-skip {
+    top: 10px;
+    right: 10px;
+  }
+
+  .intro-frame {
+    inset: 18px;
+  }
+
+  .intro-corner {
+    top: 13px;
+    font-size: 0.54rem;
+  }
+
+  .intro-corner-left {
+    left: 13px;
+  }
+
+  .intro-corner-right {
+    right: 13px;
+  }
+
+  .intro-japanese-side {
+    right: 10px;
+  }
+
+  .intro-center {
+    width: 88vw;
+  }
+
+  .intro-center > strong {
+    font-size: clamp(3.6rem, 20vw, 6rem);
+  }
+
+  .intro-hint {
+    bottom: 12px;
+    font-size: 0.56rem;
   }
 
   .hero {

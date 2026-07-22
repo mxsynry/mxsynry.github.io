@@ -14,41 +14,22 @@
   <script type="module" src="./app.js"></script>
 </head>
 <body>
-  <div class="boot-screen" id="bootScreen" role="dialog" aria-modal="true" aria-label="Synchrose boot console">
-    <button class="boot-skip" id="bootSkip" type="button">SKIP [ESC]</button>
-
-    <div class="boot-console" id="bootConsole" aria-hidden="true">
-      <div class="boot-ticker">
-        <span>AWAITING INPUT...　入力待ち...　// SYNCHROSE BOOT CHANNEL　// CLICK TO BOOT　// ESC TO SKIP　//</span>
-        <span aria-hidden="true">AWAITING INPUT...　入力待ち...　// SYNCHROSE BOOT CHANNEL　// CLICK TO BOOT　// ESC TO SKIP　//</span>
+  <div class="intro-screen" id="bootScreen" role="dialog" aria-modal="true" aria-label="Synchrose intro">
+    <button class="intro-skip" id="bootSkip" type="button">SKIP [ESC]</button>
+    <div class="intro-frame" aria-hidden="true">
+      <span class="intro-corner intro-corner-left">同期 // 01</span>
+      <span class="intro-corner intro-corner-right">WEAO + VOXLIS</span>
+      <span class="intro-japanese-side">読み込み中…</span>
+      <div class="intro-center">
+        <span>「SYNCHROSE」を起動</span>
+        <strong>Synchrose</strong>
+        <p>データを同期しています</p>
       </div>
-      <div class="boot-body">
-        <div class="boot-copy">
-          <p class="boot-fixed-line"><span>▶</span> AWAITING INPUT...</p>
-          <div class="boot-log" id="bootLog" aria-live="polite"></div>
-        </div>
-        <pre class="boot-ascii" aria-label="Synchrose">  ███████╗██╗   ██╗███╗   ██╗ ██████╗██╗  ██╗██████╗  ██████╗ ███████╗███████╗
-  ██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝██║  ██║██╔══██╗██╔═══██╗██╔════╝██╔════╝
-  ███████╗ ╚████╔╝ ██╔██╗ ██║██║     ███████║██████╔╝██║   ██║███████╗█████╗
-  ╚════██║  ╚██╔╝  ██║╚██╗██║██║     ██╔══██║██╔══██╗██║   ██║╚════██║██╔══╝
-  ███████║   ██║   ██║ ╚████║╚██████╗██║  ██║██║  ██║╚██████╔╝███████║███████╗
-  ╚══════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝</pre>
-        <div class="boot-load">
-          <span>[LOAD]</span>
-          <i><b id="bootProgress"></b></i>
-          <em id="bootPercent">00%</em>
-        </div>
-      </div>
-      <div class="boot-footer"><span>❖ entering <b>SYNCHROSE</b></span><span>「SYNCHROSE」を読み込み中</span></div>
+      <i class="intro-axis intro-axis-x"></i>
+      <i class="intro-axis intro-axis-y"></i>
     </div>
-
-    <div class="boot-slices" aria-hidden="true">
-      <div class="boot-piece boot-piece-top"><span>SYNCHROSE // CHANNEL 01</span></div>
-      <div class="boot-piece boot-piece-bottom"><span>WEAO + VOXLIS // READY</span></div>
-    </div>
-    <div class="boot-flash" aria-hidden="true"></div>
-    <div class="boot-final-title" aria-hidden="true">Synchrose</div>
-    <p class="boot-hint" id="bootHint">CLICK / PRESS A KEY TO BOOT</p>
+    <div class="intro-white-flash" aria-hidden="true"></div>
+    <p class="intro-hint" id="bootHint">CLICK / PRESS A KEY TO ENTER</p>
   </div>
 
   <a class="skip-link" href="#catalog">Skip to catalog</a>
@@ -74,7 +55,7 @@
       </nav>
 
       <div class="header-actions">
-        <button class="text-link replay-link" type="button" data-replay-intro>Console</button>
+        <button class="text-link replay-link" type="button" data-replay-intro>Intro</button>
         <a class="text-link source-link" href="https://weao.xyz/" target="_blank" rel="noopener noreferrer">WEAO</a>
         <a class="button button-small button-secondary" href="https://voxlis.net/" target="_blank" rel="noopener noreferrer">Voxlis</a>
       </div>
@@ -88,7 +69,7 @@
           <a href="#versions">Versions</a>
           <a href="#downloads">RDD</a>
           <a href="#methodology">How</a>
-          <button type="button" data-replay-intro>Replay console</button>
+          <button type="button" data-replay-intro>Replay intro</button>
           <a href="https://weao.xyz/" target="_blank" rel="noopener noreferrer">WEAO ↗</a>
           <a href="https://voxlis.net/" target="_blank" rel="noopener noreferrer">Voxlis ↗</a>
         </nav>
