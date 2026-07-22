@@ -19,12 +19,12 @@
 
     <div class="boot-console" id="bootConsole" aria-hidden="true">
       <div class="boot-ticker">
-        <span>LOADING... PLEASE WAIT　読み込み中...　// SYNCHROSE BOOT CHANNEL　// WEAO + VOXLIS　// PRESS TO SKIP　//</span>
-        <span aria-hidden="true">LOADING... PLEASE WAIT　読み込み中...　// SYNCHROSE BOOT CHANNEL　// WEAO + VOXLIS　// PRESS TO SKIP　//</span>
+        <span>AWAITING INPUT...　入力待ち...　// SYNCHROSE BOOT CHANNEL　// CLICK TO BOOT　// ESC TO SKIP　//</span>
+        <span aria-hidden="true">AWAITING INPUT...　入力待ち...　// SYNCHROSE BOOT CHANNEL　// CLICK TO BOOT　// ESC TO SKIP　//</span>
       </div>
       <div class="boot-body">
         <div class="boot-copy">
-          <p class="boot-fixed-line"><span>▶</span> AWAITING ASSETS...</p>
+          <p class="boot-fixed-line"><span>▶</span> AWAITING INPUT...</p>
           <div class="boot-log" id="bootLog" aria-live="polite"></div>
         </div>
         <pre class="boot-ascii" aria-label="Synchrose">  ███████╗██╗   ██╗███╗   ██╗ ██████╗██╗  ██╗██████╗  ██████╗ ███████╗███████╗
@@ -48,7 +48,7 @@
     </div>
     <div class="boot-flash" aria-hidden="true"></div>
     <div class="boot-final-title" aria-hidden="true">Synchrose</div>
-    <p class="boot-hint">CLICK / PRESS ANY KEY TO SKIP</p>
+    <p class="boot-hint" id="bootHint">CLICK / PRESS A KEY TO BOOT</p>
   </div>
 
   <a class="skip-link" href="#catalog">Skip to catalog</a>
@@ -275,42 +275,56 @@
     </section>
 
     <section class="download-section" id="downloads" aria-labelledby="downloads-title">
-      <div class="shell download-inner" data-reveal>
-        <div>
-          <span class="kicker">OLDER BUILDS</span>
-          <h2 id="downloads-title">Need a different Roblox version?</h2>
-          <p>Pick a provider. Synchrose does not mirror the files.</p>
+      <div class="shell rdd-shell" data-reveal>
+        <div class="rdd-question">
+          <span class="kicker">ROBLOX BUILDS</span>
+          <h2 id="downloads-title">Which build do you need?</h2>
+          <div class="rdd-mode-switch" role="group" aria-label="Choose a Roblox build type">
+            <button class="is-active" type="button" data-rdd-mode="current" aria-pressed="true">
+              <span>01</span><strong>Up to date</strong><small>Get the latest build</small>
+            </button>
+            <button type="button" data-rdd-mode="older" aria-pressed="false">
+              <span>02</span><strong>Older version</strong><small>Pick a previous build</small>
+            </button>
+          </div>
         </div>
-        <div class="download-links">
-          <a href="https://rdd.weao.gg/" target="_blank" rel="noopener noreferrer"><strong>WEAO RDD</strong><span>Version archive ↗</span></a>
-          <a href="https://pulsery.gg/rdd" target="_blank" rel="noopener noreferrer"><strong>Pulsery RDD</strong><span>Pulsery archive ↗</span></a>
-          <a href="https://inject.today/rdd" target="_blank" rel="noopener noreferrer"><strong>Inject RDD</strong><span>Minimal downloader ↗</span></a>
+
+        <div class="rdd-providers">
+          <span class="rdd-step">THEN PICK A DOWNLOADER</span>
+          <h3 id="rddPrompt">Download the current build with:</h3>
+          <p id="rddModeNote">They do the same job. Pick whichever page you like using.</p>
+          <div class="rdd-provider-list">
+            <a href="https://rdd.weao.gg/" target="_blank" rel="noopener noreferrer"><strong>WEAO</strong><span>OPEN ↗</span></a>
+            <a href="https://pulsery.gg/rdd" target="_blank" rel="noopener noreferrer"><strong>Pulsery</strong><span>OPEN ↗</span></a>
+            <a href="https://inject.today/rdd" target="_blank" rel="noopener noreferrer"><strong>Inject</strong><span>OPEN ↗</span></a>
+          </div>
         </div>
       </div>
     </section>
 
     <section class="method-section shell" id="methodology" aria-labelledby="method-title">
-      <div class="method-copy" data-reveal>
-        <span class="kicker">WHERE IT COMES FROM</span>
-        <h2 id="method-title">WEAO says what’s current. Voxlis fills in the rest.</h2>
-        <p>Names are matched, the two feeds are joined, and every row keeps its source label.</p>
-        <p>If a source does not know something, Synchrose says “unknown.” That’s it.</p>
+      <div class="method-head" data-reveal>
+        <span class="kicker">DATA ROUTE</span>
+        <h2 id="method-title">How one row gets made.</h2>
+        <p>The names are matched. Blank information stays unknown.</p>
       </div>
-      <div class="method-grid" data-reveal>
+      <div class="method-flow" data-reveal>
         <article>
-          <span class="source-number">01</span>
-          <h3>Live status</h3>
-          <p>Updated, detected, version, and Roblox build come from WEAO.</p>
+          <span>WEAO</span>
+          <strong>Live status</strong>
+          <p>Updated, detected, version, Roblox build.</p>
         </article>
+        <b class="flow-join" aria-hidden="true">+</b>
         <article>
-          <span class="source-number">02</span>
-          <h3>The extra bits</h3>
-          <p>Descriptions, tags, platforms, and prices come from Voxlis.</p>
+          <span>VOXLIS</span>
+          <strong>Extra info</strong>
+          <p>Notes, tags, platforms, prices.</p>
         </article>
-        <article>
-          <span class="source-number">03</span>
-          <h3>No mystery data</h3>
-          <p>Every card says WEAO, Voxlis, or both.</p>
+        <b class="flow-join" aria-hidden="true">=</b>
+        <article class="method-result">
+          <span>SYNCHROSE</span>
+          <strong>One row</strong>
+          <p>Both source labels stay attached.</p>
         </article>
       </div>
     </section>

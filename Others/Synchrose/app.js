@@ -126,6 +126,10 @@ function bindEvents() {
     button.addEventListener("click", () => setView(button.dataset.view));
   });
 
+  document.querySelectorAll("[data-rdd-mode]").forEach(button => {
+    button.addEventListener("click", () => setRddMode(button.dataset.rddMode));
+  });
+
   dom.catalogResults?.addEventListener("click", event => {
     const detailsButton = event.target.closest("[data-details]");
     if (detailsButton) {
@@ -166,6 +170,18 @@ function bindEvents() {
   });
 }
 
+function setRddMode(mode) {
+  const selected = mode === "older" ? "older" : "current";
+  document.querySelectorAll("[data-rdd-mode]").forEach(button => {
+    const active = button.dataset.rddMode === selected;
+    button.classList.toggle("is-active", active);
+    button.setAttribute("aria-pressed", String(active));
+  });
+  setText("#rddPrompt", selected === "older"
+    ? "Find an older Roblox build with:"
+    : "Download the newest Roblox build with:");
+}
+
 function initRevealMotion() {
   const elements = [...document.querySelectorAll("[data-reveal]")];
   if (!elements.length) return;
@@ -198,19 +214,22 @@ function initIntro() {
   const log = document.querySelector("#bootLog");
   const progress = document.querySelector("#bootProgress");
   const percent = document.querySelector("#bootPercent");
+  const hint = document.querySelector("#bootHint");
   const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   const lines = [
+    '<span>▼</span> INPUT ACCEPTED',
     '<span>▼</span> MOUNT /catalog',
     '<span>[NET]</span> WEAO endpoint queued',
     '<span>[NET]</span> VOXLIS catalog queued',
     '<span class="boot-pink">[AUDIO]</span> /Others/Synchrose linked',
-    '<span>[UI]</span> GRID + LIST ready',
     '<span class="boot-green">[SYNCHROSE]</span> the system is yours.'
   ];
   const progressSteps = [12, 29, 47, 66, 84, 100];
   let timers = [];
   let runId = 0;
   let finished = false;
+  let stage = 0;
+  let queuedRelease = false;
 
   const clearTimers = () => {
     timers.forEach(timer => window.clearTimeout(timer));
@@ -239,38 +258,39 @@ function initIntro() {
     document.body.classList.remove("boot-active");
   };
 
-  const leave = (manual = false, id = runId) => {
+  const leave = (id = runId) => {
     if (id !== runId || finished) return;
     screen.classList.add("is-title", "is-leaving");
-    if (manual) requestMusicFromIntro();
-    schedule(() => complete(id), manual ? 620 : 720, id);
+    schedule(() => complete(id), 720, id);
   };
 
   const skip = ({ userGesture = false } = {}) => {
     if (finished) return;
+    stage = 3;
     clearTimers();
     setProgress(100);
     screen.classList.add("is-collapsing", "is-splitting", "is-releasing", "is-title");
-    schedule(() => leave(userGesture), 80);
+    if (hint) hint.textContent = "SKIPPING...";
+    if (userGesture) requestMusicFromIntro();
+    schedule(leave, 80);
   };
 
-  const start = () => {
-    runId += 1;
-    const id = runId;
+  const release = ({ userGesture = false } = {}) => {
+    if (finished || stage >= 3) return;
+    stage = 3;
+    queuedRelease = false;
     clearTimers();
-    finished = false;
-    screen.hidden = false;
-    screen.className = "boot-screen";
-    screen.setAttribute("aria-hidden", "false");
-    document.documentElement.classList.add("is-booting");
-    document.body.classList.add("boot-active");
-    if (log) log.innerHTML = "";
-    setProgress(0);
+    screen.classList.add("is-releasing", "is-title");
+    if (hint) hint.textContent = "ENTERING SYNCHROSE...";
+    if (userGesture) requestMusicFromIntro();
+    schedule(leave, reducedMotion ? 80 : 860);
+  };
 
-    if (reducedMotion) {
-      schedule(() => leave(false, id), 80, id);
-      return;
-    }
+  const beginBoot = () => {
+    if (finished || stage !== 0) return;
+    stage = 1;
+    const id = runId;
+    if (hint) hint.textContent = "LOADING... CLICK AGAIN TO ENTER";
 
     lines.forEach((line, index) => {
       schedule(() => {
@@ -280,26 +300,67 @@ function initIntro() {
           log.append(row);
         }
         setProgress(progressSteps[index]);
-      }, 150 + index * 235, id);
+      }, reducedMotion ? index * 12 : 90 + index * 170, id);
     });
 
-    schedule(() => screen.classList.add("is-collapsing"), 1120, id);
-    schedule(() => screen.classList.add("is-splitting"), 1970, id);
-    schedule(() => screen.classList.add("is-releasing", "is-title"), 2360, id);
-    schedule(() => leave(false, id), 3240, id);
+    const collapseAt = reducedMotion ? 80 : 780;
+    const splitAt = reducedMotion ? 120 : 1570;
+    schedule(() => screen.classList.add("is-collapsing"), collapseAt, id);
+    schedule(() => {
+      screen.classList.add("is-splitting");
+      stage = 2;
+      if (hint) hint.textContent = "CLICK / PRESS A KEY TO ENTER";
+      if (queuedRelease) release({ userGesture: true });
+    }, splitAt, id);
+  };
+
+  const advance = ({ userGesture = false } = {}) => {
+    if (finished) return;
+    if (stage === 0) {
+      beginBoot();
+      return;
+    }
+    if (stage === 1) {
+      queuedRelease = userGesture;
+      if (hint) hint.textContent = "ONE SECOND...";
+      return;
+    }
+    if (stage === 2) release({ userGesture });
+  };
+
+  const start = () => {
+    runId += 1;
+    clearTimers();
+    finished = false;
+    stage = 0;
+    queuedRelease = false;
+    screen.hidden = false;
+    screen.className = "boot-screen";
+    screen.setAttribute("aria-hidden", "false");
+    document.documentElement.classList.add("is-booting");
+    document.body.classList.add("boot-active");
+    if (log) log.innerHTML = "";
+    setProgress(0);
+    if (hint) hint.textContent = "CLICK / PRESS A KEY TO BOOT";
   };
 
   screen.addEventListener("pointerdown", event => {
     event.preventDefault();
-    skip({ userGesture: true });
+    if (event.target.closest("#bootSkip")) skip({ userGesture: true });
+    else advance({ userGesture: true });
   }, { capture: true });
 
   document.addEventListener("keydown", event => {
     if (finished || screen.hidden) return;
-    const shouldSkip = event.key === "Escape" || event.key === "Enter" || event.key === " " || event.key.length === 1;
-    if (!shouldSkip) return;
-    if (event.key === " " || event.key === "Escape") event.preventDefault();
-    skip({ userGesture: true });
+    if (event.key === "Escape") {
+      event.preventDefault();
+      skip({ userGesture: true });
+      return;
+    }
+    const shouldAdvance = event.key === "Enter" || event.key === " " || event.key.length === 1;
+    if (!shouldAdvance) return;
+    if (event.key === " ") event.preventDefault();
+    advance({ userGesture: true });
   }, { capture: true });
 
   document.querySelectorAll("[data-replay-intro]").forEach(button => {
