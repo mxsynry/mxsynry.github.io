@@ -89,9 +89,15 @@ const dom = {
 };
 
 let searchTimer = 0;
+let requestMusicFromIntro = () => {};
 
+document.documentElement.classList.add("is-booting");
+document.body.classList.add("boot-active");
 bindEvents();
 setView(state.view, { render: false });
+initRevealMotion();
+initMusicPlayer();
+initIntro();
 hydrateFromCache();
 loadData();
 
@@ -158,6 +164,461 @@ function bindEvents() {
   document.querySelectorAll(".mobile-menu nav a").forEach(link => {
     link.addEventListener("click", () => link.closest("details")?.removeAttribute("open"));
   });
+}
+
+function initRevealMotion() {
+  const elements = [...document.querySelectorAll("[data-reveal]")];
+  if (!elements.length) return;
+
+  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  if (reducedMotion || typeof IntersectionObserver !== "function") {
+    elements.forEach(element => element.classList.add("is-visible"));
+    return;
+  }
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add("is-visible");
+      observer.unobserve(entry.target);
+    });
+  }, { threshold: 0.12, rootMargin: "0px 0px -8%" });
+
+  elements.forEach(element => observer.observe(element));
+}
+
+function initIntro() {
+  const screen = document.querySelector("#bootScreen");
+  if (!screen) {
+    document.documentElement.classList.remove("is-booting");
+    document.body.classList.remove("boot-active");
+    return;
+  }
+
+  const log = document.querySelector("#bootLog");
+  const progress = document.querySelector("#bootProgress");
+  const percent = document.querySelector("#bootPercent");
+  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  const lines = [
+    '<span>▼</span> MOUNT /catalog',
+    '<span>[NET]</span> WEAO endpoint queued',
+    '<span>[NET]</span> VOXLIS catalog queued',
+    '<span class="boot-pink">[AUDIO]</span> /Others/Synchrose linked',
+    '<span>[UI]</span> GRID + LIST ready',
+    '<span class="boot-green">[SYNCHROSE]</span> the system is yours.'
+  ];
+  const progressSteps = [12, 29, 47, 66, 84, 100];
+  let timers = [];
+  let runId = 0;
+  let finished = false;
+
+  const clearTimers = () => {
+    timers.forEach(timer => window.clearTimeout(timer));
+    timers = [];
+  };
+
+  const schedule = (callback, delay, id = runId) => {
+    timers.push(window.setTimeout(() => {
+      if (id === runId) callback();
+    }, delay));
+  };
+
+  const setProgress = value => {
+    if (progress) progress.style.width = `${value}%`;
+    if (percent) percent.textContent = `${String(value).padStart(2, "0")}%`;
+  };
+
+  const complete = (id = runId) => {
+    if (id !== runId || finished) return;
+    finished = true;
+    clearTimers();
+    screen.classList.add("is-gone");
+    screen.hidden = true;
+    screen.setAttribute("aria-hidden", "true");
+    document.documentElement.classList.remove("is-booting");
+    document.body.classList.remove("boot-active");
+  };
+
+  const leave = (manual = false, id = runId) => {
+    if (id !== runId || finished) return;
+    screen.classList.add("is-title", "is-leaving");
+    if (manual) requestMusicFromIntro();
+    schedule(() => complete(id), manual ? 620 : 720, id);
+  };
+
+  const skip = ({ userGesture = false } = {}) => {
+    if (finished) return;
+    clearTimers();
+    setProgress(100);
+    screen.classList.add("is-collapsing", "is-splitting", "is-releasing", "is-title");
+    schedule(() => leave(userGesture), 80);
+  };
+
+  const start = () => {
+    runId += 1;
+    const id = runId;
+    clearTimers();
+    finished = false;
+    screen.hidden = false;
+    screen.className = "boot-screen";
+    screen.setAttribute("aria-hidden", "false");
+    document.documentElement.classList.add("is-booting");
+    document.body.classList.add("boot-active");
+    if (log) log.innerHTML = "";
+    setProgress(0);
+
+    if (reducedMotion) {
+      schedule(() => leave(false, id), 80, id);
+      return;
+    }
+
+    lines.forEach((line, index) => {
+      schedule(() => {
+        if (log) {
+          const row = document.createElement("p");
+          row.innerHTML = line;
+          log.append(row);
+        }
+        setProgress(progressSteps[index]);
+      }, 150 + index * 235, id);
+    });
+
+    schedule(() => screen.classList.add("is-collapsing"), 1120, id);
+    schedule(() => screen.classList.add("is-splitting"), 1970, id);
+    schedule(() => screen.classList.add("is-releasing", "is-title"), 2360, id);
+    schedule(() => leave(false, id), 3240, id);
+  };
+
+  screen.addEventListener("pointerdown", event => {
+    event.preventDefault();
+    skip({ userGesture: true });
+  }, { capture: true });
+
+  document.addEventListener("keydown", event => {
+    if (finished || screen.hidden) return;
+    const shouldSkip = event.key === "Escape" || event.key === "Enter" || event.key === " " || event.key.length === 1;
+    if (!shouldSkip) return;
+    if (event.key === " " || event.key === "Escape") event.preventDefault();
+    skip({ userGesture: true });
+  }, { capture: true });
+
+  document.querySelectorAll("[data-replay-intro]").forEach(button => {
+    button.addEventListener("click", () => {
+      button.closest("details")?.removeAttribute("open");
+      start();
+    });
+  });
+
+  start();
+}
+
+function initMusicPlayer() {
+  const player = document.querySelector("#musicPlayer");
+  const audio = document.querySelector("#musicAudio");
+  if (!player || !audio) return;
+
+  const ui = {
+    disc: document.querySelector("#musicDiscToggle"),
+    title: document.querySelector("#musicTitle"),
+    index: document.querySelector("#musicTrackIndex"),
+    play: document.querySelector("#musicPlay"),
+    prev: document.querySelector("#musicPrev"),
+    next: document.querySelector("#musicNext"),
+    seek: document.querySelector("#musicSeek"),
+    time: document.querySelector("#musicTime"),
+    volume: document.querySelector("#musicVolume"),
+    queueToggle: document.querySelector("#musicQueueToggle"),
+    queue: document.querySelector("#musicQueue"),
+    list: document.querySelector("#musicList"),
+    status: document.querySelector("#musicStatus")
+  };
+  const playIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7L8 5Z"/></svg>';
+  const pauseIcon = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h4v14H7V5Zm6 0h4v14h-4V5Z"/></svg>';
+  const music = {
+    tracks: [],
+    index: 0,
+    sourceIndex: 0,
+    pendingPlay: false,
+    switchingSource: false
+  };
+
+  const setStatus = message => {
+    if (ui.status) ui.status.textContent = String(message || "").toUpperCase();
+  };
+
+  const updatePlayState = () => {
+    const playing = !audio.paused && !audio.ended;
+    player.classList.toggle("is-playing", playing);
+    if (ui.play) {
+      ui.play.innerHTML = playing ? pauseIcon : playIcon;
+      ui.play.setAttribute("aria-label", playing ? "Pause" : "Play");
+      ui.play.title = playing ? "Pause" : "Play";
+    }
+  };
+
+  const formatTime = seconds => {
+    if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
+    return `${Math.floor(seconds / 60)}:${String(Math.floor(seconds % 60)).padStart(2, "0")}`;
+  };
+
+  const updateTime = () => {
+    const duration = Number.isFinite(audio.duration) ? audio.duration : 0;
+    const current = Number.isFinite(audio.currentTime) ? audio.currentTime : 0;
+    if (ui.seek) ui.seek.value = duration ? String(Math.round((current / duration) * 1000)) : "0";
+    if (ui.time) ui.time.textContent = `${formatTime(current)} / ${formatTime(duration)}`;
+  };
+
+  const renderQueue = () => {
+    if (!ui.list) return;
+    ui.list.innerHTML = music.tracks.map((track, index) => `
+      <button class="${index === music.index ? "is-active" : ""}" type="button" data-music-index="${index}" title="${h(track.path)}">
+        <span>${String(index + 1).padStart(2, "0")}</span><span>${h(track.title)}</span>
+      </button>`).join("");
+  };
+
+  const selectTrack = (index, { play = false } = {}) => {
+    if (!music.tracks.length) return;
+    music.index = (index + music.tracks.length) % music.tracks.length;
+    music.sourceIndex = 0;
+    music.switchingSource = false;
+    const track = music.tracks[music.index];
+    audio.src = track.sources[0];
+    if (ui.title) ui.title.textContent = track.title;
+    if (ui.index) ui.index.textContent = `${String(music.index + 1).padStart(2, "0")}/${String(music.tracks.length).padStart(2, "0")}`;
+    setStatus("READY");
+    updateTime();
+    renderQueue();
+    try { localStorage.setItem("synchrose:music:track", track.path); } catch { /* Storage is optional. */ }
+
+    if ("mediaSession" in navigator && typeof MediaMetadata === "function") {
+      navigator.mediaSession.metadata = new MediaMetadata({ title: track.title, artist: "Synchrose" });
+    }
+    if (play) playMusic();
+  };
+
+  const nextTrack = (play = !audio.paused) => selectTrack(music.index + 1, { play });
+  const prevTrack = () => {
+    if (audio.currentTime > 3) {
+      audio.currentTime = 0;
+      updateTime();
+      return;
+    }
+    selectTrack(music.index - 1, { play: !audio.paused });
+  };
+
+  async function playMusic() {
+    if (!music.tracks.length) {
+      music.pendingPlay = true;
+      setStatus("STILL SCANNING");
+      return;
+    }
+
+    music.pendingPlay = false;
+    try {
+      await audio.play();
+      setStatus("PLAYING");
+    } catch (error) {
+      console.warn("Music playback needs a click on the play button", error);
+      setStatus("PRESS PLAY");
+    }
+  }
+
+  requestMusicFromIntro = () => {
+    music.pendingPlay = true;
+    playMusic();
+  };
+
+  ui.disc?.addEventListener("click", () => {
+    const open = !player.classList.contains("is-open");
+    player.classList.toggle("is-open", open);
+    ui.disc.setAttribute("aria-expanded", String(open));
+    if (!open) {
+      player.classList.remove("is-queue");
+      if (ui.queue) ui.queue.hidden = true;
+      ui.queueToggle?.setAttribute("aria-expanded", "false");
+    }
+  });
+
+  ui.play?.addEventListener("click", () => {
+    if (audio.paused) playMusic();
+    else audio.pause();
+  });
+  ui.prev?.addEventListener("click", prevTrack);
+  ui.next?.addEventListener("click", () => nextTrack(!audio.paused));
+
+  ui.seek?.addEventListener("input", () => {
+    if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+    audio.currentTime = (Number(ui.seek.value) / 1000) * audio.duration;
+    updateTime();
+  });
+
+  const storedVolume = (() => {
+    try { return Number(localStorage.getItem("synchrose:music:volume")); }
+    catch { return NaN; }
+  })();
+  audio.volume = Number.isFinite(storedVolume) ? Math.max(0, Math.min(1, storedVolume)) : 0.7;
+  if (ui.volume) ui.volume.value = String(audio.volume);
+  ui.volume?.addEventListener("input", () => {
+    audio.volume = Number(ui.volume.value);
+    try { localStorage.setItem("synchrose:music:volume", String(audio.volume)); } catch { /* Storage is optional. */ }
+  });
+
+  ui.queueToggle?.addEventListener("click", () => {
+    const open = ui.queue?.hidden !== false;
+    if (ui.queue) ui.queue.hidden = !open;
+    ui.queueToggle.setAttribute("aria-expanded", String(open));
+    player.classList.add("is-open");
+    player.classList.toggle("is-queue", open);
+    ui.disc?.setAttribute("aria-expanded", "true");
+  });
+
+  ui.list?.addEventListener("click", event => {
+    const button = event.target.closest("[data-music-index]");
+    if (!button) return;
+    selectTrack(Number(button.dataset.musicIndex), { play: true });
+  });
+
+  document.addEventListener("pointerdown", event => {
+    if (player.contains(event.target)) return;
+    player.classList.remove("is-open", "is-queue");
+    if (ui.queue) ui.queue.hidden = true;
+    ui.queueToggle?.setAttribute("aria-expanded", "false");
+    ui.disc?.setAttribute("aria-expanded", "false");
+  });
+
+  audio.addEventListener("play", updatePlayState);
+  audio.addEventListener("pause", updatePlayState);
+  audio.addEventListener("timeupdate", updateTime);
+  audio.addEventListener("loadedmetadata", updateTime);
+  audio.addEventListener("ended", () => nextTrack(true));
+  audio.addEventListener("error", () => {
+    const track = music.tracks[music.index];
+    if (!track || music.switchingSource) return;
+    const nextSource = music.sourceIndex + 1;
+    if (nextSource < track.sources.length) {
+      music.switchingSource = true;
+      music.sourceIndex = nextSource;
+      const shouldResume = !audio.paused || music.pendingPlay;
+      audio.src = track.sources[nextSource];
+      music.switchingSource = false;
+      setStatus("TRYING BACKUP");
+      if (shouldResume) playMusic();
+      return;
+    }
+    setStatus("SKIPPED A BROKEN FILE");
+    nextTrack(!audio.paused || music.pendingPlay);
+  });
+
+  if ("mediaSession" in navigator) {
+    try {
+      navigator.mediaSession.setActionHandler("play", playMusic);
+      navigator.mediaSession.setActionHandler("pause", () => audio.pause());
+      navigator.mediaSession.setActionHandler("previoustrack", prevTrack);
+      navigator.mediaSession.setActionHandler("nexttrack", () => nextTrack(true));
+    } catch { /* Media Session support varies by browser. */ }
+  }
+
+  updatePlayState();
+  discoverMusicTracks()
+    .then(tracks => {
+      music.tracks = tracks;
+      player.classList.remove("is-loading");
+      if (!tracks.length) {
+        player.classList.add("is-empty");
+        if (ui.title) ui.title.textContent = "No MP3s found";
+        if (ui.index) ui.index.textContent = "00/00";
+        setStatus("FOLDER EMPTY");
+        return;
+      }
+
+      let storedPath = "";
+      try { storedPath = localStorage.getItem("synchrose:music:track") || ""; } catch { /* Storage is optional. */ }
+      const storedIndex = tracks.findIndex(track => track.path === storedPath);
+      selectTrack(storedIndex >= 0 ? storedIndex : 0);
+      setStatus(`${tracks.length} TRACKS`);
+      if (music.pendingPlay) playMusic();
+    })
+    .catch(error => {
+      player.classList.remove("is-loading");
+      player.classList.add("is-empty");
+      if (ui.title) ui.title.textContent = "Music scan failed";
+      setStatus("TRY AGAIN LATER");
+      console.warn("Synchrose music folder could not be scanned", error);
+    });
+}
+
+async function discoverMusicTracks() {
+  const sources = [];
+
+  try {
+    const response = await fetch("/tree.json", { cache: "no-store", headers: { Accept: "application/json" } });
+    if (response.ok) sources.push(await response.json());
+  } catch (error) {
+    console.warn("Local tree.json music scan failed", error);
+  }
+
+  let files = sources.flatMap(collectMusicFiles);
+  if (!files.length) {
+    try {
+      const response = await fetch("https://api.github.com/repos/mxsynry/mxsynry.github.io/contents/Others/Synchrose?ref=main", {
+        cache: "no-store",
+        headers: { Accept: "application/vnd.github+json" }
+      });
+      if (response.ok) files = collectMusicFiles(await response.json());
+    } catch (error) {
+      console.warn("GitHub music scan failed", error);
+    }
+  }
+
+  const uniqueFiles = new Map();
+  files.forEach(file => uniqueFiles.set(file.path, file));
+  return [...uniqueFiles.values()]
+    .sort((a, b) => a.path.localeCompare(b.path, undefined, { sensitivity: "base" }))
+    .map(file => {
+      const encodedPath = file.path.split("/").map(encodeURIComponent).join("/");
+      const sameOrigin = `${window.location.origin}/${encodedPath}`;
+      const raw = file.downloadUrl || `https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/${encodedPath}`;
+      return {
+        path: file.path,
+        title: musicTitleFromPath(file.path),
+        sources: unique([sameOrigin, raw])
+      };
+    });
+}
+
+function collectMusicFiles(tree) {
+  const files = [];
+  const folder = "Others/Synchrose/";
+  const audioPattern = /\.(mp3|ogg|wav|m4a)$/i;
+
+  function walk(node) {
+    if (!node) return;
+    if (Array.isArray(node)) {
+      node.forEach(walk);
+      return;
+    }
+    if (typeof node !== "object") return;
+
+    const path = String(node.path || "").replace(/^\/+/, "");
+    if (path.startsWith(folder) && audioPattern.test(path)) {
+      files.push({ path, downloadUrl: node.download_url || node.downloadUrl || "" });
+    }
+
+    if (Array.isArray(node.children)) node.children.forEach(walk);
+    if (Array.isArray(node.tree)) node.tree.forEach(walk);
+    if (Array.isArray(node.files)) node.files.forEach(walk);
+  }
+
+  walk(tree);
+  return files;
+}
+
+function musicTitleFromPath(path) {
+  return decodeURIComponent(String(path).split("/").pop() || "Untitled")
+    .replace(/\.[^.]+$/, "")
+    .replace(/[_]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 async function loadData({ force = false } = {}) {
@@ -527,7 +988,7 @@ function applyFilters() {
   });
 
   state.filtered = sortRows(matches, filters.sort);
-  dom.resultSummary.textContent = `Showing ${state.filtered.length} of ${state.all.length} entries${activeFilterCount(filters) ? ` · ${activeFilterCount(filters)} active filter${activeFilterCount(filters) === 1 ? "" : "s"}` : ""}`;
+  dom.resultSummary.textContent = `${state.filtered.length} / ${state.all.length} shown${activeFilterCount(filters) ? ` · ${activeFilterCount(filters)} filter${activeFilterCount(filters) === 1 ? "" : "s"} on` : ""}`;
   renderActiveView();
 }
 
@@ -592,15 +1053,15 @@ function renderGrid() {
     return;
   }
 
-  dom.gridView.innerHTML = state.filtered.map(item => {
+  dom.gridView.innerHTML = state.filtered.map((item, index) => {
     const status = updateUi(item);
     const detection = detectionText(item.detected);
-    const description = item.description || "No summary is available for this catalog entry yet.";
+    const description = item.description || "No notes yet.";
     const features = getFeatures(item).slice(0, 4);
     const selected = state.compare.has(item.id);
 
     return `
-      <article class="executor-card${item.warning ? " is-warning" : ""}">
+      <article class="executor-card card-enter${item.warning ? " is-warning" : ""}" style="--card-i:${index % 12}">
         <div class="card-top">
           <div class="card-title-wrap">
             <h3 title="${h(item.name)}">${h(item.name)}</h3>
@@ -635,10 +1096,10 @@ function renderTable() {
     return;
   }
 
-  dom.tableBody.innerHTML = state.filtered.map(item => {
+  dom.tableBody.innerHTML = state.filtered.map((item, index) => {
     const status = updateUi(item);
     return `
-      <tr>
+      <tr class="row-enter" style="--row-i:${index % 14}">
         <td><label class="compare-check"><input type="checkbox" data-compare="${h(item.id)}" ${state.compare.has(item.id) ? "checked" : ""}><span class="sr-only">Compare ${h(item.name)}</span></label></td>
         <td><span class="table-name">${h(item.name)}</span></td>
         <td><span class="status-badge ${status.className}">${h(status.label)}</span></td>
@@ -653,17 +1114,17 @@ function renderTable() {
 }
 
 function emptyStateMarkup(inTable = false) {
-  return `<div class="empty-state${inTable ? " table-empty" : ""}"><h3>No matching entries</h3><p>Try a broader search or clear one of the active filters.</p></div>`;
+  return `<div class="empty-state${inTable ? " table-empty" : ""}"><h3>Nothing here.</h3><p>Try fewer filters.</p></div>`;
 }
 
 function renderLoadFailure() {
   dom.gridView.innerHTML = `
     <div class="error-state">
-      <h3>The live sources could not be reached</h3>
-      <p>Check your connection, then try Refresh data. GitHub Pages must be served over HTTPS for the public APIs to load correctly.</p>
+      <h3>Both feeds missed the call.</h3>
+      <p>Check your connection, then hit Recheck.</p>
     </div>`;
   dom.tableBody.innerHTML = "";
-  dom.resultSummary.textContent = "No live or cached catalog data is available.";
+  dom.resultSummary.textContent = "No live or saved data.";
   renderVersions();
 }
 
@@ -677,8 +1138,12 @@ function setView(view, { render = true } = {}) {
     button.setAttribute("aria-pressed", String(active));
   });
 
-  dom.gridView.hidden = state.view !== "grid";
-  dom.tableView.hidden = state.view !== "table";
+  const gridIsActive = state.view === "grid";
+  dom.catalogResults.dataset.view = state.view;
+  dom.gridView.toggleAttribute("hidden", !gridIsActive);
+  dom.tableView.toggleAttribute("hidden", gridIsActive);
+  dom.gridView.setAttribute("aria-hidden", String(!gridIsActive));
+  dom.tableView.setAttribute("aria-hidden", String(gridIsActive));
   if (render) renderActiveView();
 }
 
@@ -706,11 +1171,11 @@ function renderVersions() {
     ["iOS", "iOS"]
   ];
 
-  dom.versionGrid.innerHTML = platforms.map(([key, label]) => {
+  dom.versionGrid.innerHTML = platforms.map(([key, label], index) => {
     const version = cleanValue(state.versions?.[key]);
     const date = cleanValue(state.versions?.[`${key}Date`], "Update time unavailable");
     return `
-      <article class="version-card">
+      <article class="version-card data-fresh" style="--version-i:${index}">
         <span>${h(label)}</span>
         <b title="${h(version)}">${h(version)}</b>
         <small>${h(formatVersionDate(date))}</small>
@@ -778,10 +1243,10 @@ function renderDetails(item) {
       ${metricMarkup("Source", sourceLabel(item))}
       ${metricMarkup("Type", item.extType)}
     </div>
-    ${features.length ? `<div class="detail-section"><h3>Catalog features</h3><div class="feature-row">${features.map(feature => `<span class="feature-chip">${h(feature)}</span>`).join("")}</div></div>` : ""}
-    ${item.proSummary ? `<div class="detail-section"><h3>Strength</h3><p>${h(item.proSummary)}</p></div>` : ""}
-    ${item.neutralSummary ? `<div class="detail-section"><h3>Context</h3><p>${h(item.neutralSummary)}</p></div>` : ""}
-    ${item.conSummary ? `<div class="detail-section"><h3>Trade-off</h3><p>${h(item.conSummary)}</p></div>` : ""}
+    ${features.length ? `<div class="detail-section"><h3>Features</h3><div class="feature-row">${features.map(feature => `<span class="feature-chip">${h(feature)}</span>`).join("")}</div></div>` : ""}
+    ${item.proSummary ? `<div class="detail-section"><h3>Why people use it</h3><p>${h(item.proSummary)}</p></div>` : ""}
+    ${item.neutralSummary ? `<div class="detail-section"><h3>More notes</h3><p>${h(item.neutralSummary)}</p></div>` : ""}
+    ${item.conSummary ? `<div class="detail-section"><h3>The catch</h3><p>${h(item.conSummary)}</p></div>` : ""}
     ${review}
     ${links ? `<div class="detail-links">${links}</div>` : ""}
   `;
@@ -861,10 +1326,10 @@ function setHealth(source, status, count = 0) {
 
   icon.className = `health-icon is-${status}`;
   const labels = {
-    loading: "Syncing",
-    ready: `Live${count ? ` · ${count}` : ""}`,
-    cached: `Cached${count ? ` · ${count}` : ""}`,
-    error: "Unavailable"
+    loading: "SYNCING",
+    ready: `LIVE${count ? ` · ${count}` : ""}`,
+    cached: `SAVED${count ? ` · ${count}` : ""}`,
+    error: "DOWN"
   };
   label.textContent = labels[status] || status;
   updateSyncHeadline();
@@ -872,17 +1337,17 @@ function setHealth(source, status, count = 0) {
 
 function updateSyncHeadline() {
   const statuses = Object.values(state.health);
-  let headline = "Connecting to sources";
-  if (statuses.every(status => status === "ready")) headline = "Sources synchronized";
-  else if (statuses.some(status => status === "ready")) headline = "Partial live data";
-  else if (statuses.some(status => status === "cached")) headline = "Using cached data";
-  else if (statuses.every(status => status === "error")) headline = "Sources unavailable";
+  let headline = "Waking up…";
+  if (statuses.every(status => status === "ready")) headline = "Both feeds are live";
+  else if (statuses.some(status => status === "ready")) headline = "One feed answered";
+  else if (statuses.some(status => status === "cached")) headline = "Using the saved copy";
+  else if (statuses.every(status => status === "error")) headline = "Both feeds are down";
 
   setText("#syncHeadline", headline);
   const date = state.loadedAt instanceof Date && !Number.isNaN(state.loadedAt.valueOf())
     ? state.loadedAt
     : null;
-  setText("#lastSync", date ? `Last synchronized ${date.toLocaleString()}` : "Waiting for the first sync…");
+  setText("#lastSync", date ? `Checked ${date.toLocaleString()}` : "Waiting for data…");
 }
 
 function hydrateFromCache() {

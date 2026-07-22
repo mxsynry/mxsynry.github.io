@@ -4,16 +4,53 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0911">
-  <meta name="description" content="Synchrose is a fast, source-transparent Roblox executor status and catalog dashboard powered by public WEAO and Voxlis data.">
-  <meta property="og:title" content="Synchrose — Roblox status, in sync">
-  <meta property="og:description" content="Compare compatibility, platforms, pricing, detection state, and catalog context in one fast dashboard.">
+  <meta name="description" content="WEAO status and Voxlis notes in one searchable list.">
+  <meta property="og:title" content="Synchrose // Roblox status">
+  <meta property="og:description" content="What works, what broke, and where the information came from.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://mxsynry.github.io/Others/Synchrose/">
-  <title>Synchrose — Roblox status, in sync</title>
+  <title>Synchrose // Roblox status</title>
   <link rel="stylesheet" href="./styles.css">
   <script type="module" src="./app.js"></script>
 </head>
 <body>
+  <div class="boot-screen" id="bootScreen" role="dialog" aria-modal="true" aria-label="Synchrose boot console">
+    <button class="boot-skip" id="bootSkip" type="button">SKIP [ESC]</button>
+
+    <div class="boot-console" id="bootConsole" aria-hidden="true">
+      <div class="boot-ticker">
+        <span>LOADING... PLEASE WAIT　読み込み中...　// SYNCHROSE BOOT CHANNEL　// WEAO + VOXLIS　// PRESS TO SKIP　//</span>
+        <span aria-hidden="true">LOADING... PLEASE WAIT　読み込み中...　// SYNCHROSE BOOT CHANNEL　// WEAO + VOXLIS　// PRESS TO SKIP　//</span>
+      </div>
+      <div class="boot-body">
+        <div class="boot-copy">
+          <p class="boot-fixed-line"><span>▶</span> AWAITING ASSETS...</p>
+          <div class="boot-log" id="bootLog" aria-live="polite"></div>
+        </div>
+        <pre class="boot-ascii" aria-label="Synchrose">  ███████╗██╗   ██╗███╗   ██╗ ██████╗██╗  ██╗██████╗  ██████╗ ███████╗███████╗
+  ██╔════╝╚██╗ ██╔╝████╗  ██║██╔════╝██║  ██║██╔══██╗██╔═══██╗██╔════╝██╔════╝
+  ███████╗ ╚████╔╝ ██╔██╗ ██║██║     ███████║██████╔╝██║   ██║███████╗█████╗
+  ╚════██║  ╚██╔╝  ██║╚██╗██║██║     ██╔══██║██╔══██╗██║   ██║╚════██║██╔══╝
+  ███████║   ██║   ██║ ╚████║╚██████╗██║  ██║██║  ██║╚██████╔╝███████║███████╗
+  ╚══════╝   ╚═╝   ╚═╝  ╚═══╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝ ╚═════╝ ╚══════╝╚══════╝</pre>
+        <div class="boot-load">
+          <span>[LOAD]</span>
+          <i><b id="bootProgress"></b></i>
+          <em id="bootPercent">00%</em>
+        </div>
+      </div>
+      <div class="boot-footer"><span>❖ entering <b>SYNCHROSE</b></span><span>「SYNCHROSE」を読み込み中</span></div>
+    </div>
+
+    <div class="boot-slices" aria-hidden="true">
+      <div class="boot-piece boot-piece-top"><span>SYNCHROSE // CHANNEL 01</span></div>
+      <div class="boot-piece boot-piece-bottom"><span>WEAO + VOXLIS // READY</span></div>
+    </div>
+    <div class="boot-flash" aria-hidden="true"></div>
+    <div class="boot-final-title" aria-hidden="true">Synchrose</div>
+    <p class="boot-hint">CLICK / PRESS ANY KEY TO SKIP</p>
+  </div>
+
   <a class="skip-link" href="#catalog">Skip to catalog</a>
 
   <header class="site-header">
@@ -33,10 +70,11 @@
         <a href="#catalog">Catalog</a>
         <a href="#versions">Versions</a>
         <a href="#downloads">RDD</a>
-        <a href="#methodology">Method</a>
+        <a href="#methodology">How</a>
       </nav>
 
       <div class="header-actions">
+        <button class="text-link replay-link" type="button" data-replay-intro>Console</button>
         <a class="text-link source-link" href="https://weao.xyz/" target="_blank" rel="noopener noreferrer">WEAO</a>
         <a class="button button-small button-secondary" href="https://voxlis.net/" target="_blank" rel="noopener noreferrer">Voxlis</a>
       </div>
@@ -49,7 +87,8 @@
           <a href="#catalog">Catalog</a>
           <a href="#versions">Versions</a>
           <a href="#downloads">RDD</a>
-          <a href="#methodology">Method</a>
+          <a href="#methodology">How</a>
+          <button type="button" data-replay-intro>Replay console</button>
           <a href="https://weao.xyz/" target="_blank" rel="noopener noreferrer">WEAO ↗</a>
           <a href="https://voxlis.net/" target="_blank" rel="noopener noreferrer">Voxlis ↗</a>
         </nav>
@@ -59,22 +98,22 @@
 
   <main id="top">
     <section class="hero shell" aria-labelledby="hero-title">
-      <div class="hero-copy">
-        <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> Live Roblox compatibility index</div>
-        <h1 id="hero-title">Know what is current.<br><span>Before you install.</span></h1>
-        <p class="hero-lede">Synchrose merges live compatibility signals from WEAO with catalog context from Voxlis, then makes the result fast to search, filter, and compare.</p>
+      <div class="hero-copy" data-reveal>
+        <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> LIVE // WEAO + VOXLIS</div>
+        <h1 id="hero-title">What works.<br><span>What broke.</span></h1>
+        <p class="hero-lede">WEAO status. Voxlis notes. One list.</p>
         <div class="hero-actions">
-          <a class="button button-primary" href="#catalog">Explore the catalog</a>
-          <a class="button button-secondary" href="#methodology">How data is merged</a>
+          <a class="button button-primary" href="#catalog">Open the list</a>
+          <a class="button button-secondary" href="#methodology">Where it comes from</a>
         </div>
-        <p class="hero-note">Independent index. Listings are informational, not endorsements.</p>
+        <p class="hero-note">No “best executor” speech. Read the sources and decide.</p>
       </div>
 
-      <aside class="signal-panel" aria-label="Live data status">
+      <aside class="signal-panel" aria-label="Live data status" data-reveal>
         <div class="signal-heading">
           <div>
-            <span class="kicker">Data pulse</span>
-            <strong id="syncHeadline">Connecting to sources</strong>
+            <span class="kicker">SYNC</span>
+            <strong id="syncHeadline">Waking up…</strong>
           </div>
           <button class="icon-button" id="heroRefresh" type="button" title="Refresh live data" aria-label="Refresh live data">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5M4 17v-5h5M6.1 8.2A7 7 0 0 1 18.4 6L20 8M4 16l1.6 2A7 7 0 0 0 17.9 15.8"/></svg>
@@ -83,30 +122,30 @@
         <div class="source-health" id="sourceHealth" aria-live="polite">
           <div class="health-row">
             <span class="health-icon is-loading" data-health-icon="weao"></span>
-            <span><strong>WEAO</strong><small>Compatibility and versions</small></span>
+            <span><strong>WEAO</strong><small>versions + status</small></span>
             <b data-health-label="weao">Loading</b>
           </div>
           <div class="health-row">
             <span class="health-icon is-loading" data-health-icon="voxlis"></span>
-            <span><strong>Voxlis</strong><small>Catalog and reviews</small></span>
+            <span><strong>Voxlis</strong><small>notes + prices</small></span>
             <b data-health-label="voxlis">Loading</b>
           </div>
         </div>
         <div class="pulse-stats">
-          <div><strong id="heroTotal">—</strong><span>cataloged</span></div>
-          <div><strong id="heroUpdated">—</strong><span>updated</span></div>
+          <div><strong id="heroTotal">—</strong><span>in list</span></div>
+          <div><strong id="heroUpdated">—</strong><span>working</span></div>
           <div><strong id="heroPlatforms">—</strong><span>platforms</span></div>
         </div>
-        <p class="last-sync" id="lastSync">Waiting for the first sync…</p>
+        <p class="last-sync" id="lastSync">Waiting for data…</p>
       </aside>
     </section>
 
     <section class="versions-section" id="versions" aria-labelledby="versions-title">
-      <div class="shell">
+      <div class="shell" data-reveal>
         <div class="section-heading compact-heading">
           <div>
-            <span class="kicker">Current builds</span>
-            <h2 id="versions-title">Roblox versions</h2>
+            <span class="kicker">ROBLOX BUILDS</span>
+            <h2 id="versions-title">What Roblox is on right now.</h2>
           </div>
           <a class="text-link" href="https://rdd.weao.gg/" target="_blank" rel="noopener noreferrer">Open version archive ↗</a>
         </div>
@@ -118,11 +157,11 @@
     </section>
 
     <section class="catalog-section shell" id="catalog" aria-labelledby="catalog-title">
-      <div class="section-heading">
+      <div class="section-heading" data-reveal>
         <div>
-          <span class="kicker">Source-transparent catalog</span>
-          <h2 id="catalog-title">Find the right signal, fast.</h2>
-          <p>Search once, narrow by the facts that matter, and see where each claim came from.</p>
+          <span class="kicker">THE LIST</span>
+          <h2 id="catalog-title">Search it. Sort it. Done.</h2>
+          <p>Grid if you’re browsing. List if you already know the name.</p>
         </div>
         <div class="summary-stats" aria-label="Catalog summary">
           <div><strong id="statTotal">—</strong><span>Total</span></div>
@@ -132,7 +171,7 @@
         </div>
       </div>
 
-      <form class="catalog-controls" id="filterForm" role="search">
+      <form class="catalog-controls" id="filterForm" role="search" data-reveal>
         <label class="search-field">
           <span class="sr-only">Search executors</span>
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
@@ -180,7 +219,7 @@
           <label>
             <span>Sort</span>
             <select id="sortFilter" name="sort">
-              <option value="recommended">Recommended</option>
+              <option value="recommended">Working first</option>
               <option value="updated">Updated first</option>
               <option value="sunc">sUNC high to low</option>
               <option value="price">Price low to high</option>
@@ -190,10 +229,10 @@
         </div>
 
         <div class="control-footer">
-          <p id="resultSummary" aria-live="polite">Preparing catalog…</p>
+          <p id="resultSummary" aria-live="polite">Building the list…</p>
           <div class="control-actions">
-            <button class="text-button" id="clearFilters" type="button">Clear filters</button>
-            <button class="text-button" id="refreshData" type="button">Refresh data</button>
+            <button class="text-button" id="clearFilters" type="button">Reset</button>
+            <button class="text-button" id="refreshData" type="button">Recheck</button>
             <div class="view-switch" role="group" aria-label="Catalog view">
               <button class="is-active" type="button" data-view="grid" aria-pressed="true" title="Grid view">
                 <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6" height="6"/><rect x="14" y="4" width="6" height="6"/><rect x="4" y="14" width="6" height="6"/><rect x="14" y="14" width="6" height="6"/></svg>
@@ -236,42 +275,42 @@
     </section>
 
     <section class="download-section" id="downloads" aria-labelledby="downloads-title">
-      <div class="shell download-inner">
+      <div class="shell download-inner" data-reveal>
         <div>
-          <span class="kicker">Roblox deployment downloader</span>
-          <h2 id="downloads-title">Need an older Roblox build?</h2>
-          <p>Open a public RDD provider. Synchrose links to the source and does not proxy downloads.</p>
+          <span class="kicker">OLDER BUILDS</span>
+          <h2 id="downloads-title">Need a different Roblox version?</h2>
+          <p>Pick a provider. Synchrose does not mirror the files.</p>
         </div>
         <div class="download-links">
           <a href="https://rdd.weao.gg/" target="_blank" rel="noopener noreferrer"><strong>WEAO RDD</strong><span>Version archive ↗</span></a>
-          <a href="https://pulsery.gg/rdd" target="_blank" rel="noopener noreferrer"><strong>Pulsery RDD</strong><span>Dashboard tools ↗</span></a>
+          <a href="https://pulsery.gg/rdd" target="_blank" rel="noopener noreferrer"><strong>Pulsery RDD</strong><span>Pulsery archive ↗</span></a>
           <a href="https://inject.today/rdd" target="_blank" rel="noopener noreferrer"><strong>Inject RDD</strong><span>Minimal downloader ↗</span></a>
         </div>
       </div>
     </section>
 
     <section class="method-section shell" id="methodology" aria-labelledby="method-title">
-      <div class="method-copy">
-        <span class="kicker">Methodology</span>
-        <h2 id="method-title">Two sources. One honest view.</h2>
-        <p>Synchrose joins entries by a normalized product name. WEAO supplies live compatibility, detection, version, and Roblox build fields. Voxlis enriches those rows with platforms, catalog tags, summaries, and pricing context.</p>
-        <p>When a source is missing or disagrees, the interface keeps the uncertainty visible instead of inventing certainty.</p>
+      <div class="method-copy" data-reveal>
+        <span class="kicker">WHERE IT COMES FROM</span>
+        <h2 id="method-title">WEAO says what’s current. Voxlis fills in the rest.</h2>
+        <p>Names are matched, the two feeds are joined, and every row keeps its source label.</p>
+        <p>If a source does not know something, Synchrose says “unknown.” That’s it.</p>
       </div>
-      <div class="method-grid">
+      <div class="method-grid" data-reveal>
         <article>
           <span class="source-number">01</span>
-          <h3>Compatibility</h3>
-          <p>Updated, detected, version, and current Roblox build signals come from the WEAO public API.</p>
+          <h3>Live status</h3>
+          <p>Updated, detected, version, and Roblox build come from WEAO.</p>
         </article>
         <article>
           <span class="source-number">02</span>
-          <h3>Catalog context</h3>
-          <p>Descriptions, tags, platforms, and price offers come from the public Voxlis catalog repository.</p>
+          <h3>The extra bits</h3>
+          <p>Descriptions, tags, platforms, and prices come from Voxlis.</p>
         </article>
         <article>
           <span class="source-number">03</span>
-          <h3>Source labels</h3>
-          <p>Every card says WEAO, Voxlis, or Both so you can judge the provenance at a glance.</p>
+          <h3>No mystery data</h3>
+          <p>Every card says WEAO, Voxlis, or both.</p>
         </article>
       </div>
     </section>
@@ -281,7 +320,7 @@
     <div class="shell footer-inner">
       <div>
         <a class="brand footer-brand" href="#top"><span class="brand-mark" aria-hidden="true">S</span><span>Synchrose</span></a>
-        <p>Roblox status, in sync. Built by mxsynry.</p>
+        <p>made by mxsynry // data from WEAO + Voxlis</p>
       </div>
       <div class="footer-links">
         <a href="https://weao.xyz/" target="_blank" rel="noopener noreferrer">WEAO</a>
@@ -292,6 +331,50 @@
       </div>
     </div>
   </footer>
+
+  <section class="music-player is-loading" id="musicPlayer" aria-label="Synchrose music player">
+    <button class="music-disc-button" id="musicDiscToggle" type="button" aria-label="Open music player" aria-expanded="false">
+      <span class="music-disc" aria-hidden="true"><i></i></span>
+    </button>
+
+    <div class="music-panel">
+      <div class="music-heading">
+        <div class="music-track-copy">
+          <span>MUSIC // <b id="musicTrackIndex">--/--</b></span>
+          <strong id="musicTitle">Scanning the folder…</strong>
+        </div>
+        <button class="music-queue-button" id="musicQueueToggle" type="button" aria-expanded="false">QUEUE</button>
+      </div>
+
+      <label class="music-seek-label">
+        <span class="sr-only">Seek through the current track</span>
+        <input id="musicSeek" type="range" min="0" max="1000" value="0" step="1">
+      </label>
+
+      <div class="music-controls">
+        <div class="music-buttons">
+          <button id="musicPrev" type="button" aria-label="Previous track" title="Previous track">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 5h2v14H6V5Zm3 7 9-7v14l-9-7Z"/></svg>
+          </button>
+          <button class="music-play" id="musicPlay" type="button" aria-label="Play" title="Play">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7L8 5Z"/></svg>
+          </button>
+          <button id="musicNext" type="button" aria-label="Next track" title="Next track">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M16 5h2v14h-2V5ZM6 5l9 7-9 7V5Z"/></svg>
+          </button>
+        </div>
+        <span class="music-time" id="musicTime">0:00 / 0:00</span>
+        <label class="music-volume"><span>VOL</span><input id="musicVolume" type="range" min="0" max="1" value="0.7" step="0.05" aria-label="Music volume"></label>
+      </div>
+
+      <div class="music-queue" id="musicQueue" hidden>
+        <div class="music-queue-head"><span>/Others/Synchrose</span><b id="musicStatus">LOOKING FOR MP3s</b></div>
+        <div class="music-list" id="musicList"></div>
+      </div>
+    </div>
+
+    <audio id="musicAudio" preload="metadata"></audio>
+  </section>
 
   <div class="compare-tray" id="compareTray" hidden>
     <div>
