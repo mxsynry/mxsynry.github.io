@@ -64,7 +64,12 @@ const dom = {
   searchInput: document.querySelector("#searchInput"),
   platformFilter: document.querySelector("#platformFilter"),
   statusFilter: document.querySelector("#statusFilter"),
+  detectionFilter: document.querySelector("#detectionFilter"),
+  typeFilter: document.querySelector("#typeFilter"),
   priceFilter: document.querySelector("#priceFilter"),
+  keyFilter: document.querySelector("#keyFilter"),
+  featureFilter: document.querySelector("#featureFilter"),
+  suncFilter: document.querySelector("#suncFilter"),
   sourceFilter: document.querySelector("#sourceFilter"),
   sortFilter: document.querySelector("#sortFilter"),
   clearFilters: document.querySelector("#clearFilters"),
@@ -109,7 +114,18 @@ function bindEvents() {
     searchTimer = window.setTimeout(applyFilters, 120);
   });
 
-  [dom.platformFilter, dom.statusFilter, dom.priceFilter, dom.sourceFilter, dom.sortFilter]
+  [
+    dom.platformFilter,
+    dom.statusFilter,
+    dom.detectionFilter,
+    dom.typeFilter,
+    dom.priceFilter,
+    dom.keyFilter,
+    dom.featureFilter,
+    dom.suncFilter,
+    dom.sourceFilter,
+    dom.sortFilter
+  ]
     .filter(Boolean)
     .forEach(control => control.addEventListener("change", applyFilters));
 
@@ -882,6 +898,12 @@ function combineSameSource(a, b) {
     website: a.website || b.website,
     discord: a.discord || b.discord,
     purchaseLink: a.purchaseLink || b.purchaseLink,
+    decompiler: a.decompiler || b.decompiler,
+    multiInject: a.multiInject || b.multiInject,
+    keysystem: a.keysystem || b.keysystem,
+    clientmods: a.clientmods || b.clientmods,
+    beta: a.beta || b.beta,
+    verified: a.verified || b.verified,
     warning: a.warning || b.warning
   };
 }
@@ -916,7 +938,9 @@ function mergeRows(weao, voxlis, key) {
     decompiler: weao.decompiler || voxlis.decompiler,
     multiInject: weao.multiInject || voxlis.multiInject,
     keysystem: weao.keysystem || voxlis.keysystem,
-    clientmods: weao.clientmods || voxlis.clientmods,
+    // WEAO owns the detection flags when it has a matching row. Do not let a
+    // broad Voxlis tag turn a WEAO full-undetected result into client-mod-only.
+    clientmods: weao.clientmods,
     beta: weao.beta || voxlis.beta,
     verified: weao.verified || voxlis.verified,
     warning: weao.warning || voxlis.warning,
@@ -936,8 +960,14 @@ function applyFilters() {
     if (filters.status === "updated" && item.updateStatus !== true) return false;
     if (filters.status === "outdated" && item.updateStatus !== false) return false;
     if (filters.status === "unknown" && item.updateStatus !== null) return false;
+    if (filters.detection !== "all" && detectionKind(item) !== filters.detection) return false;
+    if (filters.type !== "all" && item.extType !== filters.type) return false;
     if (filters.price === "free" && item.free !== true) return false;
     if (filters.price === "paid" && item.free !== false) return false;
+    if (filters.key === "keysystem" && item.keysystem !== true) return false;
+    if (filters.key === "keyless" && item.keysystem === true) return false;
+    if (filters.feature !== "all" && !matchesFeature(item, filters.feature)) return false;
+    if (!matchesSunc(item, filters.sunc)) return false;
     if (filters.source === "both" && item.source !== "both") return false;
     if (filters.source === "weao" && !item.sources.includes("weao")) return false;
     if (filters.source === "voxlis" && !item.sources.includes("voxlis")) return false;
@@ -950,6 +980,8 @@ function applyFilters() {
         item.description,
         item.extType,
         item.owner,
+        detectionText(item),
+        ...getFeatures(item),
         ...item.platforms.map(platformLabel),
         ...item.tags,
         ...item.badges
@@ -970,7 +1002,12 @@ function readFilters() {
     search: dom.searchInput?.value.trim() || "",
     platform: dom.platformFilter?.value || "all",
     status: dom.statusFilter?.value || "all",
+    detection: dom.detectionFilter?.value || "all",
+    type: dom.typeFilter?.value || "all",
     price: dom.priceFilter?.value || "all",
+    key: dom.keyFilter?.value || "all",
+    feature: dom.featureFilter?.value || "all",
+    sunc: dom.suncFilter?.value || "all",
     source: dom.sourceFilter?.value || "all",
     sort: dom.sortFilter?.value || "recommended"
   };
@@ -980,7 +1017,12 @@ function activeFilterCount(filters) {
   return Number(Boolean(filters.search))
     + Number(filters.platform !== "all")
     + Number(filters.status !== "all")
+    + Number(filters.detection !== "all")
+    + Number(filters.type !== "all")
     + Number(filters.price !== "all")
+    + Number(filters.key !== "all")
+    + Number(filters.feature !== "all")
+    + Number(filters.sunc !== "all")
     + Number(filters.source !== "all");
 }
 
@@ -997,8 +1039,10 @@ function relevanceScore(item) {
   let score = 0;
   if (item.updateStatus === true) score += 35;
   if (item.updateStatus === false) score -= 20;
-  if (item.detected === false) score += 20;
-  if (item.detected === true) score -= 80;
+  const detection = detectionKind(item);
+  if (detection === "undetected") score += 20;
+  if (detection === "clientmods") score += 2;
+  if (detection === "detected") score -= 80;
   if (item.source === "both") score += 12;
   if (item.verified) score += 8;
   if (item.warning) score -= 18;
@@ -1028,7 +1072,7 @@ function renderGrid() {
 
   dom.gridView.innerHTML = state.filtered.map((item, index) => {
     const status = updateUi(item);
-    const detection = detectionText(item.detected);
+    const detection = detectionText(item);
     const description = item.description || "No notes yet.";
     const features = getFeatures(item).slice(0, 4);
     const selected = state.compare.has(item.id);
@@ -1065,7 +1109,7 @@ function renderGrid() {
 
 function renderTable() {
   if (!state.filtered.length) {
-    dom.tableBody.innerHTML = `<tr><td colspan="9">${emptyStateMarkup(true)}</td></tr>`;
+    dom.tableBody.innerHTML = `<tr><td colspan="10">${emptyStateMarkup(true)}</td></tr>`;
     return;
   }
 
@@ -1076,6 +1120,7 @@ function renderTable() {
         <td><label class="compare-check"><input type="checkbox" data-compare="${h(item.id)}" ${state.compare.has(item.id) ? "checked" : ""}><span class="sr-only">Compare ${h(item.name)}</span></label></td>
         <td><span class="table-name">${h(item.name)}</span></td>
         <td><span class="status-badge ${status.className}">${h(status.label)}</span></td>
+        <td>${h(detectionText(item))}</td>
         <td>${h(item.platforms.map(platformLabel).join(", "))}</td>
         <td>${h(item.price)}</td>
         <td>${h(percentText(item.suncPercentage))}</td>
@@ -1124,7 +1169,7 @@ function updateStats() {
   const total = state.all.length;
   const free = state.all.filter(item => item.free === true).length;
   const updated = state.all.filter(item => item.updateStatus === true).length;
-  const clean = state.all.filter(item => item.detected === false).length;
+  const clean = state.all.filter(item => detectionKind(item) === "undetected").length;
   const platforms = unique(state.all.flatMap(item => item.platforms).filter(platform => platform !== "unknown"));
 
   setText("#statTotal", total || "—");
@@ -1208,7 +1253,7 @@ function renderDetails(item) {
     <div class="detail-grid">
       ${metricMarkup("Platforms", item.platforms.map(platformLabel).join(", "))}
       ${metricMarkup("Price", item.price)}
-      ${metricMarkup("Detection", detectionText(item.detected))}
+      ${metricMarkup("Detection", detectionText(item))}
       ${metricMarkup("sUNC", percentText(item.suncPercentage))}
       ${metricMarkup("Executor version", item.version)}
       ${metricMarkup("Roblox build", item.rbxVersion)}
@@ -1272,7 +1317,7 @@ function openComparison() {
 
   const rows = [
     ["Status", item => updateUi(item).label],
-    ["Detection", item => detectionText(item.detected)],
+    ["Detection", item => detectionText(item)],
     ["Platforms", item => item.platforms.map(platformLabel).join(", ")],
     ["Price", item => item.price],
     ["sUNC", item => percentText(item.suncPercentage)],
@@ -1522,6 +1567,8 @@ function normalizeTag(value) {
 function normalizeType(value) {
   const type = String(value || "unknown").trim().toLowerCase();
   if (type === "executor") return "internal";
+  if (type === "external" || type.endsWith("external")) return "external";
+  if (type === "internal" || type.endsWith("executor")) return "internal";
   if (type === "server-side") return "serverside";
   return type || "unknown";
 }
@@ -1532,10 +1579,32 @@ function updateUi(item) {
   return { label: "Unknown", className: "unknown" };
 }
 
-function detectionText(value) {
-  if (value === true) return "Detected";
-  if (value === false) return "Undetected";
+function detectionKind(item) {
+  if (item?.clientmods === true) return "clientmods";
+  if (item?.detected === true) return "detected";
+  if (item?.detected === false) return "undetected";
+  return "unknown";
+}
+
+function detectionText(item) {
+  const kind = detectionKind(item);
+  if (kind === "clientmods") return "Client-mod bypass only";
+  if (kind === "detected") return "Detected";
+  if (kind === "undetected") return "Full undetected";
   return "Unknown";
+}
+
+function matchesFeature(item, feature) {
+  if (feature === "warning") return item.warning === true;
+  return item?.[feature] === true;
+}
+
+function matchesSunc(item, filter) {
+  if (filter === "all") return true;
+  if (filter === "unknown") return !Number.isFinite(item.suncPercentage);
+  if (filter === "measured") return Number.isFinite(item.suncPercentage);
+  const minimum = Number(filter);
+  return Number.isFinite(minimum) && Number.isFinite(item.suncPercentage) && item.suncPercentage >= minimum;
 }
 
 function sourceLabel(item) {

@@ -1474,6 +1474,23 @@ body.boot-active [data-reveal].is-visible {
   border-color: rgba(169, 120, 255, 0.55);
 }
 
+.filter-note {
+  margin: 11px 3px 0;
+  color: var(--muted);
+  font-size: 0.7rem;
+  line-height: 1.55;
+}
+
+.filter-note strong {
+  color: var(--text-soft);
+}
+
+.filter-note a {
+  margin-left: 4px;
+  color: var(--accent-soft);
+  text-underline-offset: 3px;
+}
+
 .control-footer {
   display: flex;
   align-items: center;

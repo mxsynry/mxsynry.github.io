@@ -148,7 +148,7 @@
           <div><strong id="statTotal">—</strong><span>Total</span></div>
           <div><strong id="statFree">—</strong><span>Free</span></div>
           <div><strong id="statUpdated">—</strong><span>Updated</span></div>
-          <div><strong id="statClean">—</strong><span>Undetected</span></div>
+          <div><strong id="statClean">—</strong><span title="WEAO: detected false, without the client-mod-only flag">Full UD</span></div>
         </div>
       </div>
 
@@ -181,11 +181,61 @@
             </select>
           </label>
           <label>
+            <span>Detection</span>
+            <select id="detectionFilter" name="detection">
+              <option value="all">Any detection</option>
+              <option value="undetected">Full undetected</option>
+              <option value="clientmods">Client-mod bypass only</option>
+              <option value="detected">Detected</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </label>
+          <label>
+            <span>Type</span>
+            <select id="typeFilter" name="type">
+              <option value="all">All types</option>
+              <option value="internal">Internal</option>
+              <option value="external">External</option>
+              <option value="serverside">Server-side</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </label>
+          <label>
             <span>Price</span>
             <select id="priceFilter" name="price">
               <option value="all">Free + paid</option>
               <option value="free">Free</option>
               <option value="paid">Paid</option>
+            </select>
+          </label>
+          <label>
+            <span>Key</span>
+            <select id="keyFilter" name="key">
+              <option value="all">Any key setup</option>
+              <option value="keyless">No key system</option>
+              <option value="keysystem">Key system</option>
+            </select>
+          </label>
+          <label>
+            <span>Feature</span>
+            <select id="featureFilter" name="feature">
+              <option value="all">Any feature</option>
+              <option value="decompiler">Decompiler</option>
+              <option value="multiInject">Multi-instance</option>
+              <option value="verified">Verified</option>
+              <option value="beta">Beta</option>
+              <option value="warning">Warning flagged</option>
+            </select>
+          </label>
+          <label>
+            <span>sUNC</span>
+            <select id="suncFilter" name="sunc">
+              <option value="all">Any sUNC</option>
+              <option value="100">100%</option>
+              <option value="80">80%+</option>
+              <option value="50">50%+</option>
+              <option value="measured">Measured</option>
+              <option value="unknown">Unknown</option>
             </select>
           </label>
           <label>
@@ -208,6 +258,11 @@
             </select>
           </label>
         </div>
+
+        <p class="filter-note">
+          <strong>Full UD ≠ client-mod bypass.</strong> WEAO says the client-mod flag does not cover banwaves.
+          <a href="https://docs.weao.xyz/weao-api-reference/exploits" target="_blank" rel="noopener noreferrer">Flags ↗</a>
+        </p>
 
         <div class="control-footer">
           <p id="resultSummary" aria-live="polite">Building the list…</p>
@@ -241,6 +296,7 @@
                 <th scope="col"><span class="sr-only">Compare</span></th>
                 <th scope="col">Name</th>
                 <th scope="col">Status</th>
+                <th scope="col">Detection</th>
                 <th scope="col">Platform</th>
                 <th scope="col">Price</th>
                 <th scope="col">sUNC</th>
