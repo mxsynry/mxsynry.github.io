@@ -47,17 +47,19 @@
         <span>Synchrose</span>
       </a>
 
-      <nav class="desktop-nav" aria-label="Primary navigation">
-        <a href="#catalog">Catalog</a>
-        <a href="#versions">Versions</a>
-        <a href="#downloads">RDD</a>
-        <a href="#methodology">How</a>
-      </nav>
+      <div class="header-navigation">
+        <nav class="desktop-nav" aria-label="Primary navigation">
+          <a href="#catalog">Catalog</a>
+          <a href="#versions">Versions</a>
+          <a href="#downloads">RDD</a>
+          <a href="#methodology">How</a>
+        </nav>
 
-      <div class="header-actions">
-        <button class="text-link replay-link" type="button" data-replay-intro>Intro</button>
-        <a class="text-link source-link" href="https://weao.xyz/" target="_blank" rel="noopener noreferrer">WEAO</a>
-        <a class="button button-small button-secondary" href="https://voxlis.net/" target="_blank" rel="noopener noreferrer">Voxlis</a>
+        <div class="header-actions">
+          <button class="topbar-link replay-link" type="button" data-replay-intro>Intro</button>
+          <a class="topbar-link source-link" href="https://weao.xyz/" target="_blank" rel="noopener noreferrer">WEAO</a>
+          <a class="topbar-link source-link" href="https://voxlis.net/" target="_blank" rel="noopener noreferrer">Voxlis</a>
+        </div>
       </div>
 
       <details class="mobile-menu">
@@ -167,6 +169,7 @@
               <option value="all">All platforms</option>
               <option value="windows">Windows</option>
               <option value="mac">macOS</option>
+              <option value="mobile">Mobile (Android + iOS)</option>
               <option value="android">Android</option>
               <option value="ios">iOS</option>
             </select>
@@ -418,7 +421,7 @@
         <label class="music-volume"><span>VOL</span><input id="musicVolume" type="range" min="0" max="1" value="0.7" step="0.05" aria-label="Music volume"></label>
       </div>
 
-      <div class="music-queue" id="musicQueue" hidden>
+      <div class="music-queue" id="musicQueue" aria-hidden="true" inert hidden>
         <div class="music-queue-head"><span>/Others/Synchrose</span><b id="musicStatus">LOOKING FOR MP3s</b></div>
         <div class="music-list" id="musicList"></div>
       </div>
@@ -455,6 +458,29 @@
       <div class="compare-table-wrap" id="compareContent"></div>
     </div>
   </dialog>
+
+  <div class="version-context-menu" id="versionContextMenu" role="menu" aria-label="Roblox version actions" hidden>
+    <div class="version-context-head">
+      <span id="versionContextPlatform">Windows</span>
+      <small id="versionContextHash">version—</small>
+    </div>
+    <button type="button" role="menuitem" data-version-action="copy">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8h10v11H8z"/><path d="M6 16H4V5h10v2"/></svg>
+      <span id="versionContextCopyLabel">Copy Hash</span>
+    </button>
+    <button type="button" role="menuitem" data-version-action="current">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 4-4m-4 4-4-4"/><path d="M5 17v3h14v-3"/></svg>
+      <span>Download Current</span>
+    </button>
+    <button type="button" role="menuitem" data-version-action="previous">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5v5h5"/><path d="M5.6 9A8 8 0 1 1 5 16"/><path d="M12 8v5l3 2"/></svg>
+      <span>Download Previous</span>
+    </button>
+    <button type="button" role="menuitem" data-version-action="mobile" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="3" width="10" height="18" rx="2"/><path d="M10 17h4"/></svg>
+      <span>Show Mobile Executors</span>
+    </button>
+  </div>
 
   <div class="toast-region" id="toastRegion" aria-live="polite" aria-atomic="true"></div>
 

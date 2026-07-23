@@ -1,8 +1,10 @@
 const ENDPOINTS = Object.freeze({
   weaoExploits: "https://weao.xyz/api/status/exploits",
   weaoVersions: "https://weao.xyz/api/versions/current",
+  weaoPastVersions: "https://weao.xyz/api/versions/past",
   weaoExploitsFallback: "https://whatexpsare.online/api/status/exploits",
   weaoVersionsFallback: "https://whatexpsare.online/api/versions/current",
+  weaoPastVersionsFallback: "https://whatexpsare.online/api/versions/past",
   voxlisContents: "https://api.github.com/repos/localscripts/voxlis.NET/contents/public/data/roblox?ref=main",
   voxlisFlatTree: "https://data.jsdelivr.com/v1/package/gh/localscripts/voxlis.NET@main/flat",
   voxlisRaw: "https://raw.githubusercontent.com/localscripts/voxlis.NET/main/public/data/roblox",
@@ -51,6 +53,7 @@ const state = {
   all: [],
   filtered: [],
   versions: {},
+  pastVersions: {},
   compare: new Set(),
   view: readStoredView(),
   loading: false,
@@ -81,6 +84,10 @@ const dom = {
   tableBody: document.querySelector("#tableBody"),
   resultSummary: document.querySelector("#resultSummary"),
   versionGrid: document.querySelector("#versionGrid"),
+  versionContextMenu: document.querySelector("#versionContextMenu"),
+  versionContextPlatform: document.querySelector("#versionContextPlatform"),
+  versionContextHash: document.querySelector("#versionContextHash"),
+  versionContextCopyLabel: document.querySelector("#versionContextCopyLabel"),
   compareTray: document.querySelector("#compareTray"),
   comparePills: document.querySelector("#comparePills"),
   compareCount: document.querySelector("#compareCount"),
@@ -145,6 +152,8 @@ function bindEvents() {
   document.querySelectorAll("[data-rdd-mode]").forEach(button => {
     button.addEventListener("click", () => setRddMode(button.dataset.rddMode));
   });
+
+  bindVersionContextMenu();
 
   dom.catalogResults?.addEventListener("click", event => {
     const detailsButton = event.target.closest("[data-details]");
@@ -330,6 +339,31 @@ function initMusicPlayer() {
     pendingPlay: false,
     switchingSource: false
   };
+  let queueCloseTimer = 0;
+
+  const setQueueOpen = open => {
+    if (!ui.queue) return;
+    window.clearTimeout(queueCloseTimer);
+
+    if (open) {
+      ui.queue.hidden = false;
+      ui.queue.removeAttribute("inert");
+      ui.queue.setAttribute("aria-hidden", "false");
+      // Flush the hidden state before adding the open class so max-height,
+      // opacity, and the panel's total height animate together.
+      void ui.queue.offsetHeight;
+      player.classList.add("is-queue");
+    } else {
+      player.classList.remove("is-queue");
+      ui.queue.setAttribute("aria-hidden", "true");
+      ui.queue.setAttribute("inert", "");
+      queueCloseTimer = window.setTimeout(() => {
+        if (!player.classList.contains("is-queue")) ui.queue.hidden = true;
+      }, 460);
+    }
+
+    ui.queueToggle?.setAttribute("aria-expanded", String(open));
+  };
 
   const setStatus = message => {
     if (ui.status) ui.status.textContent = String(message || "").toUpperCase();
@@ -421,11 +455,7 @@ function initMusicPlayer() {
     const open = !player.classList.contains("is-open");
     player.classList.toggle("is-open", open);
     ui.disc.setAttribute("aria-expanded", String(open));
-    if (!open) {
-      player.classList.remove("is-queue");
-      if (ui.queue) ui.queue.hidden = true;
-      ui.queueToggle?.setAttribute("aria-expanded", "false");
-    }
+    if (!open) setQueueOpen(false);
   });
 
   ui.play?.addEventListener("click", () => {
@@ -453,11 +483,9 @@ function initMusicPlayer() {
   });
 
   ui.queueToggle?.addEventListener("click", () => {
-    const open = ui.queue?.hidden !== false;
-    if (ui.queue) ui.queue.hidden = !open;
-    ui.queueToggle.setAttribute("aria-expanded", String(open));
+    const open = !player.classList.contains("is-queue");
     player.classList.add("is-open");
-    player.classList.toggle("is-queue", open);
+    setQueueOpen(open);
     ui.disc?.setAttribute("aria-expanded", "true");
   });
 
@@ -469,9 +497,8 @@ function initMusicPlayer() {
 
   document.addEventListener("pointerdown", event => {
     if (player.contains(event.target)) return;
-    player.classList.remove("is-open", "is-queue");
-    if (ui.queue) ui.queue.hidden = true;
-    ui.queueToggle?.setAttribute("aria-expanded", "false");
+    setQueueOpen(false);
+    player.classList.remove("is-open");
     ui.disc?.setAttribute("aria-expanded", "false");
   });
 
@@ -620,9 +647,10 @@ async function loadData({ force = false } = {}) {
   setHealth("voxlis", "loading");
 
   const weaoJob = fetchWeaoData()
-    .then(({ rows, versions }) => {
+    .then(({ rows, versions, pastVersions }) => {
       state.weaoRows = rows;
       state.versions = versions;
+      state.pastVersions = pastVersions;
       state.loadedAt = new Date();
       setHealth("weao", "ready", rows.length);
       renderVersions();
@@ -664,9 +692,10 @@ async function loadData({ force = false } = {}) {
 }
 
 async function fetchWeaoData() {
-  const [exploitsResult, versionsResult] = await Promise.allSettled([
+  const [exploitsResult, versionsResult, pastVersionsResult] = await Promise.allSettled([
     fetchJsonWithFallback(ENDPOINTS.weaoExploits, ENDPOINTS.weaoExploitsFallback),
-    fetchJsonWithFallback(ENDPOINTS.weaoVersions, ENDPOINTS.weaoVersionsFallback)
+    fetchJsonWithFallback(ENDPOINTS.weaoVersions, ENDPOINTS.weaoVersionsFallback),
+    fetchJsonWithFallback(ENDPOINTS.weaoPastVersions, ENDPOINTS.weaoPastVersionsFallback)
   ]);
 
   if (exploitsResult.status === "rejected") throw exploitsResult.reason;
@@ -686,10 +715,15 @@ async function fetchWeaoData() {
   const versions = versionsPayload?.data && !Array.isArray(versionsPayload.data)
     ? versionsPayload.data
     : versionsPayload || {};
+  const pastPayload = pastVersionsResult.status === "fulfilled" ? pastVersionsResult.value : {};
+  const pastVersions = pastPayload?.data && !Array.isArray(pastPayload.data)
+    ? pastPayload.data
+    : pastPayload || {};
 
   return {
     rows: items.map(item => normalizeWeaoRow(item, versions)).filter(row => row.name !== "Unknown"),
-    versions
+    versions,
+    pastVersions
   };
 }
 
@@ -956,7 +990,8 @@ function applyFilters() {
   const term = filters.search.toLowerCase();
 
   const matches = state.all.filter(item => {
-    if (filters.platform !== "all" && !item.platforms.includes(filters.platform)) return false;
+    if (filters.platform === "mobile" && !item.platforms.some(platform => platform === "android" || platform === "ios")) return false;
+    if (filters.platform !== "all" && filters.platform !== "mobile" && !item.platforms.includes(filters.platform)) return false;
     if (filters.status === "updated" && item.updateStatus !== true) return false;
     if (filters.status === "outdated" && item.updateStatus !== false) return false;
     if (filters.status === "unknown" && item.updateStatus !== null) return false;
@@ -1191,14 +1226,172 @@ function renderVersions() {
 
   dom.versionGrid.innerHTML = platforms.map(([key, label], index) => {
     const version = cleanValue(state.versions?.[key]);
+    const previousVersion = cleanValue(state.pastVersions?.[key], "");
     const date = cleanValue(state.versions?.[`${key}Date`], "Update time unavailable");
+    const mobile = key === "Android" || key === "iOS";
     return `
-      <article class="version-card data-fresh" style="--version-i:${index}">
+      <article
+        class="version-card data-fresh"
+        style="--version-i:${index}"
+        tabindex="0"
+        data-version-card
+        data-version-platform="${h(key)}"
+        data-version-label="${h(label)}"
+        data-version-current="${h(version)}"
+        data-version-previous="${h(previousVersion)}"
+        data-version-mobile="${mobile}"
+        aria-label="${h(label)} version ${h(version)}. Open its options for more actions."
+      >
+        <button class="version-menu-trigger" type="button" data-version-menu aria-label="Open ${h(label)} version options" aria-haspopup="menu">•••</button>
         <span>${h(label)}</span>
         <b title="${h(version)}">${h(version)}</b>
         <small>${h(formatVersionDate(date))}</small>
       </article>`;
   }).join("");
+}
+
+function bindVersionContextMenu() {
+  const menu = dom.versionContextMenu;
+  if (!menu || !dom.versionGrid) return;
+
+  const currentAction = menu.querySelector('[data-version-action="current"]');
+  const previousAction = menu.querySelector('[data-version-action="previous"]');
+  const mobileAction = menu.querySelector('[data-version-action="mobile"]');
+  let activeCard = null;
+  let closeTimer = 0;
+
+  const closeMenu = ({ returnFocus = false } = {}) => {
+    if (menu.hidden) return;
+    window.clearTimeout(closeTimer);
+    menu.classList.remove("is-open");
+    closeTimer = window.setTimeout(() => {
+      if (!menu.classList.contains("is-open")) menu.hidden = true;
+    }, 220);
+    if (returnFocus) activeCard?.querySelector("[data-version-menu]")?.focus();
+  };
+
+  const openMenu = (card, x, y) => {
+    if (!card) return;
+    window.clearTimeout(closeTimer);
+    activeCard = card;
+    const isMobile = card.dataset.versionMobile === "true";
+    const previous = card.dataset.versionPrevious || "";
+
+    if (dom.versionContextPlatform) dom.versionContextPlatform.textContent = card.dataset.versionLabel || "Roblox";
+    if (dom.versionContextHash) dom.versionContextHash.textContent = card.dataset.versionCurrent || "Version unavailable";
+    if (dom.versionContextCopyLabel) dom.versionContextCopyLabel.textContent = isMobile ? "Copy Version" : "Copy Hash";
+
+    currentAction.hidden = isMobile;
+    previousAction.hidden = isMobile;
+    mobileAction.hidden = !isMobile;
+    previousAction.disabled = !isUsableVersion(previous);
+    previousAction.title = previousAction.disabled ? "Previous version unavailable" : "";
+
+    menu.hidden = false;
+    menu.style.visibility = "hidden";
+    menu.style.left = "0px";
+    menu.style.top = "0px";
+    void menu.offsetHeight;
+
+    const width = menu.offsetWidth;
+    const height = menu.offsetHeight;
+    const left = Math.max(10, Math.min(x, window.innerWidth - width - 10));
+    const top = Math.max(10, Math.min(y, window.innerHeight - height - 10));
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+    menu.style.visibility = "";
+    menu.classList.add("is-open");
+
+    const firstAction = menu.querySelector('button:not([hidden]):not(:disabled)');
+    firstAction?.focus({ preventScroll: true });
+  };
+
+  dom.versionGrid.addEventListener("contextmenu", event => {
+    const card = event.target.closest("[data-version-card]");
+    if (!card) return;
+    event.preventDefault();
+    openMenu(card, event.clientX, event.clientY);
+  });
+
+  dom.versionGrid.addEventListener("click", event => {
+    const trigger = event.target.closest("[data-version-menu]");
+    if (!trigger) return;
+    const card = trigger.closest("[data-version-card]");
+    const rect = trigger.getBoundingClientRect();
+    openMenu(card, rect.right, rect.bottom + 6);
+  });
+
+  dom.versionGrid.addEventListener("keydown", event => {
+    const card = event.target.closest("[data-version-card]");
+    const contextKey = event.key === "ContextMenu" || (event.shiftKey && event.key === "F10");
+    if (!card || !contextKey) return;
+    event.preventDefault();
+    const rect = card.getBoundingClientRect();
+    openMenu(card, rect.left + Math.min(36, rect.width / 2), rect.top + 42);
+  });
+
+  menu.addEventListener("click", async event => {
+    const action = event.target.closest("[data-version-action]")?.dataset.versionAction;
+    if (!action || !activeCard) return;
+
+    const platform = activeCard.dataset.versionPlatform;
+    const current = activeCard.dataset.versionCurrent || "";
+    const previous = activeCard.dataset.versionPrevious || "";
+
+    if (action === "copy") {
+      const copied = await copyText(current);
+      toast(copied ? `${platform} version copied.` : "Could not copy the version.", copied ? "default" : "error");
+    } else if (action === "current") {
+      openRddVersion(platform, current);
+    } else if (action === "previous") {
+      openRddVersion(platform, previous);
+    } else if (action === "mobile") {
+      if (dom.platformFilter) dom.platformFilter.value = "mobile";
+      applyFilters();
+      document.querySelector("#catalog")?.scrollIntoView?.({
+        behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth",
+        block: "start"
+      });
+      toast("Showing Android + iOS executors.");
+    }
+
+    closeMenu();
+  });
+
+  document.addEventListener("pointerdown", event => {
+    if (menu.contains(event.target) || event.target.closest("[data-version-menu]")) return;
+    closeMenu();
+  });
+
+  document.addEventListener("keydown", event => {
+    if (event.key !== "Escape" || menu.hidden) return;
+    event.preventDefault();
+    closeMenu({ returnFocus: true });
+  });
+
+  window.addEventListener("resize", closeMenu);
+  window.addEventListener("scroll", closeMenu, { passive: true });
+}
+
+function isUsableVersion(value) {
+  const version = String(value || "").trim();
+  return Boolean(version) && !/^(?:n\/a|unknown|version unavailable|—)$/i.test(version);
+}
+
+function openRddVersion(platform, version) {
+  if (!isUsableVersion(version)) {
+    toast("That version is unavailable.", "error");
+    return;
+  }
+
+  const binaryType = platform === "Mac" ? "MacPlayer" : platform === "Windows" ? "WindowsPlayer" : "";
+  if (!binaryType) return;
+
+  const url = new URL("https://rdd.weao.gg/");
+  url.searchParams.set("binaryType", binaryType);
+  url.searchParams.set("channel", "LIVE");
+  url.searchParams.set("version", version);
+  window.open(url.toString(), "_blank", "noopener,noreferrer");
 }
 
 function openDetails(id) {
@@ -1376,6 +1569,7 @@ function hydrateFromCache() {
     state.weaoRows = Array.isArray(cached.weaoRows) ? cached.weaoRows : [];
     state.voxlisRows = Array.isArray(cached.voxlisRows) ? cached.voxlisRows : [];
     state.versions = cached.versions && typeof cached.versions === "object" ? cached.versions : {};
+    state.pastVersions = cached.pastVersions && typeof cached.pastVersions === "object" ? cached.pastVersions : {};
     state.loadedAt = new Date(cached.timestamp);
 
     if (state.weaoRows.length) setHealth("weao", "cached", state.weaoRows.length);
@@ -1394,7 +1588,8 @@ function saveCache() {
       timestamp: Date.now(),
       weaoRows: state.weaoRows,
       voxlisRows: state.voxlisRows,
-      versions: state.versions
+      versions: state.versions,
+      pastVersions: state.pastVersions
     }));
   } catch (error) {
     console.warn("Synchrose cache could not be saved", error);
@@ -1684,6 +1879,36 @@ function safeUrl(value) {
   } catch {
     return null;
   }
+}
+
+async function copyText(value) {
+  const text = String(value || "");
+  if (!text) return false;
+
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // Fall through to the selection-based copy path.
+  }
+
+  const field = document.createElement("textarea");
+  field.value = text;
+  field.setAttribute("readonly", "");
+  field.style.position = "fixed";
+  field.style.opacity = "0";
+  document.body.append(field);
+  field.select();
+  let copied = false;
+  try {
+    copied = document.execCommand?.("copy") === true;
+  } catch {
+    copied = false;
+  }
+  field.remove();
+  return copied;
 }
 
 function preferText(primary, fallback) {
