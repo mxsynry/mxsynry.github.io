@@ -1,4 +1,4 @@
-const DEFAULT_API_BASE = "https://YOUR-WORKER.workers.dev";
+const DEFAULT_API_BASE = document.querySelector('meta[name="outfit-api-base"]')?.content?.trim() || "";
 const API_STORAGE_KEY = "robloxOutfitApiBase";
 const LOG_STORAGE_KEY = "robloxOutfitDebugLogs";
 const LAZY_LOAD_STORAGE_KEY = "robloxOutfitLazyLoading";
@@ -6,6 +6,8 @@ const THEME_STORAGE_KEY = "robloxOutfitTheme";
 const MAX_LOGS = 300;
 const PREFETCH_LIMIT = 24;
 const PREFETCH_DELAY_MS = 275;
+const SEARCH_CONCURRENCY = 3;
+const API_TIMEOUT_MS = 30000;
 
 const outfitDetailCache = new Map();
 
@@ -14,24 +16,37 @@ if (apiParam) {
   localStorage.setItem(API_STORAGE_KEY, apiParam.trim().replace(/\/$/, ""));
 }
 
-let API_BASE = (localStorage.getItem(API_STORAGE_KEY) || DEFAULT_API_BASE).replace(/\/$/, "");
+let API_BASE = (apiParam || localStorage.getItem(API_STORAGE_KEY) || DEFAULT_API_BASE).trim().replace(/\/$/, "");
 let debugLogs = loadLogs();
+let activeSearchController = null;
+let apiConnectionState = hasConfiguredApi() ? "saved" : "offline";
 
 const $ = (sel, root = document) => root.querySelector(sel);
 const results = $("#results");
 const statusEl = $("#status");
+const statusWrap = $("#statusWrap");
+const resultProgress = $("#resultProgress");
+const emptyState = $("#emptyState");
 const searchForm = $("#searchForm");
 const queryInput = $("#query");
 const searchBtn = $("#searchBtn");
-const setupPanel = $("#setupPanel");
+const clearQueryBtn = $("#clearQueryBtn");
+const cancelSearchBtn = $("#cancelSearchBtn");
 const apiBaseInput = $("#apiBaseInput");
 const apiStatus = $("#apiStatus");
+const apiDialog = $("#apiDialog");
+const apiDot = $("#apiDot");
+const apiState = $("#apiState");
+const apiButtonLabel = $("#apiButtonLabel");
 const changeApiBtn = $("#changeApiBtn");
 const saveApiBtn = $("#saveApiBtn");
+const clearApiBtn = $("#clearApiBtn");
+const openGuideBtn = $("#openGuideBtn");
 const consoleBtn = $("#consoleBtn");
 const instructionsBtn = $("#instructionsBtn");
 const consoleDialog = $("#consoleDialog");
 const instructionsDialog = $("#instructionsDialog");
+const outfitDialog = $("#outfitDialog");
 const debugConsole = $("#debugConsole");
 const copyConsoleBtn = $("#copyConsoleBtn");
 const clearConsoleBtn = $("#clearConsoleBtn");
@@ -41,14 +56,23 @@ const themeBtn = $("#themeBtn");
 applyTheme(getSavedTheme());
 
 function hasConfiguredApi() {
-  return API_BASE && API_BASE !== DEFAULT_API_BASE;
+  return Boolean(API_BASE);
 }
 
-function refreshApiUi(message = "") {
+function refreshApiUi(message = "", state = apiConnectionState) {
+  apiConnectionState = state;
   apiBaseInput.value = hasConfiguredApi() ? API_BASE : "";
-  setupPanel.style.display = hasConfiguredApi() ? "none" : "block";
-  changeApiBtn.style.display = hasConfiguredApi() ? "inline-flex" : "none";
-  apiStatus.textContent = message || (hasConfiguredApi() ? `Saved API: ${API_BASE}` : "No API saved yet.");
+  apiDot.className = `status-dot${state === "online" ? " online" : state === "error" ? " error" : ""}`;
+  apiState.className = `connection-state${state === "online" ? " online" : state === "error" ? " error" : ""}`;
+  apiButtonLabel.textContent = hasConfiguredApi() ? "API setup" : "Connect API";
+  apiState.textContent = state === "online"
+    ? "API connected"
+    : state === "error"
+      ? "API connection failed"
+      : hasConfiguredApi()
+        ? "API URL saved"
+        : "API not connected";
+  apiStatus.textContent = message || (hasConfiguredApi() ? `Saved: ${API_BASE}` : "No Worker URL saved in this browser.");
 }
 
 refreshApiUi();
@@ -64,37 +88,58 @@ saveApiBtn.addEventListener("click", async () => {
   const v = apiBaseInput.value.trim().replace(/\/$/, "");
 
   if (!/^https:\/\//i.test(v)) {
-    return setStatus("Use a full https:// Cloudflare Worker URL.", true);
+    apiStatus.textContent = "Use the full https:// URL.";
+    return;
   }
 
   if (v.includes("github.io")) {
-    return setStatus("That looks like a GitHub Pages URL. Paste your Cloudflare Worker URL instead.", true);
+    apiStatus.textContent = "That is the page URL. Paste the Cloudflare Worker URL instead.";
+    return;
   }
 
   localStorage.setItem(API_STORAGE_KEY, v);
   API_BASE = v;
-  refreshApiUi("API saved. Checking connection…");
+  saveApiBtn.disabled = true;
+  saveApiBtn.textContent = "Checking…";
+  refreshApiUi("Checking the Worker…", "saved");
   logInfo("API URL saved.", { apiBase: API_BASE });
 
   try {
-    const health = await api("/api/health");
+    const health = await api("/api/health", { timeoutMs: 9000 });
     logSuccess("API health check succeeded.", health);
-    setStatus("API saved and connected. You can search now.");
+    refreshApiUi(`Connected · Worker ${health.version || "ready"}`, "online");
+    setStatus("API connected. Search whenever you’re ready.");
+    setTimeout(() => apiDialog.close(), 350);
   } catch (err) {
-    setupPanel.style.display = "block";
     logError("API health check failed.", err);
-    setStatus(cleanError(err), true);
+    refreshApiUi(cleanError(err), "error");
+  } finally {
+    saveApiBtn.disabled = false;
+    saveApiBtn.textContent = "Connect";
   }
 });
 
 changeApiBtn.addEventListener("click", () => {
+  refreshApiUi();
+  openDialog(apiDialog);
+  setTimeout(() => apiBaseInput.focus(), 60);
+});
+
+clearApiBtn.addEventListener("click", () => {
   localStorage.removeItem(API_STORAGE_KEY);
-  API_BASE = DEFAULT_API_BASE;
+  API_BASE = "";
+  outfitDetailCache.clear();
   results.innerHTML = "";
-  refreshApiUi("API setting cleared. Paste your Cloudflare Worker URL again.");
-  setStatus("API setting cleared. Paste your Cloudflare Worker URL again.");
+  emptyState.hidden = false;
+  refreshApiUi("Saved URL removed.", "offline");
+  setStatus("API URL removed. Connect a Worker before searching.");
   logInfo("API setting cleared.");
   apiBaseInput.focus();
+});
+
+openGuideBtn.addEventListener("click", () => {
+  apiDialog.close();
+  openDialog(instructionsDialog);
 });
 
 themeBtn?.addEventListener("click", () => {
@@ -118,12 +163,18 @@ for (const btn of document.querySelectorAll("[data-close-dialog]")) {
   });
 }
 
+for (const dialog of document.querySelectorAll("dialog")) {
+  dialog.addEventListener("click", event => {
+    if (event.target === dialog) dialog.close();
+  });
+}
+
 copyConsoleBtn.addEventListener("click", async () => {
   const text = debugLogs.map(formatLogLine).join("\n");
   try {
     await navigator.clipboard.writeText(text || "No logs yet.");
     copyConsoleBtn.textContent = "Copied";
-    setTimeout(() => copyConsoleBtn.textContent = "Copy logs", 1000);
+    setTimeout(() => copyConsoleBtn.textContent = "Copy", 1000);
   } catch {
     setStatus("Could not copy logs from this browser.", true);
   }
@@ -149,46 +200,76 @@ copyLinkBtn?.addEventListener("click", async () => {
   try {
     await navigator.clipboard.writeText(url);
     copyLinkBtn.textContent = "Copied link";
-    setTimeout(() => copyLinkBtn.textContent = "Copy link", 1100);
+    setTimeout(() => copyLinkBtn.textContent = "Copy search link", 1100);
     logSuccess("Search link copied.", { url });
   } catch {
     setStatus(`Share link: ${url}`, false);
   }
 });
 
+for (const chip of document.querySelectorAll("[data-example]")) {
+  chip.addEventListener("click", () => {
+    queryInput.value = chip.dataset.example || "";
+    queryInput.focus();
+  });
+}
+
+clearQueryBtn.addEventListener("click", () => {
+  queryInput.value = "";
+  queryInput.focus();
+});
+
+cancelSearchBtn.addEventListener("click", () => activeSearchController?.abort());
+
 searchForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const q = queryInput.value.trim();
   if (!q) return;
   updateUrlForSearch(q);
-  if (!hasConfiguredApi()) return setStatus("Set your Cloudflare Worker URL first.", true);
+  if (!hasConfiguredApi()) {
+    setStatus("Connect the included Cloudflare Worker first.", true);
+    openDialog(apiDialog);
+    return;
+  }
 
+  activeSearchController?.abort();
+  const controller = new AbortController();
+  activeSearchController = controller;
   results.innerHTML = "";
-  setStatus("Resolving account(s)…");
+  emptyState.hidden = true;
+  setStatus("Finding Roblox account(s)…", false, { loading: true });
   searchBtn.disabled = true;
+  cancelSearchBtn.hidden = false;
   logInfo("Search started.", { query: q });
 
   try {
-    const resolved = await api(`/api/resolve?q=${encodeURIComponent(q)}`);
+    const resolved = await api(`/api/resolve?q=${encodeURIComponent(q)}`, { signal: controller.signal });
     addServerLogs("resolve", resolved.logs);
     const candidates = uniqueBy((resolved.users || []), u => u.id);
     logSuccess("Resolve completed.", { count: candidates.length, users: candidates.map(u => ({ id: u.id, name: u.name, displayName: u.displayName })) });
 
     if (!candidates.length) {
-      setStatus("No matching public Roblox users found.", true);
+      setStatus("No public Roblox accounts matched that search.", true);
+      emptyState.hidden = false;
       logInfo("Search stopped because no users were found.");
       return;
     }
 
-    setStatus(`Found ${candidates.length} account(s). Loading outfit data…`);
-
+    const slots = candidates.map((user, index) => createSkeletonSlot(user, index));
+    slots.forEach(slot => results.append(slot));
+    setStatus(`Found ${candidates.length}. Loading avatar data…`, false, {
+      loading: true,
+      progress: `0 / ${candidates.length}`
+    });
     let shown = 0;
-    for (const user of candidates) {
+    let finished = 0;
+
+    await mapLimit(candidates, SEARCH_CONCURRENCY, async (user, index) => {
       try {
         logInfo("Loading account report.", { id: user.id, name: user.name });
-        const report = await api(`/api/report/${user.id}`);
+        const report = await api(`/api/report/${user.id}`, { signal: controller.signal });
         addServerLogs(`report:${user.id}`, report.debug?.logs);
-        renderUser(report);
+        renderUser(report, slots[index], index);
         shown += 1;
         logSuccess("Account report rendered.", {
           id: user.id,
@@ -198,46 +279,103 @@ searchForm.addEventListener("submit", async (event) => {
           duplicateIdsRemoved: report.debug?.duplicateIds || []
         });
       } catch (err) {
-        renderErrorCard(user, err);
+        if (err.name === "AbortError") throw err;
+        renderErrorCard(user, err, slots[index]);
         logError("Account report failed.", err, { id: user.id, name: user.name });
+      } finally {
+        finished += 1;
+        if (!controller.signal.aborted) {
+          setStatus("Loading account data…", false, {
+            loading: finished < candidates.length,
+            progress: `${finished} / ${candidates.length}`
+          });
+        }
       }
-    }
+    });
 
-    setStatus(`Done. Showing ${shown} account(s).`);
+    setStatus(`Loaded ${shown} of ${candidates.length} account${candidates.length === 1 ? "" : "s"}.`, false, {
+      progress: `${shown} shown`
+    });
   } catch (err) {
+    if (err.name === "AbortError") {
+      logInfo("Search cancelled.", { query: q });
+      results.querySelectorAll(".skeleton-card").forEach(card => card.closest(".result-slot")?.remove());
+      setStatus("Search cancelled.");
+      return;
+    }
     logError("Search failed.", err);
     setStatus(cleanError(err), true);
   } finally {
-    searchBtn.disabled = false;
+    if (activeSearchController === controller) {
+      activeSearchController = null;
+      searchBtn.disabled = false;
+      cancelSearchBtn.hidden = true;
+    }
   }
 });
 
 const initialQuery = getInitialQueryFromUrl();
 if (initialQuery) {
   queryInput.value = initialQuery;
-  setStatus(`Loaded query from URL: ${initialQuery}`);
+  setStatus(`Ready to search: ${initialQuery}`);
   logInfo("Query loaded from URL.", { query: initialQuery });
   if (hasConfiguredApi()) {
     setTimeout(() => searchForm.requestSubmit(), 80);
   } else {
-    setupPanel.style.display = "block";
-    setStatus("Query loaded from URL. Set your Cloudflare Worker URL to run it.");
+    setStatus("Search link loaded. Connect the Worker to run it.");
   }
 }
 
-async function api(path) {
+if (hasConfiguredApi()) {
+  verifyApiConnection();
+}
+
+async function verifyApiConnection() {
+  try {
+    const health = await api("/api/health", { timeoutMs: 7000 });
+    refreshApiUi(`Connected · Worker ${health.version || "ready"}`, "online");
+  } catch (err) {
+    refreshApiUi(cleanError(err), "error");
+    logError("Startup API check failed.", err);
+  }
+}
+
+async function api(path, options = {}) {
   const url = `${API_BASE}${path}`;
   const started = performance.now();
   logInfo("API request started.", { path, url });
 
+  const requestController = new AbortController();
+  const timeoutMs = options.timeoutMs || API_TIMEOUT_MS;
+  const timeoutId = setTimeout(() => requestController.abort("timeout"), timeoutMs);
+  const abortFromParent = () => requestController.abort("cancelled");
+  if (options.signal) {
+    if (options.signal.aborted) abortFromParent();
+    else options.signal.addEventListener("abort", abortFromParent, { once: true });
+  }
+
   let res;
   try {
-    res = await fetch(url, { method: "GET" });
+    res = await fetch(url, { method: "GET", signal: requestController.signal });
   } catch (err) {
+    if (options.signal?.aborted) {
+      const cancelled = new Error("Search cancelled.");
+      cancelled.name = "AbortError";
+      throw cancelled;
+    }
+    if (requestController.signal.aborted) {
+      const timedOut = new Error(`The API took longer than ${Math.round(timeoutMs / 1000)} seconds.`);
+      timedOut.status = 504;
+      logError("API request timed out.", timedOut, { path, url, timeoutMs });
+      throw timedOut;
+    }
     const wrapped = new Error(`Could not connect to ${API_BASE}. Check that your Worker URL is correct and deployed.`);
     wrapped.original = err.message;
     logError("API request network error.", wrapped, { path, url });
     throw wrapped;
+  } finally {
+    clearTimeout(timeoutId);
+    options.signal?.removeEventListener("abort", abortFromParent);
   }
 
   const text = await res.text();
@@ -334,9 +472,9 @@ function applyTheme(theme) {
   document.documentElement.classList.toggle("light", isLight);
   document.documentElement.dataset.theme = isLight ? "light" : "dark";
   if (themeBtn) {
-    themeBtn.textContent = isLight ? "Dark mode" : "Light mode";
     themeBtn.setAttribute("aria-pressed", String(isLight));
-    themeBtn.title = isLight ? "Switch to dark mode" : "Switch to Catppuccin Latte light mode";
+    themeBtn.setAttribute("aria-label", isLight ? "Switch to dark theme" : "Switch to light theme");
+    themeBtn.title = isLight ? "Switch to dark theme" : "Switch to light theme";
   }
 }
 
@@ -360,82 +498,134 @@ function looksLikeGithub404(text, res) {
   );
 }
 
-function renderUser(report) {
+function createSkeletonSlot(user, index) {
+  const slot = document.createElement("div");
+  slot.className = "result-slot";
+  slot.dataset.userId = String(user.id);
+  slot.innerHTML = `
+    <article class="skeleton-card" aria-label="Loading ${escapeAttr(user.name || `account ${index + 1}`)}">
+      <div class="skeleton skeleton-avatar"></div>
+      <div class="skeleton-lines">
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line"></div>
+        <div class="skeleton skeleton-line"></div>
+      </div>
+    </article>`;
+  return slot;
+}
+
+async function mapLimit(items, limit, mapper) {
+  const input = Array.from(items || []);
+  let next = 0;
+
+  async function run() {
+    while (next < input.length) {
+      const index = next++;
+      await mapper(input[index], index);
+    }
+  }
+
+  await Promise.all(Array.from({ length: Math.min(limit, input.length) }, run));
+}
+
+function setupUserTabs(article) {
+  const tabs = [...article.querySelectorAll(".result-tab")];
+  const sections = [...article.querySelectorAll("[data-result-kind]")];
+
+  for (const tab of tabs) {
+    const view = tab.dataset.view;
+    if (view !== "all" && !sections.some(section => section.dataset.resultKind === view)) {
+      tab.classList.add("unavailable");
+      tab.setAttribute("aria-disabled", "true");
+    }
+
+    tab.addEventListener("click", () => {
+      if (tab.classList.contains("unavailable")) return;
+      tabs.forEach(item => item.classList.toggle("active", item === tab));
+      sections.forEach(section => {
+        section.hidden = view !== "all" && section.dataset.resultKind !== view;
+      });
+    });
+  }
+}
+
+function renderUser(report, mount = null, index = 0) {
   const tpl = $("#userCardTpl").content.cloneNode(true);
+  const article = $(".user-card", tpl);
   const p = report.profile || {};
   const avatarUrl = report.avatarThumbnail?.imageUrl || "";
 
   const avatarImg = $(".avatar-img", tpl);
   avatarImg.src = avatarUrl;
+  avatarImg.alt = `${p.displayName || p.name || "Roblox user"} avatar`;
   avatarImg.onerror = () => {
     avatarImg.removeAttribute("src");
     avatarImg.classList.add("avatar-empty");
   };
+  $(".avatar-index", tpl).textContent = `#${String(index + 1).padStart(2, "0")}`;
+  $(".profile-handle", tpl).textContent = `@${p.name || "unknown"}`;
   $(".profile-title", tpl).textContent = `${p.displayName || p.name || "Unknown"} ${p.hasVerifiedBadge ? "✓" : ""}`;
-  $(".profile-meta", tpl).textContent = `@${p.name || "unknown"} • ID ${p.id} • joined ${formatDate(p.created)}`;
+  $(".profile-meta", tpl).textContent = `ID ${p.id} · joined ${formatDate(p.created)}`;
   $(".profile-link", tpl).href = `https://www.roblox.com/users/${p.id}/profile`;
   $(".description-text", tpl).textContent = p.description || "No public description.";
 
   const chips = $(".chips", tpl);
-  chips.append(chip(`Display: ${p.displayName || "—"}`));
-  chips.append(chip(`Username: ${p.name || "—"}`));
-  chips.append(chip(p.isBanned ? "Banned" : "Not banned", p.isBanned ? "bad" : "good"));
-  if (report.debug?.duplicateIds?.length) chips.append(chip(`Deduped ${report.debug.duplicateIds.length} repeated ID(s)`));
+  chips.append(chip(p.isBanned ? "Banned" : "Account active", p.isBanned ? "bad" : "good"));
+  if (p.hasVerifiedBadge) chips.append(chip("Verified"));
+  if (report.debug?.duplicateIds?.length) chips.append(chip(`${report.debug.duplicateIds.length} duplicate ID(s) removed`));
 
   const wearing = uniqueBy((report.currentlyWearing || []), item => item.id);
   $(".wearing-count", tpl).textContent = `${wearing.length} item${wearing.length === 1 ? "" : "s"}`;
+  $(".wearing-stat", tpl).textContent = wearing.length;
   const wearingGrid = $(".wearing-grid", tpl);
-  if (!wearing.length) wearingGrid.innerHTML = `<div class="empty">No public currently-wearing assets returned.</div>`;
+  if (!wearing.length) wearingGrid.innerHTML = `<div class="empty">Roblox returned no public currently-wearing assets.</div>`;
   for (const item of wearing) wearingGrid.append(assetCard(item));
 
   const emoteSection = createEmoteSection(report.emotes || [], report.debug?.emoteLogs || []);
   wearingGrid.closest("section")?.after(emoteSection);
 
-  const allOutfits = report.outfits || [];
-  const outfitGroups = splitOutfits(allOutfits);
+  const outfitGroups = splitOutfits(report.outfits || []);
   const outfits = outfitGroups.saved;
   const costumeLike = outfitGroups.costumeLike;
   const animationPacks = outfitGroups.animationPacks;
   const characterPackages = outfitGroups.characterPackages;
 
   $(".outfit-count", tpl).textContent = `${outfits.length} outfit${outfits.length === 1 ? "" : "s"}`;
+  $(".outfit-stat", tpl).textContent = outfits.length;
+  $(".extra-stat", tpl).textContent = (report.emotes?.length || 0) + costumeLike.length + animationPacks.length + characterPackages.length;
   const outfitGrid = $(".outfit-grid", tpl);
-  const selectedOutfit = {
-    section: $(".selected-outfit-section", tpl),
-    title: $(".selected-outfit-title", tpl),
-    count: $(".selected-outfit-count", tpl),
-    grid: $(".selected-outfit-grid", tpl)
-  };
-  if (!outfits.length) outfitGrid.innerHTML = `<div class="empty">No normal saved outfits returned.</div>`;
-  for (const outfit of outfits) outfitGrid.append(outfitCard(outfit, selectedOutfit));
+  const sectionsRoot = $(".user-sections", tpl);
+  if (!outfits.length) outfitGrid.innerHTML = `<div class="empty">No normal saved outfits were returned.</div>`;
+  for (const outfit of outfits) outfitGrid.append(outfitCard(outfit));
 
   if (characterPackages.length) {
-    selectedOutfit.section.before(createExtraOutfitSection(
-      "Character/package presets",
-      "Roblox returned these through saved outfits, but they are marketplace character or package presets rather than custom saved outfits.",
+    sectionsRoot.append(createExtraOutfitSection(
+      "Character presets",
+      "Marketplace character and package entries Roblox returned beside saved looks.",
       characterPackages,
-      selectedOutfit,
-      "Package entry"
+      "Package entry",
+      "packs"
     ));
   }
 
   if (animationPacks.length) {
-    selectedOutfit.section.before(createExtraOutfitSection(
+    sectionsRoot.append(createExtraOutfitSection(
       "Animation packs",
-      "Animation packs are purchasable packs. Their internal run/walk/jump/etc. animation assets are hidden unless an asset is an emote.",
+      "Open a pack to inspect its run, walk, jump, and other component animations.",
       animationPacks,
-      selectedOutfit,
-      "Animation pack"
+      "Animation pack",
+      "packs"
     ));
   }
 
   if (costumeLike.length) {
-    const costumeSection = createCostumeSection(costumeLike, selectedOutfit);
-    selectedOutfit.section.before(costumeSection);
+    sectionsRoot.append(createCostumeSection(costumeLike));
   }
 
   $(".json-btn", tpl).addEventListener("click", () => downloadJson(`roblox-${p.id}-outfits.json`, report));
-  results.append(tpl);
+  setupUserTabs(article);
+  if (mount) mount.replaceChildren(tpl);
+  else results.append(tpl);
 
   const prefetchEntries = [...outfits, ...characterPackages, ...animationPacks, ...costumeLike];
   if (!isLazyLoadingEnabled() && prefetchEntries.length) {
@@ -564,7 +754,7 @@ function getDisplayItem(item = {}) {
   };
 }
 
-function outfitCard(outfit, selectedOutfit, label = "Outfit") {
+function outfitCard(outfit, label = "Outfit") {
   const el = document.createElement("article");
   el.className = "outfit";
   const name = escapeHtml(outfit.name || `Outfit ${outfit.id}`);
@@ -577,42 +767,44 @@ function outfitCard(outfit, selectedOutfit, label = "Outfit") {
       <p class="item-name" title="${name}">${name}</p>
       <p class="item-meta">${label} ID ${outfit.id}</p>
       <div class="item-links">
-        <button class="small-btn" type="button">Show items below</button>
+        <button class="small-btn" type="button">Open outfit</button>
       </div>
     </div>`;
 
   hydrateThumbs(el);
   $("button", el).addEventListener("click", async () => {
-    selectedOutfit.section.hidden = false;
-    selectedOutfit.title.textContent = `${outfit.name || `Outfit ${outfit.id}`} items`;
-    selectedOutfit.count.textContent = "Loading…";
-    selectedOutfit.grid.innerHTML = `<div class="empty">Loading outfit items…</div>`;
-    selectedOutfit.section.scrollIntoView({ behavior: "smooth", block: "start" });
+    const title = $("#selectedOutfitTitle");
+    const count = $("#selectedOutfitCount");
+    const grid = $("#selectedOutfitGrid");
+    title.textContent = outfit.name || `Outfit ${outfit.id}`;
+    count.textContent = "Loading…";
+    grid.innerHTML = `<div class="empty">Loading outfit items…</div>`;
+    openDialog(outfitDialog);
 
     try {
       const detail = await getOutfitDetail(outfit.id);
       const entryKind = classifyOutfitEntry(outfit);
       const prepared = prepareDisplayAssets(detail.assets || [], { mode: entryKind === "animation" ? "animationPack" : "normal", outfitName: detail.name || outfit.name || "Animation pack" });
       const assets = prepared.assets;
-      selectedOutfit.count.textContent = `${assets.length} item${assets.length === 1 ? "" : "s"}`;
-      selectedOutfit.grid.innerHTML = "";
+      count.textContent = `${assets.length} item${assets.length === 1 ? "" : "s"}`;
+      grid.innerHTML = "";
       if (!assets.length) {
-        selectedOutfit.grid.innerHTML = `<div class="empty">No displayable assets returned for this entry.</div>`;
+        grid.innerHTML = `<div class="empty">No displayable assets returned for this entry.</div>`;
       } else {
-        assets.forEach(a => selectedOutfit.grid.append(assetCard(a)));
+        assets.forEach(a => grid.append(assetCard(a)));
         if (prepared.hiddenStandaloneAnimations || prepared.groupedBundleComponents) {
           const note = document.createElement("div");
           note.className = "empty";
           note.textContent = prepared.packComponentMode
             ? `Showing ${prepared.packComponentsShown} animation-pack component(s). Purchase/use the pack itself, not the internal component IDs.`
             : `Grouped ${prepared.groupedBundleComponents} bundle component(s) and hid ${prepared.hiddenStandaloneAnimations} standalone non-emote animation asset(s).`;
-          selectedOutfit.grid.append(note);
+          grid.append(note);
         }
       }
       logSuccess("Outfit items rendered.", { outfitId: outfit.id, assets: assets.length, hiddenStandaloneAnimations: prepared.hiddenStandaloneAnimations, groupedBundleComponents: prepared.groupedBundleComponents, packComponentsShown: prepared.packComponentsShown });
     } catch (err) {
-      selectedOutfit.count.textContent = "Error";
-      selectedOutfit.grid.innerHTML = `<div class="empty danger-text">${escapeHtml(cleanError(err))}</div>`;
+      count.textContent = "Error";
+      grid.innerHTML = `<div class="empty danger-text">${escapeHtml(cleanError(err))}</div>`;
       logError("Outfit items failed.", err, { outfitId: outfit.id });
     }
   });
@@ -623,15 +815,17 @@ function outfitCard(outfit, selectedOutfit, label = "Outfit") {
 function createEmoteSection(emotes = [], logs = []) {
   const section = document.createElement("section");
   section.className = "emote-section";
+  section.dataset.resultKind = "emotes";
   const visible = Array.isArray(emotes) ? emotes.filter(Boolean) : [];
   const logText = logs.length ? logs.join(" ") : "Roblox did not return public equipped-emote data for this user.";
   section.innerHTML = `
     <div class="section-title">
       <div>
+        <p class="section-number">04 / EMOTES</p>
         <h3>Equipped emotes</h3>
-        <p class="section-note">Only public emote data returned by Roblox is shown here.</p>
+        <p class="section-note">Only the equipped emotes Roblox exposes publicly.</p>
       </div>
-      <span class="pill">${visible.length} ${visible.length === 1 ? "emote" : "emotes"}</span>
+      <span class="count-badge">${visible.length} ${visible.length === 1 ? "emote" : "emotes"}</span>
     </div>
     <div class="asset-grid emote-grid"></div>`;
 
@@ -689,31 +883,33 @@ function isCostumeLikeOutfit(outfit = {}) {
   return classifyOutfitEntry(outfit) === "costume";
 }
 
-function createExtraOutfitSection(title, note, items, selectedOutfit, label) {
+function createExtraOutfitSection(title, note, items, label, kind = "outfits") {
   const section = document.createElement("section");
   section.className = "costume-like-section";
+  section.dataset.resultKind = kind;
   section.innerHTML = `
     <div class="section-title">
       <div>
+        <p class="section-number">${kind === "packs" ? "03 / PACKS" : "02 / SAVED"}</p>
         <h3>${escapeHtml(title)}</h3>
         <p class="section-note">${escapeHtml(note)}</p>
       </div>
-      <span class="pill">${items.length} ${items.length === 1 ? "entry" : "entries"}</span>
+      <span class="count-badge">${items.length} ${items.length === 1 ? "entry" : "entries"}</span>
     </div>
     <div class="outfit-grid"></div>`;
 
   const grid = $(".outfit-grid", section);
-  items.forEach(item => grid.append(outfitCard(item, selectedOutfit, label)));
+  items.forEach(item => grid.append(outfitCard(item, label)));
   return section;
 }
 
-function createCostumeSection(items, selectedOutfit) {
+function createCostumeSection(items) {
   return createExtraOutfitSection(
     "Avatar costume entries",
-    "Roblox returned these through the saved-outfits API, but their thumbnails are costume/item-style entries, so they are separated from normal outfit cards.",
+    "Costume-style entries returned beside the account’s normal saved outfits.",
     items,
-    selectedOutfit,
-    "Costume entry"
+    "Costume entry",
+    "outfits"
   );
 }
 
@@ -890,11 +1086,15 @@ function isFallbackAssetName(name, id) {
   return Number.isFinite(Number(id)) && s === `Asset ${id}`;
 }
 
-function renderErrorCard(user, err) {
+function renderErrorCard(user, err, mount = null) {
   const el = document.createElement("article");
-  el.className = "panel user-card";
-  el.innerHTML = `<h2>@${escapeHtml(user.name || "unknown")} • ID ${escapeHtml(String(user.id))}</h2><p class="status error">${escapeHtml(cleanError(err))}</p>`;
-  results.append(el);
+  el.className = "user-card error-card";
+  el.innerHTML = `
+    <p class="section-number">ACCOUNT FAILED</p>
+    <h2>@${escapeHtml(user.name || "unknown")}</h2>
+    <p>ID ${escapeHtml(String(user.id))} · ${escapeHtml(cleanError(err))}</p>`;
+  if (mount) mount.replaceChildren(el);
+  else results.append(el);
 }
 
 function chip(text, kind = "") {
@@ -904,9 +1104,12 @@ function chip(text, kind = "") {
   return el;
 }
 
-function setStatus(msg, isError = false) {
+function setStatus(msg, isError = false, options = {}) {
   statusEl.textContent = msg || "";
-  statusEl.classList.toggle("error", Boolean(isError));
+  statusWrap.hidden = !msg;
+  statusWrap.classList.toggle("error", Boolean(isError));
+  statusWrap.classList.toggle("loading", Boolean(options.loading));
+  resultProgress.textContent = options.progress || "";
 }
 
 function cleanError(err) {

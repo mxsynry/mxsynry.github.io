@@ -3,173 +3,261 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Roblox Outfit Viewer</title>
-  <meta name="description" content="Public Roblox outfit, currently wearing items, saved outfits, animation packs, and emotes by username or user ID." />
+  <meta name="theme-color" content="#0b0911" />
+  <meta name="description" content="Search a public Roblox account and inspect its current avatar, saved outfits, animation packs, and equipped emotes." />
+  <!-- Optional: put your deployed Worker URL in content to remove first-run setup. -->
+  <meta name="outfit-api-base" content="" />
+  <title>OutfitSearch</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <div class="app-shell">
-    <header class="site-header">
-      <div class="brand-block">
-        <a class="brand-mark" href="/" aria-label="Back to mxsynry.github.io home">
-          <img src="/Others/Synchrose/globe.ico" alt="" onerror="this.remove()" />
-          <span class="brand-fallback">OS</span>
-        </a>
-        <div class="brand-copy">
-          <div class="title-row">
-            <p class="eyebrow">Public Roblox avatar lookup</p>
-            <span class="badge">OutfitSearch</span>
-          </div>
-          <h1>Roblox Outfit Viewer</h1>
-          <p class="lede">Search public accounts, view current items, saved outfits, packs, and emotes.</p>
-        </div>
+  <div class="ambient ambient-one" aria-hidden="true"></div>
+  <div class="ambient ambient-two" aria-hidden="true"></div>
+
+  <header class="site-header">
+    <a class="brand" href="/" aria-label="Back to mxsynry.github.io">
+      <span class="brand-mark" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </span>
+      <span class="brand-text">
+        <strong>OutfitSearch</strong>
+        <small>public avatar index</small>
+      </span>
+    </a>
+
+    <nav class="header-actions" aria-label="Page tools">
+      <button id="changeApiBtn" class="header-button api-button" type="button">
+        <span id="apiDot" class="status-dot" aria-hidden="true"></span>
+        <span id="apiButtonLabel">Connect API</span>
+      </button>
+      <button id="consoleBtn" class="header-button" type="button">Console</button>
+      <button id="instructionsBtn" class="header-button" type="button">Guide</button>
+      <button id="themeBtn" class="header-button icon-only" type="button" aria-label="Switch color theme" title="Switch color theme">
+        <span aria-hidden="true">◐</span>
+      </button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="kicker"><span>LOOK UP</span> / BREAK DOWN / SAVE</p>
+        <h1>Find the fit.<br /><span>Pull it apart.</span></h1>
+        <p class="hero-lede">Drop a username or ID. Get the avatar, saved looks, packs, and emotes Roblox exposes publicly.</p>
       </div>
 
-      <nav class="header-actions" aria-label="Page actions">
-        <a class="ghost nav-link" href="/">Site index</a>
-        <button id="instructionsBtn" class="ghost" type="button" title="Show setup instructions">Instructions</button>
-        <button id="consoleBtn" class="ghost" type="button" title="Open debug console">Console</button>
-        <button id="changeApiBtn" class="ghost" type="button" title="Clear or change the saved API URL">Change API</button>
-        <button id="themeBtn" class="ghost" type="button" title="Toggle theme">Theme</button>
-      </nav>
-    </header>
-
-    <main class="content-wrap">
-      <section class="panel setup" id="setupPanel">
-        <div class="panel-heading">
-          <div>
-            <p class="eyebrow small">One-time setup</p>
-            <h2>API setup</h2>
-          </div>
-          <span class="pill">Cloudflare Worker</span>
+      <form id="searchForm" class="search-dock">
+        <label class="search-label" for="query">Roblox account</label>
+        <div class="search-box">
+          <span class="search-icon" aria-hidden="true"></span>
+          <input
+            id="query"
+            autocomplete="off"
+            autocapitalize="none"
+            spellcheck="false"
+            maxlength="600"
+            placeholder="username, id:1, or a comma-separated list"
+          />
+          <button id="clearQueryBtn" class="clear-query" type="button" aria-label="Clear search" title="Clear search">×</button>
+          <button id="cancelSearchBtn" class="search-cancel" type="button" hidden>Cancel</button>
+          <button id="searchBtn" class="search-submit" type="submit">Search</button>
         </div>
-        <p>This GitHub Pages app needs a small Cloudflare Worker because many Roblox API calls are blocked by browser CORS. Paste your Worker URL once and it will be saved locally in this browser.</p>
-        <div class="row input-row">
-          <input id="apiBaseInput" placeholder="https://your-worker-name.your-subdomain.workers.dev" />
-          <button id="saveApiBtn" type="button">Save API</button>
-        </div>
-        <p class="hint">Tip: you can also append <code>?api=https://your-worker.workers.dev</code> to the page URL. Use <strong>Change API</strong> if you saved the wrong URL.</p>
-        <p id="apiStatus" class="hint"></p>
-      </section>
 
-      <section class="panel search-panel">
-        <form id="searchForm">
-          <div class="panel-heading search-heading">
-            <div>
-              <p class="eyebrow small">Lookup</p>
-              <label for="query">Username, user ID, or list</label>
-            </div>
-            <span class="pill">username · id · search</span>
+        <div class="search-meta">
+          <div class="examples" aria-label="Search examples">
+            <button class="example-chip" type="button" data-example="Roblox">@Roblox</button>
+            <button class="example-chip" type="button" data-example="id:1">id:1</button>
+            <button class="example-chip" type="button" data-example="search:builder">search:builder</button>
           </div>
-          <div class="row search-row">
-            <input id="query" autocomplete="off" spellcheck="false" placeholder="zxwnvc" />
-            <button id="searchBtn" type="submit">Search</button>
-            <button id="copyLinkBtn" class="ghost" type="button">Copy link</button>
-          </div>
-          <div class="search-options" aria-label="Search options">
-            <label class="lazy-option" title="When enabled, outfit items and pack components are fetched only when you click them.">
+          <div class="search-tools">
+            <label class="switch-label" title="Fetch outfit contents only after you open an outfit.">
               <input id="lazyLoadToggle" type="checkbox" checked />
-              <span>Lazy-load outfit items</span>
+              <span class="switch" aria-hidden="true"></span>
+              <span>Load details on click</span>
             </label>
-            <p class="lazy-note">using lazy loading to prevent spamming is appreciated, mwah</p>
+            <button id="copyLinkBtn" class="text-button" type="button">Copy search link</button>
           </div>
-          <div class="quick-help">
-            <p>Use comma/newline separated values. Exact ID: <code>id:12345</code>. Broad search: <code>search:keyword</code>.</p>
-            <p>Direct links: <code>?username=zxwnvc</code>, <code>?id=8625608859</code>, <code>?search=builderman</code>, <code>?q=Roblox,id:1</code>.</p>
-          </div>
-        </form>
+        </div>
+
+        <div class="connection-line">
+          <span id="apiState" class="connection-state">API not connected</span>
+          <span aria-hidden="true">•</span>
+          <span>Up to 20 names, IDs, or broad searches at once</span>
+        </div>
+      </form>
+
+      <div class="index-strip" aria-label="Available data">
+        <span><b>01</b> Wearing</span>
+        <span><b>02</b> Saved outfits</span>
+        <span><b>03</b> Packs</span>
+        <span><b>04</b> Emotes</span>
+      </div>
+    </section>
+
+    <section class="workspace" aria-label="Search results">
+      <div id="statusWrap" class="status-wrap" hidden>
+        <div class="status-copy">
+          <span id="statusPulse" class="status-pulse" aria-hidden="true"></span>
+          <p id="status" class="status" aria-live="polite"></p>
+        </div>
+        <span id="resultProgress" class="result-progress"></span>
+      </div>
+
+      <section id="emptyState" class="empty-state">
+        <div class="empty-glyph" aria-hidden="true">
+          <span></span><span></span><span></span>
+        </div>
+        <div>
+          <p class="kicker">NOTHING LOADED YET</p>
+          <h2>Start with a username.</h2>
+          <p>Exact usernames are fastest. Prefix a term with <code>search:</code> when you want possible matches.</p>
+        </div>
       </section>
 
-      <section id="status" class="status" aria-live="polite"></section>
       <section id="results" class="results"></section>
-    </main>
-  </div>
+    </section>
+  </main>
+
+  <footer>
+    <p>Public Roblox data only. No cookies, account login, or private inventory access.</p>
+    <a href="/">mxsynry.github.io</a>
+  </footer>
+
+  <dialog id="apiDialog" class="modal compact-modal">
+    <div class="modal-head">
+      <div>
+        <p class="kicker">CONNECTION</p>
+        <h2>Cloudflare Worker</h2>
+      </div>
+      <button class="modal-close" type="button" data-close-dialog="apiDialog" aria-label="Close">×</button>
+    </div>
+    <div class="modal-body">
+      <p class="modal-intro">OutfitSearch needs the included Worker because Roblox blocks these requests from a normal GitHub Pages tab.</p>
+      <label class="field-label" for="apiBaseInput">Worker URL</label>
+      <div class="api-input-row">
+        <input id="apiBaseInput" inputmode="url" autocomplete="url" placeholder="https://your-worker.workers.dev" />
+        <button id="saveApiBtn" class="primary-button" type="button">Connect</button>
+      </div>
+      <p id="apiStatus" class="field-note" aria-live="polite"></p>
+      <div class="modal-footer-actions">
+        <button id="clearApiBtn" class="text-button danger-button" type="button">Forget saved URL</button>
+        <button id="openGuideBtn" class="text-button" type="button">How do I deploy it?</button>
+      </div>
+    </div>
+  </dialog>
 
   <dialog id="instructionsDialog" class="modal">
     <div class="modal-head">
       <div>
-        <p class="eyebrow small">Setup guide</p>
-        <h2>Worker setup</h2>
+        <p class="kicker">FIVE STEPS</p>
+        <h2>Deploy the Worker</h2>
       </div>
-      <button class="ghost icon-btn" type="button" data-close-dialog="instructionsDialog" aria-label="Close instructions">×</button>
+      <button class="modal-close" type="button" data-close-dialog="instructionsDialog" aria-label="Close">×</button>
     </div>
-    <ol class="steps">
-      <li>Cloudflare → <strong>Workers &amp; Pages</strong> → create a Worker.</li>
-      <li>Deploy it once, then open <strong>Edit code</strong>.</li>
-      <li>Replace the starter code with this project’s <code>worker.js</code>.</li>
-      <li>Save/deploy and copy the public <code>.workers.dev</code> URL.</li>
-      <li>Paste that URL here with <strong>Change API</strong>.</li>
-    </ol>
-    <p class="hint danger-text">Only paste the public Worker URL. Do not paste Cloudflare tokens, Roblox cookies, or GitHub tokens.</p>
+    <div class="modal-body guide-body">
+      <ol class="steps">
+        <li><b>Create.</b><span>Cloudflare → Workers &amp; Pages → Create Worker.</span></li>
+        <li><b>Replace.</b><span>Open Edit code and replace the starter file with this package’s <code>worker.js</code>.</span></li>
+        <li><b>Deploy.</b><span>Save the Worker and copy its public <code>.workers.dev</code> URL.</span></li>
+        <li><b>Connect.</b><span>Paste that URL into OutfitSearch’s API dialog.</span></li>
+        <li><b>Optional.</b><span>Put the URL in the <code>outfit-api-base</code> meta tag so visitors never see setup.</span></li>
+      </ol>
+      <p class="privacy-note">Never paste Cloudflare tokens, Roblox cookies, or GitHub tokens here. OutfitSearch does not need them.</p>
+    </div>
   </dialog>
 
   <dialog id="consoleDialog" class="modal wide-modal">
     <div class="modal-head">
       <div>
-        <p class="eyebrow small">Diagnostics</p>
-        <h2>Debug console</h2>
+        <p class="kicker">DIAGNOSTICS</p>
+        <h2>Request log</h2>
       </div>
-      <button class="ghost icon-btn" type="button" data-close-dialog="consoleDialog" aria-label="Close console">×</button>
+      <button class="modal-close" type="button" data-close-dialog="consoleDialog" aria-label="Close">×</button>
     </div>
-    <div class="console-actions">
-      <button id="copyConsoleBtn" class="ghost" type="button">Copy logs</button>
-      <button id="clearConsoleBtn" class="ghost" type="button">Clear logs</button>
+    <div class="console-toolbar">
+      <span>Saved in this browser only</span>
+      <div>
+        <button id="copyConsoleBtn" class="text-button" type="button">Copy</button>
+        <button id="clearConsoleBtn" class="text-button" type="button">Clear</button>
+      </div>
     </div>
     <pre id="debugConsole" class="debug-console">No logs yet.</pre>
   </dialog>
 
+  <dialog id="outfitDialog" class="modal wide-modal outfit-modal">
+    <div class="modal-head">
+      <div>
+        <p class="kicker">OUTFIT CONTENTS</p>
+        <h2 id="selectedOutfitTitle">Loading…</h2>
+      </div>
+      <div class="modal-title-actions">
+        <span id="selectedOutfitCount" class="count-badge"></span>
+        <button class="modal-close" type="button" data-close-dialog="outfitDialog" aria-label="Close">×</button>
+      </div>
+    </div>
+    <div id="selectedOutfitGrid" class="asset-grid modal-grid"></div>
+  </dialog>
+
   <template id="userCardTpl">
-    <article class="user-card panel">
-      <div class="profile-head">
-        <img class="avatar-img" alt="Avatar thumbnail" loading="lazy" />
+    <article class="user-card">
+      <header class="profile-head">
+        <div class="avatar-frame">
+          <img class="avatar-img" alt="" loading="lazy" />
+          <span class="avatar-index" aria-hidden="true"></span>
+        </div>
         <div class="profile-copy">
+          <p class="profile-handle"></p>
           <h2 class="profile-title"></h2>
-          <p class="muted profile-meta"></p>
+          <p class="profile-meta"></p>
           <div class="chips"></div>
-          <div class="actions">
-            <a class="profile-link" target="_blank" rel="noopener">Profile</a>
-            <button class="json-btn" type="button">Export JSON</button>
+          <div class="profile-actions">
+            <a class="profile-link primary-button" target="_blank" rel="noopener">Open profile</a>
+            <button class="json-btn secondary-button" type="button">Export JSON</button>
           </div>
         </div>
-      </div>
+        <div class="profile-numbers">
+          <div><b class="wearing-stat">0</b><span>wearing</span></div>
+          <div><b class="outfit-stat">0</b><span>outfits</span></div>
+          <div><b class="extra-stat">0</b><span>extras</span></div>
+        </div>
+      </header>
 
       <details class="description-block">
-        <summary>Description</summary>
+        <summary>Bio <span>+</span></summary>
         <p class="description-text"></p>
       </details>
 
-      <section class="result-section wearing-section">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow small">Avatar</p>
-            <h3>Currently wearing</h3>
-          </div>
-          <span class="wearing-count pill"></span>
-        </div>
-        <div class="asset-grid wearing-grid"></div>
-      </section>
+      <nav class="result-tabs" aria-label="Result sections">
+        <button class="result-tab active" type="button" data-view="all">All</button>
+        <button class="result-tab" type="button" data-view="wearing">Wearing</button>
+        <button class="result-tab" type="button" data-view="outfits">Outfits</button>
+        <button class="result-tab" type="button" data-view="packs">Packs</button>
+        <button class="result-tab" type="button" data-view="emotes">Emotes</button>
+      </nav>
 
-      <section class="result-section outfits-section">
-        <div class="section-title">
-          <div>
-            <p class="eyebrow small">Saved looks</p>
-            <h3>Saved outfits</h3>
+      <div class="user-sections">
+        <section class="result-section wearing-section" data-result-kind="wearing">
+          <div class="section-title">
+            <div>
+              <p class="section-number">01 / AVATAR</p>
+              <h3>Currently wearing</h3>
+            </div>
+            <span class="wearing-count count-badge"></span>
           </div>
-          <span class="outfit-count pill"></span>
-        </div>
-        <div class="outfit-grid"></div>
-      </section>
+          <div class="asset-grid wearing-grid"></div>
+        </section>
 
-      <section class="selected-outfit-section result-section" hidden>
-        <div class="section-title">
-          <div>
-            <p class="eyebrow small">Opened entry</p>
-            <h3 class="selected-outfit-title">Selected outfit items</h3>
+        <section class="result-section outfits-section" data-result-kind="outfits">
+          <div class="section-title">
+            <div>
+              <p class="section-number">02 / SAVED</p>
+              <h3>Saved outfits</h3>
+            </div>
+            <span class="outfit-count count-badge"></span>
           </div>
-          <span class="selected-outfit-count pill"></span>
-        </div>
-        <div class="asset-grid selected-outfit-grid"></div>
-      </section>
+          <div class="outfit-grid"></div>
+        </section>
+      </div>
     </article>
   </template>
 

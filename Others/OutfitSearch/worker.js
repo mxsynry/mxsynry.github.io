@@ -1,17 +1,24 @@
 // Cloudflare Worker for Roblox Outfit Viewer
 // Public, read-only Roblox API proxy. No Roblox cookies, no private tokens.
 
-const WORKER_VERSION = "2026-06-24.4-price-stability";
+const WORKER_VERSION = "2026-07-23.1-outfitsearch-rebuild";
 const CACHE_TTL_SECONDS = 180;
 const MAX_INPUTS = 20;
 const MAX_SEARCH_RESULTS = 25;
 const MAX_OUTFITS = 300;
+const MAX_RAW_QUERY_LENGTH = 600;
+const MAX_QUERY_PART_LENGTH = 80;
+const UPSTREAM_TIMEOUT_MS = 12000;
 
 const BASE_HEADERS = {
   "access-control-allow-origin": "*",
   "access-control-allow-methods": "GET, OPTIONS",
   "access-control-allow-headers": "content-type",
-  "x-content-type-options": "nosniff"
+  "x-content-type-options": "nosniff",
+  "referrer-policy": "no-referrer",
+  "permissions-policy": "camera=(), microphone=(), geolocation=()",
+  "cross-origin-resource-policy": "cross-origin",
+  "vary": "origin"
 };
 
 const JSON_HEADERS = {
@@ -21,46 +28,65 @@ const JSON_HEADERS = {
 
 export default {
   async fetch(request, env, ctx) {
+    const startedAt = Date.now();
+    const requestId = typeof crypto?.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${startedAt.toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    const finish = response => withRequestMeta(response, requestId, startedAt);
+
     if (request.method === "OPTIONS") {
-      return new Response(null, { status: 204, headers: BASE_HEADERS });
+      return finish(new Response(null, { status: 204, headers: BASE_HEADERS }));
     }
 
     const url = new URL(request.url);
 
     try {
       if (request.method !== "GET") {
-        return json({ ok: false, error: "Only GET is supported." }, 405);
+        return finish(json({ ok: false, error: "Only GET is supported.", requestId }, 405));
       }
 
       if (url.pathname === "/" || url.pathname === "/api/health") {
-        return json({
+        return finish(json({
           ok: true,
-          name: "roblox-outfit-viewer-api",
+          name: "outfitsearch-api",
           version: WORKER_VERSION,
+          requestId,
+          fetchedAt: new Date().toISOString(),
           routes: ["/api/resolve?q=USERNAME", "/api/report/USER_ID", "/api/outfit/OUTFIT_ID"]
-        });
+        }));
       }
 
       if (url.pathname === "/api/resolve") {
-        return cacheOrRun(request, ctx, () => resolveUsers(url.searchParams.get("q") || ""));
+        return finish(await cacheOrRun(request, ctx, () => resolveUsers(url.searchParams.get("q") || "")));
       }
 
       const reportMatch = url.pathname.match(/^\/api\/report\/(\d+)$/);
       if (reportMatch) {
-        return cacheOrRun(request, ctx, () => getReport(Number(reportMatch[1])));
+        return finish(await cacheOrRun(request, ctx, () => getReport(Number(reportMatch[1]))));
       }
 
       const outfitMatch = url.pathname.match(/^\/api\/outfit\/(\d+)$/);
       if (outfitMatch) {
-        return cacheOrRun(request, ctx, () => getOutfitDetails(Number(outfitMatch[1])));
+        return finish(await cacheOrRun(request, ctx, () => getOutfitDetails(Number(outfitMatch[1]))));
       }
 
-      return json({ ok: false, error: "Not found.", path: url.pathname }, 404);
+      return finish(json({ ok: false, error: "Not found.", path: url.pathname, requestId }, 404));
     } catch (err) {
-      return json(errorPayload(err, "worker"), err.status || 500);
+      return finish(json({ ...errorPayload(err, "worker"), requestId }, err.status || 500));
     }
   }
 };
+
+function withRequestMeta(response, requestId, startedAt) {
+  const headers = new Headers(response.headers);
+  headers.set("x-request-id", requestId);
+  headers.set("server-timing", `total;dur=${Math.max(0, Date.now() - startedAt)}`);
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers
+  });
+}
 
 async function cacheOrRun(request, ctx, producer) {
   const cache = caches.default;
@@ -114,6 +140,12 @@ function errorPayload(err, where = "api") {
 }
 
 async function resolveUsers(rawQuery) {
+  if (rawQuery.length > MAX_RAW_QUERY_LENGTH) {
+    const err = new Error(`Search input is too long. Maximum ${MAX_RAW_QUERY_LENGTH} characters.`);
+    err.status = 400;
+    throw err;
+  }
+
   const parts = rawQuery
     .split(/[\n,]+/)
     .map(s => s.trim())
@@ -128,6 +160,10 @@ async function resolveUsers(rawQuery) {
   }
 
   for (const part of parts) {
+    if (part.length > MAX_QUERY_PART_LENGTH) {
+      logs.push(`Skipped an input longer than ${MAX_QUERY_PART_LENGTH} characters.`);
+      continue;
+    }
     const q = part.replace(/^@/, "").trim();
 
     try {
@@ -372,6 +408,49 @@ async function searchUsers(keyword, exactOnly) {
 
 async function getOutfits(userId) {
   assertId(userId, "Roblox user ID");
+  const groups = await Promise.allSettled([
+    getOutfitsV2(userId, true, 5),
+    getOutfitsV2(userId, false, 1)
+  ]);
+
+  const v2Outfits = groups
+    .filter(result => result.status === "fulfilled")
+    .flatMap(result => result.value);
+
+  if (v2Outfits.length) {
+    return uniqueBy(v2Outfits, outfit => outfit.id).slice(0, MAX_OUTFITS);
+  }
+
+  const rateLimit = groups.find(result => result.status === "rejected" && result.reason?.status === 429);
+  if (rateLimit) throw rateLimit.reason;
+  return getOutfitsV1(userId);
+}
+
+async function getOutfitsV2(userId, isEditable, maxPages) {
+  const all = [];
+  let paginationToken = "1";
+
+  for (let page = 0; page < maxPages; page += 1) {
+    const qs = new URLSearchParams({
+      paginationToken,
+      itemsPerPage: "50",
+      isEditable: String(isEditable),
+      outfitType: "All"
+    });
+    const data = await robloxJson(
+      `https://avatar.roblox.com/v2/avatar/users/${userId}/outfits?${qs}`,
+      {},
+      `saved outfits v2 (${isEditable ? "editable" : "catalog"})`
+    );
+    all.push(...(data.data || []));
+    paginationToken = String(data.paginationToken || "");
+    if (!paginationToken || !(data.data || []).length) break;
+  }
+
+  return all;
+}
+
+async function getOutfitsV1(userId) {
   const all = [];
   let cursor = "";
 
@@ -379,7 +458,7 @@ async function getOutfits(userId) {
     const qs = cursor
       ? `itemsPerPage=100&cursor=${encodeURIComponent(cursor)}`
       : `itemsPerPage=100&page=${page}`;
-    const data = await robloxJson(`https://avatar.roblox.com/v1/users/${userId}/outfits?${qs}`, {}, "saved outfits");
+    const data = await robloxJson(`https://avatar.roblox.com/v1/users/${userId}/outfits?${qs}`, {}, "saved outfits v1 fallback");
     all.push(...(data.data || []));
 
     if (data.nextPageCursor) cursor = data.nextPageCursor;
@@ -1089,20 +1168,28 @@ async function robloxJson(url, opts = {}, label = "Roblox API") {
     ...(opts.headers || {})
   };
 
-  const maxAttempts = method === "GET" ? 3 : 1;
+  const maxAttempts = method === "GET" ? 2 : 1;
   let lastErr = null;
 
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     let res;
+    let text;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
     try {
-      res = await fetch(url, { method, headers, body: opts.body });
+      res = await fetch(url, { method, headers, body: opts.body, signal: controller.signal });
+      text = await res.text();
     } catch (err) {
-      const e = new Error(`${label} network error: ${err.message}`);
-      e.status = 502;
+      const timedOut = controller.signal.aborted;
+      const e = new Error(timedOut
+        ? `${label} timed out after ${Math.round(UPSTREAM_TIMEOUT_MS / 1000)} seconds`
+        : `${label} network error: ${err.message}`);
+      e.status = timedOut ? 504 : 502;
       throw e;
+    } finally {
+      clearTimeout(timeoutId);
     }
 
-    const text = await res.text();
     let data;
     try {
       data = text ? JSON.parse(text) : {};
@@ -1119,13 +1206,11 @@ async function robloxJson(url, opts = {}, label = "Roblox API") {
     err.details = { robloxStatus: res.status, url, preview: typeof data.raw === "string" ? data.raw : undefined };
     lastErr = err;
 
-    if (method !== "GET" || ![429, 500, 502, 503, 504].includes(res.status) || attempt === maxAttempts) {
+    if (method !== "GET" || res.status === 429 || ![500, 502, 503, 504].includes(res.status) || attempt === maxAttempts) {
       throw err;
     }
 
-    const waitMs = err.retryAfterSeconds
-      ? Math.min(err.retryAfterSeconds * 1000, 2500)
-      : 350 * attempt;
+    const waitMs = 350 * attempt;
     await delay(waitMs);
   }
 
