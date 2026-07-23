@@ -905,8 +905,8 @@ function createExtraOutfitSection(title, note, items, label, kind = "outfits") {
 
 function createCostumeSection(items) {
   return createExtraOutfitSection(
-    "Avatar costume entries",
-    "Costume-style entries returned beside the account’s normal saved outfits.",
+    "Dynamic Heads",
+    "I might add more like accessories and stuff.",
     items,
     "Costume entry",
     "outfits"
