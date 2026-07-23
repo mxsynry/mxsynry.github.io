@@ -1,7 +1,7 @@
 // Cloudflare Worker for Roblox Outfit Viewer
 // Public, read-only Roblox API proxy. No Roblox cookies, no private tokens.
 
-const WORKER_VERSION = "2026-07-23.1-outfitsearch-rebuild";
+const WORKER_VERSION = "2026-07-23.2-saved-outfits-restore";
 const CACHE_TTL_SECONDS = 180;
 const MAX_INPUTS = 20;
 const MAX_SEARCH_RESULTS = 25;
@@ -408,6 +408,16 @@ async function searchUsers(keyword, exactOnly) {
 
 async function getOutfits(userId) {
   assertId(userId, "Roblox user ID");
+  let v1Error = null;
+
+  try {
+    const publicOutfits = await getOutfitsV1(userId);
+    if (publicOutfits.length) return publicOutfits;
+  } catch (err) {
+    if (err.status === 429) throw err;
+    v1Error = err;
+  }
+
   const groups = await Promise.allSettled([
     getOutfitsV2(userId, true, 5),
     getOutfitsV2(userId, false, 1)
@@ -423,7 +433,8 @@ async function getOutfits(userId) {
 
   const rateLimit = groups.find(result => result.status === "rejected" && result.reason?.status === 429);
   if (rateLimit) throw rateLimit.reason;
-  return getOutfitsV1(userId);
+  if (v1Error) throw v1Error;
+  return [];
 }
 
 async function getOutfitsV2(userId, isEditable, maxPages) {
