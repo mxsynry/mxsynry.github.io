@@ -1,3 +1,5 @@
+const SYNCHROSE_API_BASE = resolveSynchroseApiBase();
+
 const ENDPOINTS = Object.freeze({
   weaoExploits: "https://weao.xyz/api/status/exploits",
   weaoVersions: "https://weao.xyz/api/versions/current",
@@ -8,12 +10,24 @@ const ENDPOINTS = Object.freeze({
   voxlisContents: "https://api.github.com/repos/localscripts/voxlis.NET/contents/public/data/roblox?ref=main",
   voxlisFlatTree: "https://data.jsdelivr.com/v1/package/gh/localscripts/voxlis.NET@main/flat",
   voxlisRaw: "https://raw.githubusercontent.com/localscripts/voxlis.NET/main/public/data/roblox",
-  voxlisPrices: "https://raw.githubusercontent.com/localscripts/voxlis.NET/main/public/data/roblox/prices.json"
+  voxlisPrices: "https://raw.githubusercontent.com/localscripts/voxlis.NET/main/public/data/roblox/prices.json",
+  pulseryStatus: SYNCHROSE_API_BASE ? `${SYNCHROSE_API_BASE}/api/pulsery/status` : "",
+  injectCheats: "https://inject.today/api/cheats",
+  injectVersions: "https://inject.today/api/versions/current"
 });
 
-const CACHE_KEY = "synchrose:catalog:v3";
+const CACHE_KEY = "synchrose:catalog:v4";
 const CACHE_MAX_AGE = 24 * 60 * 60 * 1000;
 const COMPARE_LIMIT = 4;
+
+const SOURCE_LABELS = Object.freeze({
+  weao: "WEAO",
+  voxlis: "Voxlis",
+  pulsery: "Pulsery",
+  inject: "Inject"
+});
+
+const SOURCE_ORDER = Object.freeze(["weao", "voxlis", "pulsery", "inject"]);
 
 const PLATFORM_LABELS = Object.freeze({
   windows: "Windows",
@@ -50,6 +64,8 @@ const PRICE_ALIASES = Object.freeze({
 const state = {
   weaoRows: [],
   voxlisRows: [],
+  pulseryRows: [],
+  injectRows: [],
   all: [],
   filtered: [],
   versions: {},
@@ -58,7 +74,12 @@ const state = {
   view: readStoredView(),
   loading: false,
   loadedAt: null,
-  health: { weao: "loading", voxlis: "loading" }
+  health: {
+    weao: "loading",
+    voxlis: "loading",
+    pulsery: "loading",
+    inject: "loading"
+  }
 };
 
 const dom = {
@@ -645,6 +666,8 @@ async function loadData({ force = false } = {}) {
   dom.catalogResults?.setAttribute("aria-busy", "true");
   setHealth("weao", "loading");
   setHealth("voxlis", "loading");
+  setHealth("pulsery", "loading");
+  setHealth("inject", "loading");
 
   const weaoJob = fetchWeaoData()
     .then(({ rows, versions, pastVersions }) => {
@@ -681,14 +704,48 @@ async function loadData({ force = false } = {}) {
       return false;
     });
 
-  const [weaoOkay, voxlisOkay] = await Promise.all([weaoJob, voxlisJob]);
+  const pulseryJob = fetchPulseryData()
+    .then(rows => {
+      state.pulseryRows = rows;
+      state.loadedAt = new Date();
+      setHealth("pulsery", "ready", rows.length);
+      rebuildCatalog();
+      saveCache();
+      return true;
+    })
+    .catch(error => {
+      console.warn("Pulsery data unavailable", error);
+      setHealth("pulsery", state.pulseryRows.length ? "cached" : "error", state.pulseryRows.length);
+      if (!state.pulseryRows.length && SYNCHROSE_API_BASE) {
+        toast(`Pulsery unavailable: ${friendlyError(error)}`, "error");
+      }
+      return false;
+    });
+
+  const injectJob = fetchInjectData()
+    .then(rows => {
+      state.injectRows = rows;
+      state.loadedAt = new Date();
+      setHealth("inject", "ready", rows.length);
+      rebuildCatalog();
+      saveCache();
+      return true;
+    })
+    .catch(error => {
+      console.warn("Inject data unavailable", error);
+      setHealth("inject", state.injectRows.length ? "cached" : "error", state.injectRows.length);
+      if (!state.injectRows.length) toast(`Inject unavailable: ${friendlyError(error)}`, "error");
+      return false;
+    });
+
+  const results = await Promise.all([weaoJob, voxlisJob, pulseryJob, injectJob]);
   state.loading = false;
   dom.body.classList.remove("is-refreshing");
   dom.catalogResults?.setAttribute("aria-busy", "false");
   updateSyncHeadline();
 
   if (!state.all.length) renderLoadFailure();
-  if (force && (weaoOkay || voxlisOkay)) toast("Live data refreshed.");
+  if (force && results.some(Boolean)) toast("Live data refreshed.");
 }
 
 async function fetchWeaoData() {
@@ -758,6 +815,46 @@ async function fetchVoxlisData() {
   return visibleRows;
 }
 
+async function fetchPulseryData() {
+  if (!ENDPOINTS.pulseryStatus) {
+    throw new Error("The Synchrose Worker is not configured.");
+  }
+
+  const payload = await fetchJson(ENDPOINTS.pulseryStatus);
+  const items = Array.isArray(payload?.executors)
+    ? payload.executors
+    : Array.isArray(payload?.data?.executors)
+      ? payload.data.executors
+      : [];
+
+  if (!items.length) throw new Error("Pulsery returned no exploit entries.");
+  return items.map(normalizePulseryRow).filter(row => row.name !== "Unknown");
+}
+
+async function fetchInjectData() {
+  const [cheatsResult, versionsResult] = await Promise.allSettled([
+    fetchJson(ENDPOINTS.injectCheats),
+    fetchJson(ENDPOINTS.injectVersions)
+  ]);
+
+  if (cheatsResult.status === "rejected") throw cheatsResult.reason;
+  const versions = versionsResult.status === "fulfilled" ? versionsResult.value : {};
+  const payload = cheatsResult.value?.data && typeof cheatsResult.value.data === "object"
+    ? cheatsResult.value.data
+    : cheatsResult.value;
+
+  if (!payload || Array.isArray(payload) || typeof payload !== "object") {
+    throw new Error("Inject returned an unexpected catalog.");
+  }
+
+  const rows = Object.entries(payload)
+    .filter(([name]) => name && name.toLowerCase() !== "undefined")
+    .flatMap(([name, item]) => normalizeInjectRows(name, item, versions));
+
+  if (!rows.length) throw new Error("Inject returned no exploit entries.");
+  return rows;
+}
+
 async function discoverVoxlisFolders() {
   try {
     const contents = await fetchJson(ENDPOINTS.voxlisContents);
@@ -821,6 +918,11 @@ function normalizeWeaoRow(item, versions = {}) {
     beta: item?.beta === true,
     verified: item?.elementCertified === true,
     warning: item?.hasIssues === true,
+    raknet: false,
+    rating: null,
+    reviewCount: null,
+    stabilityScore: null,
+    myriadScore: null,
     sources: ["weao"],
     source: "weao",
     reviewUrl: null,
@@ -875,6 +977,11 @@ function normalizeVoxlisRow(folder, info, points, prices) {
     beta: badges.includes("beta"),
     verified: badges.includes("verified"),
     warning: badges.includes("warning") || badges.includes("warningred") || tags.includes("insecure"),
+    raknet: tags.includes("raknet"),
+    rating: null,
+    reviewCount: null,
+    stabilityScore: null,
+    myriadScore: null,
     sources: ["voxlis"],
     source: "voxlis",
     reviewUrl: voxlisFileUrl(folder, "review.md"),
@@ -882,13 +989,159 @@ function normalizeVoxlisRow(folder, info, points, prices) {
   };
 }
 
+function normalizePulseryRow(item) {
+  const name = cleanValue(item?.name, "Unknown");
+  const platforms = unique(toArray(item?.platforms).map(normalizePlatform));
+  const statusText = cleanValue(item?.status, "").toLowerCase();
+  const clientmods = /client[\s-]*mod/.test(statusText);
+  const detected = clientmods
+    ? false
+    : typeof item?.is_detected === "boolean"
+      ? item.is_detected
+      : statusText === "detected"
+        ? true
+        : statusText === "undetected"
+          ? false
+          : null;
+  const price = cleanValue(item?.price_text, Number(item?.price_num) === 0 ? "Free" : "Paid");
+  const free = Number(item?.price_num) === 0 || /\bfree\b|freemium/i.test(price);
+
+  return {
+    id: canonicalName(name),
+    name,
+    platforms: platforms.length ? platforms : ["unknown"],
+    platform: platforms[0] || "unknown",
+    version: cleanValue(item?.version),
+    rbxVersion: cleanValue(item?.roblox_version),
+    price,
+    free,
+    updateStatus: typeof item?.is_working === "boolean" ? item.is_working : null,
+    updateSource: "Pulsery",
+    detected,
+    suncPercentage: percentOrNull(item?.sunc_percent),
+    uncPercentage: percentOrNull(item?.unc_percent),
+    extType: normalizeType(item?.type),
+    description: cleanValue(item?.description, ""),
+    proSummary: "",
+    neutralSummary: "",
+    conSummary: "",
+    website: safeUrl(item?.website_url),
+    discord: safeUrl(item?.discord_url),
+    purchaseLink: safeUrl(item?.purchase_url),
+    owner: cleanValue(item?.developer, ""),
+    updatedDate: cleanValue(item?.updated || item?.last_status_change),
+    tags: [],
+    badges: [],
+    decompiler: item?.decompiler === true,
+    multiInject: item?.multi_instance === true,
+    keysystem: /\bkey\b/i.test(price),
+    clientmods,
+    beta: false,
+    verified: item?.safety_certified === true,
+    warning: item?.use_with_caution === true,
+    raknet: item?.raknet === true,
+    rating: numericOrNull(item?.rating),
+    reviewCount: numericOrNull(item?.review_count),
+    stabilityScore: numericOrNull(item?.stability_score),
+    myriadScore: numericOrNull(item?.myriad_score),
+    sources: ["pulsery"],
+    source: "pulsery",
+    reviewUrl: null,
+    review: ""
+  };
+}
+
+function normalizeInjectRows(name, item, versions) {
+  if (!item || typeof item !== "object") return [];
+
+  const platformNames = unique([
+    ...objectKeys(item?.Platforms),
+    ...objectKeys(item?.Attributes),
+    ...objectKeys(item?.Cost),
+    ...objectKeys(item?.Tags),
+    ...objectKeys(item?.Links)
+  ]);
+
+  return (platformNames.length ? platformNames : ["Unknown"]).map(platformName => {
+    const platform = normalizePlatform(platformName);
+    const platformInfo = item?.Platforms?.[platformName] || {};
+    const attributes = item?.Attributes?.[platformName] || {};
+    const tagsInfo = item?.Tags?.[platformName] || {};
+    const links = item?.Links?.[platformName] || {};
+    const cost = cleanValue(item?.Cost?.[platformName], "Unknown");
+    const pricingModels = toArray(attributes?.PricingModel).map(value => String(value));
+    const detection = injectDetectionFlags(platformInfo?.Detection);
+    const productRobloxVersion = cleanValue(platformInfo?.Versions?.Roblox, "");
+    const currentRobloxVersion = injectCurrentVersion(versions, platform);
+    const updateStatus = isUsableVersion(productRobloxVersion) && isUsableVersion(currentRobloxVersion)
+      ? productRobloxVersion === currentRobloxVersion
+      : null;
+    const parent = cleanValue(tagsInfo?.Parent, "");
+    const rank = cleanValue(tagsInfo?.Rank, "");
+    const free = /\bfree\b|freemium/i.test(cost)
+      || pricingModels.some(value => /^free$/i.test(value));
+    const normalizedTags = unique([
+      rank,
+      parent,
+      cleanValue(attributes?.Access, ""),
+      ...pricingModels
+    ].map(normalizeTag));
+
+    return {
+      id: canonicalName(name),
+      name: cleanValue(name, "Unknown"),
+      platforms: [platform],
+      platform,
+      version: cleanValue(platformInfo?.Versions?.Software),
+      rbxVersion: cleanValue(productRobloxVersion),
+      price: cost,
+      free,
+      updateStatus,
+      updateSource: "Inject",
+      detected: detection.detected,
+      suncPercentage: null,
+      uncPercentage: numericOrNull(attributes?.UNC),
+      extType: /aimbot/i.test(parent) ? "aimbot" : normalizeType(attributes?.Type || parent),
+      description: cleanValue(attributes?.About || attributes?.Note, ""),
+      proSummary: "",
+      neutralSummary: "",
+      conSummary: "",
+      website: safeUrl(links?.Website),
+      discord: safeUrl(links?.Discord),
+      purchaseLink: null,
+      owner: "",
+      updatedDate: "Inject catalog",
+      tags: normalizedTags,
+      badges: [],
+      decompiler: attributes?.Decompiler === true,
+      multiInject: attributes?.MultipleInstance === true,
+      keysystem: pricingModels.some(value => /key[\s-]*system/i.test(value)) || /\bkey\b/i.test(cost),
+      clientmods: detection.clientmods,
+      beta: rank.toLowerCase() === "beta",
+      verified: false,
+      warning: attributes?.Caution === true || attributes?.Issues === true,
+      raknet: attributes?.Raknet === true,
+      rating: null,
+      reviewCount: null,
+      stabilityScore: null,
+      myriadScore: numericOrNull(attributes?.Myriad),
+      sources: ["inject"],
+      source: "inject",
+      reviewUrl: null,
+      review: ""
+    };
+  });
+}
+
 function rebuildCatalog() {
   const weao = aggregateByName(state.weaoRows);
   const voxlis = aggregateByName(state.voxlisRows);
-  const keys = unique([...weao.keys(), ...voxlis.keys()]);
+  const pulsery = aggregateByName(state.pulseryRows);
+  const inject = aggregateByName(state.injectRows);
+  const keys = unique([...weao.keys(), ...voxlis.keys(), ...pulsery.keys(), ...inject.keys()]);
 
   state.all = keys
-    .map(key => mergeRows(weao.get(key), voxlis.get(key), key))
+    .map(key => mergeRows(weao.get(key), voxlis.get(key), pulsery.get(key), inject.get(key), key))
     .filter(Boolean)
     .sort((a, b) => a.name.localeCompare(b.name));
 
@@ -938,51 +1191,128 @@ function combineSameSource(a, b) {
     clientmods: a.clientmods || b.clientmods,
     beta: a.beta || b.beta,
     verified: a.verified || b.verified,
-    warning: a.warning || b.warning
+    warning: a.warning || b.warning,
+    raknet: a.raknet || b.raknet,
+    rating: maxNullable(a.rating, b.rating),
+    reviewCount: maxNullable(a.reviewCount, b.reviewCount),
+    stabilityScore: maxNullable(a.stabilityScore, b.stabilityScore),
+    myriadScore: maxNullable(a.myriadScore, b.myriadScore)
   };
 }
 
-function mergeRows(weao, voxlis, key) {
-  if (!weao && !voxlis) return null;
-  if (!weao) return { ...voxlis, id: key, source: "voxlis", sources: ["voxlis"] };
-  if (!voxlis) return { ...weao, id: key, source: "weao", sources: ["weao"] };
+function mergeRows(weao, voxlis, pulsery, inject, key) {
+  const bySource = { weao, voxlis, pulsery, inject };
+  const sources = SOURCE_ORDER.filter(source => Boolean(bySource[source]));
+  if (!sources.length) return null;
 
-  const price = isSpecificPrice(weao.price) ? weao.price : voxlis.price;
-  const description = preferText(voxlis.description, weao.description);
+  const rows = sources.map(source => bySource[source]);
+  const statusOwner = firstMatchingRow([weao, pulsery, inject, voxlis], row => typeof row?.updateStatus === "boolean");
+  const detectionOwner = firstMatchingRow([weao, pulsery, inject, voxlis], row => detectionKind(row) !== "unknown");
+  const priceOwner = firstMatchingRow([weao, pulsery, inject, voxlis], row => isSpecificPrice(row?.price))
+    || firstMatchingRow([weao, pulsery, inject, voxlis], row => cleanValue(row?.price, "") !== "");
+  const typeOwner = firstMatchingRow([weao, pulsery, inject, voxlis], row => cleanValue(row?.extType, "").toLowerCase() !== "unknown");
+  const primary = weao || pulsery || inject || voxlis;
+  const details = voxlis || pulsery || inject || weao;
+  const conflicts = providerConflicts(bySource);
 
   return {
-    ...voxlis,
-    ...weao,
+    ...primary,
     id: key,
-    name: preferText(weao.name, voxlis.name),
-    platforms: unique([...weao.platforms, ...voxlis.platforms]),
-    platform: weao.platform || voxlis.platform,
-    price,
-    free: typeof weao.free === "boolean" ? weao.free : voxlis.free,
-    extType: preferKnown(voxlis.extType, weao.extType),
-    description,
-    proSummary: voxlis.proSummary || weao.proSummary,
-    neutralSummary: voxlis.neutralSummary || weao.neutralSummary,
-    conSummary: voxlis.conSummary || weao.conSummary,
-    website: weao.website || voxlis.website,
-    discord: weao.discord || voxlis.discord,
-    purchaseLink: weao.purchaseLink || voxlis.purchaseLink,
-    tags: unique([...weao.tags, ...voxlis.tags]),
-    badges: unique([...weao.badges, ...voxlis.badges]),
-    decompiler: weao.decompiler || voxlis.decompiler,
-    multiInject: weao.multiInject || voxlis.multiInject,
-    keysystem: weao.keysystem || voxlis.keysystem,
-    // WEAO owns the detection flags when it has a matching row. Do not let a
-    // broad Voxlis tag turn a WEAO full-undetected result into client-mod-only.
-    clientmods: weao.clientmods,
-    beta: weao.beta || voxlis.beta,
-    verified: weao.verified || voxlis.verified,
-    warning: weao.warning || voxlis.warning,
-    source: "both",
-    sources: ["weao", "voxlis"],
-    reviewUrl: voxlis.reviewUrl,
-    review: voxlis.review || ""
+    name: firstUsefulValue([weao, pulsery, inject, voxlis], "name", "Unknown"),
+    platforms: unique(rows.flatMap(row => row.platforms || [])),
+    platform: firstUsefulValue([weao, pulsery, inject, voxlis], "platform", "unknown"),
+    version: firstVersionValue([weao, pulsery, inject, voxlis], "version"),
+    rbxVersion: firstVersionValue([weao, pulsery, inject, voxlis], "rbxVersion"),
+    price: cleanValue(priceOwner?.price, "Unknown"),
+    free: typeof priceOwner?.free === "boolean"
+      ? priceOwner.free
+      : firstMatchingRow(rows, row => typeof row?.free === "boolean")?.free ?? null,
+    updateStatus: statusOwner?.updateStatus ?? null,
+    updateSource: statusOwner?.updateSource || "",
+    detected: detectionOwner?.detected ?? null,
+    clientmods: detectionOwner?.clientmods === true,
+    suncPercentage: firstFiniteValue([weao, pulsery, inject, voxlis], "suncPercentage"),
+    uncPercentage: firstFiniteValue([weao, pulsery, inject, voxlis], "uncPercentage"),
+    extType: cleanValue(typeOwner?.extType, "unknown"),
+    description: firstUsefulValue([voxlis, pulsery, inject, weao], "description", ""),
+    proSummary: details?.proSummary || "",
+    neutralSummary: details?.neutralSummary || "",
+    conSummary: details?.conSummary || "",
+    website: firstUsefulValue([weao, pulsery, inject, voxlis], "website", null),
+    discord: firstUsefulValue([weao, pulsery, inject, voxlis], "discord", null),
+    purchaseLink: firstUsefulValue([weao, pulsery, inject, voxlis], "purchaseLink", null),
+    owner: firstUsefulValue([weao, pulsery, inject, voxlis], "owner", ""),
+    updatedDate: firstUsefulValue([weao, pulsery, inject, voxlis], "updatedDate", "N/A"),
+    tags: unique(rows.flatMap(row => row.tags || [])),
+    badges: unique(rows.flatMap(row => row.badges || [])),
+    decompiler: rows.some(row => row.decompiler === true),
+    multiInject: rows.some(row => row.multiInject === true),
+    keysystem: rows.some(row => row.keysystem === true),
+    beta: rows.some(row => row.beta === true),
+    verified: rows.some(row => row.verified === true),
+    warning: rows.some(row => row.warning === true),
+    raknet: rows.some(row => row.raknet === true),
+    rating: firstFiniteValue([pulsery, inject, voxlis, weao], "rating"),
+    reviewCount: firstFiniteValue([pulsery, inject, voxlis, weao], "reviewCount"),
+    stabilityScore: firstFiniteValue([pulsery, inject, voxlis, weao], "stabilityScore"),
+    myriadScore: firstFiniteValue([pulsery, inject, voxlis, weao], "myriadScore"),
+    source: sources.length > 1 ? "multi" : sources[0],
+    sources,
+    observations: providerObservations(bySource),
+    conflicts,
+    reviewUrl: voxlis?.reviewUrl || null,
+    review: voxlis?.review || ""
   };
+}
+
+function firstMatchingRow(rows, predicate) {
+  return rows.find(row => row && predicate(row)) || null;
+}
+
+function firstUsefulValue(rows, field, fallback = "") {
+  for (const row of rows) {
+    const value = row?.[field];
+    if (value === null || value === undefined) continue;
+    if (typeof value === "string" && !cleanValue(value, "")) continue;
+    return value;
+  }
+  return fallback;
+}
+
+function firstVersionValue(rows, field) {
+  const row = firstMatchingRow(rows, candidate => isUsableVersion(candidate?.[field]));
+  return row ? cleanValue(row[field]) : "N/A";
+}
+
+function firstFiniteValue(rows, field) {
+  const row = firstMatchingRow(rows, candidate => Number.isFinite(candidate?.[field]));
+  return row ? row[field] : null;
+}
+
+function providerObservations(bySource) {
+  return Object.fromEntries(SOURCE_ORDER
+    .filter(source => bySource[source])
+    .map(source => {
+      const row = bySource[source];
+      return [source, {
+        updateStatus: row.updateStatus,
+        detection: detectionKind(row),
+        platforms: row.platforms || [],
+        updatedDate: row.updatedDate || ""
+      }];
+    }));
+}
+
+function providerConflicts(bySource) {
+  const rows = SOURCE_ORDER.map(source => bySource[source]).filter(Boolean);
+  const detectionValues = unique(rows.map(detectionKind).filter(value => value !== "unknown"));
+  const updateValues = unique(rows
+    .map(row => typeof row.updateStatus === "boolean" ? String(row.updateStatus) : "")
+    .filter(Boolean));
+  const conflicts = [];
+  if (detectionValues.length > 1) conflicts.push("Detection");
+  if (updateValues.length > 1) conflicts.push("Update status");
+  return conflicts;
 }
 
 function applyFilters() {
@@ -1003,9 +1333,8 @@ function applyFilters() {
     if (filters.key === "keyless" && item.keysystem === true) return false;
     if (filters.feature !== "all" && !matchesFeature(item, filters.feature)) return false;
     if (!matchesSunc(item, filters.sunc)) return false;
-    if (filters.source === "both" && item.source !== "both") return false;
-    if (filters.source === "weao" && !item.sources.includes("weao")) return false;
-    if (filters.source === "voxlis" && !item.sources.includes("voxlis")) return false;
+    if (filters.source === "multi" && item.sources.length < 2) return false;
+    if (filters.source !== "all" && filters.source !== "multi" && !item.sources.includes(filters.source)) return false;
 
     if (term) {
       const haystack = [
@@ -1016,6 +1345,8 @@ function applyFilters() {
         item.extType,
         item.owner,
         detectionText(item),
+        sourceLabel(item),
+        ...(item.conflicts || []),
         ...getFeatures(item),
         ...item.platforms.map(platformLabel),
         ...item.tags,
@@ -1078,7 +1409,7 @@ function relevanceScore(item) {
   if (detection === "undetected") score += 20;
   if (detection === "clientmods") score += 2;
   if (detection === "detected") score -= 80;
-  if (item.source === "both") score += 12;
+  score += Math.max(0, item.sources.length - 1) * 5;
   if (item.verified) score += 8;
   if (item.warning) score -= 18;
   if (Number.isFinite(item.suncPercentage)) score += item.suncPercentage / 10;
@@ -1173,7 +1504,7 @@ function emptyStateMarkup(inTable = false) {
 function renderLoadFailure() {
   dom.gridView.innerHTML = `
     <div class="error-state">
-      <h3>Both feeds missed the call.</h3>
+      <h3>No feed answered.</h3>
       <p>Check your connection, then hit Recheck.</p>
     </div>`;
   dom.tableBody.innerHTML = "";
@@ -1453,7 +1784,11 @@ function renderDetails(item) {
       ${metricMarkup("Last reported", item.updatedDate)}
       ${metricMarkup("Source", sourceLabel(item))}
       ${metricMarkup("Type", item.extType)}
+      ${Number.isFinite(item.rating) && (item.rating > 0 || item.reviewCount > 0) ? metricMarkup("Pulsery rating", `${trimNumber(item.rating)} / 5`) : ""}
+      ${Number.isFinite(item.stabilityScore) ? metricMarkup("Stability", `${trimNumber(item.stabilityScore)} / 100`) : ""}
+      ${Number.isFinite(item.myriadScore) ? metricMarkup("Myriad", `${trimNumber(item.myriadScore)} / 100`) : ""}
     </div>
+    ${item.conflicts?.length ? `<div class="detail-section source-conflict"><h3>Sources disagree</h3><p>${h(item.conflicts.join(" and "))}. The primary value follows WEAO, then Pulsery, then Inject.</p></div>` : ""}
     ${features.length ? `<div class="detail-section"><h3>Features</h3><div class="feature-row">${features.map(feature => `<span class="feature-chip">${h(feature)}</span>`).join("")}</div></div>` : ""}
     ${item.proSummary ? `<div class="detail-section"><h3>Why people use it</h3><p>${h(item.proSummary)}</p></div>` : ""}
     ${item.neutralSummary ? `<div class="detail-section"><h3>More notes</h3><p>${h(item.neutralSummary)}</p></div>` : ""}
@@ -1548,11 +1883,13 @@ function setHealth(source, status, count = 0) {
 
 function updateSyncHeadline() {
   const statuses = Object.values(state.health);
+  const readyCount = statuses.filter(status => status === "ready").length;
+  const cachedCount = statuses.filter(status => status === "cached").length;
   let headline = "Waking up…";
-  if (statuses.every(status => status === "ready")) headline = "Both feeds are live";
-  else if (statuses.some(status => status === "ready")) headline = "One feed answered";
-  else if (statuses.some(status => status === "cached")) headline = "Using the saved copy";
-  else if (statuses.every(status => status === "error")) headline = "Both feeds are down";
+  if (readyCount === statuses.length) headline = "All four feeds are live";
+  else if (readyCount > 0) headline = `${readyCount} of ${statuses.length} feeds answered`;
+  else if (cachedCount > 0) headline = `Using ${cachedCount} saved feed${cachedCount === 1 ? "" : "s"}`;
+  else if (statuses.every(status => status === "error")) headline = "All feeds are down";
 
   setText("#syncHeadline", headline);
   const date = state.loadedAt instanceof Date && !Number.isNaN(state.loadedAt.valueOf())
@@ -1568,12 +1905,16 @@ function hydrateFromCache() {
 
     state.weaoRows = Array.isArray(cached.weaoRows) ? cached.weaoRows : [];
     state.voxlisRows = Array.isArray(cached.voxlisRows) ? cached.voxlisRows : [];
+    state.pulseryRows = Array.isArray(cached.pulseryRows) ? cached.pulseryRows : [];
+    state.injectRows = Array.isArray(cached.injectRows) ? cached.injectRows : [];
     state.versions = cached.versions && typeof cached.versions === "object" ? cached.versions : {};
     state.pastVersions = cached.pastVersions && typeof cached.pastVersions === "object" ? cached.pastVersions : {};
     state.loadedAt = new Date(cached.timestamp);
 
     if (state.weaoRows.length) setHealth("weao", "cached", state.weaoRows.length);
     if (state.voxlisRows.length) setHealth("voxlis", "cached", state.voxlisRows.length);
+    if (state.pulseryRows.length) setHealth("pulsery", "cached", state.pulseryRows.length);
+    if (state.injectRows.length) setHealth("inject", "cached", state.injectRows.length);
     renderVersions();
     rebuildCatalog();
   } catch (error) {
@@ -1582,12 +1923,14 @@ function hydrateFromCache() {
 }
 
 function saveCache() {
-  if (!state.weaoRows.length && !state.voxlisRows.length) return;
+  if (!state.weaoRows.length && !state.voxlisRows.length && !state.pulseryRows.length && !state.injectRows.length) return;
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({
       timestamp: Date.now(),
       weaoRows: state.weaoRows,
       voxlisRows: state.voxlisRows,
+      pulseryRows: state.pulseryRows,
+      injectRows: state.injectRows,
       versions: state.versions,
       pastVersions: state.pastVersions
     }));
@@ -1723,6 +2066,33 @@ function voxlisFileUrl(folder, filename) {
   return `${ENDPOINTS.voxlisRaw}/${encodeURIComponent(folder)}/${encodeURIComponent(filename)}`;
 }
 
+function resolveSynchroseApiBase() {
+  const queryValue = new URLSearchParams(window.location.search).get("api");
+  const metaValue = document.querySelector('meta[name="synchrose-api-base"]')?.content;
+  let storedValue = "";
+  try { storedValue = localStorage.getItem("synchrose:api-base") || ""; } catch { /* Storage is optional. */ }
+
+  const queryBase = validApiBase(queryValue);
+  if (queryBase) {
+    try { localStorage.setItem("synchrose:api-base", queryBase); } catch { /* Storage is optional. */ }
+    return queryBase;
+  }
+
+  return validApiBase(metaValue) || validApiBase(storedValue) || "";
+}
+
+function validApiBase(value) {
+  const text = String(value || "").trim().replace(/\/+$/, "");
+  if (!text) return "";
+  try {
+    const url = new URL(text);
+    const localHttp = url.protocol === "http:" && ["localhost", "127.0.0.1"].includes(url.hostname);
+    return url.protocol === "https:" || localHttp ? url.toString().replace(/\/+$/, "") : "";
+  } catch {
+    return "";
+  }
+}
+
 function canonicalName(name) {
   const compact = normalizeSlug(name);
   return NAME_ALIASES[compact] || compact || `unknown-${Math.random().toString(36).slice(2, 8)}`;
@@ -1761,11 +2131,26 @@ function normalizeTag(value) {
 
 function normalizeType(value) {
   const type = String(value || "unknown").trim().toLowerCase();
+  if (type.includes("aimbot")) return "aimbot";
+  if (type.includes("external")) return "external";
+  if (type.includes("internal")) return "internal";
+  if (type.includes("server-side") || type.includes("serverside")) return "serverside";
   if (type === "executor") return "internal";
-  if (type === "external" || type.endsWith("external")) return "external";
-  if (type === "internal" || type.endsWith("executor")) return "internal";
-  if (type === "server-side") return "serverside";
+  if (type.endsWith("executor")) return "internal";
   return type || "unknown";
+}
+
+function injectDetectionFlags(value) {
+  const readable = cleanValue(value?.Readable ?? value, "").toLowerCase();
+  if (/client[\s-]*mod/.test(readable)) return { detected: false, clientmods: true };
+  if (readable.includes("undetected")) return { detected: false, clientmods: false };
+  if (readable.includes("detected")) return { detected: true, clientmods: false };
+  return { detected: null, clientmods: false };
+}
+
+function injectCurrentVersion(versions, platform) {
+  const key = normalizePlatform(platform) === "mac" ? "Macintosh" : "Windows";
+  return cleanValue(versions?.[key]?.Version ?? versions?.[key], "");
 }
 
 function updateUi(item) {
@@ -1803,15 +2188,19 @@ function matchesSunc(item, filter) {
 }
 
 function sourceLabel(item) {
-  if (item.source === "both") return "WEAO + Voxlis";
-  if (item.source === "weao") return "WEAO";
-  if (item.source === "voxlis") return "Voxlis";
-  return "Unknown";
+  const sources = Array.isArray(item?.sources) ? item.sources : [];
+  return sources.length
+    ? sources.map(source => SOURCE_LABELS[source] || source).join(" + ")
+    : "Unknown";
 }
 
 function sourceBadges(item) {
-  if (item.source === "both") return `<span class="source-badge both">WEAO + Voxlis</span>`;
-  return `<span class="source-badge">${h(sourceLabel(item))}</span>`;
+  const sources = Array.isArray(item?.sources) ? item.sources : [];
+  const badges = sources.map(source => `<span class="source-badge source-${h(source)}">${h(SOURCE_LABELS[source] || source)}</span>`);
+  if (item?.conflicts?.length) {
+    badges.push(`<span class="source-badge conflict" title="${h(`${item.conflicts.join(", ")} differs between sources`)}">Conflict</span>`);
+  }
+  return badges.join("");
 }
 
 function getFeatures(item) {
@@ -1819,6 +2208,7 @@ function getFeatures(item) {
   if (item.verified) features.push("Verified");
   if (item.decompiler) features.push("Decompiler");
   if (item.multiInject) features.push("Multi-instance");
+  if (item.raknet) features.push("RakNet");
   if (item.keysystem) features.push("Key system");
   if (item.clientmods) features.push("Client mods");
   if (item.beta) features.push("Beta");
@@ -1848,7 +2238,14 @@ function cleanValue(value, fallback = "N/A") {
 }
 
 function numericOrNull(value) {
+  if (value === null || value === undefined || String(value).trim() === "") return null;
   const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function percentOrNull(value) {
+  if (value === null || value === undefined) return null;
+  const number = Number(String(value).replace(/[%\s,]/g, ""));
   return Number.isFinite(number) ? number : null;
 }
 
@@ -1864,6 +2261,10 @@ function unique(values) {
 function toArray(value) {
   if (Array.isArray(value)) return value.filter(Boolean);
   return value ? [value] : [];
+}
+
+function objectKeys(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? Object.keys(value) : [];
 }
 
 function firstValue(value) {

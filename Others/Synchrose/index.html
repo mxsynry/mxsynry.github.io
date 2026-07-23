@@ -4,7 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0b0911">
-  <meta name="description" content="WEAO status and Voxlis notes in one searchable list.">
+  <meta name="description" content="WEAO, Voxlis, Pulsery, and Inject data in one searchable Roblox exploit list.">
+  <!-- Deploy worker.js, then paste its workers.dev URL here. The ?api= query parameter can override it for testing. -->
+  <meta name="synchrose-api-base" content="https://mxsynry.reatcount26-82a.workers.dev">
   <meta property="og:title" content="Synchrose // Roblox status">
   <meta property="og:description" content="What works, what broke, and where the information came from.">
   <meta property="og:type" content="website">
@@ -18,7 +20,7 @@
     <button class="intro-skip" id="bootSkip" type="button">SKIP [ESC]</button>
     <div class="intro-frame" aria-hidden="true">
       <span class="intro-corner intro-corner-left">同期 // 01</span>
-      <span class="intro-corner intro-corner-right">WEAO + VOXLIS</span>
+      <span class="intro-corner intro-corner-right">4 PUBLIC FEEDS</span>
       <span class="intro-japanese-side">読み込み中…</span>
       <div class="intro-center">
         <span>「SYNCHROSE」を起動</span>
@@ -74,6 +76,8 @@
           <button type="button" data-replay-intro>Replay intro</button>
           <a href="https://weao.xyz/" target="_blank" rel="noopener noreferrer">WEAO ↗</a>
           <a href="https://voxlis.net/" target="_blank" rel="noopener noreferrer">Voxlis ↗</a>
+          <a href="https://pulsery.gg/" target="_blank" rel="noopener noreferrer">Pulsery ↗</a>
+          <a href="https://inject.today/" target="_blank" rel="noopener noreferrer">Inject ↗</a>
         </nav>
       </details>
     </div>
@@ -82,9 +86,9 @@
   <main id="top">
     <section class="hero shell" aria-labelledby="hero-title">
       <div class="hero-copy" data-reveal>
-        <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> LIVE // WEAO + VOXLIS</div>
+        <div class="eyebrow"><span class="live-dot" aria-hidden="true"></span> LIVE // 4 PUBLIC FEEDS</div>
         <h1 id="hero-title">What works.<br><span>What broke.</span></h1>
-        <p class="hero-lede">WEAO status. Voxlis notes. One list.</p>
+        <p class="hero-lede">Four feeds. One list.</p>
         <div class="hero-actions">
           <a class="button button-primary" href="#catalog">Open the list</a>
           <a class="button button-secondary" href="#methodology">Where it comes from</a>
@@ -112,6 +116,16 @@
             <span class="health-icon is-loading" data-health-icon="voxlis"></span>
             <span><strong>Voxlis</strong><small>notes + prices</small></span>
             <b data-health-label="voxlis">Loading</b>
+          </div>
+          <div class="health-row">
+            <span class="health-icon is-loading" data-health-icon="pulsery"></span>
+            <span><strong>Pulsery</strong><small>status + stability</small></span>
+            <b data-health-label="pulsery">Loading</b>
+          </div>
+          <div class="health-row">
+            <span class="health-icon is-loading" data-health-icon="inject"></span>
+            <span><strong>Inject</strong><small>status + catalog</small></span>
+            <b data-health-label="inject">Loading</b>
           </div>
         </div>
         <div class="pulse-stats">
@@ -225,6 +239,7 @@
               <option value="all">Any feature</option>
               <option value="decompiler">Decompiler</option>
               <option value="multiInject">Multi-instance</option>
+              <option value="raknet">RakNet</option>
               <option value="verified">Verified</option>
               <option value="beta">Beta</option>
               <option value="warning">Warning flagged</option>
@@ -245,9 +260,11 @@
             <span>Source</span>
             <select id="sourceFilter" name="source">
               <option value="all">All sources</option>
-              <option value="both">WEAO + Voxlis</option>
+              <option value="multi">Cross-checked (2+)</option>
               <option value="weao">WEAO</option>
               <option value="voxlis">Voxlis</option>
+              <option value="pulsery">Pulsery</option>
+              <option value="inject">Inject</option>
             </select>
           </label>
           <label>
@@ -350,9 +367,9 @@
       </div>
       <div class="method-flow" data-reveal>
         <article>
-          <span>WEAO</span>
-          <strong>Live status</strong>
-          <p>Updated, detected, version, Roblox build.</p>
+          <span>WEAO + PULSERY + INJECT</span>
+          <strong>Status feeds</strong>
+          <p>Availability, detection, versions, features.</p>
         </article>
         <b class="flow-join" aria-hidden="true">+</b>
         <article>
@@ -364,7 +381,7 @@
         <article class="method-result">
           <span>SYNCHROSE</span>
           <strong>One row</strong>
-          <p>Both source labels stay attached.</p>
+          <p>Every contributing source stays attached.</p>
         </article>
       </div>
     </section>
@@ -374,7 +391,7 @@
     <div class="shell footer-inner">
       <div>
         <a class="brand footer-brand" href="#top"><span class="brand-mark" aria-hidden="true">S</span><span>Synchrose</span></a>
-        <p>made by mxsynry // data from WEAO + Voxlis</p>
+        <p>made by mxsynry // data from WEAO, Voxlis, Pulsery + Inject</p>
       </div>
       <div class="footer-links">
         <a href="https://weao.xyz/" target="_blank" rel="noopener noreferrer">WEAO</a>

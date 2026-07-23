@@ -1752,6 +1752,26 @@ body.boot-active [data-reveal].is-visible {
   background: rgba(169, 120, 255, 0.08);
 }
 
+.source-badge.source-weao,
+.source-badge.source-pulsery {
+  border-color: rgba(169, 120, 255, 0.25);
+  color: #d6c2ff;
+  background: rgba(169, 120, 255, 0.08);
+}
+
+.source-badge.source-voxlis,
+.source-badge.source-inject {
+  border-color: rgba(104, 221, 190, 0.22);
+  color: #b8f3df;
+  background: rgba(104, 221, 190, 0.07);
+}
+
+.source-badge.conflict {
+  border-color: rgba(255, 184, 92, 0.34);
+  color: #ffd39b;
+  background: rgba(255, 158, 54, 0.09);
+}
+
 .status-badge {
   flex: none;
   gap: 6px;
