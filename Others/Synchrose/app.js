@@ -204,7 +204,7 @@ function setRddMode(mode) {
   });
   setText("#rddPrompt", selected === "older"
     ? "Find an older Roblox build with:"
-    : "Download the newest Roblox build with:");
+    : "Get the newest Roblox build with:");
 }
 
 function initRevealMotion() {
