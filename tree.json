@@ -4,6 +4,14 @@
   "type": "dir",
   "children": [
     {
+      "name": ".gitignore",
+      "path": ".gitignore",
+      "type": "file",
+      "size": 179,
+      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/.gitignore",
+      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/.gitignore"
+    },
+    {
       "name": "assets",
       "path": "assets",
       "type": "dir",
@@ -71,6 +79,14 @@
           "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/docs/styles.css"
         }
       ]
+    },
+    {
+      "name": "favicon.ico",
+      "path": "favicon.ico",
+      "type": "file",
+      "size": 44029,
+      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/favicon.ico",
+      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/favicon.ico"
     },
     {
       "name": "index.html",
@@ -7436,7 +7452,7 @@
               "name": "app.js",
               "path": "Others/Synchrose/app.js",
               "type": "file",
-              "size": 98191,
+              "size": 103346,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/app.js",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/app.js"
             },
@@ -7561,6 +7577,22 @@
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/Mother%20Mother%20-%20Hayloft%20II.mp3"
             },
             {
+              "name": "package-lock.json",
+              "path": "Others/Synchrose/package-lock.json",
+              "type": "file",
+              "size": 49408,
+              "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/package-lock.json",
+              "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/package-lock.json"
+            },
+            {
+              "name": "package.json",
+              "path": "Others/Synchrose/package.json",
+              "type": "file",
+              "size": 420,
+              "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/package.json",
+              "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/package.json"
+            },
+            {
               "name": "PASTEL GHOST ~ DARK BEACH.mp3",
               "path": "Others/Synchrose/PASTEL GHOST ~ DARK BEACH.mp3",
               "type": "file",
@@ -7628,7 +7660,7 @@
               "name": "styles.css",
               "path": "Others/Synchrose/styles.css",
               "type": "file",
-              "size": 71001,
+              "size": 76131,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/styles.css",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/styles.css"
             },
@@ -7660,7 +7692,7 @@
               "name": "worker.js",
               "path": "Others/Synchrose/worker.js",
               "type": "file",
-              "size": 9796,
+              "size": 9813,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/worker.js",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/worker.js"
             },
@@ -7668,7 +7700,7 @@
               "name": "wrangler.json",
               "path": "Others/Synchrose/wrangler.json",
               "type": "file",
-              "size": 201,
+              "size": 189,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/wrangler.json",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/wrangler.json"
             },
@@ -8211,6 +8243,14 @@
           ]
         }
       ]
+    },
+    {
+      "name": "wrangler.jsonc",
+      "path": "wrangler.jsonc",
+      "type": "file",
+      "size": 267,
+      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/wrangler.jsonc",
+      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/wrangler.jsonc"
     }
   ]
 }
