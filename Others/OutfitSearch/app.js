@@ -92,8 +92,16 @@ saveApiBtn.addEventListener("click", async () => {
     return;
   }
 
-  if (v.includes("github.io")) {
-    apiStatus.textContent = "That is the page URL. Paste the Cloudflare Worker URL instead.";
+  let apiUrl;
+  try {
+    apiUrl = new URL(v);
+  } catch {
+    apiStatus.textContent = "Enter a valid Worker URL.";
+    return;
+  }
+
+  if (apiUrl.origin === window.location.origin) {
+    apiStatus.textContent = "That is this website's URL. Paste the Cloudflare Worker URL instead.";
     return;
   }
 
@@ -386,8 +394,8 @@ async function api(path, options = {}) {
     data = text ? JSON.parse(text) : {};
   } catch {
     const preview = text.slice(0, 600).replace(/\s+/g, " ").trim();
-    const htmlMessage = looksLikeGithub404(text, res)
-      ? "The saved API URL is returning a GitHub Pages 404 page, not your Cloudflare Worker. Click Change API and paste your Worker URL."
+    const htmlMessage = looksLikeStaticHost404(text, res)
+      ? "The saved API URL is returning a website 404 page, not your Cloudflare Worker. Click Change API and paste your Worker URL."
       : `The API returned HTML or non-JSON instead of JSON. Status ${res.status}.`;
 
     const err = new Error(text.trim().startsWith("<") ? htmlMessage : `The API returned non-JSON text: ${preview.slice(0, 180)}`);
@@ -491,10 +499,10 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function looksLikeGithub404(text, res) {
+function looksLikeStaticHost404(text, res) {
   return (
     res.status === 404 &&
-    (text.includes("Page not found") || text.includes("GitHub Pages") || text.includes("File not found"))
+    (text.includes("Page not found") || text.includes("File not found"))
   );
 }
 

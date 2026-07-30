@@ -61,7 +61,7 @@ if _G.ws then return end
 	
 		game:GetService("Players").LocalPlayer.OnTeleport:Connect(function()
 			queueteleport([[
-				loadstring(game:HttpGet("https://ryxeleron.github.io/storage/other-stuff/iyr-execution.lua"))()
+				loadstring(game:HttpGet("https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/iyr-execution.lua"))()
 			]])
 			ws:Close()
 		end)

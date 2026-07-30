@@ -54,13 +54,13 @@
         <div class="callout warning"><strong>Accuracy boundary.</strong> “Updated”, “detected”, scores, prices and links are third-party claims. Always display the source and retrieval time, and never describe an item as safe solely because a source does.</div>
         <div class="card-grid metrics">
           <article><strong>2</strong><span>integrated sources</span></article>
-          <article><strong>Static</strong><span>GitHub Pages runtime</span></article>
+          <article><strong>Static</strong><span>Cloudflare Pages runtime</span></article>
           <article><strong>Read-only</strong><span>external data use</span></article>
           <article><strong>0</strong><span>official Pulsery/Inject APIs found</span></article>
         </div>
       </section>
 
-      <section id="architecture" data-search="architecture github pages workflow cache fetch normalize merge render">
+      <section id="architecture" data-search="architecture cloudflare pages workflow cache fetch normalize merge render">
         <p class="eyebrow">System design</p>
         <h2>Architecture</h2>
         <p>The current application is a large single HTML file. The target design separates data refresh, normalization, presentation and documentation so a source change does not require editing the whole interface.</p>
@@ -68,7 +68,7 @@
           <div><b>Documented sources</b><span>WEAO API · Voxlis repository</span></div>
           <i>→</i><div><b>Scheduled snapshot</b><span>GitHub Actions with provenance</span></div>
           <i>→</i><div><b>Normalize &amp; validate</b><span>Schema checks · aliases · timestamps</span></div>
-          <i>→</i><div><b>Static dashboard</b><span>GitHub Pages · cached JSON</span></div>
+          <i>→</i><div><b>Static dashboard</b><span>Cloudflare Pages · cached JSON</span></div>
         </div>
         <h3>Why snapshots are preferable</h3>
         <ul>
@@ -225,7 +225,7 @@ type SourceRef = {
           <li>External URLs restricted to <code>https:</code></li>
           <li>No upstream HTML inserted unsanitized</li>
           <li>Attributions, licenses and source timestamps visible</li>
-          <li>GitHub Pages checked from a clean browser session</li>
+          <li>Production Pages deployment checked from a clean browser session</li>
         </ul>
       </section>
 
@@ -249,7 +249,7 @@ type SourceRef = {
           <li>Add or update one source adapter; keep rendering independent of upstream response shape.</li>
           <li>Add fixtures for success, partial data, disagreement, 429 and offline behavior.</li>
           <li>Update this documentation and <code>source-audit.json</code> in the same pull request.</li>
-          <li>Use a draft pull request and include the GitHub Pages preview or screenshots.</li>
+          <li>Use a draft pull request and include the Cloudflare preview or screenshots.</li>
         </ol>
         <div class="footer-links">
           <a href="https://github.com/mxsynry/mxsynry.github.io">Repository</a>

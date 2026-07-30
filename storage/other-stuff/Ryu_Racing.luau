@@ -1,4 +1,4 @@
---loadstring(game:HttpGet("https://mxsynry.github.io/storage/other-stuff/Ryu_Racing.luau"))()
+--loadstring(game:HttpGet("https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Ryu_Racing.luau"))()
 
 local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")

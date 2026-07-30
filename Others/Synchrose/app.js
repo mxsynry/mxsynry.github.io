@@ -649,18 +649,7 @@ async function discoverMusicTracks() {
     console.warn("Local tree.json music scan failed", error);
   }
 
-  let files = sources.flatMap(collectMusicFiles);
-  if (!files.length) {
-    try {
-      const response = await fetch("https://api.github.com/repos/mxsynry/mxsynry.github.io/contents/Others/Synchrose?ref=main", {
-        cache: "no-store",
-        headers: { Accept: "application/vnd.github+json" }
-      });
-      if (response.ok) files = collectMusicFiles(await response.json());
-    } catch (error) {
-      console.warn("GitHub music scan failed", error);
-    }
-  }
+  const files = sources.flatMap(collectMusicFiles);
 
   const uniqueFiles = new Map();
   files.forEach(file => uniqueFiles.set(file.path, file));
@@ -669,11 +658,10 @@ async function discoverMusicTracks() {
     .map(file => {
       const encodedPath = file.path.split("/").map(encodeURIComponent).join("/");
       const sameOrigin = `${window.location.origin}/${encodedPath}`;
-      const raw = file.downloadUrl || `https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/${encodedPath}`;
       return {
         path: file.path,
         title: musicTitleFromPath(file.path),
-        sources: unique([sameOrigin, raw])
+        sources: unique([sameOrigin, file.downloadUrl].filter(Boolean))
       };
     });
 }

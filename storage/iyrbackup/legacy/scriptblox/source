@@ -30,7 +30,7 @@ if getconnections then
 end
 
 if IY_LOADED and not _G.IY_DEBUG == true then
-    loadstring(game:HttpGet(('https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/refs/heads/master/alreadyexecuted' or 'https://mxsynry.github.io/storage/iyrbackup/legacy/master/uselessscriptthatexistsinthisrepoiwin')))()
+    loadstring(game:HttpGet(('https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/refs/heads/master/alreadyexecuted' or 'https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/iyrbackup/legacy/master/uselessscriptthatexistsinthisrepoiwin')))()
     return
 end
 
@@ -6516,7 +6516,7 @@ local TeleportCheck = false
 Players.LocalPlayer.OnTeleport:Connect(function(State)
     if KeepInfYield and (not TeleportCheck) and queueteleport then
         TeleportCheck = true
-        queueteleport("loadstring(game:HttpGet(('https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/refs/heads/scriptblox/source' or 'https://mxsynry.github.io/storage/iyrbackup/legacy/scriptblox/source')))()")
+        queueteleport("loadstring(game:HttpGet(('https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/refs/heads/scriptblox/source' or 'https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/iyrbackup/legacy/scriptblox/source')))()")
     end
 end)
 
@@ -12124,12 +12124,12 @@ end)
 
 addcmd('betterexplorer', {'betterdex'}, function(args, speaker)
     notify('Loading', 'Hold on a sec')
-    loadstring(game:HttpGet(("https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/master/Elements/BetterDex" or 'https://mxsynry.github.io/storage/iyrbackup/legacy/master/Elements/BetterDex' or 'https://scriptblox.com/raw/Universal-Script-DEX-Explorer-For-Mobile-17871')))()
+    loadstring(game:HttpGet(("https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/master/Elements/BetterDex" or 'https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/iyrbackup/legacy/master/Elements/BetterDex' or 'https://scriptblox.com/raw/Universal-Script-DEX-Explorer-For-Mobile-17871')))()
 end)
 
 addcmd('solaraexplorer', {'solaradex'}, function(args, speaker)
     notify('Loading', 'Hold on a sec')
-    loadstring(game:HttpGet(("https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/master/Elements/SolaraDex" or 'https://mxsynry.github.io/storage/iyrbackup/legacy/master/Elements/SolaraDex')))()
+    loadstring(game:HttpGet(("https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/master/Elements/SolaraDex" or 'https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/iyrbackup/legacy/master/Elements/SolaraDex')))()
 end)
 
 addcmd('secureexplorer', {'securedex', "bypasseddex"}, function(args, speaker)
@@ -12222,7 +12222,7 @@ addcmd('remotespy',{'rspy'},function(args, speaker)
     if not IsOnMobile then
         loadstring(game:HttpGet("https://github.com/FurryBoyYT/synz_fixed_dex/raw/refs/heads/main/simple_spy.lua"))()
     else
-        loadstring(game:HttpGet(("https://raw.githubusercontent.com/realredz/SimpleSpy/refs/heads/main/Mobile.lua" or "https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/master/Elements/MobileSpy" or "https://mxsynry.github.io/storage/iyrbackup/legacy/master/Elements/MobileSpy")))()
+        loadstring(game:HttpGet(("https://raw.githubusercontent.com/realredz/SimpleSpy/refs/heads/main/Mobile.lua" or "https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/master/Elements/MobileSpy" or "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/iyrbackup/legacy/master/Elements/MobileSpy")))()
     end
 end)
 
@@ -15719,7 +15719,7 @@ end)
 
 local function iyonloadstuff(shouldpopupannouncement)
     local success, latestVersionInfo = pcall(function() 
-        local versionJson = game:HttpGet(('https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/refs/heads/scriptblox/version' or 'https://mxsynry.github.io/storage/iyrbackup/legacy/scriptblox/version'))
+        local versionJson = game:HttpGet(('https://raw.githubusercontent.com/mxsynry/infiniteyield-reborn/refs/heads/scriptblox/version' or 'https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/iyrbackup/legacy/scriptblox/version'))
         return HttpService:JSONDecode(versionJson)
     end)
 

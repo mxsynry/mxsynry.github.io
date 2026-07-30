@@ -65,7 +65,7 @@ addcmd('clienttoken', {'ctoken'}, function(args, speaker)
     
         game:GetService("Players").LocalPlayer.OnTeleport:Connect(function()
             queueteleport([[
-                loadstring(game:HttpGet("https://mxsynry.github.io/storage/other-stuff/iyr-execution/"))()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/iyr-execution/"))()
             ]])
             ws:Close()
         end)

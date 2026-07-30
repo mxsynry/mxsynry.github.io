@@ -105,7 +105,7 @@ async function fetchPulseryStatus() {
       method: "GET",
       headers: {
         accept: "application/json",
-        "user-agent": "Synchrose/1.0 (+https://mxsynry.github.io/Others/Synchrose/)"
+        "user-agent": "Synchrose/1.0"
       },
       redirect: "follow",
       signal: controller.signal
@@ -162,7 +162,7 @@ async function fetchPulseryReviews(executor, env) {
         accept: "application/json",
         apikey: apiKey,
         authorization: `Bearer ${apiKey}`,
-        "user-agent": "Synchrose/1.0 (+https://mxsynry.github.io/Others/Synchrose/)"
+        "user-agent": "Synchrose/1.0"
       },
       redirect: "follow",
       signal: controller.signal

@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0b0911" />
   <meta name="description" content="Search a public Roblox account and inspect its current avatar, saved outfits, animation packs, and equipped emotes." />
   <!-- Optional: put your deployed Worker URL in content to remove first-run setup. -->
-  <meta name="outfit-api-base" content="" />
+  <meta name="outfit-api-base" content="https://roblox-outfit-api.reatcount26-82a.workers.dev" />
   <title>OutfitSearch</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
@@ -15,7 +15,7 @@
   <div class="ambient ambient-two" aria-hidden="true"></div>
 
   <header class="site-header">
-    <a class="brand" href="/" aria-label="Back to mxsynry.github.io">
+    <a class="brand" href="/" aria-label="Back to site home">
       <span class="brand-mark" aria-hidden="true">
         <span></span><span></span><span></span>
       </span>
@@ -120,7 +120,7 @@
 
   <footer>
     <p>Public Roblox data only. No cookies, account login, or private inventory access.</p>
-    <a href="/">mxsynry.github.io</a>
+    <a href="/">Site home</a>
   </footer>
 
   <dialog id="apiDialog" class="modal compact-modal">
@@ -132,7 +132,7 @@
       <button class="modal-close" type="button" data-close-dialog="apiDialog" aria-label="Close">×</button>
     </div>
     <div class="modal-body">
-      <p class="modal-intro">OutfitSearch needs the included Worker because Roblox blocks these requests from a normal GitHub Pages tab.</p>
+      <p class="modal-intro">OutfitSearch needs the included Worker because Roblox blocks these requests from a normal static website.</p>
       <label class="field-label" for="apiBaseInput">Worker URL</label>
       <div class="api-input-row">
         <input id="apiBaseInput" inputmode="url" autocomplete="url" placeholder="https://your-worker.workers.dev" />

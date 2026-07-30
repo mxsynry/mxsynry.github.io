@@ -1,13 +1,13 @@
 # OutfitSearch
 
-A GitHub Pages frontend for public Roblox avatar data, plus a small Cloudflare Worker that makes the Roblox API requests.
+A static frontend for public Roblox avatar data, plus a small Cloudflare Worker that makes the Roblox API requests.
 
 ## Put it in the repository
 
 Copy this entire folder to:
 
 ```text
-mxsynry.github.io/
+site-root/
 └── Others/
     └── OutfitSearch/
         ├── index.html
@@ -18,7 +18,7 @@ mxsynry.github.io/
         └── README.md
 ```
 
-GitHub Pages serves `index.html`, `styles.css`, and `app.js`. `worker.js` does not run on GitHub Pages; deploy it to Cloudflare.
+Your static host serves `index.html`, `styles.css`, and `app.js`. `worker.js` must be deployed separately to Cloudflare Workers.
 
 ## Deploy the Worker
 

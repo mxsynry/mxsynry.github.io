@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#1e1e2e">
-<meta name="description" content="Browse mxsynry.github.io files and preview assets.">
-<link rel="icon" href="https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/globe.ico" type="image/x-icon">
-<title>mxsynry.github.io</title>
+<meta name="description" content="Browse site files and preview assets.">
+<link rel="icon" href="./Others/Synchrose/globe.ico" type="image/x-icon">
+<title>Site files</title>
 <style>
 :root {
   color-scheme: dark;
@@ -202,11 +202,11 @@ button, select, input { font: inherit; }
 <div class="app-shell">
   <header class="header">
     <div class="logo" aria-hidden="true">
-      <img src="https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/globe.ico" alt="Synchrose">
+      <img src="./Others/Synchrose/globe.ico" alt="Synchrose">
     </div>
     <div class="title-wrap">
       <div class="title-row">
-        <h1><span>mxsynry.github.io</span></h1>
+        <h1><span id="siteHostLabel">Site files</span></h1>
         <span class="badge" id="fileCountBadge">0 files</span>
         <span class="badge" id="currentModeBadge">HTML opens: Site</span>
       </div>
@@ -214,7 +214,7 @@ button, select, input { font: inherit; }
     </div>
     <div class="header-actions">
       <a class="btn ghost" href="https://github.com/mxsynry/mxsynry.github.io" target="_blank" rel="noopener">GitHub</a>
-      <a class="btn primary" href="https://mxsynry.github.io" target="_blank" rel="noopener">Live Site</a>
+      <a class="btn primary" href="/" target="_blank" rel="noopener">Live Site</a>
     </div>
   </header>
 
@@ -230,7 +230,7 @@ button, select, input { font: inherit; }
       </div>
       <label class="select-wrap">Open HTML
         <select class="select" id="htmlOpenMode" title="What happens when you click an HTML file">
-          <option value="pages">mxsynry.github.io path</option>
+          <option value="pages">Current site path</option>
           <option value="preview">Preview code here</option>
           <option value="github">GitHub file page</option>
           <option value="raw">Raw file</option>
@@ -248,7 +248,7 @@ button, select, input { font: inherit; }
       <div id="tree"></div>
     </aside>
     <main class="content">
-      <div class="breadcrumb" id="breadcrumb">mxsynry.github.io</div>
+      <div class="breadcrumb" id="breadcrumb">Home</div>
       <div class="main" id="main"></div>
     </main>
   </div>
@@ -267,11 +267,15 @@ button, select, input { font: inherit; }
 <div class="toast" id="toast"></div>
 
 <script>
+const SITE_LABEL = window.location.hostname || 'Site files';
+document.title = `${SITE_LABEL} // files`;
+document.getElementById('siteHostLabel').textContent = SITE_LABEL;
+
 const CONFIG = {
   owner: 'mxsynry',
   repo: 'mxsynry.github.io',
   branch: 'main',
-  pagesOrigin: 'https://mxsynry.github.io'
+  pagesOrigin: window.location.origin
 };
 
 let SNAPSHOT = null;
@@ -444,7 +448,7 @@ function render() {
   });
 
   const parts = currentPath ? currentPath.split('/').filter(Boolean) : [];
-  let bcHtml = '<span class="bc-root" data-path="">mxsynry.github.io</span>';
+  let bcHtml = `<span class="bc-root" data-path="">${escapeHtml(SITE_LABEL)}</span>`;
   let acc = '';
   parts.forEach((part, i) => {
     acc = acc ? acc + '/' + part : part;
@@ -576,7 +580,7 @@ function previewFile(item, path) {
   const site = getPagesUrl(path);
   title.textContent = item.name;
   body.innerHTML = '<div class="loading">Loading preview...</div>';
-  actions.innerHTML = `${isHtmlFile(item) ? `<a class="mini-btn primary" href="${escapeHtml(site)}" target="_blank" rel="noopener">Open on GitHub Pages</a>` : ''}<a class="mini-btn" href="${escapeHtml(raw)}" target="_blank" rel="noopener" download>Raw / Download</a><a class="mini-btn" href="${escapeHtml(gh)}" target="_blank" rel="noopener">GitHub</a><button class="mini-btn" id="previewCloseBtn" type="button">Close</button>`;
+  actions.innerHTML = `${isHtmlFile(item) ? `<a class="mini-btn primary" href="${escapeHtml(site)}" target="_blank" rel="noopener">Open on site</a>` : ''}<a class="mini-btn" href="${escapeHtml(raw)}" target="_blank" rel="noopener" download>Raw / Download</a><a class="mini-btn" href="${escapeHtml(gh)}" target="_blank" rel="noopener">GitHub</a><button class="mini-btn" id="previewCloseBtn" type="button">Close</button>`;
   openPreview();
   document.getElementById('previewCloseBtn').onclick = closePreview;
 

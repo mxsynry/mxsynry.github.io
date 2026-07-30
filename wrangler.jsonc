@@ -1,12 +1,11 @@
 {
-  "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "mxsynry-github-io",
+  "name": "mxsynry-site",
   "compatibility_date": "2026-07-30",
   "observability": {
     "enabled": true
   },
   "assets": {
-    "directory": "."
+    "directory": "./pages-dist"
   },
   "compatibility_flags": [
     "nodejs_compat"

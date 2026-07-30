@@ -1,6 +1,6 @@
 # Synchrose
 
-Static GitHub Pages frontend with a small Cloudflare Worker for Pulsery's public exploit status and approved user reviews.
+Static frontend with a small Cloudflare Worker for Pulsery's public exploit status and approved user reviews.
 
 ## Data routes
 
@@ -26,7 +26,7 @@ Static GitHub Pages frontend with a small Cloudflare Worker for Pulsery's public
 For a temporary test without editing the meta tag, open:
 
 ```text
-https://mxsynry.github.io/Others/Synchrose/?api=https://YOUR-WORKER.workers.dev
+https://YOUR-SITE.example/Others/Synchrose/?api=https://YOUR-WORKER.workers.dev
 ```
 
 The query value is stored in this browser. Remove it with:

@@ -1,4 +1,4 @@
-# [\..](https://mxsynry.github.io/storage/iyrbackup/)
+# [\..](https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/iyrbackup/)
 
 # <h1 align="center">![IYR1](https://github.com/user-attachments/assets/3a9ca248-b931-41a9-b46e-b503f3c051f0)
 </h1>

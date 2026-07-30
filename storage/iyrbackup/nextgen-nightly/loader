@@ -135,7 +135,7 @@ RunButton.MouseEnter:Connect(function() Tweens[3]:Play() end)
 RunButton.MouseLeave:Connect(function() Tweens[4]:Play() end)
 RunButton.Activated:Connect(function()
 	exit()
-	loadstring(game:HttpGet(`https://ryxeleron.github.io/storage/iyrbackup/{BuildMode == 'Release' and 'nextgen' or (BuildMode == 'Nightly' and 'nextgen-nightly')}/main`))()
+	loadstring(game:HttpGet(`https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/iyrbackup/{BuildMode == 'Release' and 'nextgen' or (BuildMode == 'Nightly' and 'nextgen-nightly')}/main`))()
 end)
 
 RunButtonStroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
