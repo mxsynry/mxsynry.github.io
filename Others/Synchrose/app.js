@@ -62,6 +62,15 @@ const PRICE_ALIASES = Object.freeze({
   bunnifun: "bunni"
 });
 
+const REVIEW_METRIC_LABELS = Object.freeze({
+  stability: "Stability",
+  "script support": "Script support",
+  "executor support": "Executor support",
+  "ease of use": "Ease of use",
+  ui: "UI",
+  updates: "Updates"
+});
+
 const state = {
   weaoRows: [],
   voxlisRows: [],
@@ -189,6 +198,18 @@ function bindEvents() {
     if (compareInput) {
       toggleCompare(compareInput.dataset.compare, compareInput.checked);
     }
+  });
+
+  dom.detailContent?.addEventListener("click", event => {
+    const sortButton = event.target.closest("[data-review-sort]");
+    if (!sortButton) return;
+
+    const sortMode = sortButton.dataset.reviewSort === "critical" ? "critical" : "recent";
+    const item = state.all.find(row => row.id === dom.detailDialog?.dataset.itemId);
+    if (!item || item.pulseryReviewSort === sortMode) return;
+
+    item.pulseryReviewSort = sortMode;
+    replacePulseryReviewSection(item, sortMode);
   });
 
   dom.clearCompare?.addEventListener("click", clearCompare);
@@ -1188,7 +1209,8 @@ function rebuildCatalog() {
         reviewRequested: previous.reviewRequested === true,
         pulseryReviews: previous.pulseryReviews,
         pulseryReviewsRequested: previous.pulseryReviewsRequested === true,
-        pulseryReviewsError: previous.pulseryReviewsError || ""
+        pulseryReviewsError: previous.pulseryReviewsError || "",
+        pulseryReviewSort: previous.pulseryReviewSort || "recent"
       };
     })
     .sort((a, b) => a.name.localeCompare(b.name));
@@ -1308,6 +1330,7 @@ function mergeRows(weao, voxlis, pulsery, inject, key) {
     pulseryReviews: null,
     pulseryReviewsRequested: false,
     pulseryReviewsError: "",
+    pulseryReviewSort: "recent",
     source: sources.length > 1 ? "multi" : sources[0],
     sources,
     observations: providerObservations(bySource),
@@ -1904,7 +1927,7 @@ function pulseryReviewsMarkup(item) {
 
   if (item.pulseryReviewsError) {
     return `
-      <section class="detail-section review-section">
+      <section class="detail-section review-section" data-pulsery-reviews>
         <div class="review-section-heading"><h3>Pulsery user reviews</h3><span>Unavailable</span></div>
         <p class="review-message">Reviews could not be loaded right now.</p>
       </section>`;
@@ -1912,7 +1935,7 @@ function pulseryReviewsMarkup(item) {
 
   if (!Array.isArray(item.pulseryReviews)) {
     return `
-      <section class="detail-section review-section" aria-busy="true">
+      <section class="detail-section review-section" data-pulsery-reviews aria-busy="true">
         <div class="review-section-heading"><h3>Pulsery user reviews</h3><span>Loading</span></div>
         <div class="review-loading"><i></i><i></i><i></i></div>
       </section>`;
@@ -1920,21 +1943,46 @@ function pulseryReviewsMarkup(item) {
 
   if (!item.pulseryReviews.length) {
     return `
-      <section class="detail-section review-section">
+      <section class="detail-section review-section" data-pulsery-reviews>
         <div class="review-section-heading"><h3>Pulsery user reviews</h3><span>0 notes</span></div>
         <p class="review-message">No approved user notes yet.</p>
       </section>`;
   }
 
-  const visibleReviews = item.pulseryReviews.slice(0, 20);
+  const sortMode = item.pulseryReviewSort === "critical" ? "critical" : "recent";
+  const sortedReviews = sortPulseryReviews(item.pulseryReviews, sortMode);
+  const visibleReviews = sortedReviews.slice(0, 20);
+  const ratings = item.pulseryReviews
+    .map(review => Number(review.rating))
+    .filter(Number.isFinite)
+    .map(rating => Math.max(0, Math.min(5, rating)));
+  const averageRating = ratings.length
+    ? ratings.reduce((total, rating) => total + rating, 0) / ratings.length
+    : null;
+
   return `
-    <section class="detail-section review-section">
+    <section class="detail-section review-section review-section-enter" data-pulsery-reviews>
       <div class="review-section-heading">
         <h3>Pulsery user reviews</h3>
         <span>${item.pulseryReviews.length} note${item.pulseryReviews.length === 1 ? "" : "s"}</span>
       </div>
+      <div class="review-toolbar">
+        <div class="review-average">
+          ${Number.isFinite(averageRating) ? reviewStars(averageRating) : `<span class="review-message">No rating</span>`}
+          <small>Average</small>
+        </div>
+        <div class="review-tabs" role="tablist" aria-label="Sort Pulsery reviews">
+          <button type="button" role="tab" data-review-sort="recent" aria-selected="${sortMode === "recent"}" class="${sortMode === "recent" ? "is-active" : ""}">
+            Most recent
+          </button>
+          <button type="button" role="tab" data-review-sort="critical" aria-selected="${sortMode === "critical"}" class="${sortMode === "critical" ? "is-active" : ""}">
+            Most critical
+          </button>
+        </div>
+      </div>
       <div class="review-list">
-        ${visibleReviews.map(review => {
+        ${visibleReviews.map((review, reviewIndex) => {
+          const parsedReview = parsePulseryReview(review.text || "");
           const avatar = safeUrl(review.avatar_url)
             ? `<img class="review-avatar" src="${h(review.avatar_url)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
             : `<span class="review-avatar review-initial" aria-hidden="true">${h((review.author || "?").slice(0, 1).toUpperCase())}</span>`;
@@ -1943,17 +1991,18 @@ function pulseryReviewsMarkup(item) {
             .filter(Boolean)
             .slice(0, 4);
           return `
-            <article class="user-review">
+            <article class="user-review" style="--review-delay: ${Math.min(reviewIndex * 24, 180)}ms">
               <header class="review-head">
                 ${avatar}
-                <div>
+                <div class="review-author">
                   <strong>${h(review.author || "Pulsery user")}</strong>
                   <small>${h(formatReviewDate(review.created_at))}</small>
                 </div>
                 ${reviewStars(review.rating)}
               </header>
-              <div class="review-copy">${catalogTextMarkup(review.text || "")}</div>
-              ${screenshots.length ? `<div class="review-screenshots">${screenshots.map((url, index) => `<a href="${h(url)}" target="_blank" rel="noopener noreferrer"><img src="${h(url)}" alt="Review screenshot ${index + 1}" loading="lazy" referrerpolicy="no-referrer"></a>`).join("")}</div>` : ""}
+              ${reviewMetricsMarkup(parsedReview.metrics)}
+              ${parsedReview.body ? `<div class="review-copy">${catalogTextMarkup(parsedReview.body)}</div>` : ""}
+              ${screenshots.length ? `<div class="review-screenshots">${screenshots.map((url, index) => `<a href="${h(url)}" target="_blank" rel="noopener noreferrer" aria-label="Open review screenshot ${index + 1}"><img src="${h(url)}" alt="" loading="lazy" referrerpolicy="no-referrer"><span aria-hidden="true">↗</span></a>`).join("")}</div>` : ""}
               ${review.reply_text ? `
                 <div class="review-reply">
                   <strong>${h(review.reply_author || "Developer reply")}</strong>
@@ -1963,15 +2012,99 @@ function pulseryReviewsMarkup(item) {
             </article>`;
         }).join("")}
       </div>
-      ${item.pulseryReviews.length > visibleReviews.length ? `<p class="review-message">Showing the newest ${visibleReviews.length} approved notes.</p>` : ""}
+      ${item.pulseryReviews.length > visibleReviews.length ? `<p class="review-message">Showing ${visibleReviews.length} of ${item.pulseryReviews.length} notes.</p>` : ""}
     </section>`;
+}
+
+function replacePulseryReviewSection(item, focusSort) {
+  const currentSection = dom.detailContent?.querySelector("[data-pulsery-reviews]");
+  if (!currentSection) {
+    renderDetails(item);
+    return;
+  }
+
+  const template = document.createElement("template");
+  template.innerHTML = pulseryReviewsMarkup(item).trim();
+  const nextSection = template.content.firstElementChild;
+  if (!nextSection) return;
+
+  currentSection.replaceWith(nextSection);
+  nextSection.querySelector(`[data-review-sort="${focusSort}"]`)?.focus({ preventScroll: true });
+}
+
+function sortPulseryReviews(reviews, mode) {
+  return [...reviews].sort((left, right) => {
+    if (mode === "critical") {
+      const leftRating = Number.isFinite(Number(left?.rating)) ? Number(left.rating) : 6;
+      const rightRating = Number.isFinite(Number(right?.rating)) ? Number(right.rating) : 6;
+      if (leftRating !== rightRating) return leftRating - rightRating;
+    }
+
+    return reviewTimestamp(right?.created_at) - reviewTimestamp(left?.created_at);
+  });
+}
+
+function reviewTimestamp(value) {
+  const timestamp = new Date(value || "").valueOf();
+  return Number.isFinite(timestamp) ? timestamp : 0;
+}
+
+function parsePulseryReview(value) {
+  const metrics = [];
+  const seenMetrics = new Set();
+  const bodyLines = [];
+
+  String(value || "").split(/\r?\n/).forEach(line => {
+    const match = line.trim().match(/^\[\s*([^:\]]+)\s*:\s*(\d+(?:\.\d+)?)\s*\/\s*5\s*\]$/i);
+    const metricKey = match
+      ? match[1].replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim().toLowerCase()
+      : "";
+    const metricLabel = REVIEW_METRIC_LABELS[metricKey];
+
+    if (match && metricLabel && !seenMetrics.has(metricKey)) {
+      seenMetrics.add(metricKey);
+      metrics.push({
+        label: metricLabel,
+        value: Math.max(0, Math.min(5, Number(match[2])))
+      });
+      return;
+    }
+
+    bodyLines.push(line.trim());
+  });
+
+  return {
+    metrics,
+    body: bodyLines.join("\n").replace(/\n{3,}/g, "\n\n").trim()
+  };
+}
+
+function reviewMetricsMarkup(metrics) {
+  if (!metrics.length) return "";
+
+  return `
+    <div class="review-breakdown" aria-label="Review category ratings">
+      ${metrics.map(metric => {
+        const scorePercent = Math.round((metric.value / 5) * 100);
+        return `
+          <div class="review-metric" style="--review-score: ${scorePercent}%">
+            <span>${h(metric.label)}</span>
+            <strong>${h(trimNumber(metric.value))}<small>/5</small></strong>
+            <i aria-hidden="true"><b></b></i>
+          </div>`;
+      }).join("")}
+    </div>`;
 }
 
 function reviewStars(value) {
   if (!Number.isFinite(Number(value))) return "";
   const rating = Math.max(0, Math.min(5, Number(value)));
   const rounded = Math.round(rating);
-  return `<span class="review-stars" aria-label="${h(`${trimNumber(rating)} out of 5 stars`)}">${"★".repeat(rounded)}<i>${"★".repeat(5 - rounded)}</i></span>`;
+  return `
+    <span class="review-rating" aria-label="${h(`${trimNumber(rating)} out of 5 stars`)}">
+      <strong>${h(trimNumber(rating))}<small>/5</small></strong>
+      <span class="review-stars" aria-hidden="true">${"★".repeat(rounded)}<i>${"★".repeat(5 - rounded)}</i></span>
+    </span>`;
 }
 
 function toggleCompare(id, checked) {

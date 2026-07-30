@@ -1,0 +1,14 @@
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+.env*
+!.env.example
+
+# Local dependencies and Wrangler state
+node_modules/
+.wrangler/
+.dev.vars
+.env
+.env.*
+!.env.example

@@ -1,7 +1,7 @@
 // Dedicated read-only data bridge for Synchrose.
 // It exposes fixed Pulsery status and approved-review routes; it is not an open proxy.
 
-const WORKER_VERSION = "2026-07-30.1-pulsery-reviews";
+const WORKER_VERSION = "2026-07-30.2-pulsery-review-errors";
 const PULSERY_STATUS_URL = "https://pulsery.gg/api/status";
 const PULSERY_REVIEWS_URL = "https://fsaenqbyrqbfkrvvwzwo.supabase.co/rest/v1/reviews";
 const CACHE_TTL_SECONDS = 300;
@@ -47,7 +47,7 @@ export default {
       }
 
       if (url.pathname === "/api/pulsery/status") {
-        return cacheOrRun(request, ctx, fetchPulseryStatus);
+        return await cacheOrRun(request, ctx, fetchPulseryStatus);
       }
 
       if (url.pathname === "/api/pulsery/reviews") {
@@ -55,7 +55,7 @@ export default {
         if (!REVIEW_EXECUTOR_PATTERN.test(executor)) {
           return json({ ok: false, error: "A valid executor name is required." }, 400);
         }
-        return cacheOrRun(request, ctx, () => fetchPulseryReviews(executor, env));
+        return await cacheOrRun(request, ctx, () => fetchPulseryReviews(executor, env));
       }
 
       return json({ ok: false, error: "Not found.", path: url.pathname }, 404);
