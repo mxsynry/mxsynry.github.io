@@ -23,3 +23,6 @@ This section is automatically generated from the HTML files in this repository.
 | [Others/OutfitSearch](./Others/OutfitSearch/) | `Others/OutfitSearch/index.html` |
 | [Others/Synchrose](./Others/Synchrose/) | `Others/Synchrose/index.html` |
 <!-- pages-index:end -->
+
+
+(ur lowk ragebaiting bro, https://mxsynry.pages.dev/Others/Synchrose/#catalog)
