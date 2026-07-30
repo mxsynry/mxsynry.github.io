@@ -12,6 +12,7 @@ const ENDPOINTS = Object.freeze({
   voxlisRaw: "https://raw.githubusercontent.com/localscripts/voxlis.NET/main/public/data/roblox",
   voxlisPrices: "https://raw.githubusercontent.com/localscripts/voxlis.NET/main/public/data/roblox/prices.json",
   pulseryStatus: SYNCHROSE_API_BASE ? `${SYNCHROSE_API_BASE}/api/pulsery/status` : "",
+  pulseryReviews: SYNCHROSE_API_BASE ? `${SYNCHROSE_API_BASE}/api/pulsery/reviews` : "",
   injectCheats: "https://inject.today/api/cheats",
   injectVersions: "https://inject.today/api/versions/current"
 });
@@ -159,6 +160,7 @@ function bindEvents() {
 
   dom.clearFilters?.addEventListener("click", () => {
     dom.filterForm?.reset();
+    if (dom.searchInput) dom.searchInput.value = "";
     applyFilters();
     dom.searchInput?.focus();
   });
@@ -193,13 +195,18 @@ function bindEvents() {
   dom.openCompare?.addEventListener("click", openComparison);
 
   document.querySelectorAll("[data-close-dialog]").forEach(button => {
-    button.addEventListener("click", () => document.querySelector(`#${button.dataset.closeDialog}`)?.close());
+    button.addEventListener("click", () => closeDialogAnimated(document.querySelector(`#${button.dataset.closeDialog}`)));
   });
 
   [dom.detailDialog, dom.compareDialog].filter(Boolean).forEach(dialog => {
     dialog.addEventListener("click", event => {
-      if (event.target === dialog) dialog.close();
+      if (event.target === dialog) closeDialogAnimated(dialog);
     });
+    dialog.addEventListener("cancel", event => {
+      event.preventDefault();
+      closeDialogAnimated(dialog);
+    });
+    dialog.addEventListener("close", () => dialog.classList.remove("is-closing"));
   });
 
   document.addEventListener("keydown", event => {
@@ -214,6 +221,33 @@ function bindEvents() {
   document.querySelectorAll(".mobile-menu nav a").forEach(link => {
     link.addEventListener("click", () => link.closest("details")?.removeAttribute("open"));
   });
+}
+
+function showDialogAnimated(dialog) {
+  if (!dialog) return;
+  dialog.classList.remove("is-closing");
+  if (!dialog.open) dialog.showModal();
+}
+
+function closeDialogAnimated(dialog) {
+  if (!dialog?.open || dialog.classList.contains("is-closing")) return;
+  const reducedMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  if (reducedMotion) {
+    dialog.close();
+    return;
+  }
+
+  dialog.classList.add("is-closing");
+  let finished = false;
+  const finish = event => {
+    if (finished || (event && event.target !== dialog)) return;
+    finished = true;
+    window.clearTimeout(fallback);
+    dialog.classList.remove("is-closing");
+    if (dialog.open) dialog.close();
+  };
+  const fallback = window.setTimeout(() => finish(), 260);
+  dialog.addEventListener("animationend", finish, { once: true });
 }
 
 function setRddMode(mode) {
@@ -1008,6 +1042,7 @@ function normalizePulseryRow(item) {
 
   return {
     id: canonicalName(name),
+    pulseryId: cleanValue(item?.id || item?.name, ""),
     name,
     platforms: platforms.length ? platforms : ["unknown"],
     platform: platforms[0] || "unknown",
@@ -1134,6 +1169,7 @@ function normalizeInjectRows(name, item, versions) {
 }
 
 function rebuildCatalog() {
+  const previousById = new Map(state.all.map(item => [item.id, item]));
   const weao = aggregateByName(state.weaoRows);
   const voxlis = aggregateByName(state.voxlisRows);
   const pulsery = aggregateByName(state.pulseryRows);
@@ -1143,6 +1179,18 @@ function rebuildCatalog() {
   state.all = keys
     .map(key => mergeRows(weao.get(key), voxlis.get(key), pulsery.get(key), inject.get(key), key))
     .filter(Boolean)
+    .map(item => {
+      const previous = previousById.get(item.id);
+      if (!previous) return item;
+      return {
+        ...item,
+        review: previous.review || item.review,
+        reviewRequested: previous.reviewRequested === true,
+        pulseryReviews: previous.pulseryReviews,
+        pulseryReviewsRequested: previous.pulseryReviewsRequested === true,
+        pulseryReviewsError: previous.pulseryReviewsError || ""
+      };
+    })
     .sort((a, b) => a.name.localeCompare(b.name));
 
   for (const id of [...state.compare]) {
@@ -1256,6 +1304,10 @@ function mergeRows(weao, voxlis, pulsery, inject, key) {
     reviewCount: firstFiniteValue([pulsery, inject, voxlis, weao], "reviewCount"),
     stabilityScore: firstFiniteValue([pulsery, inject, voxlis, weao], "stabilityScore"),
     myriadScore: firstFiniteValue([pulsery, inject, voxlis, weao], "myriadScore"),
+    pulseryId: pulsery?.pulseryId || pulsery?.name || null,
+    pulseryReviews: null,
+    pulseryReviewsRequested: false,
+    pulseryReviewsError: "",
     source: sources.length > 1 ? "multi" : sources[0],
     sources,
     observations: providerObservations(bySource),
@@ -1439,7 +1491,7 @@ function renderGrid() {
   dom.gridView.innerHTML = state.filtered.map((item, index) => {
     const status = updateUi(item);
     const detection = detectionText(item);
-    const description = item.description || "No notes yet.";
+    const description = cleanCatalogText(item.description).replace(/\s+/g, " ") || "No notes yet.";
     const features = getFeatures(item).slice(0, 4);
     const selected = state.compare.has(item.id);
 
@@ -1528,7 +1580,13 @@ function setView(view, { render = true } = {}) {
   dom.tableView.toggleAttribute("hidden", gridIsActive);
   dom.gridView.setAttribute("aria-hidden", String(!gridIsActive));
   dom.tableView.setAttribute("aria-hidden", String(gridIsActive));
-  if (render) renderActiveView();
+  if (render) {
+    renderActiveView();
+    const activeView = gridIsActive ? dom.gridView : dom.tableView;
+    activeView?.classList.remove("view-enter");
+    void activeView?.offsetWidth;
+    activeView?.classList.add("view-enter");
+  }
 }
 
 function updateStats() {
@@ -1729,9 +1787,17 @@ function openDetails(id) {
   const item = state.all.find(row => row.id === id);
   if (!item) return;
 
+  const shouldLoadPulseryReviews = Boolean(
+    item.pulseryId
+    && ENDPOINTS.pulseryReviews
+    && !item.pulseryReviewsRequested
+    && !Array.isArray(item.pulseryReviews)
+  );
+  if (shouldLoadPulseryReviews) item.pulseryReviewsRequested = true;
+
   dom.detailDialog.dataset.itemId = id;
   renderDetails(item);
-  if (!dom.detailDialog.open) dom.detailDialog.showModal();
+  showDialogAnimated(dom.detailDialog);
 
   if (item.reviewUrl && !item.review && !item.reviewRequested) {
     item.reviewRequested = true;
@@ -1746,11 +1812,38 @@ function openDetails(id) {
         if (dom.detailDialog.open && dom.detailDialog.dataset.itemId === id) renderDetails(item);
       });
   }
+
+  if (shouldLoadPulseryReviews) loadPulseryReviews(item, id);
+}
+
+async function loadPulseryReviews(item, id) {
+  let reviews = [];
+  let errorMessage = "";
+  try {
+    const url = new URL(ENDPOINTS.pulseryReviews);
+    url.searchParams.set("executor", item.pulseryId);
+    const payload = await fetchJson(url.toString());
+    reviews = Array.isArray(payload?.reviews) ? payload.reviews : [];
+  } catch (error) {
+    console.warn(`Pulsery reviews unavailable for ${item.name}`, error);
+    errorMessage = friendlyError(error);
+  }
+
+  const currentItem = state.all.find(row => row.id === id) || item;
+  currentItem.pulseryReviews = reviews;
+  currentItem.pulseryReviewsError = errorMessage;
+  if (currentItem !== item) {
+    item.pulseryReviews = reviews;
+    item.pulseryReviewsError = errorMessage;
+  }
+
+  if (dom.detailDialog.open && dom.detailDialog.dataset.itemId === id) renderDetails(currentItem);
 }
 
 function renderDetails(item) {
   const status = updateUi(item);
   const features = getFeatures(item);
+  const previousScroll = dom.detailDialog?.scrollTop || 0;
   const links = [
     item.website ? `<a class="button button-primary button-small" href="${h(item.website)}" target="_blank" rel="noopener noreferrer">Official website ↗</a>` : "",
     item.discord ? `<a class="button button-secondary button-small" href="${h(item.discord)}" target="_blank" rel="noopener noreferrer">Discord ↗</a>` : "",
@@ -1767,7 +1860,7 @@ function renderDetails(item) {
     <div class="detail-heading">
       <span class="kicker">${h(item.extType || "Catalog entry")}</span>
       <h2 id="detailTitle">${h(item.name)}</h2>
-      <p>${h(item.description || "No description is currently available.")}</p>
+      <div class="detail-description">${catalogTextMarkup(item.description || "No description is currently available.")}</div>
       <div class="detail-status-row">
         <span class="status-badge ${status.className}">${h(status.label)}</span>
         ${sourceBadges(item)}
@@ -1784,18 +1877,101 @@ function renderDetails(item) {
       ${metricMarkup("Last reported", item.updatedDate)}
       ${metricMarkup("Source", sourceLabel(item))}
       ${metricMarkup("Type", item.extType)}
-      ${Number.isFinite(item.rating) && (item.rating > 0 || item.reviewCount > 0) ? metricMarkup("Pulsery rating", `${trimNumber(item.rating)} / 5`) : ""}
+      ${Number.isFinite(item.rating) && (item.rating > 0 || item.reviewCount > 0) ? metricMarkup("Pulsery rating", `${trimNumber(item.rating)} / 5${Number.isFinite(item.reviewCount) ? ` · ${item.reviewCount} reviews` : ""}`) : ""}
       ${Number.isFinite(item.stabilityScore) ? metricMarkup("Stability", `${trimNumber(item.stabilityScore)} / 100`) : ""}
       ${Number.isFinite(item.myriadScore) ? metricMarkup("Myriad", `${trimNumber(item.myriadScore)} / 100`) : ""}
     </div>
     ${item.conflicts?.length ? `<div class="detail-section source-conflict"><h3>Sources disagree</h3><p>${h(item.conflicts.join(" and "))}. The primary value follows WEAO, then Pulsery, then Inject.</p></div>` : ""}
     ${features.length ? `<div class="detail-section"><h3>Features</h3><div class="feature-row">${features.map(feature => `<span class="feature-chip">${h(feature)}</span>`).join("")}</div></div>` : ""}
-    ${item.proSummary ? `<div class="detail-section"><h3>Why people use it</h3><p>${h(item.proSummary)}</p></div>` : ""}
-    ${item.neutralSummary ? `<div class="detail-section"><h3>More notes</h3><p>${h(item.neutralSummary)}</p></div>` : ""}
-    ${item.conSummary ? `<div class="detail-section"><h3>The catch</h3><p>${h(item.conSummary)}</p></div>` : ""}
+    ${item.proSummary ? `<div class="detail-section"><h3>Why people use it</h3>${catalogTextMarkup(item.proSummary)}</div>` : ""}
+    ${item.neutralSummary ? `<div class="detail-section"><h3>More notes</h3>${catalogTextMarkup(item.neutralSummary)}</div>` : ""}
+    ${item.conSummary ? `<div class="detail-section"><h3>The catch</h3>${catalogTextMarkup(item.conSummary)}</div>` : ""}
     ${review}
+    ${pulseryReviewsMarkup(item)}
     ${links ? `<div class="detail-links">${links}</div>` : ""}
   `;
+
+  if (dom.detailDialog?.open) {
+    dom.detailDialog.scrollTop = previousScroll;
+    dom.detailContent.classList.remove("content-refresh");
+    void dom.detailContent.offsetWidth;
+    dom.detailContent.classList.add("content-refresh");
+  }
+}
+
+function pulseryReviewsMarkup(item) {
+  if (!item.pulseryId) return "";
+
+  if (item.pulseryReviewsError) {
+    return `
+      <section class="detail-section review-section">
+        <div class="review-section-heading"><h3>Pulsery user reviews</h3><span>Unavailable</span></div>
+        <p class="review-message">Reviews could not be loaded right now.</p>
+      </section>`;
+  }
+
+  if (!Array.isArray(item.pulseryReviews)) {
+    return `
+      <section class="detail-section review-section" aria-busy="true">
+        <div class="review-section-heading"><h3>Pulsery user reviews</h3><span>Loading</span></div>
+        <div class="review-loading"><i></i><i></i><i></i></div>
+      </section>`;
+  }
+
+  if (!item.pulseryReviews.length) {
+    return `
+      <section class="detail-section review-section">
+        <div class="review-section-heading"><h3>Pulsery user reviews</h3><span>0 notes</span></div>
+        <p class="review-message">No approved user notes yet.</p>
+      </section>`;
+  }
+
+  const visibleReviews = item.pulseryReviews.slice(0, 20);
+  return `
+    <section class="detail-section review-section">
+      <div class="review-section-heading">
+        <h3>Pulsery user reviews</h3>
+        <span>${item.pulseryReviews.length} note${item.pulseryReviews.length === 1 ? "" : "s"}</span>
+      </div>
+      <div class="review-list">
+        ${visibleReviews.map(review => {
+          const avatar = safeUrl(review.avatar_url)
+            ? `<img class="review-avatar" src="${h(review.avatar_url)}" alt="" loading="lazy" referrerpolicy="no-referrer">`
+            : `<span class="review-avatar review-initial" aria-hidden="true">${h((review.author || "?").slice(0, 1).toUpperCase())}</span>`;
+          const screenshots = toArray(review.screenshots)
+            .map(safeUrl)
+            .filter(Boolean)
+            .slice(0, 4);
+          return `
+            <article class="user-review">
+              <header class="review-head">
+                ${avatar}
+                <div>
+                  <strong>${h(review.author || "Pulsery user")}</strong>
+                  <small>${h(formatReviewDate(review.created_at))}</small>
+                </div>
+                ${reviewStars(review.rating)}
+              </header>
+              <div class="review-copy">${catalogTextMarkup(review.text || "")}</div>
+              ${screenshots.length ? `<div class="review-screenshots">${screenshots.map((url, index) => `<a href="${h(url)}" target="_blank" rel="noopener noreferrer"><img src="${h(url)}" alt="Review screenshot ${index + 1}" loading="lazy" referrerpolicy="no-referrer"></a>`).join("")}</div>` : ""}
+              ${review.reply_text ? `
+                <div class="review-reply">
+                  <strong>${h(review.reply_author || "Developer reply")}</strong>
+                  <small>${h(formatReviewDate(review.reply_at))}</small>
+                  <p>${h(review.reply_text)}</p>
+                </div>` : ""}
+            </article>`;
+        }).join("")}
+      </div>
+      ${item.pulseryReviews.length > visibleReviews.length ? `<p class="review-message">Showing the newest ${visibleReviews.length} approved notes.</p>` : ""}
+    </section>`;
+}
+
+function reviewStars(value) {
+  if (!Number.isFinite(Number(value))) return "";
+  const rating = Math.max(0, Math.min(5, Number(value)));
+  const rounded = Math.round(rating);
+  return `<span class="review-stars" aria-label="${h(`${trimNumber(rating)} out of 5 stars`)}">${"★".repeat(rounded)}<i>${"★".repeat(5 - rounded)}</i></span>`;
 }
 
 function toggleCompare(id, checked) {
@@ -1861,7 +2037,7 @@ function openComparison() {
       <tbody>${rows.map(([label, getValue]) => `<tr><th scope="row">${h(label)}</th>${items.map(item => `<td>${h(getValue(item))}</td>`).join("")}</tr>`).join("")}</tbody>
     </table>`;
 
-  if (!dom.compareDialog.open) dom.compareDialog.showModal();
+  showDialogAnimated(dom.compareDialog);
 }
 
 function setHealth(source, status, count = 0) {
@@ -2336,6 +2512,61 @@ function formatVersionDate(value) {
   const date = new Date(raw);
   if (raw === "Update time unavailable" || Number.isNaN(date.valueOf())) return raw;
   return `Updated ${date.toLocaleString()}`;
+}
+
+function formatReviewDate(value) {
+  const raw = cleanValue(value, "");
+  const date = new Date(raw);
+  if (!raw || Number.isNaN(date.valueOf())) return "Date unavailable";
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric"
+  });
+}
+
+function cleanCatalogText(value) {
+  return String(value || "")
+    .replace(/:::\s*note(?:\s+["']([^"']+)["'])?/gi, (_, title) => `\nNote${title ? ` — ${title}` : ""}\n`)
+    .replace(/:::\s*pros\b/gi, "\nPros\n")
+    .replace(/:::\s*cons\b/gi, "\nCons\n")
+    .replace(/:::/g, "\n")
+    .replace(/<["']?([^<>]+?)["']?>/g, "$1")
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/\*\*([^*]+)\*\*/g, "$1")
+    .replace(/__([^_]+)__/g, "$1")
+    .replace(/^>\s?/gm, "")
+    .replace(/^#{1,6}\s+/gm, "")
+    .replace(/\s+-\s+/g, "\n• ")
+    .replace(/[*_~]/g, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+function catalogTextMarkup(value) {
+  const cleaned = cleanCatalogText(value) || "No notes are currently available.";
+  return cleaned
+    .split(/\n+/)
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => {
+      if (/^(?:Pros|Cons)$/i.test(line)) {
+        return `<p class="catalog-label">${h(line)}</p>`;
+      }
+      if (/^Note(?:\s+—|:|$)/i.test(line)) {
+        return `<p class="catalog-note">${h(line)}</p>`;
+      }
+      if (line.startsWith("•")) {
+        return `<p class="catalog-bullet">${h(line.slice(1).trim())}</p>`;
+      }
+      return `<p>${h(line)}</p>`;
+    })
+    .join("");
 }
 
 function cleanMarkdown(markdown) {

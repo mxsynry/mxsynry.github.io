@@ -1,7 +1,4 @@
-
-  <!-- To do: clean up Ui filter mess and add user comments. -->
-
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -163,7 +160,7 @@
           <h2 id="catalog-title">Search it. Sort it. Done.</h2>
           <p>Grid if you’re browsing. List if you already know the name.</p>
         </div>
-        <div class="summary-stats" aria-label="Catalog summary">
+        <div class="summary-stats" role="group" aria-label="Catalog summary">
           <div><strong id="statTotal">—</strong><span>Total</span></div>
           <div><strong id="statFree">—</strong><span>Free</span></div>
           <div><strong id="statUpdated">—</strong><span>Updated</span></div>
@@ -171,14 +168,17 @@
         </div>
       </div>
 
-      <form class="catalog-controls" id="filterForm" role="search" data-reveal>
+      <div class="catalog-search-dock" role="search" data-reveal>
         <label class="search-field">
           <span class="sr-only">Search executors</span>
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m16.5 16.5 4 4"/></svg>
           <input id="searchInput" name="search" type="search" autocomplete="off" placeholder="Search name, platform, feature…">
           <kbd>/</kbd>
         </label>
+      </div>
 
+      <form class="catalog-controls" id="filterForm" aria-label="Catalog filters" data-reveal>
+        <button class="sr-only" type="submit">Apply filters</button>
         <div class="filter-row">
           <label>
             <span>Platform</span>
@@ -464,7 +464,7 @@
   <dialog class="modal" id="detailDialog" aria-labelledby="detailTitle">
     <div class="modal-shell">
       <button class="modal-close" type="button" data-close-dialog="detailDialog" aria-label="Close details">×</button>
-      <div id="detailContent"></div>
+      <div class="detail-content" id="detailContent"></div>
     </div>
   </dialog>
 
