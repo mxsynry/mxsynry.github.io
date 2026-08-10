@@ -1,12 +1,23 @@
 // Dedicated read-only data bridge for Synchrose.
-// It exposes fixed Pulsery status and approved-review routes; it is not an open proxy.
+// It exposes fixed Voxlis and Pulsery routes; it is not an open proxy.
 
-const WORKER_VERSION = "2026-07-30.2-pulsery-review-errors";
+const WORKER_VERSION = "2026-08-10.1-voxlis-cors-bridge";
+const VOXLIS_DATA_ROOT = "https://voxlis.net/public/data/roblox";
 const PULSERY_STATUS_URL = "https://pulsery.gg/api/status";
 const PULSERY_REVIEWS_URL = "https://fsaenqbyrqbfkrvvwzwo.supabase.co/rest/v1/reviews";
 const CACHE_TTL_SECONDS = 300;
 const UPSTREAM_TIMEOUT_MS = 12000;
+const VOXLIS_SLUG_PATTERN = /^[a-z0-9][a-z0-9_-]{0,79}$/;
+const VOXLIS_FOLDER_PATTERN = /^[A-Za-z0-9][A-Za-z0-9 _.()-]{0,79}$/;
 const REVIEW_EXECUTOR_PATTERN = /^[A-Za-z0-9 _-]{1,80}$/;
+
+const VOXLIS_FOLDER_OVERRIDES = Object.freeze({
+  arceusx: ["Arceus X"],
+  rbxcli: ["rbxCLI"],
+  sirhurt: ["SirHurt"],
+  vegax: ["Vega X"],
+  "yub-x": ["YuB-x", "YuB-X"]
+});
 
 const CORS_HEADERS = {
   "access-control-allow-origin": "*",
@@ -40,10 +51,33 @@ export default {
           name: "synchrose-catalog-api",
           version: WORKER_VERSION,
           routes: [
+            "/api/voxlis/prices",
+            "/api/voxlis/entry?slug=SLUG",
+            "/api/voxlis/review?folder=NAME",
             "/api/pulsery/status",
             "/api/pulsery/reviews?executor=NAME"
           ]
         });
+      }
+
+      if (url.pathname === "/api/voxlis/prices") {
+        return await cacheOrRun(request, ctx, fetchVoxlisPrices);
+      }
+
+      if (url.pathname === "/api/voxlis/entry") {
+        const slug = cleanText(url.searchParams.get("slug")).toLowerCase();
+        if (!VOXLIS_SLUG_PATTERN.test(slug)) {
+          return json({ ok: false, error: "A valid Voxlis slug is required." }, 400);
+        }
+        return await cacheOrRun(request, ctx, () => fetchVoxlisEntry(slug));
+      }
+
+      if (url.pathname === "/api/voxlis/review") {
+        const folder = cleanText(url.searchParams.get("folder"));
+        if (!VOXLIS_FOLDER_PATTERN.test(folder)) {
+          return json({ ok: false, error: "A valid Voxlis folder is required." }, 400);
+        }
+        return await cacheOrRunResponse(request, ctx, () => fetchVoxlisReview(folder));
       }
 
       if (url.pathname === "/api/pulsery/status") {
@@ -94,6 +128,133 @@ async function cacheOrRun(request, ctx, producer) {
   }
 
   return response;
+}
+
+async function cacheOrRunResponse(request, ctx, producer) {
+  const cache = caches.default;
+  const cacheUrl = new URL(request.url);
+  cacheUrl.searchParams.set("__version", WORKER_VERSION);
+  const cacheKey = new Request(cacheUrl, { method: "GET" });
+
+  try {
+    const cached = await cache.match(cacheKey);
+    if (cached) return withCors(cached);
+  } catch {
+    // Cache failure must not block public data.
+  }
+
+  const upstreamResponse = await producer();
+  const headers = new Headers(upstreamResponse.headers);
+  headers.set("cache-control", `public, max-age=${CACHE_TTL_SECONDS}`);
+  const response = withCors(new Response(upstreamResponse.body, {
+    status: upstreamResponse.status,
+    statusText: upstreamResponse.statusText,
+    headers
+  }));
+
+  if (response.ok) {
+    try {
+      ctx?.waitUntil(cache.put(cacheKey, response.clone()));
+    } catch {
+      // Cache is optional.
+    }
+  }
+
+  return response;
+}
+
+async function fetchVoxlisPrices() {
+  const payload = await fetchVoxlisJson("prices.json");
+  if (!payload || Array.isArray(payload) || typeof payload !== "object") {
+    throw new ResponseError("Voxlis returned an unexpected pricing catalog.", 502);
+  }
+  return payload;
+}
+
+async function fetchVoxlisEntry(slug) {
+  for (const folder of voxlisFolderCandidates(slug)) {
+    const info = await fetchVoxlisJson(`${encodeURIComponent(folder)}/info.json`, { allow404: true });
+    if (!info || Array.isArray(info) || typeof info !== "object") continue;
+
+    const points = await fetchVoxlisJson(`${encodeURIComponent(folder)}/points.json`, { allow404: true });
+    return {
+      ok: true,
+      provider: "voxlis",
+      fetchedAt: new Date().toISOString(),
+      slug,
+      folder,
+      info,
+      points: points && !Array.isArray(points) && typeof points === "object" ? points : {}
+    };
+  }
+
+  throw new ResponseError(`Voxlis entry not found for ${slug}.`, 404);
+}
+
+async function fetchVoxlisReview(folder) {
+  const response = await fetchVoxlisFile(`${encodeURIComponent(folder)}/review.md`);
+  if (response.status === 404) {
+    return new Response("", {
+      status: 404,
+      headers: { "content-type": "text/plain; charset=utf-8" }
+    });
+  }
+  if (!response.ok) {
+    throw new ResponseError(`Voxlis review returned HTTP ${response.status}.`, 502);
+  }
+
+  return new Response(await response.text(), {
+    status: 200,
+    headers: { "content-type": "text/markdown; charset=utf-8" }
+  });
+}
+
+async function fetchVoxlisJson(path, { allow404 = false } = {}) {
+  const response = await fetchVoxlisFile(path);
+  if (allow404 && response.status === 404) return null;
+  if (!response.ok) {
+    throw new ResponseError(`Voxlis returned HTTP ${response.status}.`, 502);
+  }
+
+  try {
+    return await response.json();
+  } catch {
+    throw new ResponseError("Voxlis returned invalid JSON.", 502);
+  }
+}
+
+async function fetchVoxlisFile(path) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), UPSTREAM_TIMEOUT_MS);
+
+  try {
+    return await fetch(`${VOXLIS_DATA_ROOT}/${path}`, {
+      method: "GET",
+      headers: {
+        accept: "application/json, text/markdown, text/plain, */*",
+        "user-agent": "Synchrose/1.0"
+      },
+      redirect: "follow",
+      signal: controller.signal
+    });
+  } catch (error) {
+    const message = error?.name === "AbortError"
+      ? "Voxlis timed out."
+      : error?.message || String(error);
+    throw new ResponseError(message, 502);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function voxlisFolderCandidates(slug) {
+  const overrides = VOXLIS_FOLDER_OVERRIDES[slug] || [];
+  const title = slug
+    .split(/[-_]+/)
+    .filter(Boolean)
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(" ");
+  return [...new Set([...overrides, title].filter(Boolean))];
 }
 
 async function fetchPulseryStatus() {
