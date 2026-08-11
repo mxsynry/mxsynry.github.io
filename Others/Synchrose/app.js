@@ -1,4 +1,3 @@
-
 const SYNCHROSE_API_BASE = resolveSynchroseApiBase();
 
 const ENDPOINTS = Object.freeze({
@@ -338,7 +337,7 @@ function initIntro() {
     clearTimers();
     screen.classList.add("is-entering");
     if (fast || reducedMotion) screen.classList.add("is-fast");
-    if (hint) hint.textContent = "åæä¸­...";
+    if (hint) hint.textContent = "åŒæœŸä¸­...";
     if (userGesture) requestMusicFromIntro();
 
     const flashDelay = fast || reducedMotion ? 100 : 720;
@@ -1418,7 +1417,7 @@ function applyFilters() {
   });
 
   state.filtered = sortRows(matches, filters.sort);
-  dom.resultSummary.textContent = `${state.filtered.length} / ${state.all.length} shown${activeFilterCount(filters) ? ` · ${activeFilterCount(filters)} filter${activeFilterCount(filters) === 1 ? "" : "s"} on` : ""}`;
+  dom.resultSummary.textContent = `${state.filtered.length} / ${state.all.length} shown${activeFilterCount(filters) ? ` Â· ${activeFilterCount(filters)} filter${activeFilterCount(filters) === 1 ? "" : "s"} on` : ""}`;
   renderActiveView();
 }
 
@@ -1603,13 +1602,13 @@ function updateStats() {
   const clean = state.all.filter(item => detectionKind(item) === "undetected").length;
   const platforms = unique(state.all.flatMap(item => item.platforms).filter(platform => platform !== "unknown"));
 
-  setText("#statTotal", total || "");
-  setText("#statFree", total ? free : "");
-  setText("#statUpdated", total ? updated : "");
-  setText("#statClean", total ? clean : "");
-  setText("#heroTotal", total || "");
-  setText("#heroUpdated", total ? updated : "");
-  setText("#heroPlatforms", total ? platforms.length : "");
+  setText("#statTotal", total || "â€”");
+  setText("#statFree", total ? free : "â€”");
+  setText("#statUpdated", total ? updated : "â€”");
+  setText("#statClean", total ? clean : "â€”");
+  setText("#heroTotal", total || "â€”");
+  setText("#heroUpdated", total ? updated : "â€”");
+  setText("#heroPlatforms", total ? platforms.length : "â€”");
 }
 
 function renderVersions() {
@@ -1638,7 +1637,7 @@ function renderVersions() {
         data-version-mobile="${mobile}"
         aria-label="${h(label)} version ${h(version)}. Open its options for more actions."
       >
-        <button class="version-menu-trigger" type="button" data-version-menu aria-label="Open ${h(label)} version options" aria-haspopup="menu">¢¢¢</button>
+        <button class="version-menu-trigger" type="button" data-version-menu aria-label="Open ${h(label)} version options" aria-haspopup="menu">â€¢â€¢â€¢</button>
         <span>${h(label)}</span>
         <b title="${h(version)}">${h(version)}</b>
         <small>${h(formatVersionDate(date))}</small>
@@ -1771,7 +1770,7 @@ function bindVersionContextMenu() {
 
 function isUsableVersion(value) {
   const version = String(value || "").trim();
-  return Boolean(version) && !/^(?:n\/a|unknown|version unavailable|)$/i.test(version);
+  return Boolean(version) && !/^(?:n\/a|unknown|version unavailable|â€”)$/i.test(version);
 }
 
 function openRddVersion(platform, version) {
@@ -1852,15 +1851,15 @@ function renderDetails(item) {
   const features = getFeatures(item);
   const previousScroll = dom.detailDialog?.scrollTop || 0;
   const links = [
-    item.website ? `<a class="button button-primary button-small" href="${h(item.website)}" target="_blank" rel="noopener noreferrer">Official website </a>` : "",
-    item.discord ? `<a class="button button-secondary button-small" href="${h(item.discord)}" target="_blank" rel="noopener noreferrer">Discord </a>` : "",
-    item.purchaseLink ? `<a class="button button-secondary button-small" href="${h(item.purchaseLink)}" target="_blank" rel="noopener noreferrer">Pricing </a>` : ""
+    item.website ? `<a class="button button-primary button-small" href="${h(item.website)}" target="_blank" rel="noopener noreferrer">Official website â†—</a>` : "",
+    item.discord ? `<a class="button button-secondary button-small" href="${h(item.discord)}" target="_blank" rel="noopener noreferrer">Discord â†—</a>` : "",
+    item.purchaseLink ? `<a class="button button-secondary button-small" href="${h(item.purchaseLink)}" target="_blank" rel="noopener noreferrer">Pricing â†—</a>` : ""
   ].filter(Boolean).join("");
 
   const review = item.review
     ? `<div class="detail-section"><h3>Voxlis review notes</h3><p>${h(item.review)}</p></div>`
     : item.reviewUrl
-      ? `<div class="detail-section"><h3>Voxlis review notes</h3><p>Loading review notes¦</p></div>`
+      ? `<div class="detail-section"><h3>Voxlis review notes</h3><p>Loading review notesâ€¦</p></div>`
       : "";
 
   dom.detailContent.innerHTML = `
@@ -1884,7 +1883,7 @@ function renderDetails(item) {
       ${metricMarkup("Last reported", item.updatedDate)}
       ${metricMarkup("Source", sourceLabel(item))}
       ${metricMarkup("Type", item.extType)}
-      ${Number.isFinite(item.rating) && (item.rating > 0 || item.reviewCount > 0) ? metricMarkup("Pulsery rating", `${trimNumber(item.rating)} / 5${Number.isFinite(item.reviewCount) ? ` · ${item.reviewCount} reviews` : ""}`) : ""}
+      ${Number.isFinite(item.rating) && (item.rating > 0 || item.reviewCount > 0) ? metricMarkup("Pulsery rating", `${trimNumber(item.rating)} / 5${Number.isFinite(item.reviewCount) ? ` Â· ${item.reviewCount} reviews` : ""}`) : ""}
       ${Number.isFinite(item.stabilityScore) ? metricMarkup("Stability", `${trimNumber(item.stabilityScore)} / 100`) : ""}
       ${Number.isFinite(item.myriadScore) ? metricMarkup("Myriad", `${trimNumber(item.myriadScore)} / 100`) : ""}
     </div>
@@ -1986,7 +1985,7 @@ function pulseryReviewsMarkup(item) {
               </header>
               ${reviewMetricsMarkup(parsedReview.metrics)}
               ${parsedReview.body ? `<div class="review-copy">${catalogTextMarkup(parsedReview.body)}</div>` : ""}
-              ${screenshots.length ? `<div class="review-screenshots">${screenshots.map((url, index) => `<a href="${h(url)}" target="_blank" rel="noopener noreferrer" aria-label="Open review screenshot ${index + 1}"><img src="${h(url)}" alt="" loading="lazy" referrerpolicy="no-referrer"><span aria-hidden="true"></span></a>`).join("")}</div>` : ""}
+              ${screenshots.length ? `<div class="review-screenshots">${screenshots.map((url, index) => `<a href="${h(url)}" target="_blank" rel="noopener noreferrer" aria-label="Open review screenshot ${index + 1}"><img src="${h(url)}" alt="" loading="lazy" referrerpolicy="no-referrer"><span aria-hidden="true">â†—</span></a>`).join("")}</div>` : ""}
               ${review.reply_text ? `
                 <div class="review-reply">
                   <strong>${h(review.reply_author || "Developer reply")}</strong>
@@ -2087,7 +2086,7 @@ function reviewStars(value) {
   return `
     <span class="review-rating" aria-label="${h(`${trimNumber(rating)} out of 5 stars`)}">
       <strong>${h(trimNumber(rating))}<small>/5</small></strong>
-      <span class="review-stars" aria-hidden="true">${"".repeat(rounded)}<i>${"".repeat(5 - rounded)}</i></span>
+      <span class="review-stars" aria-hidden="true">${"â˜…".repeat(rounded)}<i>${"â˜…".repeat(5 - rounded)}</i></span>
     </span>`;
 }
 
@@ -2166,8 +2165,8 @@ function setHealth(source, status, count = 0) {
   icon.className = `health-icon is-${status}`;
   const labels = {
     loading: "SYNCING",
-    ready: `LIVE${count ? ` · ${count}` : ""}`,
-    cached: `SAVED${count ? ` · ${count}` : ""}`,
+    ready: `LIVE${count ? ` Â· ${count}` : ""}`,
+    cached: `SAVED${count ? ` Â· ${count}` : ""}`,
     error: "DOWN"
   };
   label.textContent = labels[status] || status;
@@ -2178,7 +2177,7 @@ function updateSyncHeadline() {
   const statuses = Object.values(state.health);
   const readyCount = statuses.filter(status => status === "ready").length;
   const cachedCount = statuses.filter(status => status === "cached").length;
-  let headline = "Waking up¦";
+  let headline = "Waking upâ€¦";
   if (readyCount === statuses.length) headline = "All four feeds are live";
   else if (readyCount > 0) headline = `${readyCount} of ${statuses.length} feeds answered`;
   else if (cachedCount > 0) headline = `Using ${cachedCount} saved feed${cachedCount === 1 ? "" : "s"}`;
@@ -2188,7 +2187,7 @@ function updateSyncHeadline() {
   const date = state.loadedAt instanceof Date && !Number.isNaN(state.loadedAt.valueOf())
     ? state.loadedAt
     : null;
-  setText("#lastSync", date ? `Checked ${date.toLocaleString()}` : "Waiting for data¦");
+  setText("#lastSync", date ? `Checked ${date.toLocaleString()}` : "Waiting for dataâ€¦");
 }
 
 function hydrateFromCache() {
@@ -2335,7 +2334,7 @@ function formatOffer(offer) {
   const amount = Number(offer?.price);
   if (!Number.isFinite(amount)) return "Unknown";
   const currency = offer?.currency || "USD";
-  const formatted = currency === "EUR" ? `¬${trimNumber(amount)}` : currency === "USD" ? `$${trimNumber(amount)}` : `${currency} ${trimNumber(amount)}`;
+  const formatted = currency === "EUR" ? `â‚¬${trimNumber(amount)}` : currency === "USD" ? `$${trimNumber(amount)}` : `${currency} ${trimNumber(amount)}`;
   const days = Number(offer?.days);
   if (days === -1) return `${formatted} lifetime`;
   if (days === 1) return `${formatted} daily`;
@@ -2346,7 +2345,7 @@ function formatOffer(offer) {
 
 function sortablePrice(item) {
   if (item.free === true) return 0;
-  const match = String(item.price || "").match(/[$¬£]\s*(\d+(?:\.\d+)?)/);
+  const match = String(item.price || "").match(/[$â‚¬Â£]\s*(\d+(?:\.\d+)?)/);
   return match ? Number(match[1]) : Number.POSITIVE_INFINITY;
 }
 
@@ -2647,7 +2646,7 @@ function formatReviewDate(value) {
 
 function cleanCatalogText(value) {
   return String(value || "")
-    .replace(/:::\s*note(?:\s+["']([^"']+)["'])?/gi, (_, title) => `\nNote${title ? `  ${title}` : ""}\n`)
+    .replace(/:::\s*note(?:\s+["']([^"']+)["'])?/gi, (_, title) => `\nNote${title ? ` â€” ${title}` : ""}\n`)
     .replace(/:::\s*pros\b/gi, "\nPros\n")
     .replace(/:::\s*cons\b/gi, "\nCons\n")
     .replace(/:::/g, "\n")
@@ -2659,7 +2658,7 @@ function cleanCatalogText(value) {
     .replace(/__([^_]+)__/g, "$1")
     .replace(/^>\s?/gm, "")
     .replace(/^#{1,6}\s+/gm, "")
-    .replace(/\s+-\s+/g, "\n¢ ")
+    .replace(/\s+-\s+/g, "\nâ€¢ ")
     .replace(/[*_~]/g, "")
     .replace(/[ \t]+\n/g, "\n")
     .replace(/\n[ \t]+/g, "\n")
@@ -2678,10 +2677,10 @@ function catalogTextMarkup(value) {
       if (/^(?:Pros|Cons)$/i.test(line)) {
         return `<p class="catalog-label">${h(line)}</p>`;
       }
-      if (/^Note(?:\s+|:|$)/i.test(line)) {
+      if (/^Note(?:\s+â€”|:|$)/i.test(line)) {
         return `<p class="catalog-note">${h(line)}</p>`;
       }
-      if (line.startsWith("¢")) {
+      if (line.startsWith("â€¢")) {
         return `<p class="catalog-bullet">${h(line.slice(1).trim())}</p>`;
       }
       return `<p>${h(line)}</p>`;
