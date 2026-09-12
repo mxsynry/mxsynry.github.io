@@ -37,6 +37,8 @@ function normalizePulseryRecord(item: z.infer<typeof itemSchema>, fetchedAt: str
     item.safety_certified === true ? "Verified" : ""
   ].filter(Boolean));
   return {
+    rating: numberOrNull(item.rating), reviewCount: numberOrNull(item.review_count),
+    stability: numberOrNull(item.stability_score), myriad: numberOrNull(item.myriad_score),
     source: "pulsery", sourceId: cleanText(item.id) || name, name, platforms: platforms(item.platforms),
     working: booleanOrNull(item.is_working),
     detection: clientModOnly ? "client-mod-only" : normalizeDetection(booleanOrNull(item.is_detected) ?? statusText),

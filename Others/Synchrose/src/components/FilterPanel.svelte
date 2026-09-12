@@ -47,6 +47,15 @@
         <label><span>Feature</span><select value={filters.feature} onchange={(event) => update("feature", event.currentTarget.value)}>
           <option value="all">Any feature</option>{#each features as feature}<option value={feature}>{feature}</option>{/each}
         </select></label>
+        <label><span>Type</span><select value={filters.type} onchange={(event) => update("type", event.currentTarget.value)}>
+          <option value="all">All types</option>{#each ["Internal", "External", "Aimbot", "Server-side"] as type}<option value={type}>{type}</option>{/each}
+        </select></label>
+        <label><span>Key system</span><select value={filters.key} onchange={(event) => update("key", event.currentTarget.value as CatalogFilters["key"])}>
+          <option value="all">Any key setup</option><option value="keyless">Keyless</option><option value="keysystem">Key system</option>
+        </select></label>
+        <label><span>sUNC</span><select value={filters.sunc} onchange={(event) => update("sunc", event.currentTarget.value as CatalogFilters["sunc"])}>
+          <option value="all">Any sUNC</option><option value="100">100%</option><option value="80">80%+</option><option value="50">50%+</option><option value="measured">Measured</option><option value="unknown">Unknown</option>
+        </select></label>
         <label><span>Sort</span><select value={filters.sort} onchange={(event) => update("sort", event.currentTarget.value as CatalogFilters["sort"])}>
           <option value="status">Status</option><option value="sources">Source coverage</option><option value="sunc">sUNC</option><option value="name">Name</option>
         </select></label>

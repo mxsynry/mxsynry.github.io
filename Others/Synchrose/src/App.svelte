@@ -1,5 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import Versions from "./components/Versions.svelte";
+  import ComparePanel from "./components/ComparePanel.svelte";
   import CatalogTable from "./components/CatalogTable.svelte";
   import EvidenceDrawer from "./components/EvidenceDrawer.svelte";
   import FilterPanel from "./components/FilterPanel.svelte";
@@ -10,12 +12,14 @@
   import { formatTime } from "./lib/format";
 
   function defaultFilters(): CatalogFilters {
-    return { search: "", platform: "all", working: "all", detection: "all", price: "all", source: "all", feature: "all", sort: "status" };
+    return { search: "", platform: "all", working: "all", detection: "all", price: "all", source: "all", feature: "all", type: "all", key: "all", sunc: "all", sort: "status" };
   }
 
   const apiBase = resolveApiBase();
   let catalog = $state(initialUpdate(readSnapshot()));
   let filters = $state<CatalogFilters>(defaultFilters());
+  let view = $state<"table" | "grid">("table");
+  let comparison = $state<string[]>([]);
   let selectedId = $state<string | null>(null);
   let filtered = $derived(filterCatalog(catalog.records, filters));
   let selected = $derived(catalog.records.find((record) => record.id === selectedId) ?? null);
@@ -70,6 +74,7 @@
   </section>
 
   <SourceStrip health={catalog.health} />
+  <Versions />
   <div class="workspace">
     <FilterPanel {filters} {features} resultCount={filtered.length} totalCount={catalog.records.length}
       onfilterschange={(next) => { filters = next; }} onreset={() => { filters = defaultFilters(); }} />
@@ -78,7 +83,12 @@
         <div><p class="eyebrow">Current catalog</p><h2 id="catalog-title">Status reports</h2></div>
         <p>Last evidence pull <time>{formatTime(latestFetch)}</time></p>
       </header>
-      <CatalogTable records={filtered} loading={catalog.pending > 0 && catalog.records.length === 0} onopen={(id) => { selectedId = id; }} />
+      <div class="view-controls" aria-label="Catalog view">
+        <button type="button" aria-pressed={view === "table"} onclick={() => { view = "table"; }}>List</button>
+        <button type="button" aria-pressed={view === "grid"} onclick={() => { view = "grid"; }}>Grid</button>
+      </div>
+      <ComparePanel records={catalog.records} selected={comparison} onchange={(ids) => { comparison = ids; }} />
+      <CatalogTable {view} records={filtered} loading={catalog.pending > 0 && catalog.records.length === 0} onopen={(id) => { selectedId = id; }} />
     </section>
   </div>
 </main>
@@ -88,4 +98,4 @@
   <p>WEAO · Voxlis · Pulsery · Inject</p>
 </footer>
 
-{#if selected}<EvidenceDrawer record={selected} ondismiss={() => { selectedId = null; }} />{/if}
+{#if selected}<EvidenceDrawer {apiBase} record={selected} ondismiss={() => { selectedId = null; }} />{/if}

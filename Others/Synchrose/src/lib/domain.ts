@@ -17,6 +17,10 @@ export interface SourceLinks {
 export interface SourceRecord {
   source: SourceId;
   sourceId?: string;
+  rating?: number | null;
+  reviewCount?: number | null;
+  stability?: number | null;
+  myriad?: number | null;
   name: string;
   platforms: Platform[];
   working: boolean | null;
@@ -90,6 +94,9 @@ export interface CatalogFilters {
   price: "all" | "free" | "paid";
   source: SourceId | "multi" | "all";
   feature: string | "all";
+  type: string;
+  key: "all" | "keyless" | "keysystem";
+  sunc: "all" | "100" | "80" | "50" | "measured" | "unknown";
   sort: "status" | "sources" | "sunc" | "name";
 }
 

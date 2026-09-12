@@ -76,6 +76,12 @@ export function filterCatalog(records: ExecutorRecord[], filters: CatalogFilters
     if (filters.price === "paid" && record.free !== false) return false;
     if (filters.source === "multi" && record.sources.length < 2) return false;
     if (filters.source !== "all" && filters.source !== "multi" && !record.sources.includes(filters.source)) return false;
+    if (filters.type !== "all" && record.type !== filters.type) return false;
+    if (filters.key === "keysystem" && !record.features.includes("Key system")) return false;
+    if (filters.key === "keyless" && !record.features.includes("Keyless")) return false;
+    if (filters.sunc === "unknown" && record.sunc !== null) return false;
+    if (filters.sunc === "measured" && record.sunc === null) return false;
+    if (["100", "80", "50"].includes(filters.sunc) && (record.sunc?.min ?? -1) < Number(filters.sunc)) return false;
     if (filters.feature !== "all" && !record.features.includes(filters.feature)) return false;
     return true;
   });

@@ -47,7 +47,7 @@ function normalizeWeaoRecord(item: z.infer<typeof itemSchema>, versionsPayload: 
   const features = unique([
     item.decompiler === true ? "Decompiler" : "",
     item.multiInject === true ? "Multi-instance" : "",
-    item.keysystem === true ? "Key system" : "",
+    item.keysystem === true ? "Key system" : item.keysystem === false ? "Keyless" : "",
     item.clientmods === true ? "Client-mod bypass" : "",
     item.beta === true ? "Beta" : "",
     item.elementCertified === true ? "Verified" : ""

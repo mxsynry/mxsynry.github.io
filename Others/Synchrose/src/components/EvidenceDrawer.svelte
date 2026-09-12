@@ -1,11 +1,12 @@
 <script lang="ts">
+  import Reviews from "./Reviews.svelte";
   import { onMount } from "svelte";
   import { SOURCE_META, type EvidenceConflict, type ExecutorRecord, type SourceRecord } from "../lib/domain";
   import { DETECTION_LABELS, formatSunc, formatTime, PLATFORM_LABELS, trimNumber } from "../lib/format";
   import StatusBadge from "./StatusBadge.svelte";
 
-  interface Props { record: ExecutorRecord; ondismiss: () => void; }
-  let { record, ondismiss }: Props = $props();
+  interface Props { apiBase: string; record: ExecutorRecord; ondismiss: () => void; }
+  let { apiBase, record, ondismiss }: Props = $props();
   let dialog: HTMLDialogElement;
 
   onMount(() => dialog.showModal());
@@ -56,6 +57,7 @@
       </section>
     {/if}
 
+    {#key record.id + record.sources.join(",")}<Reviews {apiBase} {record} />{/key}
     <section class="source-evidence">
       <div class="section-heading"><p class="eyebrow">Source reports</p><span>Raw claims, normalized labels</span></div>
       {#each record.observations as observation}
@@ -71,6 +73,9 @@
             <div><dt>Roblox build</dt><dd>{observation.robloxVersion || "—"}</dd></div>
             <div><dt>sUNC</dt><dd>{observation.sunc === null ? "—" : `${trimNumber(observation.sunc)}%`}</dd></div>
             <div><dt>Price</dt><dd>{observation.price || "—"}</dd></div>
+            {#if observation.stability != null}<div><dt>Stability</dt><dd>{observation.stability}</dd></div>{/if}
+            {#if observation.myriad != null}<div><dt>Myriad</dt><dd>{observation.myriad}</dd></div>{/if}
+            {#if observation.unc != null}<div><dt>UNC</dt><dd>{observation.unc}%</dd></div>{/if}
           </dl>
           {#if observation.description}<p class="observation-note">{observation.description}</p>{/if}
           <footer>Source update: {formatTime(observation.sourceUpdatedAt)} · Retrieved: {formatTime(observation.fetchedAt)}</footer>

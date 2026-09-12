@@ -36,7 +36,7 @@ export function normalizeDetection(value: unknown): Detection {
   if (typeof value === "boolean") return value ? "detected" : "undetected";
   const text = String(value ?? "").trim().toLowerCase();
   if (/client[\s_-]*mod/.test(text)) return "client-mod-only";
-  if (/undetected|not detected|safe/.test(text)) return "undetected";
+  if (/\bundetected\b|not detected|^safe$/.test(text)) return "undetected";
   if (/detected|banwave|unsafe/.test(text)) return "detected";
   return "unknown";
 }

@@ -40,7 +40,7 @@ export function objectKeys(value: unknown): string[] {
 
 export function sourceTimestamp(value: unknown, fallback: string): string | null {
   const text = cleanText(value);
-  if (!text) return fallback;
+  if (!text) return null;
   const date = new Date(text);
   return Number.isFinite(date.valueOf()) ? date.toISOString() : text;
 }

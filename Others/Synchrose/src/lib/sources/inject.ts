@@ -67,7 +67,7 @@ function injectVersion(payload: unknown, platform: string): string | null {
   for (const key of aliases[platform] ?? []) {
     const value = data[key];
     const nested = asObject(value);
-    const version = cleanText(nested.version ?? nested.clientVersionUpload ?? value);
+    const version = cleanText(nested.Version ?? nested.version ?? nested.clientVersionUpload ?? value);
     if (version) return version;
   }
   return null;
