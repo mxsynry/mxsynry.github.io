@@ -16,6 +16,7 @@ function shouldCopy(source) {
   if (parts.includes(".git")) return false;
   if (parts.includes("node_modules")) return false;
   if (parts.includes(".wrangler")) return false;
+  if (parts.includes("dist")) return false;
   if (relative === excludedFile) return false;
   if (name === ".env" || name.startsWith(".env.") || name.startsWith(".dev.vars")) return false;
 

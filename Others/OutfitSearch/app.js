@@ -12,11 +12,13 @@ const API_TIMEOUT_MS = 30000;
 const outfitDetailCache = new Map();
 
 const apiParam = new URL(location.href).searchParams.get("api");
-if (apiParam) {
-  localStorage.setItem(API_STORAGE_KEY, apiParam.trim().replace(/\/$/, ""));
+if (apiParam === "clear") {
+  localStorage.removeItem(API_STORAGE_KEY);
+} else if (isHttpUrl(apiParam)) {
+  localStorage.setItem(API_STORAGE_KEY, normalizeApiBase(apiParam));
 }
 
-let API_BASE = (apiParam || localStorage.getItem(API_STORAGE_KEY) || DEFAULT_API_BASE).trim().replace(/\/$/, "");
+let API_BASE = normalizeApiBase(apiParam) || normalizeApiBase(localStorage.getItem(API_STORAGE_KEY)) || normalizeApiBase(DEFAULT_API_BASE);
 let debugLogs = loadLogs();
 let activeSearchController = null;
 let apiConnectionState = hasConfiguredApi() ? "saved" : "offline";
@@ -57,6 +59,19 @@ applyTheme(getSavedTheme());
 
 function hasConfiguredApi() {
   return Boolean(API_BASE);
+}
+
+function isHttpUrl(value) {
+  try {
+    const url = new URL(String(value || ""));
+    return url.protocol === "https:" || url.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+function normalizeApiBase(value) {
+  return isHttpUrl(value) ? String(value).trim().replace(/\/$/, "") : "";
 }
 
 function refreshApiUi(message = "", state = apiConnectionState) {

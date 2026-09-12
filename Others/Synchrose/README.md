@@ -1,38 +1,50 @@
 # Synchrose
 
-Static frontend with a small Cloudflare Worker for Pulsery's public exploit status and approved user reviews.
+An evidence-first Roblox executor status index. Synchrose combines four public catalogs—WEAO, Voxlis, Pulsery, and Inject—while retaining each source's claims and making disagreements visible.
 
-## Data routes
+## Stack
 
-- WEAO and Voxlis load through their existing public endpoints.
-- Inject loads directly from `https://inject.today/api/cheats`.
-- Pulsery loads through `GET /api/pulsery/status` on the dedicated Worker.
-- Approved Pulsery reviews load only when an executor's details dialog opens, through `GET /api/pulsery/reviews?executor=NAME`.
-- Pulsery scripts, update histories, and every RDD page are intentionally excluded.
+- Svelte 5 and TypeScript
+- Vite
+- Zod validation at every network boundary
+- A fixed-route, read-only Cloudflare Worker for sources that require a server-side adapter
 
-## Deploy the Worker
+## Local development
 
-1. Open a terminal in this directory.
-2. Store Pulsery's public Supabase anon key as a Worker secret:
-
-   ```sh
-   npx wrangler secret put PULSERY_SUPABASE_KEY
-   ```
-
-3. Run `npx wrangler deploy`.
-4. Copy the resulting `https://...workers.dev` URL.
-5. Put that URL in the `synchrose-api-base` meta tag in `index.html`.
-
-For a temporary test without editing the meta tag, open:
-
-```text
-https://YOUR-SITE.example/Others/Synchrose/?api=https://YOUR-WORKER.workers.dev
+```sh
+npm install
+npm run dev
 ```
 
-The query value is stored in this browser. Remove it with:
+Other checks:
 
-```js
-localStorage.removeItem("synchrose:api-base")
+```sh
+npm run check
+npm test
+npm run build
 ```
 
-The Worker is GET-only, caches Pulsery for five minutes, validates both upstream responses, and returns restricted field sets. Review responses exclude Discord IDs and include approved rows only. The Worker cannot proxy arbitrary URLs.
+The production site is emitted to `dist/`. Vite uses a relative base so it can remain hosted under `/Others/Synchrose/`.
+
+## Data policy
+
+- WEAO provides status, version, and detection reports.
+- Voxlis provides catalog details and pricing through `/api/voxlis/*`.
+- Pulsery provides public status and approved reviews through `/api/pulsery/*`.
+- Inject provides status and catalog reports.
+- Each report keeps its source, fetch time, source update time, and source-specific values.
+- Conflicting status, detection, version, price, and sUNC claims are shown to the user. They are never silently flattened into a false consensus.
+- A working report is not a claim that an executor is safe.
+
+## Worker
+
+The existing `worker.js` exposes only fixed GET routes and cannot proxy arbitrary URLs. Set its required secrets, deploy it separately, then place its URL in the `synchrose-api-base` meta tag in `index.html`.
+
+For a temporary local override, use `?api=https://YOUR-WORKER.workers.dev`. Clear the saved override with `?api=clear`.
+
+```sh
+npm run worker:dev
+npm run worker:deploy
+```
+
+Do not put private service-role credentials in the frontend or in version control.

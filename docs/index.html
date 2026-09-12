@@ -50,31 +50,31 @@
       <section id="overview" data-search="overview purpose scope dashboard documentation">
         <p class="eyebrow">Project guide</p>
         <h1>Synchrose documentation</h1>
-        <p class="lead">Synchrose is a static, client-side dashboard that combines documented WEAO status data with public Voxlis repository data. It helps readers compare metadata; it does not host, verify or guarantee third-party binaries.</p>
+        <p class="lead">Synchrose is a Svelte dashboard that fetches public status and catalog data through source adapters, then keeps each observation attributable. It helps readers compare metadata; it does not host, verify or guarantee third-party binaries.</p>
         <div class="callout warning"><strong>Accuracy boundary.</strong> “Updated”, “detected”, scores, prices and links are third-party claims. Always display the source and retrieval time, and never describe an item as safe solely because a source does.</div>
         <div class="card-grid metrics">
-          <article><strong>2</strong><span>integrated sources</span></article>
-          <article><strong>Static</strong><span>Cloudflare Pages runtime</span></article>
+          <article><strong>4</strong><span>source adapters</span></article>
+          <article><strong>Svelte</strong><span>Vite client application</span></article>
           <article><strong>Read-only</strong><span>external data use</span></article>
-          <article><strong>0</strong><span>official Pulsery/Inject APIs found</span></article>
+          <article><strong>24h</strong><span>browser snapshot lifetime</span></article>
         </div>
       </section>
 
       <section id="architecture" data-search="architecture cloudflare pages workflow cache fetch normalize merge render">
         <p class="eyebrow">System design</p>
         <h2>Architecture</h2>
-        <p>The current application is a large single HTML file. The target design separates data refresh, normalization, presentation and documentation so a source change does not require editing the whole interface.</p>
-        <div class="flow" role="img" aria-label="External documented sources flow through scheduled snapshot jobs, validation, normalization and the Synchrose dashboard">
-          <div><b>Documented sources</b><span>WEAO API · Voxlis repository</span></div>
-          <i>→</i><div><b>Scheduled snapshot</b><span>GitHub Actions with provenance</span></div>
-          <i>→</i><div><b>Normalize &amp; validate</b><span>Schema checks · aliases · timestamps</span></div>
-          <i>→</i><div><b>Static dashboard</b><span>Cloudflare Pages · cached JSON</span></div>
+        <p>The application separates source adapters, normalization, catalog state and presentation. The browser refreshes the four adapters concurrently, preserves successful results when another source fails, and keeps a last-known-good snapshot in local storage.</p>
+        <div class="flow" role="img" aria-label="External sources flow through a worker bridge and source adapters into normalized catalog state and the Synchrose dashboard">
+          <div><b>Public sources</b><span>WEAO · Voxlis · Pulsery · Inject</span></div>
+          <i>→</i><div><b>Worker bridge</b><span>CORS and upstream-only routes</span></div>
+          <i>→</i><div><b>Adapters</b><span>Zod validation · normalization</span></div>
+          <i>→</i><div><b>Svelte dashboard</b><span>Consensus · filters · provenance</span></div>
         </div>
-        <h3>Why snapshots are preferable</h3>
+        <h3>Runtime boundaries</h3>
         <ul>
-          <li>WEAO requires a specific <code>User-Agent</code>; browser JavaScript cannot reliably set that forbidden request header.</li>
-          <li>A scheduled job can respect rate limits, keep a last-known-good snapshot and record when each source was fetched.</li>
-          <li>The page remains usable when an upstream source is offline or blocks CORS.</li>
+          <li>The Worker exposes fixed routes for upstreams that require a server-side bridge; it is not an arbitrary proxy.</li>
+          <li>Each adapter validates and normalizes its own upstream response before it enters the shared catalog.</li>
+          <li>Source failures remain visible as health states while cached records continue to be usable.</li>
         </ul>
       </section>
 
@@ -87,8 +87,8 @@
             <tbody>
               <tr><td><a href="https://weao.xyz" rel="noopener">WEAO</a></td><td>Documented public JSON API</td><td><span class="pill good">Integrated</span> versions and status metadata</td><td>Required user-agent, polite polling, 429 backoff</td></tr>
               <tr><td><a href="https://voxlis.net" rel="noopener">Voxlis</a></td><td>Public GitHub JSON/Markdown dataset</td><td><span class="pill good">Integrated</span> descriptions, tags, reviews and prices</td><td>Pin a commit or record the fetched SHA</td></tr>
-              <tr><td><a href="https://pulsery.gg" rel="noopener">Pulsery</a></td><td>Dynamic catalog plus a branded <a href="https://pulsery.gg/rdd" rel="noopener">RDD deployment UI</a>; no official API documentation found</td><td><span class="pill neutral">UX/RDD reference</span></td><td>Do not depend on private/internal endpoints</td></tr>
-              <tr><td><a href="https://inject.today" rel="noopener">Inject.today</a></td><td>Public landing page plus an <a href="https://inject.today/rdd" rel="noopener">RDD route</a>; no official API documentation found</td><td><span class="pill neutral">RDD host reference</span></td><td>Do not infer or endpoint-hunt</td></tr>
+              <tr><td><a href="https://pulsery.gg" rel="noopener">Pulsery</a></td><td>Public status response exposed through the Synchrose Worker</td><td><span class="pill good">Integrated</span> status, pricing and review metadata</td><td>Keep the fixed route and preserve source attribution</td></tr>
+              <tr><td><a href="https://inject.today" rel="noopener">Inject.today</a></td><td>Public catalog and version responses</td><td><span class="pill good">Integrated</span> status and catalog metadata</td><td>Validate fields and retain platform-specific observations</td></tr>
               <tr><td><a href="https://rdd.weao.gg" rel="noopener">WEAO RDD</a></td><td>Public RDD fork with deployment controls, exploit selector and direct URL parameters</td><td><span class="pill neutral">RDD host reference</span></td><td>Fork identifies its trusted WEAO domains; retain upstream attribution</td></tr>
               <tr><td><a href="https://rdd.latte.to" rel="noopener">RDD upstream</a></td><td>MIT-licensed static browser tool by Latte Softworks</td><td><span class="pill neutral">Upstream reference</span></td><td>Verify differences among forks and hosts</td></tr>
             </tbody>
@@ -174,27 +174,25 @@
         <pre><code>type CatalogItem = {
   id: string;
   name: string;
-  platforms: string[];
-  productType?: string;
-  version?: string;
-  robloxVersion?: string;
-  updated?: boolean | null;
-  detected?: boolean | null;
-  pricing: { label: string; free?: boolean; source: SourceRef };
-  scores: { sunc?: number; unc?: number; source: SourceRef };
-  links: { website?: string; discord?: string; purchase?: string };
-  tags: string[];
-  editorial?: { summary?: string; review?: string; source: SourceRef };
-  provenance: SourceRef[];
+  aliases: string[];
+  platforms: Platform[];
+  sources: SourceId[];
+  observations: SourceRecord[];
+  working: 'working' | 'broken' | 'mixed' | 'unknown';
+  detection: Detection | 'mixed';
+  version: string | null;
+  price: string | null;
+  free: boolean | null;
+  sunc: { min: number; max: number } | null;
+  features: string[];
+  conflicts: EvidenceConflict[];
 };
 
-type SourceRef = {
-  name: 'weao' | 'voxlis';
+type SourceRecord = {
+  source: SourceId;
   fetchedAt: string;
-  sourceUrl: string;
-  revision?: string;
 };</code></pre>
-        <p>Use <code>null</code> for “unknown”; do not convert unknown status to <code>false</code>. This avoids presenting missing data as a negative claim.</p>
+        <p>The implementation types live in <code>Others/Synchrose/src/lib/domain.ts</code>. Use <code>null</code> for unknown values and retain every source observation instead of flattening disagreement.</p>
       </section>
 
       <section id="merge" data-search="merge rules aliases conflicts precedence provenance disagreement names price status">
@@ -203,8 +201,8 @@ type SourceRef = {
         <ol>
           <li>Normalize names for matching only; preserve the source display name.</li>
           <li>Apply an explicit, reviewed alias table. Do not use fuzzy matching for automatic merges.</li>
-          <li>WEAO owns live update/detection fields; Voxlis owns its editorial review, tags and price catalog.</li>
-          <li>When both sources provide a factual field and disagree, show “sources disagree” with both values—do not silently choose one.</li>
+          <li>Retain all four source observations; no source silently owns a field across the entire catalog.</li>
+          <li>When sources provide different factual values, show the conflict with both values—do not silently choose one.</li>
           <li>Every rendered status, score, price and review must retain provenance and retrieval time.</li>
         </ol>
       </section>
@@ -213,10 +211,10 @@ type SourceRef = {
         <p class="eyebrow">Maintenance</p>
         <h2>Operations runbook</h2>
         <div class="card-grid">
-          <article><h3>Refresh</h3><p>Run the snapshot workflow on a conservative schedule and by manual dispatch. Commit only when normalized content changes.</p></article>
-          <article><h3>Failure</h3><p>Keep the last-known-good JSON, mark it stale in the UI and record the upstream error without exposing sensitive headers.</p></article>
-          <article><h3>Validation</h3><p>Reject malformed URLs, impossible percentages and entries without names. Quarantine schema-breaking rows instead of breaking the page.</p></article>
-          <article><h3>Performance</h3><p>Split the 500+ KB monolith into modules, lazy-load media and move audio outside the documentation route.</p></article>
+          <article><h3>Refresh</h3><p>Use the dashboard refresh action or load the page with a configured Worker URL. Four adapters run concurrently and report health independently.</p></article>
+          <article><h3>Failure</h3><p>Keep the last-known-good browser snapshot, mark that source as cached, and show the upstream error without exposing sensitive headers.</p></article>
+          <article><h3>Validation</h3><p>Reject malformed URLs, impossible percentages and entries without names. Adapter schema failures should affect one source, not the whole page.</p></article>
+          <article><h3>Testing</h3><p>Run <code>npm test</code>, <code>npm run check</code> and <code>npm run build</code> from <code>Others/Synchrose</code> before deployment.</p></article>
         </div>
         <h3>Release checklist</h3>
         <ul class="checklist">

@@ -5,6 +5,21 @@ const bodyParser = require('body-parser');
 
 const app = express();
 const port = 9911;
+const filesDirectory = path.resolve(__dirname, 'SolaraTab');
+const fileNamePattern = /^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/;
+
+function resolveFilePath(rawName) {
+    const name = String(rawName || '');
+    if (!fileNamePattern.test(name) || name.includes('..')) return null;
+    const filePath = path.resolve(filesDirectory, name);
+    return filePath.startsWith(`${filesDirectory}${path.sep}`) ? filePath : null;
+}
+
+function resolveTabPath(rawName) {
+    const name = String(rawName || '');
+    const normalized = /\.(lua|luau)$/i.test(name) ? name : `${name}.lua`;
+    return resolveFilePath(normalized);
+}
 
 app.use((req, res, next) => {
     res.header('Access-Control-Allow-Origin', '*');
@@ -14,26 +29,26 @@ app.use((req, res, next) => {
 });
 
 app.get('/files', async (req, res) => {
-    const directoryPath = path.join(__dirname, 'SolaraTab');
     try {
         // อ่านรายการของไฟล์และไดเร็กทอรี
-        const fileNames = await fs.promises.readdir(directoryPath);
+        const fileNames = await fs.promises.readdir(filesDirectory);
         // สร้างอาร์เรย์ของ Promises เพื่ออ่านแต่ละไฟล์
         const filePromises = fileNames.map(async (fileName) => {
             if (fileName !== "undefined") {
-                const filePath = path.join(directoryPath, fileName);
+                const filePath = resolveFilePath(fileName);
+                if (!filePath) return null;
                 const stats = await fs.promises.stat(filePath);
                 
                 return { name: fileName, createdAt: stats.birthtime };
             } else {
-                const filePath = path.join(directoryPath, "main.lua");
+                const filePath = resolveFilePath("main.lua");
                 const stats = await fs.promises.stat(filePath);
                 
                 return { name: fileName, createdAt: stats.birthtime };
             }
         });
         // รอให้ทุก Promise เสร็จสิ้นและรวมผลลัพธ์
-        const files = await Promise.all(filePromises);
+        const files = (await Promise.all(filePromises)).filter(Boolean);
         // เรียงลำดับไฟล์ตามวันที่และเวลาที่สร้างขึ้นมาก่อน
         const sortedFiles = files.sort((a, b) => a.createdAt - b.createdAt);
         // ส่งไฟล์ที่ถูกเรียงลำดับกลับไป
@@ -48,7 +63,8 @@ app.get('/files', async (req, res) => {
   
   app.delete('/delete/:filename', async (req, res) => {
     const filename = req.params.filename;
-    const filePath = path.join(__dirname, 'SolaraTab', filename);
+        const filePath = resolveFilePath(filename);
+        if (!filePath) return res.status(400).send('Invalid file name');
   
     try {
       await fs.promises.unlink(filePath);
@@ -62,8 +78,8 @@ app.get('/files', async (req, res) => {
 
 app.post('/addtab/:filename', async (req, res) => {
     const filename = req.params.filename;
-    
-    const filePath = path.join(__dirname, 'SolaraTab', `${filename}.lua`);
+    const filePath = resolveTabPath(filename);
+    if (!filePath) return res.status(400).send('Invalid tab name');
 
     try {
         // สร้างไฟล์ใหม่
@@ -80,7 +96,8 @@ app.post('/addtab/:filename', async (req, res) => {
 
 app.get('/opentab/:filename', async (req, res) => {
     const { filename } = req.params;
-    const filePath = path.join(__dirname, 'SolaraTab', filename);
+    const filePath = resolveFilePath(filename);
+    if (!filePath) return res.status(400).send('Invalid file name');
     
     try {
         const data = await fs.promises.readFile(filePath, 'utf8'); // ใช้ fs.promises.readFile() และระบุ 'utf8'
@@ -95,7 +112,8 @@ app.use(bodyParser.text());
 
 app.post('/savetab/:filename', async (req, res) => {
     const { filename } = req.params;
-    const filePath = path.join(__dirname, 'SolaraTab', filename);
+    const filePath = resolveFilePath(filename);
+    if (!filePath) return res.status(400).send('Invalid file name');
     const fileContent = req.body;
 
     try {

@@ -1,16 +1,28 @@
 {
   "name": "synchrose",
-  "version": "1.0.0",
-  "description": "Static frontend with a small Cloudflare Worker for Pulsery's public exploit status and approved user reviews.",
-  "main": "app.js",
+  "version": "2.0.0",
+  "private": true,
+  "description": "An evidence-first status index for Roblox executors.",
+  "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "vite",
+    "build": "svelte-check --tsconfig ./tsconfig.json && vite build",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "worker:dev": "wrangler dev",
+    "worker:deploy": "wrangler deploy"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "type": "commonjs",
+  "dependencies": {
+    "svelte": "^5.57.0",
+    "zod": "^4.5.4"
+  },
   "devDependencies": {
-    "wrangler": "^4.115.0"
+    "@sveltejs/vite-plugin-svelte": "^7.3.0",
+    "svelte-check": "^4.7.6",
+    "typescript": "^6.0.0",
+    "vite": "^8.2.2",
+    "vitest": "^5.0.0",
+    "wrangler": "^4.129.0"
   }
 }

@@ -51,6 +51,7 @@ Use either method:
 ```
 
 A `?api=https://your-worker.workers.dev` URL still works and takes priority.
+Use `?api=clear` to remove the saved Worker URL from the current browser.
 
 ## Search syntax
 
@@ -61,6 +62,8 @@ A `?api=https://your-worker.workers.dev` URL still works and takes priority.
 
 Direct links still work: `?username=Roblox`, `?id=1`, `?search=builder`, and `?q=Roblox,id:1`.
 
+The page uses relative asset and navigation URLs, so it can be hosted at `/Others/OutfitSearch/` or another nested static path.
+
 ## What changed in this rebuild
 
 - Cancellable searches with three account reports loaded in parallel.
@@ -70,5 +73,6 @@ Direct links still work: `?username=Roblox`, `?id=1`, `?search=builder`, and `?q
 - The debug console stays available but never opens by itself.
 - Worker requests time out safely, avoid retrying Roblox `429` responses, and expose request IDs.
 - Saved outfits use Roblox’s current v2 endpoint, with the old v1 endpoint kept only as a fallback.
+- API overrides are accepted only for HTTP(S) URLs; malformed values are ignored.
 
 Worker version: `2026-07-23.1-outfitsearch-rebuild`
