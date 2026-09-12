@@ -20,6 +20,21 @@
   color-scheme: dark;
 }
 
+.filter-checks { border: 0; border-bottom: 1px solid var(--line); padding: 14px; margin: 0; min-width: 0; }
+.filter-checks legend { color: var(--muted); font: .65rem "IBM Plex Mono", monospace; padding-top: 12px; }
+.filter-checks label { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px 6px 0; border: 0; color: #ddd5e7; font: .75rem Inter, sans-serif; text-transform: none; letter-spacing: normal; }
+.filter-checks input { accent-color: var(--violet); width: 16px; height: 16px; }
+.markdown { line-height: 1.65; font-size: .8rem; overflow-wrap: anywhere; color: #cbc3d4; }
+.markdown p { margin: .6em 0; }
+.markdown a { color: var(--violet-soft); text-decoration: underline; }
+.markdown h1, .markdown h2, .markdown h3, .markdown h4 { font-size: 1rem; margin: 1em 0 .4em; }
+.markdown pre { overflow-x: auto; padding: 12px; background: #08070b; border: 1px solid var(--line); }
+.markdown code { color: #d4bfff; font-size: .75rem; }
+.markdown ul, .markdown ol { padding-left: 1.5em; }
+.markdown table { display: block; overflow-x: auto; table-layout: auto; }
+.markdown th, .markdown td { display: table-cell !important; width: auto !important; height: auto; padding: 8px; }
+.record-notes article + article { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--line); }
+
 * { box-sizing: border-box; }
 html { background: var(--bg); scroll-behavior: smooth; }
 body { margin: 0; min-width: 320px; min-height: 100vh; background:
@@ -261,3 +276,4 @@ dt { margin-bottom: 5px; } dd { overflow: hidden; margin: 0; color: #dad5df; fon
 @media (max-width: 1120px) { .control-actions { width: 100%; } .control-footer { flex-wrap: wrap; gap: 12px; } .advanced-grid { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (max-width: 760px) { .version-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (max-width: 520px) { .version-grid, .advanced-grid { grid-template-columns: 1fr; } .versions-toolbar { flex-wrap: wrap; } .advanced-grid { position: static; } }
+.advanced-grid .filter-checks label { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px 6px 0; border: 0; color: #ddd5e7; font: .75rem Inter, sans-serif; text-transform: none; letter-spacing: normal; }

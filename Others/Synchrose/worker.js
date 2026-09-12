@@ -177,6 +177,7 @@ async function fetchVoxlisEntry(slug) {
     if (!info || Array.isArray(info) || typeof info !== "object") continue;
 
     const points = await fetchVoxlisJson(`${encodeURIComponent(folder)}/points.json`, { allow404: true });
+    const modals = await fetchVoxlisJson(`${encodeURIComponent(folder)}/modals.json`, { allow404: true }).catch(() => null);
     return {
       ok: true,
       provider: "voxlis",
@@ -184,6 +185,7 @@ async function fetchVoxlisEntry(slug) {
       slug,
       folder,
       info,
+      modals: modals && typeof modals === "object" ? modals : {},
       points: points && !Array.isArray(points) && typeof points === "object" ? points : {}
     };
   }

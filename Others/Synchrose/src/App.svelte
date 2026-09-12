@@ -23,7 +23,6 @@
   let selectedId = $state<string | null>(null);
   let filtered = $derived(filterCatalog(catalog.records, filters));
   let selected = $derived(catalog.records.find((record) => record.id === selectedId) ?? null);
-  let features = $derived([...new Set(catalog.records.flatMap((record) => record.features))].sort());
   let latestFetch = $derived(Object.values(catalog.health).map((item) => item.fetchedAt).filter(Boolean).sort().at(-1) ?? null);
   let liveSources = $derived(Object.values(catalog.health).filter((item) => item.state === "live").length);
 
@@ -76,7 +75,7 @@
   <SourceStrip health={catalog.health} />
   <Versions />
   <div class="workspace">
-    <FilterPanel {filters} {features} resultCount={filtered.length} totalCount={catalog.records.length}
+    <FilterPanel {filters} resultCount={filtered.length} totalCount={catalog.records.length}
       onfilterschange={(next) => { filters = next; }} onreset={() => { filters = defaultFilters(); }} />
     <section class="catalog-section" aria-labelledby="catalog-title">
       <header class="catalog-header">

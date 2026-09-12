@@ -18,6 +18,8 @@ export interface SourceRecord {
   source: SourceId;
   sourceId?: string;
   rating?: number | null;
+  insecure?: boolean;
+  inviteOnly?: boolean;
   reviewCount?: number | null;
   stability?: number | null;
   myriad?: number | null;
@@ -87,6 +89,14 @@ export interface CatalogSnapshot {
 }
 
 export interface CatalogFilters {
+  platforms?: Platform[];
+  tags?: string[];
+  verified?: boolean;
+  trending?: boolean;
+  warning?: boolean;
+  showInsecure?: boolean;
+  showInviteOnly?: boolean;
+  valueRating?: string;
   search: string;
   platform: Platform | "all" | "mobile";
   working: WorkingConsensus | "all";
@@ -97,7 +107,7 @@ export interface CatalogFilters {
   type: string;
   key: "all" | "keyless" | "keysystem";
   sunc: "all" | "100" | "80" | "50" | "measured" | "unknown";
-  sort: "status" | "sources" | "sunc" | "name";
+  sort: "status" | "sources" | "sunc" | "name" | "popular" | "random" | "price" | "value";
 }
 
 export const SOURCE_META: Record<SourceId, { label: string; url: string; role: string }> = {

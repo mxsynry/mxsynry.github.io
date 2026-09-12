@@ -46,6 +46,10 @@ export function cleanText(value: unknown): string | null {
   return text && !/^(n\/?a|unknown|null|undefined)$/i.test(text) ? text : null;
 }
 
+export function markdownText(value: unknown): string | null {
+  return typeof value === "string" ? value.replace(/\u0000/g, "").trim() || null : null;
+}
+
 export function numberOrNull(value: unknown): number | null {
   if (value === null || value === undefined || value === "") return null;
   const parsed = Number(String(value).replace("%", ""));

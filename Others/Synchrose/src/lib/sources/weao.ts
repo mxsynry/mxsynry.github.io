@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { SourceRecord, SourceResult } from "../domain";
 import { endpoints } from "../config";
-import { booleanOrNull, cleanText, normalizeDetection, normalizePlatform, numberOrNull, safeUrl } from "../format";
+import { booleanOrNull, cleanText, markdownText, normalizeDetection, normalizePlatform, numberOrNull, safeUrl } from "../format";
 import { fetchWithFallback } from "../http";
 import { asArray, asObject, normalizeType, sourceTimestamp, unique } from "./common";
 
@@ -50,6 +50,8 @@ function normalizeWeaoRecord(item: z.infer<typeof itemSchema>, versionsPayload: 
     item.keysystem === true ? "Key system" : item.keysystem === false ? "Keyless" : "",
     item.clientmods === true ? "Client-mod bypass" : "",
     item.beta === true ? "Beta" : "",
+    item.longestRunning === true ? "Longest-running" : "",
+    item.raknet === true ? "RakNet" : "",
     item.elementCertified === true ? "Verified" : ""
   ].filter(Boolean));
   return {
@@ -59,7 +61,7 @@ function normalizeWeaoRecord(item: z.infer<typeof itemSchema>, versionsPayload: 
     price: cost || (free === true ? "Free" : free === false ? "Paid" : null), free,
     sunc: numberOrNull(item.suncPercentage), unc: numberOrNull(item.uncPercentage),
     type: normalizeType(item.extype ?? item.type), features,
-    description: cleanText(slug.fullDescription) || cleanText(item.description),
+    description: markdownText(slug.fullDescription) || markdownText(item.description),
     links: { website: safeUrl(item.websitelink ?? item.website), discord: safeUrl(item.discordlink ?? item.discord), purchase: safeUrl(item.purchaselink) },
     warning: item.hasIssues === true, sourceUpdatedAt: sourceTimestamp(item.updatedDate, fetchedAt), fetchedAt
   };

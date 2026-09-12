@@ -1,6 +1,7 @@
 import { SOURCE_IDS, type DetectionConsensus, type EvidenceConflict, type ExecutorRecord, type SourceId, type SourceRecord, type SourceResult, type WorkingConsensus } from "./domain";
 import { chooseDisplayName, mergeAliases, normalizeIdentity } from "./identity";
 import { unique } from "./sources/common";
+import { normalizeFeatures } from "./features";
 
 const GENERAL_PRIORITY: SourceId[] = ["weao", "pulsery", "inject", "voxlis"];
 const DESCRIPTION_PRIORITY: SourceId[] = ["voxlis", "pulsery", "inject", "weao"];
@@ -38,7 +39,7 @@ function mergeExecutor(id: string, observations: SourceRecord[]): ExecutorRecord
     free: freeValues.length === 1 ? freeValues[0] : null,
     sunc: suncValues.length ? { min: Math.min(...suncValues), max: Math.max(...suncValues) } : null,
     type: firstValue(ordered, "type"),
-    features: unique(observations.flatMap((record) => record.features)).sort(),
+    features: normalizeFeatures(observations.flatMap((record) => [...record.features, ...(["Kernel", "Server-side"].includes(record.type || "") ? [record.type!] : []), ...(record.warning ? ["Warning flagged"] : [])])),
     description: firstValue(orderBySource(observations, DESCRIPTION_PRIORITY), "description"),
     links: {
       website: firstLink(ordered, "website"), discord: firstLink(ordered, "discord"),

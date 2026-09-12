@@ -17,6 +17,15 @@ describe("restored catalog data", () => {
     expect(filterCatalog([record], {...filters,sunc:"100"})).toHaveLength(0);
     expect(filterCatalog([record], {...filters,key:"keyless"})).toHaveLength(0);
     expect(filterCatalog([record], {...filters,type:"Internal"})).toHaveLength(0);
+    record.features = ["Verified", "Trending", "RakNet", "Decompiler"];
+    record.warning = true;
+    record.observations[0].inviteOnly = true;
+    expect(filterCatalog([record], {...filters,tags:["RakNet","Decompiler"],verified:true,trending:true})).toHaveLength(1);
+    expect(filterCatalog([record], {...filters,tags:["RakNet","Kernel"]})).toHaveLength(0);
+    expect(filterCatalog([record], {...filters,platforms:["mac","windows"]})).toHaveLength(1);
+    expect(filterCatalog([record], {...filters,showInviteOnly:false})).toHaveLength(0);
+    expect(filterCatalog([record], {...filters,showInsecure:false})).toHaveLength(0);
+    expect(filterCatalog([record], {...filters,warning:true})).toHaveLength(1);
   });
   it("does not turn an unsafe detection report into an undetected report", () => {
     expect(normalizeDetection("unsafe")).toBe("detected");

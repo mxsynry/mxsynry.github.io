@@ -5,6 +5,7 @@
   import { fetchJson } from "../lib/http";
   import { safeUrl, formatTime } from "../lib/format";
   import Stars from "./Stars.svelte";
+  import Markdown from "./Markdown.svelte";
   let { apiBase, record }: { apiBase: string; record: ExecutorRecord } = $props();
   const reviewSchema = z.object({
     id: z.string().optional(), author: z.string().default("Pulsery user"),
@@ -70,13 +71,13 @@
         </header>
         <small>{formatTime(review.created_at ?? null)}</small>
         {#if metrics(review.text).length}<dl class="review-breakdown">{#each metrics(review.text) as metric}<div><dt>{metric.label}</dt><dd>{metric.score}/5</dd></div>{/each}</dl>{/if}
-        <p class="review-body">{review.text.replace(/^\[\s*([^:\]]+):\s*\d+(?:\.\d+)?\s*\/\s*5\s*\]\s*$/gm, "").trim()}</p>
+        <Markdown text={review.text.replace(/^\[\s*([^:\]]+):\s*\d+(?:\.\d+)?\s*\/\s*5\s*\]\s*$/gm, "").trim()} />
         <div class="review-screenshots">{#each review.screenshots.filter((url) => safeUrl(url)) as url, i}<a href={safeUrl(url)} target="_blank" rel="noreferrer"><img src={safeUrl(url)} alt={`Review screenshot ${i + 1} by ${review.author}`} loading="lazy" referrerpolicy="no-referrer" /></a>{/each}</div>
-        {#if review.reply_text}<blockquote><strong>{review.reply_author || "Developer reply"}</strong><p>{review.reply_text}</p><small>{formatTime(review.reply_at ?? null)}</small></blockquote>{/if}
+        {#if review.reply_text}<blockquote><strong>{review.reply_author || "Developer reply"}</strong><Markdown text={review.reply_text} /><small>{formatTime(review.reply_at ?? null)}</small></blockquote>{/if}
       </article>
     {/each}
     {#if limit < reviews.length}<button type="button" onclick={() => { limit += 10; }}>Show more reviews ({reviews.length - limit})</button>{/if}
   {/if}
 </section>
 {/if}
-{#if voxlis}<section class="reviews-section"><h3>Voxlis review notes</h3><p class="review-body">{notesError || notes || "Loading review notes…"}</p></section>{/if}
+{#if voxlis}<section class="reviews-section"><h3>Voxlis review notes</h3><Markdown text={notesError || notes || "Loading review notes…"} /></section>{/if}

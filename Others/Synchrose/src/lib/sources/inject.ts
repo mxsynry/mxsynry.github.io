@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { SourceRecord, SourceResult } from "../domain";
 import { endpoints } from "../config";
-import { cleanText, normalizeDetection, normalizePlatform, numberOrNull, safeUrl } from "../format";
+import { cleanText, markdownText, normalizeDetection, normalizePlatform, numberOrNull, safeUrl } from "../format";
 import { fetchJson } from "../http";
 import { asObject, normalizeType, objectKeys, sourceTimestamp, strings, unique } from "./common";
 
@@ -49,7 +49,7 @@ function normalizeInjectRecords(name: string, rawItem: unknown, versionsPayload:
       sunc: null, unc: numberOrNull(attributes.UNC),
       type: /aimbot/i.test(parent || "") ? "Aimbot" : normalizeType(attributes.Type ?? parent),
       features: unique([...models, rank || "", parent || "", attributes.Decompiler === true ? "Decompiler" : "", attributes.MultipleInstance === true ? "Multi-instance" : "", attributes.Raknet === true ? "RakNet" : ""].filter(Boolean)),
-      description: cleanText(attributes.About ?? attributes.Note),
+      description: markdownText(attributes.About ?? attributes.Note),
       links: { website: safeUrl(links.Website), discord: safeUrl(links.Discord) },
       warning: attributes.Caution === true || attributes.Issues === true,
       sourceUpdatedAt: sourceTimestamp(platformInfo.Updated ?? platformInfo.LastUpdate, fetchedAt), fetchedAt

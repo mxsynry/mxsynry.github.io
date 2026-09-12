@@ -1,5 +1,6 @@
 <script lang="ts">
   import Reviews from "./Reviews.svelte";
+  import Markdown from "./Markdown.svelte";
   import { onMount } from "svelte";
   import { SOURCE_META, type EvidenceConflict, type ExecutorRecord, type SourceRecord } from "../lib/domain";
   import { DETECTION_LABELS, formatSunc, formatTime, PLATFORM_LABELS, trimNumber } from "../lib/format";
@@ -8,6 +9,7 @@
   interface Props { apiBase: string; record: ExecutorRecord; ondismiss: () => void; }
   let { apiBase, record, ondismiss }: Props = $props();
   let dialog: HTMLDialogElement;
+  let notes = $derived([...new Set(record.observations.map(o => o.description).filter((text): text is string => Boolean(text)))]);
 
   onMount(() => dialog.showModal());
 
@@ -77,16 +79,17 @@
             {#if observation.myriad != null}<div><dt>Myriad</dt><dd>{observation.myriad}</dd></div>{/if}
             {#if observation.unc != null}<div><dt>UNC</dt><dd>{observation.unc}%</dd></div>{/if}
           </dl>
-          {#if observation.description}<p class="observation-note">{observation.description}</p>{/if}
           <footer>Source update: {formatTime(observation.sourceUpdatedAt)} · Retrieved: {formatTime(observation.fetchedAt)}</footer>
         </article>
       {/each}
     </section>
 
-    {#if record.features.length || record.description}
+    {#if notes.length}<section class="record-notes"><h3>Descriptions</h3>
+      {#each notes as text}<article><p class="eyebrow">{record.observations.filter(o => o.description === text).map(o => SOURCE_META[o.source].label).filter((s, i, all) => all.indexOf(s) === i).join(" · ")}</p><Markdown {text} /></article>{/each}
+    </section>{/if}
+    {#if record.features.length}
       <section class="record-notes">
-        <div class="section-heading"><p class="eyebrow">Catalog notes</p></div>
-        {#if record.description}<p>{record.description}</p>{/if}
+        <div class="section-heading"><p class="eyebrow">Reported features</p></div>
         {#if record.features.length}<div class="feature-list">{#each record.features as feature}<span>{feature}</span>{/each}</div>{/if}
       </section>
     {/if}

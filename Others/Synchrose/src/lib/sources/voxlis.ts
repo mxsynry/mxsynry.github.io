@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { Platform, SourceRecord, SourceResult } from "../domain";
 import { endpoints } from "../config";
-import { cleanText, safeUrl, trimNumber } from "../format";
+import { cleanText, markdownText, safeUrl, trimNumber } from "../format";
 import { fetchJson, mapConcurrent } from "../http";
 import { asArray, asObject, normalizeType, platforms, strings, unique } from "./common";
 
@@ -46,6 +46,8 @@ function normalizeVoxlisRecord(entry: z.infer<typeof entrySchema>, prices: Recor
   const info = entry.info;
   if (info.hidden === true) return null;
   const points = entry.points || {};
+  const modals = asObject(entry.modals);
+  const modalWarning = asObject(modals.warning).enabled === true || asObject(modals.warningred).enabled === true;
   const name = cleanText(info.name) || cleanText(entry.folder);
   if (!name) return null;
   const productPlatforms = platforms(info.platforms ?? info.platform);
@@ -53,17 +55,18 @@ function normalizeVoxlisRecord(entry: z.infer<typeof entrySchema>, prices: Recor
   const badges = strings(info.badges).map((badge) => badge.toLowerCase());
   const price = getPrice(name, productPlatforms, prices);
   const urls = asObject(info.urls);
-  const pro = cleanText(points.pro_summary);
-  const neutral = cleanText(points.neutral_summary);
-  const con = cleanText(points.con_summary);
+  const pro = markdownText(points.pro_summary);
+  const neutral = markdownText(points.neutral_summary);
+  const con = markdownText(points.con_summary);
   return {
     source: "voxlis", sourceId: cleanText(entry.folder) || name, name, platforms: productPlatforms,
-    working: null, detection: tags.includes("insecure") ? "detected" : "unknown",
+    insecure: tags.includes("insecure"), inviteOnly: tags.some(tag => tag.replace(/[-_ ]/g, "") === "inviteonly"),
+    working: null, detection: "unknown",
     version: null, robloxVersion: null, price: price.label, free: price.free, sunc: null, unc: null,
-    type: normalizeType(info.type), features: unique([...tags.map(titleCase), ...badges.map(titleCase)]),
-    description: [pro, neutral, con].filter(Boolean).join(" ") || null,
+    type: normalizeType(info.type), features: unique([...tags.map(titleCase), ...badges.map(titleCase), ...(info.keyed === true || tags.includes("freemium") ? ["Key system"] : info.keyed === false ? ["Keyless"] : [])]),
+    description: [pro, neutral, con].filter(Boolean).join("\n\n") || null,
     links: { website: safeUrl(firstUrl(urls.website) ?? info.website ?? info.url), discord: safeUrl(firstUrl(urls.discord) ?? info.discord), purchase: price.purchase },
-    warning: tags.includes("insecure") || badges.some((badge) => badge === "warning" || badge === "warningred"),
+    warning: modalWarning || tags.includes("insecure") || badges.some((badge) => badge === "warning" || badge === "warningred"),
     sourceUpdatedAt: fetchedAt, fetchedAt
   };
 }

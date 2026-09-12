@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { SourceRecord, SourceResult } from "../domain";
 import { endpoints } from "../config";
-import { booleanOrNull, cleanText, normalizeDetection, numberOrNull, safeUrl } from "../format";
+import { booleanOrNull, cleanText, markdownText, normalizeDetection, numberOrNull, safeUrl } from "../format";
 import { fetchJson } from "../http";
 import { asArray, asObject, normalizeType, platforms, sourceTimestamp, unique } from "./common";
 
@@ -46,7 +46,7 @@ function normalizePulseryRecord(item: z.infer<typeof itemSchema>, fetchedAt: str
     price: price || (free ? "Free" : numericPrice !== null ? String(numericPrice) : null),
     free: price || numericPrice !== null ? free : null,
     sunc: numberOrNull(item.sunc_percent), unc: numberOrNull(item.unc_percent), type: normalizeType(item.type),
-    features, description: cleanText(item.description),
+    features, description: markdownText(item.description),
     links: { website: safeUrl(item.website_url), discord: safeUrl(item.discord_url), purchase: safeUrl(item.purchase_url) },
     warning: item.use_with_caution === true,
     sourceUpdatedAt: sourceTimestamp(item.updated ?? item.last_status_change, fetchedAt), fetchedAt
