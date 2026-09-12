@@ -3,7 +3,7 @@ const DEFAULT_TIMEOUT = 14_000;
 export async function fetchJson(url: string, timeout = DEFAULT_TIMEOUT): Promise<unknown> {
   if (!url) throw new Error("This source requires the Synchrose data bridge.");
   const controller = new AbortController();
-  const timer = globalThis.setTimeout(() => controller.abort(), timeout);
+  const timer = window.setTimeout(() => controller.abort(), timeout);
   try {
     const response = await fetch(url, {
       headers: { accept: "application/json" },
@@ -16,7 +16,7 @@ export async function fetchJson(url: string, timeout = DEFAULT_TIMEOUT): Promise
     if (error instanceof DOMException && error.name === "AbortError") throw new Error("Request timed out.");
     throw error;
   } finally {
-    globalThis.clearTimeout(timer);
+    window.clearTimeout(timer);
   }
 }
 

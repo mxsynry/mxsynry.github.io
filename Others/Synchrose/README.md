@@ -24,7 +24,9 @@ npm test
 npm run build
 ```
 
-The production site is emitted to `dist/`. Vite uses a relative base so it can remain hosted under `/Others/Synchrose/`.
+The production site is emitted to `dist/`. The build then copies the compiled `index.html` and hashed bundles into the project root so this directory also works when served directly by GitHub Pages or Cloudflare Pages without a framework build step. Vite uses relative asset paths so it can remain hosted under `/Others/Synchrose/`.
+
+Do not replace the root `index.html` with `src/index.html`. The root file is the compiled static entry; `src/index.html` is the editable Vite entry.
 
 ## Data policy
 
