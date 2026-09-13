@@ -2773,6 +2773,37 @@
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/alive%20enough%20to%20feel%2C%20but%20not%20enough%20to%20not%20remain.mp3"
             },
             {
+              "name": "assets",
+              "path": "Others/Synchrose/assets",
+              "type": "dir",
+              "children": [
+                {
+                  "name": "index-CYONq4GP.css",
+                  "path": "Others/Synchrose/assets/index-CYONq4GP.css",
+                  "type": "file",
+                  "size": 27652,
+                  "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/assets/index-CYONq4GP.css",
+                  "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/assets/index-CYONq4GP.css"
+                },
+                {
+                  "name": "index-DBRmsb9x.js",
+                  "path": "Others/Synchrose/assets/index-DBRmsb9x.js",
+                  "type": "file",
+                  "size": 257978,
+                  "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/assets/index-DBRmsb9x.js",
+                  "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/assets/index-DBRmsb9x.js"
+                },
+                {
+                  "name": "index-DBRmsb9x.js.map",
+                  "path": "Others/Synchrose/assets/index-DBRmsb9x.js.map",
+                  "type": "file",
+                  "size": 1389472,
+                  "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/assets/index-DBRmsb9x.js.map",
+                  "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/assets/index-DBRmsb9x.js.map"
+                }
+              ]
+            },
+            {
               "name": "Autism.mp3",
               "path": "Others/Synchrose/Autism.mp3",
               "type": "file",
@@ -2829,6 +2860,52 @@
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/Connor%20Price%20%26%20Haviah%20Mighty%20-%20Trendsetter.mp3"
             },
             {
+              "name": "dist",
+              "path": "Others/Synchrose/dist",
+              "type": "dir",
+              "children": [
+                {
+                  "name": "assets",
+                  "path": "Others/Synchrose/dist/assets",
+                  "type": "dir",
+                  "children": [
+                    {
+                      "name": "index-BK75q22O.css",
+                      "path": "Others/Synchrose/dist/assets/index-BK75q22O.css",
+                      "type": "file",
+                      "size": 22839,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/dist/assets/index-BK75q22O.css",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/dist/assets/index-BK75q22O.css"
+                    },
+                    {
+                      "name": "index-Cf1I5NYx.js",
+                      "path": "Others/Synchrose/dist/assets/index-Cf1I5NYx.js",
+                      "type": "file",
+                      "size": 256359,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/dist/assets/index-Cf1I5NYx.js",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/dist/assets/index-Cf1I5NYx.js"
+                    },
+                    {
+                      "name": "index-Cf1I5NYx.js.map",
+                      "path": "Others/Synchrose/dist/assets/index-Cf1I5NYx.js.map",
+                      "type": "file",
+                      "size": 1383978,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/dist/assets/index-Cf1I5NYx.js.map",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/dist/assets/index-Cf1I5NYx.js.map"
+                    }
+                  ]
+                },
+                {
+                  "name": "index.html",
+                  "path": "Others/Synchrose/dist/index.html",
+                  "type": "file",
+                  "size": 1060,
+                  "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/dist/index.html",
+                  "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/dist/index.html"
+                }
+              ]
+            },
+            {
               "name": "DNR.mp3",
               "path": "Others/Synchrose/DNR.mp3",
               "type": "file",
@@ -2872,9 +2949,17 @@
               "name": "index.html",
               "path": "Others/Synchrose/index.html",
               "type": "file",
-              "size": 875,
+              "size": 1057,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/index.html",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/index.html"
+            },
+            {
+              "name": "jsconfig.json",
+              "path": "Others/Synchrose/jsconfig.json",
+              "type": "file",
+              "size": 277,
+              "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/jsconfig.json",
+              "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/jsconfig.json"
             },
             {
               "name": "moment.mp3",
@@ -2896,7 +2981,7 @@
               "name": "package-lock.json",
               "path": "Others/Synchrose/package-lock.json",
               "type": "file",
-              "size": 94767,
+              "size": 114523,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/package-lock.json",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/package-lock.json"
             },
@@ -2904,7 +2989,7 @@
               "name": "package.json",
               "path": "Others/Synchrose/package.json",
               "type": "file",
-              "size": 727,
+              "size": 843,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/package.json",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/package.json"
             },
@@ -2928,7 +3013,7 @@
               "name": "README.md",
               "path": "Others/Synchrose/README.md",
               "type": "file",
-              "size": 1677,
+              "size": 2039,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/README.md",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/README.md"
             },
@@ -2957,6 +3042,21 @@
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/Script%20Builder%20-%20Forsaken%20UST.mp3"
             },
             {
+              "name": "scripts",
+              "path": "Others/Synchrose/scripts",
+              "type": "dir",
+              "children": [
+                {
+                  "name": "sync-static-build.js",
+                  "path": "Others/Synchrose/scripts/sync-static-build.js",
+                  "type": "file",
+                  "size": 812,
+                  "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/scripts/sync-static-build.js",
+                  "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/scripts/sync-static-build.js"
+                }
+              ]
+            },
+            {
               "name": "SouL__CRUSH.mp3",
               "path": "Others/Synchrose/SouL__CRUSH.mp3",
               "type": "file",
@@ -2981,7 +3081,7 @@
                   "name": "App.svelte",
                   "path": "Others/Synchrose/src/App.svelte",
                   "type": "file",
-                  "size": 4368,
+                  "size": 5182,
                   "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/App.svelte",
                   "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/App.svelte"
                 },
@@ -2991,18 +3091,34 @@
                   "type": "dir",
                   "children": [
                     {
+                      "name": "Benchmarks.svelte",
+                      "path": "Others/Synchrose/src/components/Benchmarks.svelte",
+                      "type": "file",
+                      "size": 819,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/components/Benchmarks.svelte",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/components/Benchmarks.svelte"
+                    },
+                    {
                       "name": "CatalogTable.svelte",
                       "path": "Others/Synchrose/src/components/CatalogTable.svelte",
                       "type": "file",
-                      "size": 3058,
+                      "size": 3437,
                       "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/components/CatalogTable.svelte",
                       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/components/CatalogTable.svelte"
+                    },
+                    {
+                      "name": "ComparePanel.svelte",
+                      "path": "Others/Synchrose/src/components/ComparePanel.svelte",
+                      "type": "file",
+                      "size": 1931,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/components/ComparePanel.svelte",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/components/ComparePanel.svelte"
                     },
                     {
                       "name": "EvidenceDrawer.svelte",
                       "path": "Others/Synchrose/src/components/EvidenceDrawer.svelte",
                       "type": "file",
-                      "size": 5532,
+                      "size": 6303,
                       "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/components/EvidenceDrawer.svelte",
                       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/components/EvidenceDrawer.svelte"
                     },
@@ -3010,9 +3126,25 @@
                       "name": "FilterPanel.svelte",
                       "path": "Others/Synchrose/src/components/FilterPanel.svelte",
                       "type": "file",
-                      "size": 4132,
+                      "size": 6985,
                       "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/components/FilterPanel.svelte",
                       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/components/FilterPanel.svelte"
+                    },
+                    {
+                      "name": "Markdown.svelte",
+                      "path": "Others/Synchrose/src/components/Markdown.svelte",
+                      "type": "file",
+                      "size": 212,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/components/Markdown.svelte",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/components/Markdown.svelte"
+                    },
+                    {
+                      "name": "Reviews.svelte",
+                      "path": "Others/Synchrose/src/components/Reviews.svelte",
+                      "type": "file",
+                      "size": 5278,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/components/Reviews.svelte",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/components/Reviews.svelte"
                     },
                     {
                       "name": "SourceStrip.svelte",
@@ -3023,14 +3155,38 @@
                       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/components/SourceStrip.svelte"
                     },
                     {
+                      "name": "Stars.svelte",
+                      "path": "Others/Synchrose/src/components/Stars.svelte",
+                      "type": "file",
+                      "size": 393,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/components/Stars.svelte",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/components/Stars.svelte"
+                    },
+                    {
                       "name": "StatusBadge.svelte",
                       "path": "Others/Synchrose/src/components/StatusBadge.svelte",
                       "type": "file",
                       "size": 324,
                       "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/components/StatusBadge.svelte",
                       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/components/StatusBadge.svelte"
+                    },
+                    {
+                      "name": "Versions.svelte",
+                      "path": "Others/Synchrose/src/components/Versions.svelte",
+                      "type": "file",
+                      "size": 4727,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/components/Versions.svelte",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/components/Versions.svelte"
                     }
                   ]
+                },
+                {
+                  "name": "index.html",
+                  "path": "Others/Synchrose/src/index.html",
+                  "type": "file",
+                  "size": 953,
+                  "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/index.html",
+                  "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/index.html"
                 },
                 {
                   "name": "lib",
@@ -3041,7 +3197,7 @@
                       "name": "catalog.ts",
                       "path": "Others/Synchrose/src/lib/catalog.ts",
                       "type": "file",
-                      "size": 5409,
+                      "size": 7748,
                       "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/catalog.ts",
                       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/catalog.ts"
                     },
@@ -3065,7 +3221,7 @@
                       "name": "consensus.ts",
                       "path": "Others/Synchrose/src/lib/consensus.ts",
                       "type": "file",
-                      "size": 5115,
+                      "size": 5302,
                       "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/consensus.ts",
                       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/consensus.ts"
                     },
@@ -3073,15 +3229,31 @@
                       "name": "domain.ts",
                       "path": "Others/Synchrose/src/lib/domain.ts",
                       "type": "file",
-                      "size": 2909,
+                      "size": 3416,
                       "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/domain.ts",
                       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/domain.ts"
+                    },
+                    {
+                      "name": "features.test.ts",
+                      "path": "Others/Synchrose/src/lib/features.test.ts",
+                      "type": "file",
+                      "size": 600,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/features.test.ts",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/features.test.ts"
+                    },
+                    {
+                      "name": "features.ts",
+                      "path": "Others/Synchrose/src/lib/features.ts",
+                      "type": "file",
+                      "size": 1206,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/features.ts",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/features.ts"
                     },
                     {
                       "name": "format.ts",
                       "path": "Others/Synchrose/src/lib/format.ts",
                       "type": "file",
-                      "size": 3157,
+                      "size": 3317,
                       "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/format.ts",
                       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/format.ts"
                     },
@@ -3089,7 +3261,7 @@
                       "name": "http.ts",
                       "path": "Others/Synchrose/src/lib/http.ts",
                       "type": "file",
-                      "size": 1499,
+                      "size": 1491,
                       "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/http.ts",
                       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/http.ts"
                     },
@@ -3110,23 +3282,63 @@
                       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/identity.ts"
                     },
                     {
+                      "name": "markdown.test.ts",
+                      "path": "Others/Synchrose/src/lib/markdown.test.ts",
+                      "type": "file",
+                      "size": 830,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/markdown.test.ts",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/markdown.test.ts"
+                    },
+                    {
+                      "name": "markdown.ts",
+                      "path": "Others/Synchrose/src/lib/markdown.ts",
+                      "type": "file",
+                      "size": 451,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/markdown.ts",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/markdown.ts"
+                    },
+                    {
+                      "name": "price.ts",
+                      "path": "Others/Synchrose/src/lib/price.ts",
+                      "type": "file",
+                      "size": 948,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/price.ts",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/price.ts"
+                    },
+                    {
+                      "name": "restoration.test.ts",
+                      "path": "Others/Synchrose/src/lib/restoration.test.ts",
+                      "type": "file",
+                      "size": 2486,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/restoration.test.ts",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/restoration.test.ts"
+                    },
+                    {
+                      "name": "review-summary.test.ts",
+                      "path": "Others/Synchrose/src/lib/review-summary.test.ts",
+                      "type": "file",
+                      "size": 537,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/review-summary.test.ts",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/review-summary.test.ts"
+                    },
+                    {
+                      "name": "review-summary.ts",
+                      "path": "Others/Synchrose/src/lib/review-summary.ts",
+                      "type": "file",
+                      "size": 358,
+                      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/review-summary.ts",
+                      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/review-summary.ts"
+                    },
+                    {
                       "name": "sources",
                       "path": "Others/Synchrose/src/lib/sources",
                       "type": "dir",
                       "children": [
                         {
-                          "name": "adapters.test.ts",
-                          "path": "Others/Synchrose/src/lib/sources/adapters.test.ts",
-                          "type": "file",
-                          "size": 3359,
-                          "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/sources/adapters.test.ts",
-                          "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/sources/adapters.test.ts"
-                        },
-                        {
                           "name": "common.ts",
                           "path": "Others/Synchrose/src/lib/sources/common.ts",
                           "type": "file",
-                          "size": 1632,
+                          "size": 1628,
                           "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/sources/common.ts",
                           "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/sources/common.ts"
                         },
@@ -3134,7 +3346,7 @@
                           "name": "inject.ts",
                           "path": "Others/Synchrose/src/lib/sources/inject.ts",
                           "type": "file",
-                          "size": 4448,
+                          "size": 4483,
                           "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/sources/inject.ts",
                           "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/sources/inject.ts"
                         },
@@ -3142,7 +3354,7 @@
                           "name": "pulsery.ts",
                           "path": "Others/Synchrose/src/lib/sources/pulsery.ts",
                           "type": "file",
-                          "size": 2887,
+                          "size": 3081,
                           "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/sources/pulsery.ts",
                           "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/sources/pulsery.ts"
                         },
@@ -3150,7 +3362,7 @@
                           "name": "voxlis.ts",
                           "path": "Others/Synchrose/src/lib/sources/voxlis.ts",
                           "type": "file",
-                          "size": 5782,
+                          "size": 6167,
                           "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/sources/voxlis.ts",
                           "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/sources/voxlis.ts"
                         },
@@ -3158,7 +3370,7 @@
                           "name": "weao.ts",
                           "path": "Others/Synchrose/src/lib/sources/weao.ts",
                           "type": "file",
-                          "size": 4493,
+                          "size": 4653,
                           "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/sources/weao.ts",
                           "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/sources/weao.ts"
                         }
@@ -3183,7 +3395,7 @@
                       "name": "global.css",
                       "path": "Others/Synchrose/src/styles/global.css",
                       "type": "file",
-                      "size": 20121,
+                      "size": 31952,
                       "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/styles/global.css",
                       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/styles/global.css"
                     }
@@ -3235,7 +3447,7 @@
               "name": "vite.config.ts",
               "path": "Others/Synchrose/vite.config.ts",
               "type": "file",
-              "size": 221,
+              "size": 356,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/vite.config.ts",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/vite.config.ts"
             },
@@ -3243,7 +3455,7 @@
               "name": "worker.js",
               "path": "Others/Synchrose/worker.js",
               "type": "file",
-              "size": 14843,
+              "size": 15108,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/worker.js",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/worker.js"
             },
@@ -3279,7 +3491,7 @@
       "name": "pages-build.mjs",
       "path": "pages-build.mjs",
       "type": "file",
-      "size": 1247,
+      "size": 2176,
       "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/pages-build.mjs",
       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/pages-build.mjs"
     },
