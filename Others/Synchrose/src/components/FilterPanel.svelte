@@ -14,10 +14,10 @@
 <section class="filter-panel" aria-label="Catalog controls">
   <div class="primary-controls">
     <label class="search-control">
-      <span class="sr-only">Search executors</span>
+      <span class="sr-only">Search exploits</span>
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.7"></circle><path d="m16 16 4.2 4.2"></path></svg>
       <input type="search" value={filters.search} oninput={(event) => update("search", event.currentTarget.value)}
-        placeholder="Search executor, platform, or feature" autocomplete="off" />
+        placeholder="Search exploit, platform, or feature" autocomplete="off" />
       <kbd>/</kbd>
     </label>
     <fieldset class="filter-checks"><legend>Platforms · any selected</legend>
@@ -35,7 +35,7 @@
     </select></label>
   </div>
   <div class="control-footer">
-    <p><strong>{resultCount}</strong> of {totalCount} executors</p>
+    <p><strong>{resultCount}</strong> of {totalCount} exploits</p>
     <div class="control-actions">
       <details class="advanced-filters"><summary>More filters</summary><div class="advanced-grid">
         <label><span>Detection</span><select value={filters.detection} onchange={(event) => update("detection", event.currentTarget.value as CatalogFilters["detection"])}>

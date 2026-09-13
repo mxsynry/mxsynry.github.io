@@ -3,6 +3,7 @@
   import { fetchWithFallback } from "../lib/http";
   import { asObject } from "../lib/sources/common";
   import { formatTime } from "../lib/format";
+  let { onmobile }: { onmobile: () => void } = $props();
   const platforms = [{key:"Windows",label:"Windows",binary:"WindowsPlayer"},{key:"Mac",label:"macOS",binary:"MacPlayer"},{key:"Android",label:"Android",binary:""},{key:"iOS",label:"iOS",binary:""}];
   let current = $state<Record<string, unknown>>({});
   let past = $state<Record<string, unknown>>({});
@@ -12,6 +13,7 @@
   let copied = $state("");
   let binary = $state("WindowsPlayer");
   let customVersion = $state("");
+  let expanded = $state(false);
   function version(data: Record<string, unknown>, key: string): string {
     const value = data[key] ?? data[key.toLowerCase()];
     const nested = asObject(value);
@@ -36,9 +38,9 @@
     }));
     pulledAt = new Date().toISOString(); loading = false;
   }
-  onMount(() => { void refresh(); });
+  onMount(() => { expanded = window.matchMedia("(min-width: 761px)").matches; void refresh(); });
 </script>
-<details class="versions-panel" open>
+<details class="versions-panel" bind:open={expanded}>
   <summary>Roblox versions &amp; RDD</summary>
   <div class="versions-toolbar"><span>WEAO · Last check {formatTime(pulledAt)}</span><button type="button" onclick={refresh} disabled={loading}>{loading ? "Checking…" : "Refresh versions"}</button></div>
   {#each errors as error}<p role="status">{error}</p>{/each}
@@ -48,6 +50,7 @@
       <small>Previous</small><code>{previous || (loading ? "Loading…" : "Unavailable")}</code>
       {#if typeof current[`${platform.key}Date`] === "string"}<small>Updated {formatTime(String(current[`${platform.key}Date`]))}</small>{/if}
       <div class="version-actions">{#if latest}<button type="button" onclick={() => copy(latest)}>Copy current</button>{/if}{#if previous}<button type="button" onclick={() => copy(previous)}>Copy previous</button>{/if}</div>
+      {#if !platform.binary}<button class="mobile-shortcut" type="button" onclick={onmobile}>Show mobile executors</button>{/if}
       {#if platform.binary}<div class="version-actions">{#if latest}<a href={rdd(platform.binary, latest)} target="_blank" rel="noreferrer">Current in RDD ↗</a>{/if}{#if previous}<a href={rdd(platform.binary, previous)} target="_blank" rel="noreferrer">Previous in RDD ↗</a>{/if}</div>{/if}
     </article>
   {/each}</div>

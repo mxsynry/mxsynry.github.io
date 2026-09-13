@@ -11,7 +11,7 @@
     {label: "Features", value: r => r.features.join(", ") || "Unknown"}
   ];
 </script>
-<details class="compare-panel"><summary>Compare executors ({selected.length}/4)</summary>
-  <label>Add executor<select disabled={selected.length >= 4} value="" onchange={(event) => { if (event.currentTarget.value) onchange([...selected, event.currentTarget.value]); event.currentTarget.value = ""; }}><option value="">Choose an executor</option>{#each records.filter(r => !selected.includes(r.id)) as r}<option value={r.id}>{r.name}</option>{/each}</select></label>
+<details class="compare-panel"><summary>Compare exploits ({selected.length}/4)</summary>
+  <label>Add exploit<select disabled={selected.length >= 4} value="" onchange={(event) => { if (event.currentTarget.value) onchange([...selected, event.currentTarget.value]); event.currentTarget.value = ""; }}><option value="">Choose an exploit</option>{#each records.filter(r => !selected.includes(r.id)) as r}<option value={r.id}>{r.name}</option>{/each}</select></label>
   {#if compared.length}<div class="comparison-scroll"><table><thead><tr><th>Field</th>{#each compared as r}<th>{r.name} <button type="button" aria-label={`Remove ${r.name}`} onclick={() => onchange(selected.filter(id => id !== r.id))}>×</button></th>{/each}</tr></thead><tbody>{#each fields as field}<tr><th>{field.label}</th>{#each compared as r}<td>{field.value(r)}</td>{/each}</tr>{/each}</tbody></table></div>{/if}
 </details>

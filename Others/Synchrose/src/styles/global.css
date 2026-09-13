@@ -277,3 +277,83 @@ dt { margin-bottom: 5px; } dd { overflow: hidden; margin: 0; color: #dad5df; fon
 @media (max-width: 760px) { .version-grid { grid-template-columns: repeat(2,minmax(0,1fr)); } }
 @media (max-width: 520px) { .version-grid, .advanced-grid { grid-template-columns: 1fr; } .versions-toolbar { flex-wrap: wrap; } .advanced-grid { position: static; } }
 .advanced-grid .filter-checks label { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px 6px 0; border: 0; color: #ddd5e7; font: .75rem Inter, sans-serif; text-transform: none; letter-spacing: normal; }
+
+/* Shared typography and intrinsic layouts for the restored sections. */
+.workspace { grid-template-columns: minmax(0, 1fr); gap: 16px; padding-bottom: 32px; scroll-margin-top: 78px; }
+.filter-panel { position: static; }
+.primary-controls { grid-template-columns: minmax(230px, 2fr) minmax(220px, 1.5fr) repeat(2, minmax(130px, 1fr)); }
+.primary-controls > label, .primary-controls > fieldset { border-bottom: 0; border-right: 1px solid var(--line); }
+.primary-controls > label:last-child { border-right: 0; }
+.control-footer { display: flex; flex-wrap: wrap; gap: 10px; border-top: 1px solid var(--line); }
+.control-footer > p { margin: 0; }
+.control-actions { flex: 1 1 100%; width: 100%; align-items: start; }
+.advanced-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.advanced-grid label, .advanced-grid fieldset { min-width: 0; align-content: start; }
+.advanced-grid label > small { font: .68rem/1.5 Inter, sans-serif; text-transform: none; letter-spacing: 0; color: var(--muted); }
+.filter-checks legend { padding-top: 0; }
+.index-intro { padding-top: 28px; gap: 24px; }
+.index-intro h1 { font-size: clamp(1.7rem, 3vw, 2.5rem); }
+.record-notes h3, .benchmark-section h3 { margin: 6px 0 12px; font: 600 .95rem/1.4 Inter, sans-serif; color: #f0eaf7; letter-spacing: -.015em; }
+.benchmark-section { margin: 16px 0; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.section-copy, .versions-panel > p { margin: 8px 0; font: .75rem/1.6 Inter, sans-serif; color: var(--muted); }
+.versions-panel > p:empty { display: none; }
+.benchmark-results { margin: 12px 0 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; }
+.benchmark-results > div { padding: 12px; background: var(--panel-raised); border-radius: 6px; }
+.benchmark-results dd { font: 600 1rem/1.6 "IBM Plex Mono", monospace; color: var(--violet-soft); }
+.review-summary { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; padding: 12px; margin-bottom: 14px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel-raised); }
+.review-summary > span:last-child { font: .72rem/1.5 "IBM Plex Mono", monospace; color: var(--muted); }
+.review-summary .stars { font-size: .85rem; }
+.review-sort select, .compare-panel select, .rdd-controls select { min-height: 38px; padding: 8px 10px; border: 1px solid var(--line-strong); background: var(--panel-raised); border-radius: 5px; }
+select option { background: #141119; color: #eeeaf3; }
+.compare-panel > label { max-width: 400px; }
+.review-breakdown { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.review-breakdown > div { padding: 10px; border: 1px solid var(--line); border-radius: 5px; }
+.review-breakdown dt { white-space: normal; line-height: 1.5; }
+.review-breakdown dd { color: var(--violet-soft); }
+.user-review .markdown { margin: 12px 0; font-size: .83rem; line-height: 1.7; }
+.markdown strong { color: #f2eafc; font-weight: 650; }
+.markdown em { color: #d6c4ed; }
+.markdown blockquote { margin: 12px 0; padding: 8px 14px; border-left: 2px solid var(--violet); background: var(--panel-raised); }
+.markdown hr { border: 0; border-top: 1px solid var(--line-strong); margin: 16px 0; }
+.markdown code:not(pre code) { background: var(--panel-raised); padding: 2px 5px; border-radius: 3px; }
+.executor-name .stars, .executor-name .stars span { color: var(--amber); font: .65rem/1.5 "IBM Plex Mono", monospace; }
+.source-evidence .section-heading { flex-wrap: wrap; }
+.observation-card footer { line-height: 1.6; overflow-wrap: anywhere; }
+.version-card { align-content: start; }
+.version-card .mobile-shortcut { display: block; text-align: left; color: var(--violet-soft); border-color: #5b4080; min-height: 38px; }
+.versions-toolbar button, .version-actions button, .version-actions a { min-height: 34px; display: inline-flex; align-items: center; }
+.versions-panel summary, .compare-panel summary, .advanced-filters summary { line-height: 1.5; }
+@media (max-width: 1120px) {
+  .primary-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .primary-controls > label, .primary-controls > fieldset { border-bottom: 1px solid var(--line); }
+  .primary-controls .search-control { grid-column: auto; }
+  .advanced-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  .index-intro { padding: 20px 0 16px; gap: 10px; }
+  .index-intro > p { font-size: .8rem; }
+  .workspace { padding-top: 14px; }
+  .versions-panel, .compare-panel { padding: 12px; margin: 12px 0; }
+  .version-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .version-card { padding: 11px; }
+  .source-cell { padding: 10px; }
+  .primary-controls .search-control { grid-column: 1 / -1; }
+  .primary-controls > fieldset { grid-column: 1 / -1; }
+  .primary-controls > label { padding: 11px; }
+  .primary-controls .search-control { padding: 0; }
+  .control-footer { padding: 10px 12px; }
+  .advanced-grid label, .advanced-grid fieldset { padding: 10px; }
+  .advanced-grid .filter-checks { grid-column: 1 / -1; }
+  .advanced-grid .filter-checks label { min-height: 36px; padding: 5px 12px 5px 0; }
+  .evidence-drawer { padding: 18px 14px 28px; }
+  .record-summary > div { padding: 10px; }
+  .catalog-header { min-height: 42px; }
+  .site-footer { padding: 18px 0; gap: 10px; }
+  .rdd-controls { gap: 10px; }
+  .rdd-controls > label { flex: 1 1 140px; margin: 6px 0; min-width: 0; }
+  .rdd-controls input { min-width: 0; width: 100%; }
+}
+@media (max-width: 380px) {
+  .version-grid { grid-template-columns: minmax(0, 1fr); }
+  .advanced-grid { grid-template-columns: minmax(0, 1fr); }
+}

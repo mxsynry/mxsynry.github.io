@@ -1,6 +1,7 @@
 <script lang="ts">
   import Reviews from "./Reviews.svelte";
   import Markdown from "./Markdown.svelte";
+  import Benchmarks from "./Benchmarks.svelte";
   import { onMount } from "svelte";
   import { SOURCE_META, type EvidenceConflict, type ExecutorRecord, type SourceRecord } from "../lib/domain";
   import { DETECTION_LABELS, formatSunc, formatTime, PLATFORM_LABELS, trimNumber } from "../lib/format";
@@ -59,6 +60,7 @@
       </section>
     {/if}
 
+    <Benchmarks {record} />
     {#key record.id + record.sources.join(",")}<Reviews {apiBase} {record} />{/key}
     <section class="source-evidence">
       <div class="section-heading"><p class="eyebrow">Source reports</p><span>Raw claims, normalized labels</span></div>
@@ -76,7 +78,6 @@
             <div><dt>sUNC</dt><dd>{observation.sunc === null ? "—" : `${trimNumber(observation.sunc)}%`}</dd></div>
             <div><dt>Price</dt><dd>{observation.price || "—"}</dd></div>
             {#if observation.stability != null}<div><dt>Stability</dt><dd>{observation.stability}</dd></div>{/if}
-            {#if observation.myriad != null}<div><dt>Myriad</dt><dd>{observation.myriad}</dd></div>{/if}
             {#if observation.unc != null}<div><dt>UNC</dt><dd>{observation.unc}%</dd></div>{/if}
           </dl>
           <footer>Source update: {formatTime(observation.sourceUpdatedAt)} · Retrieved: {formatTime(observation.fetchedAt)}</footer>

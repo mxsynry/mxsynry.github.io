@@ -33,6 +33,10 @@
   function focusSearch() {
     document.querySelector<HTMLInputElement>('.search-control input')?.focus();
   }
+  function showMobile() {
+    filters = { ...defaultFilters(), platforms: ["android", "ios"], type: "Internal" };
+    document.getElementById("catalog-workspace")?.scrollIntoView({ block: "start" });
+  }
 
   onMount(() => {
     void refresh();
@@ -66,15 +70,15 @@
 <main>
   <section class="index-intro">
     <div>
-      <p class="eyebrow">Public executor intelligence / 04 feeds</p>
-      <h1>Executor status index</h1>
+      <p class="eyebrow">Public exploit reports / 04 feeds</p>
+      <h1>Exploit status index</h1>
     </div>
     <p>Reports remain attached to their source. Conflicts are shown instead of silently resolved.</p>
   </section>
 
   <SourceStrip health={catalog.health} />
-  <Versions />
-  <div class="workspace">
+  <Versions onmobile={showMobile} />
+  <div class="workspace" id="catalog-workspace">
     <FilterPanel {filters} resultCount={filtered.length} totalCount={catalog.records.length}
       onfilterschange={(next) => { filters = next; }} onreset={() => { filters = defaultFilters(); }} />
     <section class="catalog-section" aria-labelledby="catalog-title">

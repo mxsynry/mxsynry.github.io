@@ -6,6 +6,7 @@
   import { safeUrl, formatTime } from "../lib/format";
   import Stars from "./Stars.svelte";
   import Markdown from "./Markdown.svelte";
+  import { summarizeReviews } from "../lib/review-summary";
   let { apiBase, record }: { apiBase: string; record: ExecutorRecord } = $props();
   const reviewSchema = z.object({
     id: z.string().optional(), author: z.string().default("Pulsery user"),
@@ -24,6 +25,7 @@
   let notesError = $state("");
   let sort = $state("recent");
   let limit = $state(10);
+  let summary = $derived(summarizeReviews(reviews));
   let sorted = $derived([...reviews].sort((a, b) => sort === "critical"
     ? (a.rating ?? 6) - (b.rating ?? 6)
     : (Date.parse(b.created_at || "") || 0) - (Date.parse(a.created_at || "") || 0)));
@@ -56,8 +58,9 @@
 {#if pulsery}
 <section class="reviews-section">
   <h3>Pulsery user reviews</h3>
-  <Stars rating={pulsery.rating ?? null} />
-  {#if pulsery.reviewCount != null}<span class="review-count"> {pulsery.reviewCount} reported reviews</span>{/if}
+  {#if !loading && !error && reviews.length}
+    <div class="review-summary"><Stars rating={summary.average} /><span>{summary.count} loaded reviews · {summary.rated} rated</span></div>
+  {/if}
   {#if loading}<p role="status">Loading approved reviews…</p>
   {:else if error}<p role="alert">{error}</p><button type="button" onclick={loadReviews}>Retry reviews</button>
   {:else if !reviews.length}<p>No approved reviews yet.</p>
