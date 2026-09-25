@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b0911" />
-  <meta name="description" content="Search a public Roblox account and inspect its current avatar, saved outfits, animation packs, and equipped emotes." />
+  <meta name="description" content="Search a public Roblox account, inspect avatar outfits, and enrich supported limited items with Rolimons market data." />
   <!-- Optional: put your deployed Worker URL in content to remove first-run setup. -->
   <meta name="outfit-api-base" content="https://roblox-outfit-api.reatcount26-82a.workers.dev" />
   <title>OutfitSearch</title>
@@ -41,9 +41,9 @@
   <main>
     <section class="hero">
       <div class="hero-copy">
-        <p class="kicker"><span>LOOK UP</span> / BREAK DOWN / SAVE</p>
+        <p class="kicker"><span>LOOK UP</span> / BREAK DOWN / VALUE</p>
         <h1>Find the fit.<br /><span>Pull it apart.</span></h1>
-        <p class="hero-lede">Drop a username or ID. Get the avatar, saved looks, packs, and emotes Roblox exposes publicly.</p>
+        <p class="hero-lede">Drop a username or ID. OutfitSearch uses Roblox for public avatar state and can prefer Rolimons for supported limited-item names and market data.</p>
       </div>
 
       <form id="searchForm" class="search-dock">
@@ -73,8 +73,15 @@
             <label class="switch-label" title="Fetch outfit contents only after you open an outfit.">
               <input id="lazyLoadToggle" type="checkbox" checked />
               <span class="switch" aria-hidden="true"></span>
-              <span>Load details on click</span>
+              <span>Load outfit details on click</span>
             </label>
+
+            <label class="switch-label" title="Prefer Rolimons and existing avatar/outfit metadata, and skip most per-item Roblox catalog fallbacks.">
+              <input id="rolimonsFirstToggle" type="checkbox" checked />
+              <span class="switch" aria-hidden="true"></span>
+              <span>Prefer Rolimons</span>
+            </label>
+
             <button id="copyLinkBtn" class="text-button" type="button">Copy search link</button>
           </div>
         </div>
@@ -82,7 +89,7 @@
         <div class="connection-line">
           <span id="apiState" class="connection-state">API not connected</span>
           <span aria-hidden="true">•</span>
-          <span>Up to 20 names, IDs, or broad searches at once</span>
+          <span>Rolimons-first reduces Roblox catalog/economy calls; core Roblox avatar endpoints are still required</span>
         </div>
       </form>
 
@@ -91,6 +98,7 @@
         <span><b>02</b> Saved outfits</span>
         <span><b>03</b> Packs</span>
         <span><b>04</b> Emotes</span>
+        <span><b>05</b> Market data</span>
       </div>
     </section>
 
@@ -119,7 +127,7 @@
   </main>
 
   <footer>
-    <p>Public Roblox data only. No cookies, account login, or private inventory access.</p>
+    <p>Public Roblox + Rolimons data only. No cookies, account login, or private inventory access.</p>
     <a href="../../">Site home</a>
   </footer>
 
@@ -132,7 +140,7 @@
       <button class="modal-close" type="button" data-close-dialog="apiDialog" aria-label="Close">×</button>
     </div>
     <div class="modal-body">
-      <p class="modal-intro">OutfitSearch needs the included Worker because Roblox blocks these requests from a normal static website.</p>
+      <p class="modal-intro">The Worker is the middleman for Roblox and Rolimons. Your browser talks only to the Worker; the Worker fetches public upstream data and applies the selected provider mode.</p>
       <label class="field-label" for="apiBaseInput">Worker URL</label>
       <div class="api-input-row">
         <input id="apiBaseInput" inputmode="url" autocomplete="url" placeholder="https://your-worker.workers.dev" />
@@ -160,9 +168,9 @@
         <li><b>Replace.</b><span>Open Edit code and replace the starter file with this package’s <code>worker.js</code>.</span></li>
         <li><b>Deploy.</b><span>Save the Worker and copy its public <code>.workers.dev</code> URL.</span></li>
         <li><b>Connect.</b><span>Paste that URL into OutfitSearch’s API dialog.</span></li>
-        <li><b>Optional.</b><span>Put the URL in the <code>outfit-api-base</code> meta tag so visitors never see setup.</span></li>
+        <li><b>Choose mode.</b><span>Keep <b>Prefer Rolimons</b> enabled to reduce Roblox catalog/economy fallbacks. Disable it when you want the fuller Roblox enrichment chain.</span></li>
       </ol>
-      <p class="privacy-note">Never paste Cloudflare tokens, Roblox cookies, or GitHub tokens here. OutfitSearch does not need them.</p>
+      <p class="privacy-note">Rolimons-first cannot replace Roblox’s username, avatar-state, thumbnail, or saved-outfit endpoints. It mainly reduces the expensive item-metadata fallback chain.</p>
     </div>
   </dialog>
 
