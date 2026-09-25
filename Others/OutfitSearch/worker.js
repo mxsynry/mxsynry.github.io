@@ -1,7 +1,7 @@
 // Cloudflare Worker for Roblox Outfit Viewer
 // Public, read-only Roblox API proxy. No Roblox cookies, no private tokens.
 
-const WORKER_VERSION = "2026-07-23.2-saved-outfits-restore";
+const WORKER_VERSION = "2026-09-25.1-rolimons-enrichment";
 const CACHE_TTL_SECONDS = 180;
 const MAX_INPUTS = 20;
 const MAX_SEARCH_RESULTS = 25;
@@ -52,7 +52,16 @@ export default {
           version: WORKER_VERSION,
           requestId,
           fetchedAt: new Date().toISOString(),
-          routes: ["/api/resolve?q=USERNAME", "/api/report/USER_ID", "/api/outfit/OUTFIT_ID"]
+          providers: {
+            roblox: { enabled: true, role: "primary" },
+            rolimons: { enabled: true, role: "market-enrichment", serverSide: true }
+          },
+          routes: [
+            "/api/resolve?q=USERNAME",
+            "/api/report/USER_ID",
+            "/api/outfit/OUTFIT_ID",
+            "/api/rolimons/item/ASSET_ID"
+          ]
         }));
       }
 
@@ -68,6 +77,24 @@ export default {
       const outfitMatch = url.pathname.match(/^\/api\/outfit\/(\d+)$/);
       if (outfitMatch) {
         return finish(await cacheOrRun(request, ctx, () => getOutfitDetails(Number(outfitMatch[1]))));
+      }
+
+      const rolimonsItemMatch = url.pathname.match(/^\/api\/rolimons\/item\/(\d+)$/);
+      if (rolimonsItemMatch) {
+        const id = Number(rolimonsItemMatch[1]);
+        assertId(id, "Roblox asset ID");
+        return finish(await cacheOrRun(request, ctx, async () => {
+          const logs = [];
+          const matched = await getRolimonsByIds([id], logs);
+          return {
+            ok: true,
+            id,
+            tracked: Boolean(matched[id]),
+            item: matched[id] || null,
+            logs,
+            fetchedAt: new Date().toISOString()
+          };
+        }));
       }
 
       return finish(json({ ok: false, error: "Not found.", path: url.pathname, requestId }, 404));
@@ -254,7 +281,7 @@ async function getReport(userId) {
     logs.push(`Avatar details returned ${avatarAssets.length} asset record(s), ${avatarNamed} with public names.`);
   }
 
-  const [assetThumbs, catalogDetails, outfitThumbs] = await Promise.all([
+  const [assetThumbs, catalogDetails, outfitThumbs, rolimonsDetails] = await Promise.all([
     getAssetThumbnails(assetIds).catch(err => {
       logs.push(`Asset thumbnails failed: ${err.message}`);
       return {};
@@ -266,21 +293,29 @@ async function getReport(userId) {
     getOutfitThumbnails(outfits.map(o => o.id)).catch(err => {
       logs.push(`Outfit thumbnails failed: ${err.message}`);
       return {};
+    }),
+    getRolimonsByIds(assetIds, logs).catch(err => {
+      logs.push(`Rolimons enrichment failed: ${err.message}`);
+      return {};
     })
   ]);
 
   const currentlyWearing = assetIds.map(id => {
     const fromAvatar = avatarAssetMap[id] || {};
     const fromCatalog = catalogDetails[id] || {};
-    return normalizeAsset({
+    const fromRolimons = rolimonsDetails[id] || null;
+
+    const normalized = normalizeAsset({
       id,
       ...fromAvatar,
       ...fromCatalog,
-      name: pickAssetName(id, fromCatalog, fromAvatar),
+      name: pickAssetName(id, fromCatalog, fromAvatar, fromRolimons),
       assetType: fromCatalog.assetType || fromAvatar.assetType || null,
       imageUrl: assetThumbs[id]?.imageUrl || null,
       imageKind: thumbnailKind(assetThumbs[id]?.imageUrl || null)
     });
+
+    return mergeRolimonsIntoAsset(normalized, fromRolimons);
   });
 
   const emoteLogs = [];
@@ -340,6 +375,10 @@ async function getReport(userId) {
       rawCurrentlyWearingCount: currentIdsRaw.length,
       uniqueCurrentlyWearingCount: assetIds.length,
       duplicateIds: duplicatedIds,
+      rolimons: {
+        requested: assetIds.length,
+        matched: Object.keys(rolimonsDetails).length
+      },
       emoteLogs,
       logs
     },
@@ -355,13 +394,17 @@ async function getOutfitDetails(outfitId) {
   const ids = unique(rawAssets.map(a => a.id).filter(Number.isFinite));
   const rawMap = mapBy(rawAssets, a => a.id);
 
-  const [thumbs, catalog] = await Promise.all([
+  const [thumbs, catalog, rolimonsDetails] = await Promise.all([
     getAssetThumbnails(ids).catch(err => {
       logs.push(`Outfit asset thumbnails failed: ${err.message}`);
       return {};
     }),
     getCatalogDetails(ids, logs).catch(err => {
       logs.push(`Outfit catalog details failed: ${err.message}`);
+      return {};
+    }),
+    getRolimonsByIds(ids, logs).catch(err => {
+      logs.push(`Rolimons outfit enrichment failed: ${err.message}`);
       return {};
     })
   ]);
@@ -370,14 +413,18 @@ async function getOutfitDetails(outfitId) {
     ok: true,
     id: outfitId,
     name: detail.name,
-    assets: ids.map(id => normalizeAsset({
-      id,
-      ...(rawMap[id] || {}),
-      ...(catalog[id] || {}),
-      name: pickAssetName(id, catalog[id], rawMap[id]),
-      imageUrl: thumbs[id]?.imageUrl || null,
-      imageKind: thumbnailKind(thumbs[id]?.imageUrl || null)
-    })),
+    assets: ids.map(id => {
+      const fromRolimons = rolimonsDetails[id] || null;
+      const normalized = normalizeAsset({
+        id,
+        ...(rawMap[id] || {}),
+        ...(catalog[id] || {}),
+        name: pickAssetName(id, catalog[id], rawMap[id], fromRolimons),
+        imageUrl: thumbs[id]?.imageUrl || null,
+        imageKind: thumbnailKind(thumbs[id]?.imageUrl || null)
+      });
+      return mergeRolimonsIntoAsset(normalized, fromRolimons);
+    }),
     bodyColors: detail.bodyColors || null,
     scale: detail.scale || null,
     playerAvatarType: detail.playerAvatarType || null,
@@ -1169,6 +1216,229 @@ function slugify(value) {
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "") || "bundle";
+}
+
+
+// -----------------------------------------------------------------------------
+// Rolimons market enrichment
+// -----------------------------------------------------------------------------
+// Rolimons is optional enrichment. Roblox remains authoritative for avatar state,
+// catalog sale state, thumbnails, bundles, and saved outfits.
+const ROLIMONS_V2_URL = "https://api.rolimons.com/items/v2/itemdetails";
+const ROLIMONS_V1_URL = "https://api.rolimons.com/items/v1/itemdetails";
+const ROLIMONS_CACHE_MS = 120000;
+const ROLIMONS_TIMEOUT_MS = 10000;
+
+let rolimonsMemoryItems = null;
+let rolimonsMemoryExpiresAt = 0;
+let rolimonsInflight = null;
+
+async function getRolimonsByIds(assetIds, logs = []) {
+  const ids = unique((assetIds || []).map(Number));
+  if (!ids.length) return {};
+
+  let all;
+  try {
+    all = await getRolimonsItems(logs);
+  } catch (err) {
+    logs.push(`Rolimons unavailable: ${err.message}`);
+    return {};
+  }
+
+  const matched = {};
+  for (const id of ids) {
+    if (all[id]) matched[id] = all[id];
+  }
+
+  logs.push(`Rolimons matched ${Object.keys(matched).length} of ${ids.length} requested asset(s).`);
+  return matched;
+}
+
+function mergeRolimonsIntoAsset(asset = {}, rolimons = null) {
+  if (!rolimons) return asset;
+
+  const id = Number(asset.id || asset.assetId || rolimons.id);
+  const currentName = String(asset.name || asset.Name || "").trim();
+  const nameMissing = !currentName || /^asset(?:\s+#?\d+)?$/i.test(currentName);
+
+  return {
+    ...asset,
+    id,
+    name: nameMissing && rolimons.name
+      ? rolimons.name
+      : (asset.name || rolimons.name || `Asset ${id}`),
+    isLimited: true,
+    rolimons,
+    componentNote: joinProviderNotes(asset.componentNote, formatRolimonsNote(rolimons)),
+    detailsSource: appendProviderSource(asset.detailsSource, "rolimons")
+  };
+}
+
+async function getRolimonsItems(logs = []) {
+  const now = Date.now();
+
+  if (rolimonsMemoryItems && now < rolimonsMemoryExpiresAt) {
+    logs.push("Rolimons memory cache hit.");
+    return rolimonsMemoryItems;
+  }
+
+  if (rolimonsInflight) {
+    logs.push("Rolimons fetch joined an in-flight request.");
+    return rolimonsInflight;
+  }
+
+  rolimonsInflight = (async () => {
+    let payload;
+    let version = "v2";
+
+    try {
+      payload = await fetchRolimonsJson(ROLIMONS_V2_URL, "Rolimons v2");
+    } catch (v2Error) {
+      logs.push(`Rolimons v2 failed: ${v2Error.message}. Falling back to v1.`);
+      version = "v1";
+      payload = await fetchRolimonsJson(ROLIMONS_V1_URL, "Rolimons v1");
+    }
+
+    const items = normalizeRolimonsPayload(payload);
+    const count = Object.keys(items).length;
+    if (!count) throw new Error("Rolimons returned no usable item records.");
+
+    rolimonsMemoryItems = items;
+    rolimonsMemoryExpiresAt = Date.now() + ROLIMONS_CACHE_MS;
+    logs.push(`Rolimons ${version} loaded ${count} tracked item(s).`);
+    return items;
+  })();
+
+  try {
+    return await rolimonsInflight;
+  } finally {
+    rolimonsInflight = null;
+  }
+}
+
+async function fetchRolimonsJson(url, label) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), ROLIMONS_TIMEOUT_MS);
+
+  try {
+    const res = await fetch(url, {
+      method: "GET",
+      headers: {
+        "accept": "application/json",
+        "referer": "https://www.rolimons.com/"
+      },
+      signal: controller.signal
+    });
+
+    if (!res.ok) {
+      const err = new Error(`${label}: HTTP ${res.status}`);
+      err.status = res.status;
+      throw err;
+    }
+
+    const data = await res.json();
+    if (!data || typeof data.items !== "object") {
+      throw new Error(`${label}: invalid item payload`);
+    }
+
+    return data;
+  } catch (err) {
+    if (controller.signal.aborted) {
+      throw new Error(`${label} timed out after ${Math.round(ROLIMONS_TIMEOUT_MS / 1000)} seconds`);
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+function normalizeRolimonsPayload(payload = {}) {
+  const out = {};
+
+  for (const [rawId, row] of Object.entries(payload.items || {})) {
+    if (!Array.isArray(row)) continue;
+
+    const id = Number(rawId);
+    if (!Number.isSafeInteger(id)) continue;
+
+    out[id] = {
+      id,
+      name: cleanRolimonsString(row[0]),
+      acronym: cleanRolimonsString(row[1]),
+      rap: rolimonsNumber(row[2]),
+      value: rolimonsNumber(row[3]),
+      defaultValue: rolimonsNumber(row[4]),
+      demand: rolimonsEnum(row[5]),
+      trend: rolimonsEnum(row[6]),
+      projected: Number(row[7]) > 0,
+      hyped: Number(row[8]) > 0,
+      rare: Number(row[9]) > 0,
+      url: `https://www.rolimons.com/item/${id}`
+    };
+  }
+
+  return out;
+}
+
+function formatRolimonsNote(item) {
+  if (!item) return null;
+
+  const parts = [];
+  if (Number.isFinite(item.rap)) parts.push(`RAP ${formatCompactInteger(item.rap)}`);
+  if (Number.isFinite(item.value)) parts.push(`Value ${formatCompactInteger(item.value)}`);
+  if (item.acronym) parts.push(item.acronym);
+  if (item.projected) parts.push("Projected");
+  if (item.hyped) parts.push("Hyped");
+  if (item.rare) parts.push("Rare");
+
+  return parts.length
+    ? `Rolimons · ${parts.join(" · ")}`
+    : "Rolimons tracked item";
+}
+
+function rolimonsNumber(value) {
+  const n = Number(value);
+  return Number.isFinite(n) && n >= 0 ? n : null;
+}
+
+function rolimonsEnum(value) {
+  const n = Number(value);
+  return Number.isInteger(n) && n >= 0 ? n : null;
+}
+
+function cleanRolimonsString(value) {
+  const valueText = String(value ?? "").trim();
+  return valueText || null;
+}
+
+function appendProviderSource(existing, provider) {
+  const sources = String(existing || "")
+    .split("+")
+    .map(part => part.trim())
+    .filter(Boolean);
+
+  if (!sources.includes(provider)) sources.push(provider);
+  return sources.join(" + ");
+}
+
+function joinProviderNotes(existing, next) {
+  return [existing, next]
+    .map(value => String(value || "").trim())
+    .filter(Boolean)
+    .join(" · ") || null;
+}
+
+function formatCompactInteger(value) {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "?";
+  if (n >= 1000000) return `${trimCompact(n / 1000000)}M`;
+  if (n >= 1000) return `${trimCompact(n / 1000)}K`;
+  return String(Math.round(n));
+}
+
+function trimCompact(value) {
+  const digits = value >= 100 ? 0 : value >= 10 ? 1 : 2;
+  return Number(value.toFixed(digits)).toString();
 }
 
 async function robloxJson(url, opts = {}, label = "Roblox API") {
