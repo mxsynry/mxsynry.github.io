@@ -1,8 +1,11 @@
+const APP_VERSION = "2026-09-25.rolimons-first-lazy3";
+
 const DEFAULT_API_BASE = document.querySelector('meta[name="outfit-api-base"]')?.content?.trim() || "";
 const API_STORAGE_KEY = "robloxOutfitApiBase";
 const LOG_STORAGE_KEY = "robloxOutfitDebugLogs";
 const LAZY_LOAD_STORAGE_KEY = "robloxOutfitLazyLoading";
 const THEME_STORAGE_KEY = "robloxOutfitTheme";
+const PROVIDER_MODE_STORAGE_KEY = "robloxOutfitProviderMode";
 
 const MAX_LOGS = 300;
 const SEARCH_CONCURRENCY = 3;
@@ -63,6 +66,7 @@ const copyConsoleBtn = $("#copyConsoleBtn");
 const clearConsoleBtn = $("#clearConsoleBtn");
 const copyLinkBtn = $("#copyLinkBtn");
 const lazyLoadToggle = $("#lazyLoadToggle");
+const rolimonsFirstToggle = $("#rolimonsFirstToggle");
 const themeBtn = $("#themeBtn");
 
 const apiParam = new URL(location.href).searchParams.get("api");
@@ -79,7 +83,7 @@ let debugLogs = loadLogs();
 let activeSearchController = null;
 let activeSearchGeneration = 0;
 let apiConnectionState = hasConfiguredApi() ? "saved" : "offline";
-let workerCapabilities = { rolimons: false, version: null };
+let workerCapabilities = { rolimons: false, version: null, requestModes: [] };
 
 const knownOutfitEntries = new Map();
 
@@ -95,7 +99,7 @@ class OutfitDetailStore {
   }
 
   cacheKey(id) {
-    return `${API_BASE}|${Number(id)}`;
+    return `${API_BASE}|${getProviderMode()}|${Number(id)}`;
   }
 
   clearAll() {
@@ -156,7 +160,7 @@ class OutfitDetailStore {
     }
 
     const request = (async () => {
-      const detail = await api(`/api/outfit/${outfitId}`, {
+      const detail = await api(`/api/outfit/${outfitId}?mode=${encodeURIComponent(getProviderMode())}`, {
         signal: options.signal,
         timeoutMs: OUTFIT_TIMEOUT_MS,
         logQuietly: Boolean(options.prefetch)
@@ -251,6 +255,7 @@ function init() {
   applyTheme(getSavedTheme());
   refreshApiUi();
   initLazyLoadingOption();
+  initProviderModeOption();
   renderConsole();
   bindUi();
 
@@ -258,7 +263,8 @@ function init() {
     appVersion: APP_VERSION,
     apiConfigured: hasConfiguredApi(),
     apiBase: hasConfiguredApi() ? API_BASE : null,
-    lazyLoading: isLazyLoadingEnabled()
+    lazyLoading: isLazyLoadingEnabled(),
+    providerMode: getProviderMode()
   });
 
   const initialQuery = getInitialQueryFromUrl();
@@ -287,7 +293,7 @@ function bindUi() {
   clearApiBtn?.addEventListener("click", () => {
     localStorage.removeItem(API_STORAGE_KEY);
     API_BASE = "";
-    workerCapabilities = { rolimons: false, version: null };
+    workerCapabilities = { rolimons: false, version: null, requestModes: [] };
     outfitDetails.clearAll();
     knownOutfitEntries.clear();
     results.innerHTML = "";
@@ -358,6 +364,25 @@ function bindUi() {
     logInfo("Lazy loading option changed.", {
       clickOnly: lazyLoadToggle.checked,
       knownOutfits: knownOutfitEntries.size
+    });
+  });
+
+  rolimonsFirstToggle?.addEventListener("change", () => {
+    localStorage.setItem(PROVIDER_MODE_STORAGE_KEY, rolimonsFirstToggle.checked ? "rolimons-first" : "full");
+    outfitDetails.clearAll();
+
+    if (rolimonsFirstToggle.checked) {
+      const supportsMode = workerCapabilities.rolimons && workerCapabilities.requestModes.includes("rolimons-first");
+      setStatus(supportsMode
+        ? "Rolimons-first enabled. Search again to reduce Roblox catalog requests."
+        : "Rolimons-first selected, but the connected Worker is too old. Deploy the new worker.js first.", !supportsMode);
+    } else {
+      setStatus("Full Roblox enrichment enabled. This uses more Roblox catalog/economy requests.");
+    }
+
+    logInfo("Provider preference changed.", {
+      mode: getProviderMode(),
+      workerSupportsRolimons: workerCapabilities.rolimons
     });
   });
 
@@ -435,10 +460,15 @@ async function verifyApiConnection() {
   const health = await api("/api/health", { timeoutMs: 9000 });
   workerCapabilities = {
     version: health.version || null,
-    rolimons: Boolean(health.providers?.rolimons?.enabled)
+    rolimons: Boolean(health.providers?.rolimons?.enabled),
+    requestModes: Array.isArray(health.requestModes?.supported) ? health.requestModes.supported : []
   };
 
-  const providerText = workerCapabilities.rolimons ? " · Rolimons" : "";
+  syncProviderModeUi();
+
+  const providerText = workerCapabilities.rolimons
+    ? ` · Rolimons${getProviderMode() === "rolimons-first" ? "-first" : ""}`
+    : "";
   refreshApiUi(`Connected · Worker ${health.version || "ready"}${providerText}`, "online");
   logSuccess("API health check succeeded.", {
     version: health.version,
@@ -493,10 +523,10 @@ async function runSearch(event) {
   searchBtn.disabled = true;
   cancelSearchBtn.hidden = false;
   setStatus("Finding Roblox account(s)…", false, { loading: true });
-  logInfo("Search started.", { query, generation });
+  logInfo("Search started.", { query, generation, providerMode: getProviderMode() });
 
   try {
-    const resolved = await api(`/api/resolve?q=${encodeURIComponent(query)}`, {
+    const resolved = await api(`/api/resolve?q=${encodeURIComponent(query)}&mode=${encodeURIComponent(getProviderMode())}`, {
       signal: controller.signal,
       timeoutMs: API_TIMEOUT_MS
     });
@@ -524,7 +554,14 @@ async function runSearch(event) {
       if (controller.signal.aborted || generation !== activeSearchGeneration) return;
 
       try {
-        const report = await api(`/api/report/${user.id}`, {
+        const reportParams = new URLSearchParams({
+          mode: getProviderMode()
+        });
+        if (user.name) reportParams.set("username", user.name);
+        if (user.displayName) reportParams.set("displayName", user.displayName);
+        if (user.hasVerifiedBadge) reportParams.set("verified", "1");
+
+        const report = await api(`/api/report/${user.id}?${reportParams.toString()}`, {
           signal: controller.signal,
           timeoutMs: REPORT_TIMEOUT_MS
         });
@@ -679,6 +716,8 @@ function renderUser(report, mount = null, index = 0) {
   chips.append(chip(profile.isBanned ? "Banned" : "Account active", profile.isBanned ? "bad" : "good"));
   if (profile.hasVerifiedBadge) chips.append(chip("Verified"));
   if (report.debug?.duplicateIds?.length) chips.append(chip(`${report.debug.duplicateIds.length} duplicate ID(s) removed`));
+  if (report.debug?.mode === "rolimons-first") chips.append(chip("Rolimons-first"));
+  if (profile.partialProfile) chips.append(chip("Partial profile"));
 
   const roliStats = report.debug?.rolimons;
   if (roliStats && Number.isFinite(Number(roliStats.requested))) {
@@ -1273,6 +1312,35 @@ function initLazyLoadingOption() {
   if (lazyLoadToggle) lazyLoadToggle.checked = isLazyLoadingEnabled();
 }
 
+function initProviderModeOption() {
+  if (!rolimonsFirstToggle) return;
+  rolimonsFirstToggle.checked = localStorage.getItem(PROVIDER_MODE_STORAGE_KEY) !== "full";
+  syncProviderModeUi();
+}
+
+function syncProviderModeUi() {
+  if (!rolimonsFirstToggle) return;
+  const modeSupported = workerCapabilities.requestModes.includes("rolimons-first");
+  const explicitlyUnsupported = apiConnectionState === "online" && (!workerCapabilities.rolimons || !modeSupported);
+  rolimonsFirstToggle.disabled = explicitlyUnsupported;
+  rolimonsFirstToggle.title = explicitlyUnsupported
+    ? "Deploy the new Worker first; this connected Worker does not support Rolimons-first request mode."
+    : "Prefer Rolimons and avatar/outfit payload metadata, and skip most per-item Roblox catalog fallbacks.";
+}
+
+function getProviderMode() {
+  const wantsRolimons = rolimonsFirstToggle
+    ? rolimonsFirstToggle.checked
+    : localStorage.getItem(PROVIDER_MODE_STORAGE_KEY) !== "full";
+
+  if (!wantsRolimons) return "full";
+  if (apiConnectionState === "online") {
+    const supported = workerCapabilities.rolimons && workerCapabilities.requestModes.includes("rolimons-first");
+    if (!supported) return "full";
+  }
+  return "rolimons-first";
+}
+
 function isLazyLoadingEnabled() {
   return localStorage.getItem(LAZY_LOAD_STORAGE_KEY) !== "off";
 }
@@ -1323,7 +1391,9 @@ function refreshApiUi(message = "", state = apiConnectionState) {
   if (apiState) {
     apiState.className = `connection-state${state === "online" ? " online" : state === "error" ? " error" : ""}`;
     apiState.textContent = state === "online"
-      ? (workerCapabilities.rolimons ? "API + Rolimons connected" : "API connected")
+      ? (workerCapabilities.rolimons
+          ? (getProviderMode() === "rolimons-first" ? "Rolimons-first API" : "API + Rolimons connected")
+          : "API connected")
       : state === "error"
         ? "API connection failed"
         : hasConfiguredApi()
@@ -1411,6 +1481,12 @@ function setStatus(message, isError = false, options = {}) {
 }
 
 function cleanError(err) {
+  if (Number(err?.status) === 429) {
+    return getProviderMode() === "rolimons-first"
+      ? "Roblox rate-limited a core account/avatar endpoint. Rolimons-first is already skipping most catalog/economy fallbacks, but Rolimons cannot replace Roblox username, avatar-state, or saved-outfit endpoints."
+      : "Roblox rate-limited this Worker. Enable Prefer Rolimons to reduce catalog/economy requests, or wait for Roblox's limit to reset.";
+  }
+
   let message = err?.message || String(err);
   message = message.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim();
   return message.length > 260 ? `${message.slice(0, 260)}…` : message;
@@ -1537,6 +1613,7 @@ function summarizeApiData(data) {
     outfits: Array.isArray(data.outfits) ? data.outfits.length : undefined,
     assets: Array.isArray(data.assets) ? data.assets.length : undefined,
     tracked: data.tracked,
+    mode: data.debug?.mode || undefined,
     rolimons: data.debug?.rolimons || undefined
   };
 }
