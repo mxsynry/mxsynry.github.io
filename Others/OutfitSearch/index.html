@@ -99,13 +99,6 @@
             <button class="example-chip" type="button" data-example="search:builder">search:builder</button>
           </div>
           <div class="search-tools">
-            <label class="switch-label compact-switch" title="Fetch outfit contents only after you open an outfit.">
-              <span class="toggle-control">
-                <input id="lazyLoadToggle" type="checkbox" checked />
-                <span class="switch" aria-hidden="true"></span>
-              </span>
-              <span>Details on click</span>
-            </label>
             <button id="copyLinkBtn" class="text-button" type="button">Copy link</button>
           </div>
         </div>
@@ -133,6 +126,17 @@
           <p id="status" class="status" aria-live="polite"></p>
         </div>
         <span id="resultProgress" class="result-progress"></span>
+      </div>
+
+      <div id="resultsToolbar" class="results-toolbar" hidden>
+        <div class="results-toolbar-copy">
+          <strong id="resultsSummary">Results</strong>
+          <span><b>Price*</b> = public Roblox price/listing data. <b>**</b> = that price exists, but the item is currently unavailable, off sale, or out of stock.</span>
+        </div>
+        <div class="results-toolbar-actions">
+          <button id="expandAllBtn" class="secondary-button toolbar-button" type="button">Expand all</button>
+          <button id="collapseAllBtn" class="secondary-button toolbar-button" type="button">Collapse all</button>
+        </div>
       </div>
 
       <section id="emptyState" class="empty-state">
@@ -255,10 +259,16 @@
           </div>
         </div>
 
-        <div class="profile-numbers" aria-label="Account result counts">
-          <div><b class="wearing-stat">0</b><span>wearing</span></div>
-          <div><b class="outfit-stat">0</b><span>outfits</span></div>
-          <div><b class="extra-stat">0</b><span>extras</span></div>
+        <div class="profile-side">
+          <button class="user-collapse-btn" type="button" aria-expanded="true">
+            <span class="collapse-label">Collapse</span>
+            <span class="collapse-icon" aria-hidden="true">⌃</span>
+          </button>
+          <div class="profile-numbers" aria-label="Account result counts">
+            <div><b class="wearing-stat">0</b><span>wearing</span></div>
+            <div><b class="outfit-stat">0</b><span>outfits</span></div>
+            <div><b class="extra-stat">0</b><span>extras</span></div>
+          </div>
         </div>
       </header>
 
@@ -293,7 +303,7 @@
             <div>
               <p class="section-number">02 / SAVED</p>
               <h3>Saved outfits</h3>
-              <p class="section-note">Open an outfit to inspect its individual assets.</p>
+              <p class="section-note">Open an outfit when you want its individual assets; contents are never prefetched.</p>
             </div>
             <span class="outfit-count count-badge"></span>
           </div>
