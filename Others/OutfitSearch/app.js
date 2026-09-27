@@ -1,4 +1,4 @@
-const APP_VERSION = "2026-09-27.ui3-collapsible-results";
+const APP_VERSION = "2026-09-27.ui4-compact-motion-commerce";
 
 const DEFAULT_API_BASE = document.querySelector('meta[name="outfit-api-base"]')?.content?.trim() || "";
 const API_STORAGE_KEY = "robloxOutfitApiBase";
@@ -12,6 +12,8 @@ const API_TIMEOUT_MS = 35000;
 const REPORT_TIMEOUT_MS = 45000;
 const OUTFIT_TIMEOUT_MS = 40000;
 const DETAIL_CACHE_TTL_MS = 5 * 60 * 1000;
+const OUTFIT_WARM_LIMIT = 12;
+const OUTFIT_WARM_CONCURRENCY = 2;
 
 const DEMAND_LABELS = new Map([
   [-1, "Unassigned"],
@@ -89,6 +91,7 @@ class OutfitDetailStore {
   constructor() {
     this.cache = new Map();
     this.inflight = new Map();
+    this.warming = new Set();
   }
 
   cacheKey(id) {
@@ -98,6 +101,7 @@ class OutfitDetailStore {
   clearAll() {
     this.cache.clear();
     this.inflight.clear();
+    this.warming.clear();
   }
 
   getCached(id) {
@@ -113,27 +117,26 @@ class OutfitDetailStore {
 
   async get(id, options = {}) {
     const outfitId = Number(id);
-    if (!Number.isSafeInteger(outfitId) || outfitId <= 0) {
-      throw new Error("Invalid outfit ID.");
-    }
+    if (!Number.isSafeInteger(outfitId) || outfitId <= 0) throw new Error("Invalid outfit ID.");
 
     const cached = this.getCached(outfitId);
     if (cached) {
-      logInfo("Outfit detail cache hit.", { outfitId });
+      if (!options.quiet) logInfo("Outfit detail cache hit.", { outfitId });
       return cached;
     }
 
     const key = this.cacheKey(outfitId);
     const existing = this.inflight.get(key);
     if (existing) {
-      logInfo("Outfit detail request deduplicated.", { outfitId });
+      if (!options.quiet) logInfo("Outfit detail request deduplicated.", { outfitId });
       return existing;
     }
 
     const request = (async () => {
       const detail = await api(`/api/outfit/${outfitId}?mode=${encodeURIComponent(getProviderMode())}`, {
         signal: options.signal,
-        timeoutMs: OUTFIT_TIMEOUT_MS
+        timeoutMs: OUTFIT_TIMEOUT_MS,
+        logQuietly: Boolean(options.quiet)
       });
       addServerLogs(`outfit:${outfitId}`, detail.debug?.logs);
       this.cache.set(key, { data: detail, savedAt: Date.now() });
@@ -146,6 +149,30 @@ class OutfitDetailStore {
     } finally {
       if (this.inflight.get(key) === request) this.inflight.delete(key);
     }
+  }
+
+  warm(entries = [], context = {}) {
+    const ids = uniqueBy(entries.filter(Boolean), entry => Number(entry.id))
+      .map(entry => Number(entry.id))
+      .filter(id => Number.isSafeInteger(id) && id > 0)
+      .filter(id => !this.getCached(id) && !this.warming.has(this.cacheKey(id)))
+      .slice(0, OUTFIT_WARM_LIMIT);
+
+    if (!ids.length) return;
+    ids.forEach(id => this.warming.add(this.cacheKey(id)));
+
+    void mapLimit(ids, OUTFIT_WARM_CONCURRENCY, async id => {
+      try {
+        await this.get(id, { quiet: true });
+      } catch (err) {
+        if (err?.status === 429) {
+          logInfo("Stopped background outfit warming after Roblox rate limiting.", { userId: context.userId || null });
+          return;
+        }
+      } finally {
+        this.warming.delete(this.cacheKey(id));
+      }
+    });
   }
 }
 
@@ -401,6 +428,7 @@ async function runSearch(event) {
   const controller = new AbortController();
   activeSearchController = controller;
 
+  outfitDetails.clearAll();
   results.innerHTML = "";
   resultsToolbar.hidden = true;
   emptyState.hidden = true;
@@ -661,10 +689,14 @@ function renderUser(report, mount = null, index = 0) {
 
   $(".json-btn", tpl).addEventListener("click", () => downloadJson(`roblox-${profile.id}-outfits.json`, report));
   setupUserTabs(article);
-  setupUserCollapse(article, index > 0);
+
+  const allEntries = [...outfits, ...characterPackages, ...animationPacks, ...costumeLike];
+  setupUserCollapse(article, index > 0, () => outfitDetails.warm(allEntries, { userId: profile.id }));
 
   if (mount) mount.replaceChildren(tpl);
   else results.append(tpl);
+
+  if (index === 0) outfitDetails.warm(allEntries, { userId: profile.id });
 }
 
 function assetCard(item) {
@@ -682,7 +714,7 @@ function assetCard(item) {
   const fallbackText = escapeHtml((display.metaType || "Asset").slice(0, 2).toUpperCase());
   const catalogUrl = escapeAttr(display.url || `https://www.roblox.com/catalog/${id}`);
   const linkLabel = display.purchasableType === "Bundle" ? "Bundle" : "Catalog";
-  const robloxPrice = formatPrice(display);
+  const commerce = getCommerceDisplay(display);
   const roli = display.rolimons;
   const source = formatSourceLabel(display);
   const sourcePill = roli ? "Roli" : "Roblox";
@@ -706,9 +738,9 @@ function assetCard(item) {
       <p class="item-meta">${creator}</p>
 
       <div class="market-grid">
-        <div class="market-stat">
-          <span>Price*</span>
-          <strong title="${escapeAttr(robloxPrice)}">${escapeHtml(robloxPrice)}</strong>
+        <div class="market-stat commerce-stat ${escapeAttr(commerce.tone || "")}">
+          <span>Robux</span>
+          <strong title="${escapeAttr(commerce.label)}">${escapeHtml(commerce.label)}</strong>
         </div>
         ${roli ? `
           <div class="market-stat market-value">
@@ -974,12 +1006,21 @@ function createEmoteSection(emotes = [], logs = []) {
   return section;
 }
 
-function setupUserCollapse(article, collapsed = false) {
+function setupUserCollapse(article, collapsed = false, onExpand = null) {
   const button = $(".user-collapse-btn", article);
   if (!button) return;
+  let warmed = false;
 
-  const apply = value => setUserCollapsed(article, value);
+  const apply = value => {
+    setUserCollapsed(article, value);
+    if (!value && !warmed && typeof onExpand === "function") {
+      warmed = true;
+      onExpand();
+    }
+  };
+
   button.addEventListener("click", () => apply(!article.classList.contains("is-collapsed")));
+  article.addEventListener("outfitsearch:set-collapsed", event => apply(Boolean(event.detail?.collapsed)));
   apply(collapsed);
 }
 
@@ -996,8 +1037,8 @@ function setUserCollapsed(article, collapsed) {
 }
 
 function setAllUsersCollapsed(collapsed) {
-  const cards = [...results.querySelectorAll(".user-card")];
-  cards.forEach(card => setUserCollapsed(card, collapsed));
+  const cards = [...results.querySelectorAll(".user-card:not(.error-card)")];
+  cards.forEach(card => card.dispatchEvent(new CustomEvent("outfitsearch:set-collapsed", { detail: { collapsed } })));
   if (cards.length) {
     setStatus(`${collapsed ? "Collapsed" : "Expanded"} ${cards.length} account${cards.length === 1 ? "" : "s"}.`);
   }
@@ -1018,7 +1059,13 @@ function setupUserTabs(article) {
       if (tab.classList.contains("unavailable")) return;
       tabs.forEach(candidate => candidate.classList.toggle("active", candidate === tab));
       sections.forEach(section => {
-        section.hidden = view !== "all" && section.dataset.resultKind !== view;
+        const visible = view === "all" || section.dataset.resultKind === view;
+        section.hidden = !visible;
+        if (visible) {
+          section.classList.remove("section-enter");
+          void section.offsetWidth;
+          section.classList.add("section-enter");
+        }
       });
     });
   }
@@ -1227,58 +1274,101 @@ function renderErrorCard(user, err, mount = null) {
   else results.append(el);
 }
 
-function formatPrice(item = {}) {
+function getCommerceDisplay(item = {}) {
   const source = item.parentBundle || item;
-  const status = String(source.priceStatus || item.priceStatus || "").trim();
-  const unavailable = isCurrentlyUnavailable(source, item, status);
-  const unavailableMark = unavailable ? "**" : "";
+  const status = String(source.priceStatus || item.priceStatus || source.saleStatus || item.saleStatus || "").trim();
+  const statusLower = status.toLowerCase();
+  const nameLower = String(source.name || item.name || "").toLowerCase();
+  const restrictions = [
+    ...(Array.isArray(source.itemRestrictions) ? source.itemRestrictions : []),
+    ...(Array.isArray(item.itemRestrictions) ? item.itemRestrictions : []),
+    ...(Array.isArray(source.itemStatus) ? source.itemStatus : []),
+    ...(Array.isArray(item.itemStatus) ? item.itemStatus : [])
+  ].map(value => String(value).toLowerCase());
 
-  const direct = finitePrice(source.price);
-  if (direct !== null) {
-    return direct === 0
-      ? `Free${unavailableMark}`
-      : `${formatInteger(direct)} Robux${unavailableMark}`;
+  const isLimited = Boolean(
+    source.isLimited || item.isLimited || source.isLimitedUnique || item.isLimitedUnique ||
+    source.collectibleItemId || item.collectibleItemId || item.rolimons ||
+    restrictions.some(value => /limited|collectible/.test(value))
+  );
+  const isForSale = source.isForSale ?? item.isForSale ?? source.IsForSale ?? item.IsForSale ?? null;
+  const hasResellers = source.hasResellers ?? item.hasResellers ?? source.HasResellers ?? item.HasResellers ?? null;
+
+  const direct = firstFiniteNumber(source.price, item.price, source.priceInRobux, item.priceInRobux, source.PriceInRobux, item.PriceInRobux);
+  const resale = firstPositiveFiniteNumber(source.lowestPrice, item.lowestPrice, source.resaleLowestPrice, item.resaleLowestPrice, source.lowestResalePrice, item.lowestResalePrice);
+  const units = firstFiniteNumber(source.unitsAvailableForConsumption, item.unitsAvailableForConsumption, source.UnitsAvailableForConsumption, item.UnitsAvailableForConsumption);
+  const remaining = firstFiniteNumber(source.remaining, item.remaining, source.Remaining, item.Remaining);
+  const totalQuantity = firstFiniteNumber(source.totalQuantity, item.totalQuantity, source.TotalQuantity, item.TotalQuantity);
+
+  const removed = /content deleted|deleted|moderated|unavailable|banned|blocked|not approved/.test(nameLower) ||
+    /unavailable|moderated|deleted|not available|banned|blocked|not approved/.test(statusLower) ||
+    restrictions.some(value => /unavailable|moderated|deleted|banned|blocked|not approved/.test(value));
+  if (removed) return { label: "Unavailable", tone: "danger", state: "unavailable" };
+
+  const soldOut = /sold\s*out|out\s*of\s*stock/.test(statusLower) ||
+    (Number.isFinite(units) && units <= 0 && Number.isFinite(totalQuantity) && totalQuantity > 0) ||
+    (Number.isFinite(remaining) && remaining <= 0 && isLimited);
+
+  if (isLimited) {
+    const primaryStockAvailable = isForSale === true && (!Number.isFinite(units) || units > 0) && !soldOut;
+    if (primaryStockAvailable && Number.isFinite(direct) && direct > 0) {
+      return { label: formatInteger(direct), tone: "normal", state: "primary-sale" };
+    }
+
+    if (/no\s*resellers/.test(statusLower) || (hasResellers === false && !primaryStockAvailable)) {
+      return { label: soldOut ? "Sold out" : "No listings", tone: "muted", state: soldOut ? "sold-out" : "no-listings" };
+    }
+
+    if (Number.isFinite(resale) && resale > 0 && hasResellers !== false) {
+      return { label: `${formatInteger(resale)} resale`, tone: "market", state: "resale" };
+    }
+
+    if (soldOut) return { label: "Sold out", tone: "muted", state: "sold-out" };
+    if (isForSale === false || /off\s*sale|not\s*for\s*sale/.test(statusLower)) {
+      return { label: "Limited · off sale", tone: "muted", state: "off-sale" };
+    }
+    return { label: "Limited", tone: "market", state: "limited" };
   }
 
-  const lowest = finitePrice(source.lowestPrice ?? source.resaleLowestPrice);
-  if (lowest !== null && lowest > 0) return `${formatInteger(lowest)} Robux+`;
-  if (/^free$/i.test(status)) return `Free${unavailableMark}`;
-  if (status && !/^off\s*sale$/i.test(status)) return status;
-  if (source.isLimited || source.collectibleItemId || item.collectibleItemId || item.rolimons) return "Limited / no Roblox listing";
-  if (unavailable) return "Off sale";
-  return "Price unavailable";
-}
+  if (soldOut) return { label: "Sold out", tone: "muted", state: "sold-out" };
+  if (isForSale === false || /off\s*sale|not\s*for\s*sale|no\s*resellers/.test(statusLower)) {
+    return { label: "Off sale", tone: "muted", state: "off-sale" };
+  }
+  if (/^free$/.test(statusLower) && isForSale !== false) return { label: "Free", tone: "success", state: "free" };
 
-function finitePrice(value) {
-  if (value === null || value === undefined || value === "") return null;
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
-}
-
-function isCurrentlyUnavailable(source = {}, item = {}, status = "") {
-  if (source.isForSale === false || item.isForSale === false) return true;
-  if (/off\s*sale|out\s*of\s*stock|unavailable|not\s*for\s*sale/i.test(status)) return true;
-
-  const stockCandidates = [
-    source.unitsAvailableForConsumption,
-    source.unitsAvailable,
-    source.remaining,
-    source.remainingStock,
-    source.quantityAvailable,
-    item.unitsAvailableForConsumption,
-    item.unitsAvailable,
-    item.remaining,
-    item.remainingStock,
-    item.quantityAvailable
-  ];
-
-  for (const value of stockCandidates) {
-    if (value === null || value === undefined || value === "") continue;
-    const count = Number(value);
-    if (Number.isFinite(count)) return count <= 0;
+  if (Number.isFinite(direct)) {
+    if (direct === 0) {
+      return isForSale === true
+        ? { label: "Free", tone: "success", state: "free" }
+        : { label: "Unavailable", tone: "muted", state: "unknown-zero" };
+    }
+    return { label: formatInteger(direct), tone: "normal", state: "primary-sale" };
   }
 
-  return false;
+  if (status) return { label: status, tone: "muted", state: "status" };
+  return { label: "Unavailable", tone: "muted", state: "unknown" };
+}
+
+function firstFiniteNumber(...values) {
+  for (const value of values) {
+    if (value === undefined || value === null || value === "") continue;
+    const number = Number(value);
+    if (Number.isFinite(number)) return number;
+  }
+  return null;
+}
+
+function firstPositiveFiniteNumber(...values) {
+  for (const value of values) {
+    if (value === undefined || value === null || value === "") continue;
+    const number = Number(value);
+    if (Number.isFinite(number) && number > 0) return number;
+  }
+  return null;
+}
+
+function formatPrice(item = {}) {
+  return getCommerceDisplay(item).label;
 }
 
 function isFallbackAssetName(name, id) {
