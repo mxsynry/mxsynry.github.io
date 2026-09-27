@@ -1,7 +1,8 @@
+const APP_VERSION = "2026-09-27.ui3-collapsible-results";
+
 const DEFAULT_API_BASE = document.querySelector('meta[name="outfit-api-base"]')?.content?.trim() || "";
 const API_STORAGE_KEY = "robloxOutfitApiBase";
 const LOG_STORAGE_KEY = "robloxOutfitDebugLogs";
-const LAZY_LOAD_STORAGE_KEY = "robloxOutfitLazyLoading";
 const THEME_STORAGE_KEY = "robloxOutfitTheme";
 const PROVIDER_MODE_STORAGE_KEY = "robloxOutfitProviderMode";
 
@@ -11,8 +12,6 @@ const API_TIMEOUT_MS = 35000;
 const REPORT_TIMEOUT_MS = 45000;
 const OUTFIT_TIMEOUT_MS = 40000;
 const DETAIL_CACHE_TTL_MS = 5 * 60 * 1000;
-const PREFETCH_CONCURRENCY = 2;
-const PREFETCH_LIMIT = 80;
 
 const DEMAND_LABELS = new Map([
   [-1, "Unassigned"],
@@ -63,7 +62,10 @@ const debugConsole = $("#debugConsole");
 const copyConsoleBtn = $("#copyConsoleBtn");
 const clearConsoleBtn = $("#clearConsoleBtn");
 const copyLinkBtn = $("#copyLinkBtn");
-const lazyLoadToggle = $("#lazyLoadToggle");
+const resultsToolbar = $("#resultsToolbar");
+const resultsSummary = $("#resultsSummary");
+const expandAllBtn = $("#expandAllBtn");
+const collapseAllBtn = $("#collapseAllBtn");
 const rolimonsFirstToggle = $("#rolimonsFirstToggle");
 const themeBtn = $("#themeBtn");
 
@@ -83,17 +85,10 @@ let activeSearchGeneration = 0;
 let apiConnectionState = hasConfiguredApi() ? "saved" : "offline";
 let workerCapabilities = { rolimons: false, version: null, requestModes: [] };
 
-const knownOutfitEntries = new Map();
-
 class OutfitDetailStore {
   constructor() {
     this.cache = new Map();
     this.inflight = new Map();
-    this.queue = [];
-    this.queued = new Set();
-    this.activePrefetch = 0;
-    this.prefetchGeneration = 0;
-    this.prefetchController = new AbortController();
   }
 
   cacheKey(id) {
@@ -101,19 +96,8 @@ class OutfitDetailStore {
   }
 
   clearAll() {
-    this.cancelPrefetch("detail store reset");
     this.cache.clear();
     this.inflight.clear();
-  }
-
-  cancelPrefetch(reason = "prefetch cancelled") {
-    this.prefetchGeneration += 1;
-    this.queue = [];
-    this.queued.clear();
-    try {
-      this.prefetchController.abort(reason);
-    } catch {}
-    this.prefetchController = new AbortController();
   }
 
   getCached(id) {
@@ -142,105 +126,25 @@ class OutfitDetailStore {
     const key = this.cacheKey(outfitId);
     const existing = this.inflight.get(key);
     if (existing) {
-      logInfo("Outfit detail request deduplicated.", { outfitId, source: existing.kind });
-      try {
-        return await existing.promise;
-      } catch (err) {
-        // A foreground click should recover if it joined a prefetch that was cancelled.
-        if (!options.prefetch && err?.name === "AbortError") {
-          // The shared prefetch promise can be aborted when click-only mode/search state changes.
-          // Drop that stale in-flight entry before retrying as a foreground request.
-          if (this.inflight.get(key)?.promise === existing.promise) this.inflight.delete(key);
-          return this.get(outfitId, { ...options, prefetch: false });
-        }
-        throw err;
-      }
+      logInfo("Outfit detail request deduplicated.", { outfitId });
+      return existing;
     }
 
     const request = (async () => {
       const detail = await api(`/api/outfit/${outfitId}?mode=${encodeURIComponent(getProviderMode())}`, {
         signal: options.signal,
-        timeoutMs: OUTFIT_TIMEOUT_MS,
-        logQuietly: Boolean(options.prefetch)
+        timeoutMs: OUTFIT_TIMEOUT_MS
       });
       addServerLogs(`outfit:${outfitId}`, detail.debug?.logs);
       this.cache.set(key, { data: detail, savedAt: Date.now() });
       return detail;
     })();
 
-    this.inflight.set(key, {
-      promise: request,
-      kind: options.prefetch ? "prefetch" : "foreground"
-    });
-
+    this.inflight.set(key, request);
     try {
       return await request;
     } finally {
-      if (this.inflight.get(key)?.promise === request) {
-        this.inflight.delete(key);
-      }
-    }
-  }
-
-  schedule(entries = [], context = {}) {
-    if (isLazyLoadingEnabled()) return;
-
-    const uniqueEntries = uniqueBy(entries.filter(Boolean), entry => Number(entry.id))
-      .filter(entry => Number.isSafeInteger(Number(entry.id)))
-      .slice(0, PREFETCH_LIMIT);
-
-    let added = 0;
-    for (const entry of uniqueEntries) {
-      const id = Number(entry.id);
-      const key = this.cacheKey(id);
-      if (this.getCached(id) || this.inflight.has(key) || this.queued.has(key)) continue;
-      this.queue.push({ id, name: entry.name || null, context });
-      this.queued.add(key);
-      added += 1;
-    }
-
-    if (added) {
-      logInfo("Queued outfit detail prefetch.", {
-        added,
-        pending: this.queue.length,
-        concurrency: PREFETCH_CONCURRENCY,
-        userId: context.userId || null
-      });
-      this.drain();
-    }
-  }
-
-  drain() {
-    if (isLazyLoadingEnabled()) return;
-    const generation = this.prefetchGeneration;
-
-    while (this.activePrefetch < PREFETCH_CONCURRENCY && this.queue.length) {
-      const job = this.queue.shift();
-      const key = this.cacheKey(job.id);
-      this.queued.delete(key);
-      this.activePrefetch += 1;
-
-      const run = async () => {
-        if (generation !== this.prefetchGeneration || isLazyLoadingEnabled()) return;
-        try {
-          await this.get(job.id, {
-            prefetch: true,
-            signal: this.prefetchController.signal
-          });
-          logSuccess("Prefetched outfit detail.", { id: job.id, name: job.name });
-        } catch (err) {
-          if (err?.name !== "AbortError") {
-            logError("Outfit prefetch failed.", err, { id: job.id, name: job.name });
-          }
-        } finally {
-          this.activePrefetch = Math.max(0, this.activePrefetch - 1);
-          if (generation === this.prefetchGeneration) {
-            scheduleIdle(() => this.drain());
-          }
-        }
-      };
-
-      scheduleIdle(run);
+      if (this.inflight.get(key) === request) this.inflight.delete(key);
     }
   }
 }
@@ -252,7 +156,6 @@ init();
 function init() {
   applyTheme(getSavedTheme());
   refreshApiUi();
-  initLazyLoadingOption();
   initProviderModeOption();
   renderConsole();
   bindUi();
@@ -261,7 +164,6 @@ function init() {
     appVersion: APP_VERSION,
     apiConfigured: hasConfiguredApi(),
     apiBase: hasConfiguredApi() ? API_BASE : null,
-    lazyLoading: isLazyLoadingEnabled(),
     providerMode: getProviderMode()
   });
 
@@ -293,8 +195,8 @@ function bindUi() {
     API_BASE = "";
     workerCapabilities = { rolimons: false, version: null, requestModes: [] };
     outfitDetails.clearAll();
-    knownOutfitEntries.clear();
     results.innerHTML = "";
+    resultsToolbar.hidden = true;
     emptyState.hidden = false;
     refreshApiUi("Saved URL removed.", "offline");
     setStatus("API URL removed. Connect a Worker before searching.");
@@ -348,22 +250,8 @@ function bindUi() {
     renderConsole();
   });
 
-  lazyLoadToggle?.addEventListener("change", () => {
-    localStorage.setItem(LAZY_LOAD_STORAGE_KEY, lazyLoadToggle.checked ? "on" : "off");
-
-    if (lazyLoadToggle.checked) {
-      outfitDetails.cancelPrefetch("click-only mode enabled");
-      setStatus("Load details on click enabled. No outfit-detail requests will run in the background.");
-    } else {
-      setStatus("Background detail loading enabled. Requests are deduplicated and limited to two at a time.");
-      outfitDetails.schedule([...knownOutfitEntries.values()], { reason: "toggle" });
-    }
-
-    logInfo("Lazy loading option changed.", {
-      clickOnly: lazyLoadToggle.checked,
-      knownOutfits: knownOutfitEntries.size
-    });
-  });
+  expandAllBtn?.addEventListener("click", () => setAllUsersCollapsed(false));
+  collapseAllBtn?.addEventListener("click", () => setAllUsersCollapsed(true));
 
   rolimonsFirstToggle?.addEventListener("change", () => {
     localStorage.setItem(PROVIDER_MODE_STORAGE_KEY, rolimonsFirstToggle.checked ? "rolimons-first" : "full");
@@ -434,7 +322,6 @@ async function saveApiConnection() {
   localStorage.setItem(API_STORAGE_KEY, value);
   API_BASE = value;
   outfitDetails.clearAll();
-  knownOutfitEntries.clear();
   saveApiBtn.disabled = true;
   saveApiBtn.textContent = "Checking…";
   refreshApiUi("Checking the Worker…", "saved");
@@ -514,9 +401,8 @@ async function runSearch(event) {
   const controller = new AbortController();
   activeSearchController = controller;
 
-  outfitDetails.cancelPrefetch("new search");
-  knownOutfitEntries.clear();
   results.innerHTML = "";
+  resultsToolbar.hidden = true;
   emptyState.hidden = true;
   searchBtn.disabled = true;
   cancelSearchBtn.hidden = false;
@@ -534,9 +420,13 @@ async function runSearch(event) {
     const candidates = uniqueBy((resolved.users || []), user => user.id);
     if (!candidates.length) {
       setStatus("No public Roblox accounts matched that search.", true);
+      resultsToolbar.hidden = true;
       emptyState.hidden = false;
       return;
     }
+
+    resultsToolbar.hidden = false;
+    resultsSummary.textContent = `${candidates.length} account${candidates.length === 1 ? "" : "s"}`;
 
     const slots = candidates.map((user, index) => createSkeletonSlot(user, index));
     slots.forEach(slot => results.append(slot));
@@ -771,13 +661,10 @@ function renderUser(report, mount = null, index = 0) {
 
   $(".json-btn", tpl).addEventListener("click", () => downloadJson(`roblox-${profile.id}-outfits.json`, report));
   setupUserTabs(article);
+  setupUserCollapse(article, index > 0);
 
   if (mount) mount.replaceChildren(tpl);
   else results.append(tpl);
-
-  const allEntries = [...outfits, ...characterPackages, ...animationPacks, ...costumeLike];
-  allEntries.forEach(registerOutfitEntry);
-  outfitDetails.schedule(allEntries, { userId: profile.id });
 }
 
 function assetCard(item) {
@@ -820,7 +707,7 @@ function assetCard(item) {
 
       <div class="market-grid">
         <div class="market-stat">
-          <span>Roblox</span>
+          <span>Price*</span>
           <strong title="${escapeAttr(robloxPrice)}">${escapeHtml(robloxPrice)}</strong>
         </div>
         ${roli ? `
@@ -987,7 +874,6 @@ function formatSourceLabel(item = {}) {
 }
 
 function outfitCard(outfit, label = "Outfit") {
-  registerOutfitEntry(outfit);
   const el = document.createElement("article");
   el.className = "outfit";
   el.dataset.outfitId = String(outfit.id);
@@ -1022,7 +908,7 @@ async function openOutfit(outfit) {
   openDialog(outfitDialog);
 
   try {
-    const detail = await outfitDetails.get(outfitId, { prefetch: false });
+    const detail = await outfitDetails.get(outfitId);
     if (!outfitDialog.open) return;
 
     const entryKind = classifyOutfitEntry(outfit);
@@ -1063,10 +949,6 @@ async function openOutfit(outfit) {
   }
 }
 
-function registerOutfitEntry(entry) {
-  const id = Number(entry?.id);
-  if (Number.isSafeInteger(id) && id > 0) knownOutfitEntries.set(id, entry);
-}
 
 function createEmoteSection(emotes = [], logs = []) {
   const section = document.createElement("section");
@@ -1090,6 +972,35 @@ function createEmoteSection(emotes = [], logs = []) {
   if (!visible.length) grid.innerHTML = `<div class="empty">${escapeHtml(logText)}</div>`;
   else visible.forEach(emote => grid.append(assetCard({ ...emote, itemType: "Emote", assetTypeName: "Emote Animation" })));
   return section;
+}
+
+function setupUserCollapse(article, collapsed = false) {
+  const button = $(".user-collapse-btn", article);
+  if (!button) return;
+
+  const apply = value => setUserCollapsed(article, value);
+  button.addEventListener("click", () => apply(!article.classList.contains("is-collapsed")));
+  apply(collapsed);
+}
+
+function setUserCollapsed(article, collapsed) {
+  if (!article) return;
+  article.classList.toggle("is-collapsed", Boolean(collapsed));
+  const button = $(".user-collapse-btn", article);
+  const label = $(".collapse-label", article);
+  const icon = $(".collapse-icon", article);
+  button?.setAttribute("aria-expanded", String(!collapsed));
+  button?.setAttribute("aria-label", collapsed ? "Expand account details" : "Collapse account details");
+  if (label) label.textContent = collapsed ? "Expand" : "Collapse";
+  if (icon) icon.textContent = collapsed ? "⌄" : "⌃";
+}
+
+function setAllUsersCollapsed(collapsed) {
+  const cards = [...results.querySelectorAll(".user-card")];
+  cards.forEach(card => setUserCollapsed(card, collapsed));
+  if (cards.length) {
+    setStatus(`${collapsed ? "Collapsed" : "Expanded"} ${cards.length} account${cards.length === 1 ? "" : "s"}.`);
+  }
 }
 
 function setupUserTabs(article) {
@@ -1319,16 +1230,55 @@ function renderErrorCard(user, err, mount = null) {
 function formatPrice(item = {}) {
   const source = item.parentBundle || item;
   const status = String(source.priceStatus || item.priceStatus || "").trim();
-  const direct = Number(source.price);
-  if (Number.isFinite(direct)) return direct === 0 ? "Free" : `${formatInteger(direct)} Robux`;
+  const unavailable = isCurrentlyUnavailable(source, item, status);
+  const unavailableMark = unavailable ? "**" : "";
 
-  const lowest = Number(source.lowestPrice ?? source.resaleLowestPrice);
-  if (Number.isFinite(lowest) && lowest > 0) return `${formatInteger(lowest)} Robux+`;
-  if (/^free$/i.test(status)) return "Free";
+  const direct = finitePrice(source.price);
+  if (direct !== null) {
+    return direct === 0
+      ? `Free${unavailableMark}`
+      : `${formatInteger(direct)} Robux${unavailableMark}`;
+  }
+
+  const lowest = finitePrice(source.lowestPrice ?? source.resaleLowestPrice);
+  if (lowest !== null && lowest > 0) return `${formatInteger(lowest)} Robux+`;
+  if (/^free$/i.test(status)) return `Free${unavailableMark}`;
   if (status && !/^off\s*sale$/i.test(status)) return status;
   if (source.isLimited || source.collectibleItemId || item.collectibleItemId || item.rolimons) return "Limited / no Roblox listing";
-  if (source.isForSale === false || /^off\s*sale$/i.test(status)) return "Off sale";
+  if (unavailable) return "Off sale";
   return "Price unavailable";
+}
+
+function finitePrice(value) {
+  if (value === null || value === undefined || value === "") return null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
+}
+
+function isCurrentlyUnavailable(source = {}, item = {}, status = "") {
+  if (source.isForSale === false || item.isForSale === false) return true;
+  if (/off\s*sale|out\s*of\s*stock|unavailable|not\s*for\s*sale/i.test(status)) return true;
+
+  const stockCandidates = [
+    source.unitsAvailableForConsumption,
+    source.unitsAvailable,
+    source.remaining,
+    source.remainingStock,
+    source.quantityAvailable,
+    item.unitsAvailableForConsumption,
+    item.unitsAvailable,
+    item.remaining,
+    item.remainingStock,
+    item.quantityAvailable
+  ];
+
+  for (const value of stockCandidates) {
+    if (value === null || value === undefined || value === "") continue;
+    const count = Number(value);
+    if (Number.isFinite(count)) return count <= 0;
+  }
+
+  return false;
 }
 
 function isFallbackAssetName(name, id) {
@@ -1347,10 +1297,6 @@ function fallbackAssetLabel(item, id) {
 function getShortTypeLabel(item = {}) {
   const raw = item.assetType?.name || item.assetType?.Name || item.assetTypeName || item.itemType || "Asset";
   return String(raw).replace(/Accessory$/i, "Accessory").replace(/Animation$/i, "Animation").trim() || "Asset";
-}
-
-function initLazyLoadingOption() {
-  if (lazyLoadToggle) lazyLoadToggle.checked = isLazyLoadingEnabled();
 }
 
 function initProviderModeOption() {
@@ -1380,18 +1326,6 @@ function getProviderMode() {
     if (!supported) return "full";
   }
   return "rolimons-first";
-}
-
-function isLazyLoadingEnabled() {
-  return localStorage.getItem(LAZY_LOAD_STORAGE_KEY) !== "off";
-}
-
-function scheduleIdle(fn) {
-  if (typeof requestIdleCallback === "function") {
-    requestIdleCallback(() => fn(), { timeout: 800 });
-  } else {
-    setTimeout(fn, 0);
-  }
 }
 
 async function mapLimit(items, limit, mapper) {
