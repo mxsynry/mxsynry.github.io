@@ -180,6 +180,15 @@ button:focus-visible, a:focus-visible, input:focus-visible, summary:focus-visibl
   transition: background .16s ease, color .16s ease, border-color .16s ease;
 }
 .header-button:hover { color: var(--text); background: var(--panel-2); border-color: var(--line); }
+.header-button-secondary {
+  border-color: var(--line);
+  background: transparent;
+}
+.header-button-secondary:hover {
+  border-color: var(--line-strong);
+  background: var(--panel-2);
+  color: var(--text);
+}
 .header-button.api-button { border-color: var(--line); background: var(--panel); }
 .header-button.icon-only { width: 36px; padding: 0; font-size: 17px; }
 .status-dot {
