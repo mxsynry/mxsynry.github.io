@@ -1,5 +1,3 @@
-const APP_VERSION = "2026-09-25.rolimons-first-lazy3";
-
 const DEFAULT_API_BASE = document.querySelector('meta[name="outfit-api-base"]')?.content?.trim() || "";
 const API_STORAGE_KEY = "robloxOutfitApiBase";
 const LOG_STORAGE_KEY = "robloxOutfitDebugLogs";
@@ -799,25 +797,52 @@ function assetCard(item) {
   const linkLabel = display.purchasableType === "Bundle" ? "Bundle" : "Catalog";
   const robloxPrice = formatPrice(display);
   const roli = display.rolimons;
-  const roliMarket = formatRolimonsMarket(roli);
-  const roliMeta = formatRolimonsMeta(roli);
   const source = formatSourceLabel(display);
+  const sourcePill = roli ? "Roli" : "Roblox";
+
+  const roliValue = Number.isFinite(roli?.value) && roli.value > 0
+    ? formatInteger(roli.value)
+    : (Number.isFinite(roli?.defaultValue) && roli.defaultValue >= 0 ? formatInteger(roli.defaultValue) : "—");
+  const roliRap = Number.isFinite(roli?.rap) && roli.rap >= 0 ? formatInteger(roli.rap) : "—";
+  const marketTags = renderRolimonsTags(roli);
 
   el.innerHTML = `
     <div class="thumb-wrap" aria-label="${displayName}">
       ${thumbnailMarkup(imageUrl, fallbackText)}
     </div>
     <div class="asset-body">
-      <p class="item-name" title="${displayName}">${displayName}</p>
-      <p class="item-meta">${type} • ID ${id}${display.bundleId ? ` • Bundle ${display.bundleId}` : ""}${source ? ` • ${escapeHtml(source)}` : ""}</p>
+      <div class="item-heading">
+        <p class="item-name" title="${displayName}">${displayName}</p>
+        <span class="source-pill${roli ? " market" : ""}">${escapeHtml(sourcePill)}</span>
+      </div>
+      <p class="item-meta">${type} • ID ${id}${display.bundleId ? ` • Bundle ${display.bundleId}` : ""}</p>
       <p class="item-meta">${creator}</p>
-      <p class="item-meta">Roblox: ${escapeHtml(robloxPrice)}</p>
-      ${roliMarket ? `<p class="item-note"><b>Rolimons:</b> ${escapeHtml(roliMarket)}</p>` : ""}
-      ${roliMeta ? `<p class="item-meta">${escapeHtml(roliMeta)}</p>` : ""}
+
+      <div class="market-grid">
+        <div class="market-stat">
+          <span>Roblox</span>
+          <strong title="${escapeAttr(robloxPrice)}">${escapeHtml(robloxPrice)}</strong>
+        </div>
+        ${roli ? `
+          <div class="market-stat market-value">
+            <span>Roli value</span>
+            <strong>${escapeHtml(roliValue)}</strong>
+          </div>
+          <div class="market-stat">
+            <span>RAP</span>
+            <strong>${escapeHtml(roliRap)}</strong>
+          </div>
+          <div class="market-stat">
+            <span>Market</span>
+            <strong>${escapeHtml(roli.acronym || "Tracked")}</strong>
+          </div>` : ""}
+      </div>
+
+      ${marketTags ? `<div class="market-tags">${marketTags}</div>` : ""}
       ${display.componentNote && !String(display.componentNote).startsWith("Rolimons ·") ? `<p class="item-note">${escapeHtml(display.componentNote)}</p>` : ""}
       <div class="item-links">
         <a target="_blank" rel="noopener" href="${catalogUrl}">${linkLabel}</a>
-        ${roli?.url ? `<a target="_blank" rel="noopener" href="${escapeAttr(roli.url)}">Rolimons</a>` : ""}
+        ${roli?.url ? `<a data-market-link target="_blank" rel="noopener" href="${escapeAttr(roli.url)}">Rolimons</a>` : ""}
         <button class="small-btn" type="button" data-copy="${id}">Copy ID</button>
       </div>
     </div>`;
@@ -825,6 +850,22 @@ function assetCard(item) {
   hydrateThumbs(el);
   $("[data-copy]", el)?.addEventListener("click", () => navigator.clipboard?.writeText(String(id)));
   return el;
+}
+
+function renderRolimonsTags(roli) {
+  if (!roli) return "";
+  const tags = [];
+  const add = (label, accent = false) => {
+    if (!label) return;
+    tags.push(`<span class="market-tag${accent ? " accent" : ""}">${escapeHtml(label)}</span>`);
+  };
+
+  if (roli.demand !== null && DEMAND_LABELS.has(roli.demand)) add(`Demand ${DEMAND_LABELS.get(roli.demand)}`);
+  if (roli.trend !== null && TREND_LABELS.has(roli.trend)) add(`Trend ${TREND_LABELS.get(roli.trend)}`);
+  if (roli.projected) add("Projected", true);
+  if (roli.hyped) add("Hyped", true);
+  if (roli.rare) add("Rare", true);
+  return tags.join("");
 }
 
 function getDisplayItem(item = {}) {
