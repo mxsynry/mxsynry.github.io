@@ -4,312 +4,126 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#0b0d10" />
-  <meta name="description" content="Search public Roblox avatars and saved outfits with optional Rolimons-first market enrichment." />
+  <meta name="description" content="Inspect public Roblox avatars, outfits, emotes and Rolimons market data." />
   <meta name="outfit-api-base" content="https://roblox-outfit-api.reatcount26-82a.workers.dev" />
   <title>OutfitSearch</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <header class="site-header">
-    <div class="header-inner">
-      <a class="brand" href="../../" aria-label="Back to site home">
-        <span class="brand-mark" aria-hidden="true">
-          <i></i><i></i><i></i>
-        </span>
-        <span class="brand-text">
-          <strong>OutfitSearch</strong>
-          <small>avatar + market inspector</small>
-        </span>
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="brand" href="../../" aria-label="Site home">
+        <span class="brand-glyph" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span><b>OutfitSearch</b><small>avatar + market inspector</small></span>
       </a>
-
-      <nav class="header-actions" aria-label="Page tools">
-        <button id="changeApiBtn" class="header-button api-button" type="button">
-          <span id="apiDot" class="status-dot" aria-hidden="true"></span>
-          <span id="apiButtonLabel">Connect API</span>
-        </button>
-        <button id="consoleBtn" class="header-button header-button-secondary" type="button">Console</button>
-        <button id="instructionsBtn" class="header-button header-button-secondary" type="button">Guide</button>
-        <button id="themeBtn" class="header-button icon-only" type="button" aria-label="Switch color theme" title="Switch color theme">
-          <span aria-hidden="true">◐</span>
-        </button>
+      <nav class="top-actions" aria-label="Page tools">
+        <button id="changeApiBtn" class="top-btn api-btn" type="button"><span id="apiDot" class="api-dot"></span><span id="apiButtonLabel">API</span></button>
+        <button id="consoleBtn" class="top-btn desktop-tool" type="button">Console</button>
+        <button id="instructionsBtn" class="top-btn desktop-tool" type="button">Guide</button>
+        <button id="themeBtn" class="top-btn icon-btn" type="button" aria-label="Toggle theme">◐</button>
       </nav>
     </div>
   </header>
 
-  <main class="app-shell">
-    <section class="hero">
-      <div class="hero-copy">
-        <p class="kicker"><span>PUBLIC AVATAR INSPECTOR</span></p>
-        <h1>Search the fit.<br /><span>Read the market.</span></h1>
-        <p class="hero-lede">Inspect what a Roblox account is wearing, open saved outfits, and use Rolimons-first when you want limited-item names and market data without hammering Roblox catalog endpoints.</p>
-
-        <div class="hero-facts" aria-label="OutfitSearch capabilities">
-          <span><b>Roblox</b> avatar state</span>
-          <span><b>Rolimons</b> value + RAP</span>
-          <span><b>Worker</b> proxied requests</span>
-        </div>
+  <main class="shell">
+    <section class="intro-grid">
+      <div class="intro-copy">
+        <p class="eyebrow intro-kicker">PUBLIC AVATAR INSPECTOR</p>
+        <h1 class="intro-title"><span class="intro-line">Search the fit.</span><span class="intro-line accent-line">Read the market.</span></h1>
+        <p class="intro-lede">Current wear, saved looks, packs and public emotes from Roblox. Supported limiteds use Rolimons-first market enrichment without turning every result into an API storm.</p>
+        <div class="intro-facts"><span><b>Roblox</b> avatar state</span><span><b>Rolimons</b> Value + RAP</span><span><b>Worker</b> proxied</span></div>
       </div>
 
-      <form id="searchForm" class="search-dock">
-        <div class="search-dock-head">
-          <div>
-            <p class="eyebrow">ACCOUNT LOOKUP</p>
-            <h2>Who are you inspecting?</h2>
-          </div>
-          <span class="shortcut-hint">username · user ID · search:</span>
+      <form id="searchForm" class="search-card">
+        <div class="search-card-head">
+          <div><p class="eyebrow">ACCOUNT LOOKUP</p><h2>Who are you inspecting?</h2></div>
+          <span class="hint">username · id:1 · search:</span>
         </div>
 
-        <label class="search-label" for="query">Roblox account</label>
-        <div class="search-box">
+        <label class="field-label" for="query">Roblox account</label>
+        <div class="search-row">
           <span class="search-icon" aria-hidden="true"></span>
-          <input
-            id="query"
-            autocomplete="off"
-            autocapitalize="none"
-            spellcheck="false"
-            maxlength="600"
-            placeholder="username, id:1, or a comma-separated list"
-          />
-          <button id="clearQueryBtn" class="clear-query" type="button" aria-label="Clear search" title="Clear search">×</button>
-          <button id="cancelSearchBtn" class="search-cancel" type="button" hidden>Cancel</button>
-          <button id="searchBtn" class="search-submit" type="submit">Search</button>
+          <input id="query" autocomplete="off" autocapitalize="none" spellcheck="false" maxlength="600" placeholder="username, id:1, or multiple names" />
+          <button id="clearQueryBtn" class="icon-clear" type="button" aria-label="Clear search">×</button>
+          <button id="cancelSearchBtn" class="cancel-btn" type="button" hidden>Cancel</button>
+          <button id="searchBtn" class="primary-btn" type="submit">Search</button>
         </div>
 
-        <div class="source-panel" aria-label="Data source preferences">
-          <div class="source-panel-copy">
-            <p class="eyebrow">DATA SOURCE</p>
-            <strong>Prefer Rolimons</strong>
-            <p>Use Rolimons for supported limited metadata first, then ask Roblox only for unresolved item details.</p>
-          </div>
-          <label class="source-toggle" title="Prefer Rolimons and existing avatar/outfit metadata, reducing most per-item Roblox catalog fallbacks.">
-            <span class="source-state source-state-left">Full Roblox</span>
-            <span class="toggle-control">
-              <input id="rolimonsFirstToggle" type="checkbox" checked />
-              <span class="switch" aria-hidden="true"></span>
-            </span>
-            <span class="source-state source-state-right">Rolimons first</span>
+        <div class="provider-row">
+          <div class="provider-copy"><p class="eyebrow">PROVIDER STRATEGY</p><strong>Prefer Rolimons</strong><span>Reduces Roblox item-metadata fallbacks while keeping Roblox as the avatar source.</span></div>
+          <label class="provider-toggle">
+            <span>Full Roblox</span>
+            <span class="switch-wrap"><input id="rolimonsFirstToggle" type="checkbox" checked /><i></i></span>
+            <span>Rolimons first</span>
           </label>
         </div>
 
-        <div class="search-meta">
-          <div class="examples" aria-label="Search examples">
-            <span class="meta-label">Try</span>
-            <button class="example-chip" type="button" data-example="Roblox">@Roblox</button>
-            <button class="example-chip" type="button" data-example="id:1">id:1</button>
-            <button class="example-chip" type="button" data-example="search:builder">search:builder</button>
-          </div>
-          <div class="search-tools">
-            <button id="copyLinkBtn" class="text-button" type="button">Copy link</button>
-          </div>
+        <div class="search-foot">
+          <div class="examples"><span>Try</span><button type="button" data-example="Roblox">@Roblox</button><button type="button" data-example="id:1">id:1</button><button type="button" data-example="search:builder">search:builder</button></div>
+          <button id="copyLinkBtn" class="link-btn" type="button">Copy search link</button>
         </div>
-
-        <div class="connection-line">
-          <span id="apiState" class="connection-state">API not connected</span>
-          <span class="connection-divider" aria-hidden="true"></span>
-          <span class="connection-note">Core username/avatar/outfit requests still come from Roblox.</span>
-        </div>
+        <div class="connection-line"><span id="apiState">API not connected</span><i></i><span>Outfit details warm quietly in the background.</span></div>
       </form>
     </section>
 
-    <section class="index-strip" aria-label="Available data">
-      <span><b>01</b><small>Wearing</small></span>
-      <span><b>02</b><small>Saved outfits</small></span>
-      <span><b>03</b><small>Packs</small></span>
-      <span><b>04</b><small>Emotes</small></span>
-      <span class="index-market"><b>05</b><small>Market data</small></span>
+    <section class="data-strip" aria-label="Available data">
+      <span><b>01</b> Wearing</span><span><b>02</b> Saved outfits</span><span><b>03</b> Packs</span><span><b>04</b> Emotes</span><span class="market-strip"><b>05</b> Market</span>
     </section>
 
-    <section class="workspace" aria-label="Search results">
-      <div id="statusWrap" class="status-wrap" hidden>
-        <div class="status-copy">
-          <span id="statusPulse" class="status-pulse" aria-hidden="true"></span>
-          <p id="status" class="status" aria-live="polite"></p>
-        </div>
-        <span id="resultProgress" class="result-progress"></span>
-      </div>
+    <section class="workspace">
+      <div id="statusWrap" class="status-bar" hidden><div><i id="statusPulse"></i><p id="status" aria-live="polite"></p></div><span id="resultProgress"></span></div>
 
       <div id="resultsToolbar" class="results-toolbar" hidden>
-        <div class="results-toolbar-copy">
-          <strong id="resultsSummary">Results</strong>
-          <span><b>Price*</b> = public Roblox price/listing data. <b>**</b> = that price exists, but the item is currently unavailable, off sale, or out of stock.</span>
-        </div>
-        <div class="results-toolbar-actions">
-          <button id="expandAllBtn" class="secondary-button toolbar-button" type="button">Expand all</button>
-          <button id="collapseAllBtn" class="secondary-button toolbar-button" type="button">Collapse all</button>
-        </div>
+        <div><p class="eyebrow">PLAYERS</p><strong id="resultsSummary">Results</strong><span>Player #2 onward starts collapsed.</span></div>
+        <div><button id="expandAllBtn" class="small-action" type="button">Expand all</button><button id="collapseAllBtn" class="small-action" type="button">Collapse all</button></div>
       </div>
 
       <section id="emptyState" class="empty-state">
-        <div class="empty-visual" aria-hidden="true">
-          <div class="empty-avatar"></div>
-          <div class="empty-rail">
-            <i></i><i></i><i></i>
-          </div>
-          <div class="empty-market">
-            <span>VALUE</span><b>—</b>
-          </div>
-        </div>
-        <div class="empty-copy">
-          <p class="eyebrow">READY</p>
-          <h2>Search an account to build the outfit index.</h2>
-          <p>Exact usernames are fastest. Prefix a term with <code>search:</code> only when you want broader account matches.</p>
-        </div>
+        <div class="empty-orbit" aria-hidden="true"><i></i></div>
+        <div><p class="eyebrow">READY</p><h2>Search an account to build the outfit index.</h2><p>Exact usernames are fastest. Use <code>search:</code> only when you want broader account matches.</p></div>
       </section>
-
       <section id="results" class="results"></section>
     </section>
   </main>
 
-  <footer>
-    <p>Public Roblox + Rolimons data only. No Roblox cookie, login, or private inventory access.</p>
-    <a href="../../">Site home</a>
-  </footer>
+  <footer><p>Public Roblox + Rolimons data only. No Roblox cookie, login, or private inventory access.</p><a href="../../">Site home</a></footer>
 
   <dialog id="apiDialog" class="modal compact-modal">
-    <div class="modal-head">
-      <div>
-        <p class="eyebrow">CONNECTION</p>
-        <h2>Cloudflare Worker</h2>
-      </div>
-      <button class="modal-close" type="button" data-close-dialog="apiDialog" aria-label="Close">×</button>
-    </div>
-    <div class="modal-body">
-      <p class="modal-intro">Your browser talks to one Worker. The Worker requests public Roblox data and, when enabled, Rolimons market metadata.</p>
-      <label class="field-label" for="apiBaseInput">Worker URL</label>
-      <div class="api-input-row">
-        <input id="apiBaseInput" inputmode="url" autocomplete="url" placeholder="https://your-worker.workers.dev" />
-        <button id="saveApiBtn" class="primary-button" type="button">Connect</button>
-      </div>
-      <p id="apiStatus" class="field-note" aria-live="polite"></p>
-      <div class="modal-footer-actions">
-        <button id="clearApiBtn" class="text-button danger-button" type="button">Forget URL</button>
-        <button id="openGuideBtn" class="text-button" type="button">Deployment guide</button>
-      </div>
-    </div>
+    <div class="modal-head"><div><p class="eyebrow">CONNECTION</p><h2>Cloudflare Worker</h2></div><button class="modal-close" data-close-dialog="apiDialog" type="button">×</button></div>
+    <div class="modal-body"><p class="modal-intro">Your browser talks to one Worker. The Worker requests public Roblox data and, when enabled, Rolimons market metadata.</p><label class="field-label" for="apiBaseInput">Worker URL</label><div class="api-row"><input id="apiBaseInput" inputmode="url" autocomplete="url" placeholder="https://your-worker.workers.dev" /><button id="saveApiBtn" class="primary-btn" type="button">Connect</button></div><p id="apiStatus" class="field-note"></p><div class="modal-actions"><button id="clearApiBtn" class="link-btn danger" type="button">Forget URL</button><button id="openGuideBtn" class="link-btn" type="button">Deployment guide</button></div></div>
   </dialog>
 
   <dialog id="instructionsDialog" class="modal">
-    <div class="modal-head">
-      <div>
-        <p class="eyebrow">SETUP</p>
-        <h2>Deploy the Worker</h2>
-      </div>
-      <button class="modal-close" type="button" data-close-dialog="instructionsDialog" aria-label="Close">×</button>
-    </div>
-    <div class="modal-body guide-body">
-      <ol class="steps">
-        <li><b>01</b><span><strong>Create a Worker</strong> in Cloudflare Workers &amp; Pages.</span></li>
-        <li><b>02</b><span><strong>Replace the starter code</strong> with this package’s <code>worker.js</code>.</span></li>
-        <li><b>03</b><span><strong>Deploy</strong> and copy the public <code>.workers.dev</code> URL.</span></li>
-        <li><b>04</b><span><strong>Connect</strong> that URL in OutfitSearch.</span></li>
-        <li><b>05</b><span><strong>Choose provider mode.</strong> Rolimons-first reduces Roblox item-metadata fallbacks; Full Roblox uses the richer fallback chain.</span></li>
-      </ol>
-      <p class="privacy-note">Rolimons-first does not replace Roblox username, avatar-state, thumbnail, or saved-outfit endpoints.</p>
-    </div>
+    <div class="modal-head"><div><p class="eyebrow">SETUP</p><h2>Deploy the Worker</h2></div><button class="modal-close" data-close-dialog="instructionsDialog" type="button">×</button></div>
+    <div class="modal-body"><ol class="steps"><li><b>01</b><span>Create a Worker in Cloudflare Workers &amp; Pages.</span></li><li><b>02</b><span>Replace the starter code with your current Rolimons-first <code>worker.js</code>.</span></li><li><b>03</b><span>Deploy and copy the public <code>.workers.dev</code> URL.</span></li><li><b>04</b><span>Connect that URL in OutfitSearch.</span></li><li><b>05</b><span>Keep Rolimons-first on to reduce Roblox item-metadata fallbacks.</span></li></ol><p class="privacy-note">Rolimons cannot replace Roblox username, avatar-state, thumbnail, or saved-outfit endpoints.</p></div>
   </dialog>
 
   <dialog id="consoleDialog" class="modal wide-modal">
-    <div class="modal-head">
-      <div>
-        <p class="eyebrow">DIAGNOSTICS</p>
-        <h2>Request log</h2>
-      </div>
-      <button class="modal-close" type="button" data-close-dialog="consoleDialog" aria-label="Close">×</button>
-    </div>
-    <div class="console-toolbar">
-      <span>Saved in this browser only</span>
-      <div>
-        <button id="copyConsoleBtn" class="text-button" type="button">Copy</button>
-        <button id="clearConsoleBtn" class="text-button" type="button">Clear</button>
-      </div>
-    </div>
-    <pre id="debugConsole" class="debug-console">No logs yet.</pre>
+    <div class="modal-head"><div><p class="eyebrow">DIAGNOSTICS</p><h2>Request log</h2></div><button class="modal-close" data-close-dialog="consoleDialog" type="button">×</button></div>
+    <div class="console-tools"><span>Stored only in this browser</span><div><button id="copyConsoleBtn" class="link-btn" type="button">Copy</button><button id="clearConsoleBtn" class="link-btn" type="button">Clear</button></div></div><pre id="debugConsole">No logs yet.</pre>
   </dialog>
 
   <dialog id="outfitDialog" class="modal wide-modal outfit-modal">
-    <div class="modal-head">
-      <div>
-        <p class="eyebrow">OUTFIT CONTENTS</p>
-        <h2 id="selectedOutfitTitle">Loading…</h2>
-      </div>
-      <div class="modal-title-actions">
-        <span id="selectedOutfitCount" class="count-badge"></span>
-        <button class="modal-close" type="button" data-close-dialog="outfitDialog" aria-label="Close">×</button>
-      </div>
-    </div>
+    <div class="modal-head"><div><p class="eyebrow">OUTFIT CONTENTS</p><h2 id="selectedOutfitTitle">Loading…</h2></div><div class="modal-title-actions"><span id="selectedOutfitCount" class="count-badge"></span><button class="modal-close" data-close-dialog="outfitDialog" type="button">×</button></div></div>
     <div id="selectedOutfitGrid" class="asset-grid modal-grid"></div>
   </dialog>
 
   <template id="userCardTpl">
     <article class="user-card">
-      <header class="profile-head">
-        <div class="avatar-frame">
-          <img class="avatar-img" alt="" loading="lazy" />
-          <span class="avatar-index" aria-hidden="true"></span>
-        </div>
-
-        <div class="profile-copy">
-          <p class="profile-handle"></p>
-          <h2 class="profile-title"></h2>
-          <p class="profile-meta"></p>
-          <div class="chips"></div>
-          <div class="profile-actions">
-            <a class="profile-link primary-button" target="_blank" rel="noopener">Open profile</a>
-            <button class="json-btn secondary-button" type="button">Export JSON</button>
-          </div>
-        </div>
-
-        <div class="profile-side">
-          <button class="user-collapse-btn" type="button" aria-expanded="true">
-            <span class="collapse-label">Collapse</span>
-            <span class="collapse-icon" aria-hidden="true">⌃</span>
-          </button>
-          <div class="profile-numbers" aria-label="Account result counts">
-            <div><b class="wearing-stat">0</b><span>wearing</span></div>
-            <div><b class="outfit-stat">0</b><span>outfits</span></div>
-            <div><b class="extra-stat">0</b><span>extras</span></div>
-          </div>
-        </div>
+      <header class="player-head">
+        <div class="avatar-frame"><img class="avatar-img" alt="" loading="lazy" /><span class="avatar-index"></span></div>
+        <div class="player-copy"><p class="profile-handle"></p><h2 class="profile-title"></h2><p class="profile-meta"></p><div class="chips"></div><div class="profile-actions"><a class="profile-link primary-mini" target="_blank" rel="noopener">Open profile</a><button class="json-btn secondary-mini" type="button">Export JSON</button></div></div>
+        <div class="player-side"><button class="user-collapse-btn" type="button" aria-expanded="true"><span class="collapse-label">Collapse</span><span class="collapse-icon">⌃</span></button><div class="profile-numbers"><div><b class="wearing-stat">0</b><span>wearing</span></div><div><b class="outfit-stat">0</b><span>outfits</span></div><div><b class="extra-stat">0</b><span>extras</span></div></div></div>
       </header>
 
-      <details class="description-block">
-        <summary>Public bio <span>+</span></summary>
-        <p class="description-text"></p>
-      </details>
-
-      <nav class="result-tabs" aria-label="Result sections">
-        <button class="result-tab active" type="button" data-view="all">All</button>
-        <button class="result-tab" type="button" data-view="wearing">Wearing</button>
-        <button class="result-tab" type="button" data-view="outfits">Outfits</button>
-        <button class="result-tab" type="button" data-view="packs">Packs</button>
-        <button class="result-tab" type="button" data-view="emotes">Emotes</button>
-      </nav>
-
-      <div class="user-sections">
-        <section class="result-section wearing-section" data-result-kind="wearing">
-          <div class="section-title">
-            <div>
-              <p class="section-number">01 / AVATAR</p>
-              <h3>Currently wearing</h3>
-              <p class="section-note">Current public avatar assets, with market data where available.</p>
-            </div>
-            <span class="wearing-count count-badge"></span>
-          </div>
-          <div class="asset-grid wearing-grid"></div>
-        </section>
-
-        <section class="result-section outfits-section" data-result-kind="outfits">
-          <div class="section-title">
-            <div>
-              <p class="section-number">02 / SAVED</p>
-              <h3>Saved outfits</h3>
-              <p class="section-note">Open an outfit when you want its individual assets; contents are never prefetched.</p>
-            </div>
-            <span class="outfit-count count-badge"></span>
-          </div>
-          <div class="outfit-grid"></div>
-        </section>
-      </div>
+      <div class="user-body-shell"><div class="user-body">
+        <details class="description-block"><summary>Public bio <span>+</span></summary><p class="description-text"></p></details>
+        <nav class="result-tabs"><button class="result-tab active" data-view="all" type="button">All</button><button class="result-tab" data-view="wearing" type="button">Wearing</button><button class="result-tab" data-view="outfits" type="button">Outfits</button><button class="result-tab" data-view="packs" type="button">Packs</button><button class="result-tab" data-view="emotes" type="button">Emotes</button></nav>
+        <div class="user-sections">
+          <section class="result-section wearing-section" data-result-kind="wearing"><div class="section-title"><div><p class="section-number">01 / AVATAR</p><h3>Currently wearing</h3><p>Current public avatar assets with market data where available.</p></div><span class="wearing-count count-badge"></span></div><div class="asset-grid wearing-grid"></div></section>
+          <section class="result-section outfits-section" data-result-kind="outfits"><div class="section-title"><div><p class="section-number">02 / SAVED</p><h3>Saved outfits</h3><p>Likely outfits warm quietly; opening one reuses cached details when available.</p></div><span class="outfit-count count-badge"></span></div><div class="outfit-grid"></div></section>
+        </div>
+      </div></div>
     </article>
   </template>
 
