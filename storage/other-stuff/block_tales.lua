@@ -22,8 +22,7 @@
         shared climbing-aware speed backend.
 
     Additional credits preserved from the original script: Kronerzz,
-    VeinnsDaCheesecake, CloudHub111 and @IDKWHATUSERNAME.
-    Their individual source snippets were not labeled in the supplied script.
+    VeinnsDaCheesecake, CloudHub111 and IDKWHATUSERNAME.
 
     Execute this file once, then use the separate mxsynry, Tex and Vape tabs.
     ToggleBlessed remains an alias for ToggleAutoGuardHook.
