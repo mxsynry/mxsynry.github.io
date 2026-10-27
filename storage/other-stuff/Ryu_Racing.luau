@@ -29,6 +29,8 @@ local Cap = {
     hook = capability("hookfunction"),
     newc = capability("newcclosure"),
     newl = capability("newlclosure"),
+    hookmeta = capability("hookmetamethod"),
+    namecall = capability("getnamecallmethod"),
     connections = capability("getconnections"),
     gc = capability("getgc"),
     fenv = capability("getfenv") or getfenv,
@@ -37,7 +39,7 @@ local Cap = {
 }
 
 local R = {
-    Version = "2.1.0",
+    Version = "2.2.0",
     Alive = true,
     Options = {
         InfiniteStamina = false,
@@ -59,6 +61,22 @@ local R = {
         JitterIntensity = 0.5,
         JitterThreshold = 100,
         RevealUnavailable = true,
+        SpoofCharacters = false,
+        SpoofTitles = false,
+        SpoofMVPs = false,
+        SpoofIntros = false,
+        SpoofBanners = false,
+        EmoteLoop = true,
+        EmoteSpeed = 1,
+        EmoteVolume = 1,
+        EmoteSlot = "1",
+        AutoReady = false,
+        AutoClaimQuests = false,
+        NoShake = false,
+        SteadyCamera = false,
+        MuteCommentary = false,
+        OverrideFOV = false,
+        FOV = 75,
     },
     Connections = {},
     Tasks = {},
@@ -69,8 +87,14 @@ local R = {
     Created = {},
     Patches = {},
     Hooks = {},
+    ValuePatches = {},
+    ValueOwners = {},
+    Spoofs = {},
+    EmoteSlots = {},
+    EmoteBridge = {},
+    QuestAttempts = setmetatable({}, { __mode = "k" }),
     Controls = {},
-    Status = { stamina = "Off", qte = "Off", catalog = "Loading game catalogs" },
+    Status = { stamina = "Off", qte = "Off", catalog = "Loading game catalogs", emotes = "Off", quests = "Loading..." },
     Errors = {},
     QTE = {
         plans = {}, tracked = {}, lastScan = -math.huge, lastGC = -math.huge,
@@ -176,10 +200,10 @@ local function upvalues(fn)
     return values
 end
 
-function R:HookFunction(fn, scope, handler, object)
+function R:HookFunction(fn, scope, handler, object, family)
     if self.Hooks[fn] then return self.Hooks[fn] end
     if not Cap.hook or type(fn) ~= "function" then return nil end
-    local record = { target = fn, scope = scope, object = object, active = true }
+    local record = { target = fn, scope = scope, object = object, active = true, family = family or "QTE" }
     local replacement = function(...)
         if not record.active or not self.Alive then return record.original(...) end
         return handler(record.original, ...)
@@ -206,15 +230,26 @@ function R:RestoreHook(record)
     record.active = false
     -- Restore the function returned by our hook, preserving the previous
     -- implementation instead of restorefunction's first-ever original.
-    local ok, err = pcall(Cap.hook, record.target, record.original)
+    local ok, err
+    if record.metamethod then
+        ok, err = pcall(Cap.hookmeta, game, record.metamethod, record.original)
+    else
+        ok, err = pcall(Cap.hook, record.target, record.original)
+    end
     self.Hooks[record.target] = nil
     if not ok then self:Error("Restore " .. record.scope, err) end
 end
 
-function R:RestoreQTEHooks()
+function R:RestoreHooks(family)
     local records = {}
-    for _, record in pairs(self.Hooks) do records[#records + 1] = record end
+    for _, record in pairs(self.Hooks) do
+        if not family or record.family == family then records[#records + 1] = record end
+    end
     for _, record in ipairs(records) do self:RestoreHook(record) end
+end
+
+function R:RestoreQTEHooks()
+    self:RestoreHooks("QTE")
     self.QTE.boundApi = nil
 end
 
@@ -688,7 +723,7 @@ function R:ScanQTE(force)
     self.QTE.plans = plans
     local expired = {}
     for _, record in pairs(self.Hooks) do
-        if record.object and typeof(record.object) == "Instance"
+        if record.family == "QTE" and record.object and typeof(record.object) == "Instance"
             and not record.object:IsDescendantOf(Player) then expired[#expired + 1] = record end
     end
     for _, record in ipairs(expired) do self:RestoreHook(record) end
@@ -846,10 +881,10 @@ end
 R.Categories = {
     Characters = { label = "Characters", path = { "RollingData", "Inventory" } },
     Titles = { label = "Titles", path = { "NameTagData", "Inventory" } },
-    MVPs = { label = "MVP animations", path = { "MVPData", "Inventory" } },
-    Intros = { label = "Race intros", path = { "IntroData", "Inventory" } },
+    MVPs = { label = "Outros / MVPs", path = { "MVPData", "Inventory" } },
+    Intros = { label = "Openings", path = { "IntroData", "Inventory" } },
     Banners = { label = "Banners", path = { "ThumbnailData", "Inventory" } },
-    Emotes = { label = "Emote previews", previewOnly = true },
+    Emotes = { label = "Emotes", emotes = true },
 }
 R.CategoryOrder = { "Characters", "Titles", "MVPs", "Intros", "Banners", "Emotes" }
 for _, category in ipairs(R.CategoryOrder) do
@@ -865,6 +900,7 @@ function R:LoadCatalogs()
     self:Module("BannerConfig", { "Package", "BannerConfig" })
     self:Module("EmoteList", { "EmoteList" })
     self:Module("CutsceneSync", { "Package", "Modules", "CutsceneSync" })
+    self:Module("Works", { "Package", "MWorks" })
 end
 
 function R:RebuildCatalog()
@@ -925,6 +961,9 @@ function R:RebuildCatalog()
     self.CatalogDirty = false
     self:RefreshSelectors()
     self:ApplyUnlocks()
+    self:ApplySpoofs()
+    self:UpdateCharacterInfo()
+    self:RefreshEmoteBridge(true)
 end
 
 function R:RemoveLocalEntries(category)
@@ -983,6 +1022,7 @@ function R:SetUnlock(category, enabled)
     if not self.Categories[category] then return end
     self.Unlocks[category] = enabled == true
     self:ApplyUnlocks()
+    if category == "Emotes" then self:RefreshEmoteBridge(true) end
 end
 
 function R:IsRealOwned(row)
@@ -998,10 +1038,14 @@ end
 
 function R:RefreshSelectors()
     for category, control in pairs(self.Selectors or {}) do
+        local selected = self.Selected and self.Selected[category]
         local options = {}
         for _, row in ipairs(self.Rows[category]) do options[#options + 1] = row.label end
         if #options == 0 then options = { "Catalog not available yet" } end
         pcall(function() control:Refresh(options) end)
+        if selected and table.find(options, selected) then
+            pcall(function() control:Set({ selected }) end)
+        end
     end
 end
 
@@ -1012,6 +1056,498 @@ function R:SelectedRow(category)
     end
     return nil
 end
+
+-- Client cosmetics use the same Value objects as the game's storage, player
+-- card and cutscene dispatchers. Each override keeps the latest real update.
+R.CosmeticPaths = {
+    Characters = { "CurrentCharacter" },
+    Titles = { "DataFolder", "NameTag" },
+    MVPs = { "DataFolder", "Banner" },
+    Intros = { "DataFolder", "Opening" },
+    Banners = { "DataFolder", "Thumbnail" },
+}
+
+function R:ReleaseValue(key)
+    local record = self.ValuePatches[key]
+    if not record then return end
+    if record.connection then record.connection:Disconnect() end
+    pcall(function()
+        if record.read() == record.written then
+            record.write(record.observed)
+        end
+    end)
+    if self.ValueOwners[record.instance] == record then self.ValueOwners[record.instance] = nil end
+    self.ValuePatches[key] = nil
+end
+
+function R:ReleaseValues(prefix)
+    local keys = {}
+    for key in pairs(self.ValuePatches) do
+        if not prefix or string.sub(key, 1, #prefix) == prefix then keys[#keys + 1] = key end
+    end
+    for _, key in ipairs(keys) do self:ReleaseValue(key) end
+end
+
+function R:ForceValue(key, instance, desired, property, options)
+    property = property or "Value"
+    options = options or {}
+    local attribute = options.attribute == true
+    local record = self.ValuePatches[key]
+    if record and (record.instance ~= instance or record.property ~= property or record.attribute ~= attribute) then
+        self:ReleaseValue(key); record = nil
+    end
+    if not instance then return false end
+    if not record then
+        local function read()
+            if attribute then return instance:GetAttribute(property) end
+            return instance[property]
+        end
+        local function write(value)
+            if attribute then instance:SetAttribute(property, value) else instance[property] = value end
+        end
+        local ok, original = pcall(read)
+        if not ok then return false end
+        record = { instance = instance, property = property, attribute = attribute,
+            observed = original, desired = desired, read = read, write = write, passive = options.passive }
+        self.ValuePatches[key] = record
+        if property == "Value" and not attribute then self.ValueOwners[instance] = record end
+        local signal = attribute and instance:GetAttributeChangedSignal(property) or instance:GetPropertyChangedSignal(property)
+        record.connection = signal:Connect(function()
+            if not self.Alive or record.writing then return end
+            local value = record.read()
+            if value == record.written then return end
+            record.observed = value
+            if record.passive then return end
+            record.writing = true
+            local success = pcall(record.write, record.desired)
+            if success then record.written = record.desired end
+            record.writing = false
+        end)
+    end
+    local current = record.read()
+    if current ~= record.written then record.observed = current end
+    record.desired, record.writing = desired, true
+    local ok = pcall(function() if current ~= desired then record.write(desired) end end)
+    if ok then record.written = desired end
+    record.writing = false
+    return ok
+end
+
+function R:RealValue(instance)
+    local record = instance and self.ValueOwners[instance]
+    if record then return record.observed end
+    return instance and instance.Value
+end
+
+function R:FindRow(category, selection)
+    for _, row in ipairs(self.Rows[category] or {}) do
+        if row.key == selection or row.value == selection or row.label == selection then return row end
+    end
+end
+
+function R:ApplySpoof(category)
+    local path = self.CosmeticPaths[category]
+    if not path then return false end
+    if not self.Spoofs[category] then self:ReleaseValues("Spoof:" .. category .. ":"); return false end
+    if category == "Characters" and self.EquipPending then return false end
+    local row = self:SelectedRow(category)
+    if not row then return false end
+    local instance = at(Player, path)
+    if not instance or not instance:IsA("StringValue") then return false end
+    local ok = self:ForceValue("Spoof:" .. category .. ":Value", instance, row.value)
+    local random = category == "MVPs" and "RandomMVP" or category == "Intros" and "RandomOpening"
+    if random then
+        self:ForceValue("Spoof:" .. category .. ":Random", at(Player, { "DataFolder", random }), false)
+    end
+    return ok
+end
+
+function R:ApplySpoofs()
+    for category in pairs(self.CosmeticPaths) do self:ApplySpoof(category) end
+end
+
+function R:SetSpoof(category, enabled)
+    if not self.CosmeticPaths[category] then return end
+    self.Spoofs[category] = enabled == true
+    self.Options["Spoof" .. category] = enabled == true
+    if enabled and not self:SelectedRow(category) and self.Rows[category][1] then
+        self.Selected[category] = self.Rows[category][1].label
+        local control = self.Selectors and self.Selectors[category]
+        if control then pcall(function() control:Set({ self.Selected[category] }) end) end
+    end
+    self:ApplySpoof(category)
+end
+
+function R:UpdateCharacterInfo()
+    if not self.CharacterInfoControl then return end
+    local row = self:SelectedRow("Characters")
+    local content = "Pick a character to see its kit."
+    if row then
+        local data = row.data
+        local lines = { tostring(data.DisplayName or data.Name or row.key),
+            "Rarity: " .. tostring(data.Rarity or "Unknown") .. " | Style: " .. tostring(data.RunnerType or "Unknown") }
+        for _, field in ipairs({ "Ability", "Zone", "Passive" }) do
+            local value = data[field]
+            if type(value) == "table" then
+                value = value.Name or value.Title or value.Description
+            end
+            if type(value) == "string" and value ~= "" then lines[#lines + 1] = field .. ": " .. value end
+        end
+        content = table.concat(lines, "\n")
+    end
+    pcall(function() self.CharacterInfoControl:Set({ Title = "Character kit", Content = content }) end)
+end
+
+-- The emote wheel asks Getter for its owned list and EmotesGet for eight
+-- named slots. Local replies let the existing picker and both pages work.
+function R:EmoteNames()
+    local names = {}
+    for _, row in ipairs(self.Rows.Emotes) do names[#names + 1] = row.key end
+    return names
+end
+
+function R:GetEmoteSlots()
+    local result, folder = {}, child(Player, "Emotes")
+    for slot = 1, 8 do
+        local key = tostring(slot)
+        local value = child(folder, key)
+        result[key] = self.EmoteSlots[key] or (value and value.Value) or ""
+    end
+    return result
+end
+
+function R:AssignEmoteSlot(slot, name)
+    local number = tonumber(slot)
+    if not self.Unlocks.Emotes or not number or number % 1 ~= 0 or number < 1 or number > 8 then return false end
+    if name ~= "" then
+        local row = self:FindRow("Emotes", name)
+        if not row then return false end
+        name = row.key
+    end
+    local key = tostring(number)
+    self.EmoteSlots[key] = name
+    self:ForceValue("EmoteSlot:" .. key, at(Player, { "Emotes", key }), name)
+    return true
+end
+
+function R:EmoteRequest(original, object, method, ...)
+    if not self.Alive or not self.Unlocks.Emotes then return original(object, ...) end
+    local args, bridge = table.pack(...), self.EmoteBridge
+    if object == bridge.getter and method == "InvokeServer" then
+        if args[1] == "GetOwnedEmotes" then return self:EmoteNames() end
+        if args[1] == "SetEmote" and type(args[2]) == "table" then
+            return self:AssignEmoteSlot(args[2].Slot, args[2].EmoteName)
+        end
+    elseif object == bridge.slots and method == "InvokeServer" and args.n == 0 and next(self.EmoteSlots) then
+        return self:GetEmoteSlots()
+    elseif object == bridge.play and method == "FireServer" and args[1] == "PlayEmote" then
+        local row = self:FindRow("Emotes", args[2])
+        if row then self:Spawn(function() self:PlayLocalEmote(row) end); return end
+    end
+    return original(object, ...)
+end
+
+function R:InstallEmoteNamecall()
+    local key = "EmoteNamecall"
+    if self.Hooks[key] or not Cap.hookmeta or not Cap.namecall then return end
+    local record = { target = key, scope = "Emote namecall", family = "Emotes", metamethod = "__namecall", active = true }
+    local replacement = function(object, ...)
+        if not record.active or not self.Alive then return record.original(object, ...) end
+        return self:EmoteRequest(record.original, object, Cap.namecall(), ...)
+    end
+    if Cap.newc then
+        local ok, wrapped = pcall(Cap.newc, replacement)
+        if ok and type(wrapped) == "function" then replacement = wrapped end
+    end
+    local ok, original = pcall(Cap.hookmeta, game, "__namecall", replacement)
+    if ok and type(original) == "function" then
+        record.original = original; self.Hooks[key] = record
+    else
+        self.QTE.hookFailures[record.scope] = tostring(original)
+    end
+end
+
+function R:RefreshNativeEmotes()
+    if not Cap.gc and not Cap.connections then return end
+    local now = os.clock()
+    if self.LastEmoteRefresh and now - self.LastEmoteRefresh < 0.2 then
+        if not self.EmoteRefreshPending then
+            self.EmoteRefreshPending = true
+            self:Spawn(function()
+                task.wait(0.21)
+                self.EmoteRefreshPending = false
+                self:RefreshNativeEmotes()
+            end)
+        end
+        return
+    end
+    self.LastEmoteRefresh = now
+    self:Spawn(function()
+        local handler = at(Player, { "PlayerGui", "Emotes", "Handler" })
+        if not handler then return end
+        local owned, slots, seen = nil, nil, {}
+        local function inspect(fn)
+            if type(fn) ~= "function" or seen[fn] then return end
+            seen[fn] = true
+            if type(fn) == "function" then
+                local own = false
+                if Cap.fenv then
+                    local success, environment = pcall(Cap.fenv, fn)
+                    own = success and type(environment) == "table" and environment.script == handler
+                end
+                if own and not owned and hasConstants(fn, { "GetOwnedEmotes" }) == true then owned = fn end
+                if own and not slots and hasConstants(fn, { "InvokeServer", "NecoArc", "tonumber" }) == true then
+                    for _, value in pairs(upvalues(fn) or {}) do
+                        if value == self.EmoteBridge.slots then slots = fn; break end
+                    end
+                end
+            end
+        end
+        local owner = at(Player, { "Emotes", "OwnerEmotes" })
+        local queue = {}
+        if owner then
+            for _, connection in pairs(connections(owner:GetPropertyChangedSignal("Value"))) do
+                local fn = connectionFunction(connection)
+                if fn then queue[#queue + 1] = { fn, 0 } end
+            end
+        end
+        local index = 1
+        while index <= #queue and index <= 100 and not (owned and slots) do
+            local item = queue[index]; index += 1
+            if not seen[item[1]] then
+                inspect(item[1])
+                if item[2] < 3 then
+                    for _, fn in pairs(upvalues(item[1]) or {}) do
+                        if type(fn) == "function" and not seen[fn] then queue[#queue + 1] = { fn, item[2] + 1 } end
+                    end
+                end
+            end
+        end
+        if not (owned and slots) and Cap.gc then
+            local ok, objects = pcall(Cap.gc, false)
+            if ok and type(objects) == "table" then
+                for _, fn in pairs(objects) do inspect(fn); if owned and slots then break end end
+            end
+        end
+        if owned then pcall(owned) end
+        if slots then pcall(slots) end
+    end)
+end
+
+function R:RefreshEmoteBridge(force)
+    local bridge = self.EmoteBridge
+    if not self.Unlocks.Emotes then
+        if bridge.enabled then
+            bridge.enabled = false
+            self:RestoreHooks("Emotes")
+            self:ReleaseValues("EmoteSlot:")
+            self:ReleaseValues("EmoteUI:")
+            table.clear(self.EmoteSlots)
+            self:RefreshNativeEmotes()
+        end
+        self.Status.emotes = "Off"
+        return
+    end
+    local base = at(ReplicatedStorage, { "Package", "Animations", "Emotes", "Remotes" })
+    local getter, slots, play = child(base, "Getter"), child(base, "EmotesGet"), child(base, "ComunicatorSet")
+    local handler = at(Player, { "PlayerGui", "Emotes", "Handler" })
+    local changed = not bridge.enabled or bridge.getter ~= getter or bridge.slots ~= slots
+        or bridge.play ~= play or bridge.handler ~= handler
+    bridge.handler = handler
+    bridge.enabled, bridge.getter, bridge.slots, bridge.play = true, getter, slots, play
+    for _, item in ipairs({ { getter, "InvokeServer" }, { slots, "InvokeServer" }, { play, "FireServer" } }) do
+        local remote, method = item[1], item[2]
+        if remote then
+            local fn = remote[method]
+            self:HookFunction(fn, "Emote " .. method, function(original, object, ...)
+                return self:EmoteRequest(original, object, method, ...)
+            end, nil, "Emotes")
+        end
+    end
+    self:InstallEmoteNamecall()
+    local switch = at(Player, { "PlayerGui", "Emotes", "ImageLabel", "Switch" })
+    if switch then
+        self:ForceValue("EmoteUI:Access", switch, true, "HasAccess", { attribute = true })
+        local saved = self.ValuePatches["EmoteUI:Switch"]
+        if not saved or saved.instance ~= switch then
+            -- The picker hides this button temporarily. Preserve that behavior
+            -- rather than forcing Visible on every frame.
+            self:ForceValue("EmoteUI:Switch", switch, true, "Visible", { passive = true })
+        end
+    end
+    for slot, name in pairs(self.EmoteSlots) do
+        self:ForceValue("EmoteSlot:" .. slot, at(Player, { "Emotes", slot }), name)
+    end
+    local hooked = self.Hooks.EmoteNamecall ~= nil or (getter and self.Hooks[getter.InvokeServer] ~= nil)
+    self.Status.emotes = getter and hooked
+        and (#self.Rows.Emotes .. " emotes | picker hooked") or "Use the Emotes tab; wheel hook unavailable"
+    if changed or force then self:RefreshNativeEmotes() end
+end
+
+local function animationId(id)
+    if type(id) ~= "number" and type(id) ~= "string" then return nil end
+    if type(id) == "number" and (not finite(id) or id <= 0 or id % 1 ~= 0) then return nil end
+    local text = type(id) == "number" and string.format("%.0f", id) or id
+    return text:match("^rbxassetid://%d+$") and text or (text:match("^%d+$") and "rbxassetid://" .. text or nil)
+end
+
+function R:UpdateEmotePlayback()
+    if self.EmoteTrack then
+        self.EmoteTrack.Looped = self.Options.EmoteLoop
+        self.EmoteTrack:AdjustSpeed(self.Options.EmoteSpeed)
+    end
+    if self.EmoteSound then
+        self.EmoteSound.Volume = (self.EmoteBaseVolume or 1) * self.Options.EmoteVolume
+    end
+end
+
+function R:PlayLocalEmote(row)
+    local humanoid = self.Humanoid
+    local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
+    local id = row and animationId(row.data.MainAnimation or row.data.IdleAnimation)
+    if not row or not animator or not id then self:Notify("Emote", "Pick an emote while your character is loaded."); return false end
+    self:StopEmote()
+    local animation = Instance.new("Animation"); animation.AnimationId = id
+    local ok, track = pcall(function() return animator:LoadAnimation(animation) end)
+    if not ok then animation:Destroy(); self:Error("Emote", track); return false end
+    self.EmoteAnimation, self.EmoteTrack = animation, track
+    track.Looped = self.Options.EmoteLoop
+    track:Play(0.15); track:AdjustSpeed(self.Options.EmoteSpeed)
+    if track.Stopped then
+        self.EmoteEndedConnection = track.Stopped:Connect(function()
+            if self.EmoteTrack == track then self:StopEmote() end
+        end)
+    end
+    local music = row.data.Music or row.data.IdleMusic
+    local soundId = type(music) == "table" and animationId(music.id)
+    if soundId and self.Root then
+        local sound = Instance.new("Sound")
+        local properties = type(music.properties) == "table" and music.properties or {}
+        sound.SoundId = soundId
+        sound.Looped = properties.Looped ~= false
+        self.EmoteBaseVolume = finite(properties.Volume) and properties.Volume or 1
+        sound.Volume = self.EmoteBaseVolume * self.Options.EmoteVolume
+        for _, key in ipairs({ "PlaybackSpeed", "RollOffMaxDistance", "RollOffMinDistance", "TimePosition" }) do
+            if finite(properties[key]) then pcall(function() sound[key] = properties[key] end) end
+        end
+        sound.Parent = self.Root; self.EmoteSound = sound; sound:Play()
+    end
+    return true
+end
+
+-- Optional race helpers use replicated progress and the game's own claims.
+function R:ReadQuests()
+    local rows = {}
+    for _, kind in ipairs({ { "DailyQuests", "Daily", "ClaimQuest" }, { "WeeklyQuests", "Weekly", "ClaimWeeklyQuest" } }) do
+        local folder = child(Player, kind[1])
+        if folder then
+            for index = 1, 10 do
+                local quest = child(folder, "Quest" .. index)
+                if quest and child(quest, "Progress") then
+                    local function value(name, fallback)
+                        local instance = child(quest, name)
+                        return instance and instance.Value or fallback
+                    end
+                    rows[#rows + 1] = {
+                        folder = quest, index = index, kind = kind[2], remote = kind[3],
+                        description = tostring(value("Description", "Quest " .. index)),
+                        progress = tonumber(value("Progress", 0)) or 0, goal = tonumber(value("Goal", 0)) or 0,
+                        completed = value("Completed", false) == true, claimed = value("Claimed", false) == true,
+                    }
+                end
+            end
+        end
+    end
+    return rows
+end
+
+function R:ClaimQuests(manual)
+    if self.ClaimBusy then return end
+    local works = self.Modules.Works and self.Modules.Works.value
+    if not works or type(works.FireRemote) ~= "function" then
+        if manual then self:Notify("Quests", "Waiting for the game's quest handler.") end
+        return
+    end
+    local ready = {}
+    for _, row in ipairs(self:ReadQuests()) do
+        local last = self.QuestAttempts[row.folder]
+        if row.completed and not row.claimed and (not last or os.clock() - last >= 15) then
+            ready[#ready + 1] = row
+        end
+    end
+    if #ready == 0 then if manual then self:Notify("Quests", "No completed quests to claim.") end; return end
+    self.ClaimBusy = true
+    self:Spawn(function()
+        for _, row in ipairs(ready) do
+            if not self.Alive or (not manual and not self.Options.AutoClaimQuests) then break end
+            local completed, claimed = child(row.folder, "Completed"), child(row.folder, "Claimed")
+            if row.folder.Parent and completed and completed.Value == true and claimed and claimed.Value == false then
+                self.QuestAttempts[row.folder] = os.clock()
+                local ok, err = pcall(function() return works:FireRemote("Request", row.remote, row.index) end)
+                if not ok then self:Error("Quest claim", err) end
+                task.wait(0.2)
+            end
+        end
+        self.ClaimBusy = false
+        if manual and self.Alive then self:Notify("Quests", "Claim requests sent.") end
+    end)
+end
+
+function R:TickExtras()
+    for _, setting in ipairs({
+        { "AutoReady", "AutoReady", true }, { "MuteCommentary", "Commentary", false },
+        { "NoShake", "ScreenShake", false }, { "NoShake", "StaminaShake", false },
+        { "SteadyCamera", "DynamicCamera", false }, { "SteadyCamera", "SwayCamera", false },
+        { "SteadyCamera", "HeadCamera", false },
+    }) do
+        local key = "Setting:" .. setting[2]
+        if self.Options[setting[1]] then
+            self:ForceValue(key, at(Player, { "Settings", setting[2] }), setting[3])
+        else self:ReleaseValue(key) end
+    end
+    if self.Options.NoShake then
+        if not child(Player, "CameraShakeOff") then
+            local marker = Instance.new("BoolValue"); marker.Name = "CameraShakeOff"
+            self.ShakeMarker = marker; marker.Parent = Player
+        end
+    elseif self.ShakeMarker then self.ShakeMarker:Destroy(); self.ShakeMarker = nil end
+    if self.Options.OverrideFOV then
+        self:ForceValue("Setting:FOV", at(Player, { "DataFolder", "FOV" }), self.Options.FOV)
+        self:ForceValue("Setting:CameraFOV", Workspace.CurrentCamera, self.Options.FOV, "FieldOfView")
+    else self:ReleaseValue("Setting:FOV"); self:ReleaseValue("Setting:CameraFOV") end
+    local quests, lines, ready = self:ReadQuests(), {}, 0
+    for _, row in ipairs(quests) do
+        if row.completed and not row.claimed then ready += 1 end
+        if not row.claimed then
+            lines[#lines + 1] = row.kind .. ": " .. row.description .. " (" .. row.progress .. "/" .. row.goal .. ")"
+        end
+    end
+    self.Status.quests = #quests == 0 and "No quests loaded" or (#lines == 0 and "All claimed" or table.concat(lines, "\n"))
+    if self.QuestStatusControl then
+        local content = self.Status.quests .. "\nReady to claim: " .. ready
+        if content ~= self.LastQuestText then
+            self.LastQuestText = content
+            pcall(function() self.QuestStatusControl:Set({ Title = "Quests", Content = content }) end)
+        end
+    end
+    if self.Options.AutoClaimQuests then self:ClaimQuests(false) end
+end
+
+function R:UpdateRaceHUD()
+    if not self.RaceHUDControl then return end
+    local actual, maximum = self:StaminaSource()
+    local zone = numberValue(child(Player, "Ultimate"))
+    local maximumSpeed = numberValue(at(Player, { "Info", "EffectiveMaxSpeed" }))
+    local speed = self.Root and self.Root.AssemblyLinearVelocity.Magnitude or 0
+    local content = string.format("Speed: %.1f | Max: %s\nStamina: %s/%s | Zone: %s",
+        speed, maximumSpeed and tostring(maximumSpeed) or "-", actual and tostring(actual) or "-",
+        maximum and tostring(maximum) or "-", zone and tostring(zone) or "-")
+    if content ~= self.LastRaceHUD then
+        self.LastRaceHUD = content
+        pcall(function() self.RaceHUDControl:Set({ Title = "Race info", Content = content }) end)
+    end
+end
+
 
 function R:EquipCharacter()
     if self.EquipPending then self:Notify("Character", "Still equipping. Give it a second."); return end
@@ -1028,12 +1564,14 @@ function R:EquipCharacter()
         self:Notify("Character", "Couldn't find the equip remote.")
         return
     end
-    if current.Value == row.value then self:Notify("Character", row.value .. " is already equipped."); return end
+    if self:RealValue(current) == row.value then self:Notify("Character", row.value .. " is already equipped."); return end
     self.EquipPending = true
+    self:ReleaseValues("Spoof:Characters:")
     self:Spawn(function()
         local ok, err = pcall(function() remote:FireServer(row.value) end)
         if not ok then
             self.EquipPending = false
+            self:ApplySpoof("Characters")
             self:Error("Equip character", err)
             return
         end
@@ -1049,30 +1587,21 @@ function R:EquipCharacter()
             self:Notify("Equip not confirmed",
                 "The server didn't equip " .. row.value .. ". It may only be unlocked on your client.")
         end
+        self:ApplySpoof("Characters")
     end)
 end
 
 function R:StopEmote()
+    if self.EmoteEndedConnection then self.EmoteEndedConnection:Disconnect(); self.EmoteEndedConnection = nil end
+    if self.EmoteSound then pcall(function() self.EmoteSound:Stop(); self.EmoteSound:Destroy() end) end
+    self.EmoteSound = nil
     if self.EmoteTrack then pcall(function() self.EmoteTrack:Stop(0.15); self.EmoteTrack:Destroy() end) end
     if self.EmoteAnimation then pcall(function() self.EmoteAnimation:Destroy() end) end
     self.EmoteTrack, self.EmoteAnimation = nil, nil
 end
 
 function R:PreviewEmote()
-    local row = self:SelectedRow("Emotes")
-    local humanoid = self.Humanoid
-    local animator = humanoid and humanoid:FindFirstChildOfClass("Animator")
-    if not row or not animator then self:Notify("Emote", "Choose an emote while your character is loaded."); return end
-    local id = row.data.MainAnimation or row.data.IdleAnimation
-    if type(id) ~= "number" and type(id) ~= "string" then self:Notify("Emote", "No playable animation in this entry."); return end
-    self:StopEmote()
-    local animation = Instance.new("Animation")
-    animation.AnimationId = tostring(id):match("^rbxassetid://") and tostring(id) or "rbxassetid://" .. tostring(id)
-    local ok, track = pcall(function() return animator:LoadAnimation(animation) end)
-    if not ok then animation:Destroy(); self:Error("Emote preview", track); return end
-    self.EmoteAnimation, self.EmoteTrack = animation, track
-    track.Looped = true
-    track:Play(0.15)
+    return self:PlayLocalEmote(self:SelectedRow("Emotes"))
 end
 
 function R:RemoveJitter()
@@ -1272,7 +1801,9 @@ function R:Report()
         "Ryu Racing " .. self.Version .. " | place " .. tostring(game.PlaceId),
         "Stamina: " .. self.Status.stamina,
         "Auto QTE: " .. self.Status.qte,
-        "QTE calls: " .. self.QTE.calls .. " | hooks installed: " .. self.QTE.hooks,
+        "Emotes: " .. self.Status.emotes,
+        "Quests: " .. self.Status.quests,
+        "QTE calls: " .. self.QTE.calls .. " | function hooks installed: " .. self.QTE.hooks,
         "Capabilities: upvalues=" .. tostring(Cap.upvalues ~= nil)
             .. ", getupvalue=" .. tostring(Cap.getupvalue ~= nil)
             .. ", setupvalue=" .. tostring(Cap.setupvalue ~= nil)
@@ -1297,6 +1828,9 @@ function R:UpdateStatus()
         self.LastStatusText = content
         pcall(function() self.StatusControl:Set({ Title = "Live status", Content = content }) end)
     end
+    if self.EmoteStatusControl then
+        pcall(function() self.EmoteStatusControl:Set({ Title = "Emotes", Content = self.Status.emotes }) end)
+    end
     if self.QTEStatusControl then
         pcall(function() self.QTEStatusControl:Set({ Title = "QTE status", Content = self.Status.qte }) end)
     end
@@ -1305,7 +1839,9 @@ end
 function R:Unload(skipLibrary)
     if not self.Alive then return end
     self.Alive = false
-    self:RestoreQTEHooks()
+    self:RestoreHooks()
+    self:ReleaseValues()
+    if self.ShakeMarker then self.ShakeMarker:Destroy(); self.ShakeMarker = nil end
     self.InventoryGeneration += 1
     for _, connection in ipairs(self.Connections) do pcall(function() connection:Disconnect() end) end
     table.clear(self.Connections)
@@ -1358,7 +1894,7 @@ local uiOK, uiError = pcall(function()
         Name = "Ryu Racing",
         LoadingTitle = "Rachie my baby!!!",
         LoadingSubtitle = "by Ryu Nanashi",
-        Theme = "Default",
+        Theme = "Amethyst",
         ConfigurationSaving = { Enabled = true, FolderName = "Ryu_Presents", FileName = "Uma_Racing_v2" },
         Discord = { Enabled = false },
         KeySystem = false,
@@ -1367,6 +1903,8 @@ local uiOK, uiError = pcall(function()
     local racing = window:CreateTab("Racing", 4483362458)
     local qte = window:CreateTab("Auto QTE", 4483362458)
     local unlocks = window:CreateTab("Unlocks", 4483362458)
+    local cosmetics = window:CreateTab("Cosmetics", 4483362458)
+    local emotes = window:CreateTab("Emotes", 4483362458)
     local movement = window:CreateTab("Movement", 4483362458)
     local settings = window:CreateTab("Settings", 7734053495)
     local function toggle(tab, key, name, callback)
@@ -1396,6 +1934,7 @@ local uiOK, uiError = pcall(function()
         })
     end
 
+    R.RaceHUDControl = racing:CreateParagraph({ Title = "Race info", Content = "Loading..." })
     racing:CreateSection("Base exploits")
     toggle(racing, "InfiniteStamina", "Infinite Stamina", function(value) R:SetStamina(value) end)
     R.StatusControl = racing:CreateParagraph({ Title = "Live status", Content = "Loading..." })
@@ -1408,6 +1947,12 @@ local uiOK, uiError = pcall(function()
         end,
     })
     racing:CreateButton({ Name = "Touch Finish / Checkpoints", Callback = function() R:TouchRaceTargets() end })
+
+    racing:CreateSection("Race helpers")
+    toggle(racing, "AutoReady", "Auto Ready", function() R:TickExtras() end)
+    toggle(racing, "AutoClaimQuests", "Auto Claim Completed Quests", function() R:TickExtras() end)
+    racing:CreateButton({ Name = "Claim Completed Quests", Callback = function() R:ClaimQuests(true) end })
+    R.QuestStatusControl = racing:CreateParagraph({ Title = "Quests", Content = "Loading..." })
 
     qte:CreateSection("QTE")
     toggle(qte, "AutoQTE", "Auto QTE", function(value) R:SetAutoQTE(value) end)
@@ -1428,61 +1973,98 @@ local uiOK, uiError = pcall(function()
         end,
     })
 
-    unlocks:CreateParagraph({
-        Title = "Unlocks",
-        Content = "Shows everything on your client. Saved ownership and equipping still depend on the server.",
-    })
     unlocks:CreateButton({
         Name = "Unlock All (Client)",
         Callback = function()
             for _, category in ipairs(R.CategoryOrder) do
-                if category ~= "Emotes" then
-                    R.Unlocks[category] = true
-                    if R.UnlockControls[category] then R.UnlockControls[category]:Set(true) end
-                end
+                if R.UnlockControls[category] then R.UnlockControls[category]:Set(true) end
             end
-            R:ApplyUnlocks()
-            R:Notify("Unlocks", "Reopen your collection to see everything.")
+            R:Notify("Unlocks", "Reopen your collection or emote picker.")
         end,
     })
     toggle(unlocks, "RevealUnavailable", "Show Unreleased Characters", function() R:ApplyUnlocks() end)
     R.UnlockControls, R.Selectors, R.Selected = {}, {}, {}
     for _, category in ipairs(R.CategoryOrder) do
         local definition = R.Categories[category]
-        unlocks:CreateSection(definition.label)
-        if definition.path then
-            R.UnlockControls[category] = unlocks:CreateToggle({
-                Name = "Unlock All " .. definition.label .. " (Client)",
-                CurrentValue = false, Flag = "Ryu2_Unlock_" .. category,
-                Callback = function(value) if R.Alive then R:SetUnlock(category, value) end end,
-            })
-        end
-        R.Selectors[category] = unlocks:CreateDropdown({
-            Name = "Browse " .. definition.label:lower(), Options = { "Catalog not available yet" },
-            CurrentOption = {}, MultipleOptions = false,
-            Callback = function(value) R.Selected[category] = option(value) end,
+        R.UnlockControls[category] = unlocks:CreateToggle({
+            Name = "Unlock All " .. definition.label .. " (Client)",
+            CurrentValue = false, Flag = "Ryu2_Unlock_" .. category,
+            Callback = function(value) if R.Alive then R:SetUnlock(category, value) end end,
         })
-        if category == "Characters" then
-            unlocks:CreateButton({ Name = "Equip Character", Callback = function() R:EquipCharacter() end })
-        elseif category == "Emotes" then
-            unlocks:CreateButton({ Name = "Play Emote", Callback = function() R:PreviewEmote() end })
-            unlocks:CreateButton({ Name = "Stop Emote", Callback = function() R:StopEmote() end })
-        end
     end
-    unlocks:CreateButton({
-        Name = "Refresh List",
-        Callback = function() R:LoadCatalogs(); R:RebuildCatalog() end,
-    })
+    unlocks:CreateButton({ Name = "Refresh List", Callback = function() R:LoadCatalogs(); R:RebuildCatalog() end })
     unlocks:CreateButton({
         Name = "Reset Client Unlocks",
         Callback = function()
-            for _, category in ipairs(R.CategoryOrder) do
-                R.Unlocks[category] = false
-                if R.UnlockControls[category] then R.UnlockControls[category]:Set(false) end
-            end
-            R:ApplyUnlocks()
+            for _, control in pairs(R.UnlockControls) do control:Set(false) end
         end,
     })
+
+    cosmetics:CreateParagraph({
+        Title = "Client cosmetics",
+        Content = "Spoofs change your local cosmetics. Saved ownership and race abilities stay server-side.",
+    })
+    local labels = { Characters = "Character", Titles = "Title", MVPs = "Outro / MVP", Intros = "Opening", Banners = "Banner" }
+    for _, category in ipairs({ "Characters", "Titles", "MVPs", "Intros", "Banners" }) do
+        cosmetics:CreateSection(labels[category])
+        R.Selectors[category] = cosmetics:CreateDropdown({
+            Name = "Select " .. labels[category], Options = { "Loading..." },
+            CurrentOption = {}, MultipleOptions = false, Flag = "Ryu22_Select_" .. category,
+            Callback = function(value)
+                if not R.Alive then return end
+                R.Selected[category] = option(value)
+                if R.Spoofs[category] then R:ApplySpoof(category) end
+                if category == "Characters" then R:UpdateCharacterInfo() end
+            end,
+        })
+        toggle(cosmetics, "Spoof" .. category, "Spoof " .. labels[category], function(value) R:SetSpoof(category, value) end)
+        if category == "Characters" then
+            R.CharacterInfoControl = cosmetics:CreateParagraph({ Title = "Character kit", Content = "Pick a character to see its kit." })
+            cosmetics:CreateButton({ Name = "Equip Character (Owned)", Callback = function() R:EquipCharacter() end })
+        end
+    end
+    cosmetics:CreateButton({
+        Name = "Reset All Spoofs",
+        Callback = function()
+            for category in pairs(R.CosmeticPaths) do R.Controls["Spoof" .. category]:Set(false) end
+        end,
+    })
+
+    emotes:CreateButton({ Name = "Unlock All Emotes", Callback = function() R.UnlockControls.Emotes:Set(true) end })
+    R.Selectors.Emotes = emotes:CreateDropdown({
+        Name = "Emote", Options = { "Loading..." }, CurrentOption = {}, MultipleOptions = false, Flag = "Ryu22_Emote",
+        Callback = function(value) if R.Alive then R.Selected.Emotes = option(value) end end,
+    })
+    emotes:CreateButton({ Name = "Play Emote (Client)", Callback = function() R:PreviewEmote() end })
+    emotes:CreateButton({ Name = "Random Emote", Callback = function()
+        if #R.Rows.Emotes > 0 then R:PlayLocalEmote(R.Rows.Emotes[math.random(1, #R.Rows.Emotes)]) end
+    end })
+    emotes:CreateButton({ Name = "Stop Emote", Callback = function() R:StopEmote() end })
+    toggle(emotes, "EmoteLoop", "Loop Emote", function() R:UpdateEmotePlayback() end)
+    emotes:CreateSlider({
+        Name = "Emote Speed", Range = { 0.1, 3 }, Increment = 0.1, Suffix = "x", CurrentValue = R.Options.EmoteSpeed,
+        Flag = "Ryu22_EmoteSpeed", Callback = function(value)
+            if R.Alive then R.Options.EmoteSpeed = value; R:UpdateEmotePlayback() end
+        end,
+    })
+    emotes:CreateSlider({
+        Name = "Emote Volume", Range = { 0, 2 }, Increment = 0.1, Suffix = "x", CurrentValue = R.Options.EmoteVolume,
+        Flag = "Ryu22_EmoteVolume", Callback = function(value)
+            if R.Alive then R.Options.EmoteVolume = value; R:UpdateEmotePlayback() end
+        end,
+    })
+    emotes:CreateSection("Emote wheel")
+    dropdown(emotes, "EmoteSlot", "Wheel Slot", { "1", "2", "3", "4", "5", "6", "7", "8" })
+    emotes:CreateButton({ Name = "Put Selected Emote In Slot", Callback = function()
+        local row = R:SelectedRow("Emotes")
+        if not row then R:Notify("Emote", "Pick an emote first."); return end
+        R.UnlockControls.Emotes:Set(true)
+        if R:AssignEmoteSlot(R.Options.EmoteSlot, row.key) then R:RefreshNativeEmotes() end
+    end })
+    emotes:CreateButton({ Name = "Reset Wheel Slots", Callback = function()
+        R:ReleaseValues("EmoteSlot:"); table.clear(R.EmoteSlots); R:RefreshNativeEmotes()
+    end })
+    R.EmoteStatusControl = emotes:CreateParagraph({ Title = "Emotes", Content = "Off" })
 
     movement:CreateSection("Velocity")
     toggle(movement, "Velocity", "Velocity Control", function(value)
@@ -1501,10 +2083,20 @@ local uiOK, uiError = pcall(function()
     slider(movement, "JitterIntensity", "Jitter intensity", 0.1, 2, 0.1, "x")
     slider(movement, "JitterThreshold", "Jitter activation speed", 0, 200, 5, "stud/s")
 
+    settings:CreateSection("Camera / sound")
+    toggle(settings, "NoShake", "No Screen / Stamina Shake", function() R:TickExtras() end)
+    toggle(settings, "SteadyCamera", "Steady Camera", function() R:TickExtras() end)
+    toggle(settings, "MuteCommentary", "Mute Commentary", function() R:TickExtras() end)
+    toggle(settings, "OverrideFOV", "Lock FOV", function() R:TickExtras() end)
+    settings:CreateSlider({
+        Name = "FOV", Range = { 40, 120 }, Increment = 1, CurrentValue = R.Options.FOV, Flag = "Ryu22_FOV",
+        Callback = function(value) if R.Alive then R.Options.FOV = value; R:TickExtras() end end,
+    })
+    settings:CreateSection("Interface")
     settings:CreateDropdown({
         Name = "Interface Theme",
         Options = { "Default", "AmberGlow", "Amethyst", "Bloom", "DarkBlue", "Green", "Light", "Ocean", "Serenity" },
-        CurrentOption = { "Default" }, MultipleOptions = false, Flag = "Ryu2_Theme",
+        CurrentOption = { "Amethyst" }, MultipleOptions = false, Flag = "Ryu22_Theme",
         Callback = function(value)
             local theme = option(value)
             if R.Alive and type(window.ModifyTheme) == "function" then window.ModifyTheme(theme) end
@@ -1569,6 +2161,10 @@ R:Connect(RunService.Heartbeat, function()
         R:RefreshCharacterParts()
         R:LoadPlayerModules()
         R:LoadCatalogs()
+        R:ApplySpoofs()
+        R:RefreshEmoteBridge(false)
+        R:TickExtras()
+        R:UpdateRaceHUD()
         if R.CatalogDirty then R:RebuildCatalog() end
         -- Reconcile local entries if a replicated inventory folder was replaced.
         local missing = false
@@ -1603,8 +2199,25 @@ R:Connect(RunService.RenderStepped, function()
 end)
 
 if type(library.LoadConfiguration) == "function" then
-    local ok, err = pcall(function() library:LoadConfiguration() end)
-    if not ok then R:Error("Saved settings", err) end
+    R:Spawn(function()
+        local deadline = os.clock() + 8
+        repeat
+            local pending, available = false, false
+            for _, key in ipairs({ "UmaConfig", "CharactersUma", "NameTagList", "MVPList", "IntroList", "BannerConfig", "EmoteList" }) do
+                local record = R.Modules[key]
+                if record and record.pending then pending = true end
+                if record and record.value then available = true end
+            end
+            if available and not pending then break end
+            task.wait(0.05)
+            R:LoadCatalogs()
+        until os.clock() >= deadline or not R.Alive
+        if not R.Alive then return end
+        -- Populate live dropdown options before Rayfield applies saved choices.
+        R:RebuildCatalog()
+        local ok, err = pcall(function() library:LoadConfiguration() end)
+        if not ok then R:Error("Saved settings", err) end
+    end)
 end
 R:Notify("Script Loaded", "Oji-san is too old for racing, so i made a script for it uhehe!")
 return R
