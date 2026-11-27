@@ -4,42 +4,26 @@
   "type": "dir",
   "children": [
     {
-      "name": ".editorconfig",
-      "path": ".editorconfig",
-      "type": "file",
-      "size": 188,
-      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/.editorconfig",
-      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/.editorconfig"
-    },
-    {
       "name": ".gitignore",
       "path": ".gitignore",
       "type": "file",
-      "size": 292,
+      "size": 179,
       "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/.gitignore",
       "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/.gitignore"
-    },
-    {
-      "name": ".prettierignore",
-      "path": ".prettierignore",
-      "type": "file",
-      "size": 247,
-      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/.prettierignore",
-      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/.prettierignore"
-    },
-    {
-      "name": ".prettierrc.json",
-      "path": ".prettierrc.json",
-      "type": "file",
-      "size": 121,
-      "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/.prettierrc.json",
-      "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/.prettierrc.json"
     },
     {
       "name": "assets",
       "path": "assets",
       "type": "dir",
       "children": [
+        {
+          "name": ".DS_Store",
+          "path": "assets/.DS_Store",
+          "type": "file",
+          "size": 6148,
+          "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/assets/.DS_Store",
+          "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/assets/.DS_Store"
+        },
         {
           "name": "css",
           "path": "assets/css",
@@ -195,10 +179,26 @@
       "type": "dir",
       "children": [
         {
+          "name": ".DS_Store",
+          "path": "Others/.DS_Store",
+          "type": "file",
+          "size": 6148,
+          "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/.DS_Store",
+          "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/.DS_Store"
+        },
+        {
           "name": "Editor",
           "path": "Others/Editor",
           "type": "dir",
           "children": [
+            {
+              "name": ".DS_Store",
+              "path": "Others/Editor/.DS_Store",
+              "type": "file",
+              "size": 6148,
+              "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Editor/.DS_Store",
+              "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Editor/.DS_Store"
+            },
             {
               "name": "fileaccess",
               "path": "Others/Editor/fileaccess",
@@ -2835,6 +2835,14 @@
           "type": "dir",
           "children": [
             {
+              "name": ".DS_Store",
+              "path": "Others/OutfitSearch/.DS_Store",
+              "type": "file",
+              "size": 6148,
+              "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/OutfitSearch/.DS_Store",
+              "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/OutfitSearch/.DS_Store"
+            },
+            {
               "name": "app.js",
               "path": "Others/OutfitSearch/app.js",
               "type": "file",
@@ -2991,6 +2999,14 @@
           "path": "Others/Synchrose",
           "type": "dir",
           "children": [
+            {
+              "name": ".DS_Store",
+              "path": "Others/Synchrose/.DS_Store",
+              "type": "file",
+              "size": 6148,
+              "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/.DS_Store",
+              "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/.DS_Store"
+            },
             {
               "name": "alive enough to feel, but not enough to not remain.mp3",
               "path": "Others/Synchrose/alive enough to feel, but not enough to not remain.mp3",
@@ -3500,14 +3516,6 @@
                           "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/catalog/price.ts"
                         },
                         {
-                          "name": "sources.test.ts",
-                          "path": "Others/Synchrose/src/lib/catalog/sources.test.ts",
-                          "type": "file",
-                          "size": 2345,
-                          "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/catalog/sources.test.ts",
-                          "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/catalog/sources.test.ts"
-                        },
-                        {
                           "name": "sources",
                           "path": "Others/Synchrose/src/lib/catalog/sources",
                           "type": "dir",
@@ -3569,6 +3577,14 @@
                               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/catalog/sources/weao.ts"
                             }
                           ]
+                        },
+                        {
+                          "name": "sources.test.ts",
+                          "path": "Others/Synchrose/src/lib/catalog/sources.test.ts",
+                          "type": "file",
+                          "size": 2345,
+                          "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/Others/Synchrose/src/lib/catalog/sources.test.ts",
+                          "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/Others/Synchrose/src/lib/catalog/sources.test.ts"
                         }
                       ]
                     },
@@ -3828,6 +3844,14 @@
           "path": "storage/iyrbackup",
           "type": "dir",
           "children": [
+            {
+              "name": ".DS_Store",
+              "path": "storage/iyrbackup/.DS_Store",
+              "type": "file",
+              "size": 6148,
+              "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/iyrbackup/.DS_Store",
+              "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/iyrbackup/.DS_Store"
+            },
             {
               "name": "legacy",
               "path": "storage/iyrbackup/legacy",
@@ -4250,7 +4274,7 @@
               "name": "Ryu_Decaying_Winter.luau",
               "path": "storage/other-stuff/Ryu_Decaying_Winter.luau",
               "type": "file",
-              "size": 538452,
+              "size": 538934,
               "download_url": "https://raw.githubusercontent.com/mxsynry/mxsynry.github.io/main/storage/other-stuff/Ryu_Decaying_Winter.luau",
               "html_url": "https://github.com/mxsynry/mxsynry.github.io/blob/main/storage/other-stuff/Ryu_Decaying_Winter.luau"
             },
