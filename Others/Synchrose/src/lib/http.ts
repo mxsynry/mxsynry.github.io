@@ -1,6 +1,9 @@
 const DEFAULT_TIMEOUT = 14_000;
 
-export async function fetchJson(url: string, timeout = DEFAULT_TIMEOUT): Promise<unknown> {
+export async function fetchJson(
+  url: string,
+  timeout = DEFAULT_TIMEOUT,
+): Promise<unknown> {
   if (!url) throw new Error("This source requires the Synchrose data bridge.");
   const controller = new AbortController();
   const timer = window.setTimeout(() => controller.abort(), timeout);
@@ -8,19 +11,23 @@ export async function fetchJson(url: string, timeout = DEFAULT_TIMEOUT): Promise
     const response = await fetch(url, {
       headers: { accept: "application/json" },
       cache: "no-store",
-      signal: controller.signal
+      signal: controller.signal,
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     return await response.json();
   } catch (error) {
-    if (error instanceof DOMException && error.name === "AbortError") throw new Error("Request timed out.");
+    if (error instanceof DOMException && error.name === "AbortError")
+      throw new Error("Request timed out.");
     throw error;
   } finally {
     window.clearTimeout(timer);
   }
 }
 
-export async function fetchWithFallback(primary: string, fallback: string): Promise<unknown> {
+export async function fetchWithFallback(
+  primary: string,
+  fallback: string,
+): Promise<unknown> {
   try {
     return await fetchJson(primary);
   } catch (primaryError) {
@@ -32,7 +39,11 @@ export async function fetchWithFallback(primary: string, fallback: string): Prom
   }
 }
 
-export async function mapConcurrent<T, R>(values: T[], limit: number, task: (value: T) => Promise<R>): Promise<R[]> {
+export async function mapConcurrent<T, R>(
+  values: T[],
+  limit: number,
+  task: (value: T) => Promise<R>,
+): Promise<R[]> {
   const results = new Array<R>(values.length);
   let cursor = 0;
   async function worker() {
@@ -41,6 +52,8 @@ export async function mapConcurrent<T, R>(values: T[], limit: number, task: (val
       results[index] = await task(values[index]);
     }
   }
-  await Promise.all(Array.from({ length: Math.min(limit, values.length) }, worker));
+  await Promise.all(
+    Array.from({ length: Math.min(limit, values.length) }, worker),
+  );
   return results;
 }

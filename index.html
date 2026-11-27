@@ -1,714 +1,132 @@
 <!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#1e1e2e">
-<meta name="description" content="Browse site files and preview assets.">
-<link rel="icon" href="./Others/Synchrose/globe.ico" type="image/x-icon">
-<title>Site files</title>
-<style>
-:root {
-  color-scheme: dark;
-  --rosewater: #f5e0dc;
-  --flamingo: #f2cdcd;
-  --pink: #f5c2e7;
-  --mauve: #cba6f7;
-  --red: #f38ba8;
-  --maroon: #eba0ac;
-  --peach: #fab387;
-  --yellow: #f9e2af;
-  --green: #a6e3a1;
-  --teal: #94e2d5;
-  --sky: #89dceb;
-  --sapphire: #74c7ec;
-  --blue: #89b4fa;
-  --lavender: #b4befe;
-  --text: #cdd6f4;
-  --subtext1: #bac2de;
-  --subtext0: #a6adc8;
-  --overlay2: #9399b2;
-  --overlay1: #7f849c;
-  --overlay0: #6c7086;
-  --surface2: #585b70;
-  --surface1: #45475a;
-  --surface0: #313244;
-  --base: #1e1e2e;
-  --mantle: #181825;
-  --crust: #11111b;
-  --border: #313244;
-  --dir: var(--yellow);
-  --file: var(--blue);
-  --code: var(--green);
-  --media: var(--pink);
-  --archive: var(--mauve);
-  --danger: var(--red);
-  --radius: 14px;
-  --radius-sm: 10px;
-  --shadow: 0 18px 40px rgba(0,0,0,.28);
-}
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { scrollbar-width: thin; scrollbar-color: var(--surface2) var(--crust); }
-body {
-  min-height: 100vh;
-  color: var(--text);
-  background: var(--base);
-  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-  overflow: hidden;
-}
-::-webkit-scrollbar { width: 10px; height: 10px; }
-::-webkit-scrollbar-track { background: var(--crust); }
-::-webkit-scrollbar-thumb { background: var(--surface1); border-radius: 999px; border: 2px solid var(--crust); }
-::-webkit-scrollbar-thumb:hover { background: var(--surface2); }
-a { color: inherit; }
-button, select, input { font: inherit; }
-.app-shell { height: 100vh; display: grid; grid-template-rows: auto auto 1fr; min-height: 0; }
-.header,
-.toolbar,
-.breadcrumb,
-.sidebar,
-.preview-header,
-.preview-actions {
-  background: var(--mantle);
-  border-color: var(--border);
-}
-.header {
-  position: sticky; top: 0; z-index: 20;
-  display: flex; align-items: center; gap: 14px;
-  padding: 14px 18px; border-bottom: 1px solid var(--border);
-}
-.logo {
-  width: 38px; height: 38px; border-radius: 11px; display: grid; place-items: center;
-  background: var(--surface0); border: 1px solid var(--surface1); flex-shrink: 0;
-}
-.logo img { width: 22px; height: 22px; object-fit: contain; }
-.title-wrap { min-width: 0; flex: 1; }
-.title-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.title-row h1 { font-size: clamp(18px, 2vw, 23px); letter-spacing: -.03em; line-height: 1.1; }
-.title-row h1 span { color: var(--mauve); }
-.subtitle { margin-top: 3px; color: var(--subtext0); font-size: 13px; }
-.badge {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: var(--surface0); border: 1px solid var(--surface1); color: var(--subtext0);
-  border-radius: 999px; padding: 4px 9px; font-size: 12px; white-space: nowrap;
-}
-.header-actions, .toolbar-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
-.btn, .mini-btn, .select {
-  border: 1px solid var(--surface1); background: var(--surface0); color: var(--text);
-  border-radius: 999px; padding: 9px 13px; cursor: pointer; text-decoration: none;
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px; white-space: nowrap;
-}
-.btn:hover, .mini-btn:hover, .select:hover { border-color: var(--mauve); background: var(--surface1); }
-.btn:active, .mini-btn:active { transform: translateY(1px); }
-.btn.primary, .mini-btn.primary, .segment button.active { background: var(--mauve); border-color: var(--mauve); color: var(--crust); font-weight: 750; }
-.btn.ghost { color: var(--subtext0); }
-.mini-btn { padding: 6px 9px; border-radius: 10px; font-size: 12px; }
-.toolbar {
-  z-index: 15; display: grid; grid-template-columns: minmax(240px,1fr) auto; gap: 12px;
-  align-items: center; padding: 12px 18px; border-bottom: 1px solid var(--border);
-}
-.search-wrap { position: relative; min-width: 0; }
-.search-wrap svg { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--overlay1); pointer-events: none; }
-.search-wrap input {
-  width: 100%; border: 1px solid var(--surface1); background: var(--crust); color: var(--text);
-  border-radius: 999px; padding: 12px 14px 12px 44px; outline: none;
-}
-.search-wrap input::placeholder { color: var(--overlay1); }
-.search-wrap input:focus { border-color: var(--mauve); box-shadow: 0 0 0 3px rgba(203,166,247,.16); }
-.toolbar-actions { justify-content: flex-end; }
-.segment { display: inline-flex; gap: 4px; padding: 4px; background: var(--surface0); border: 1px solid var(--surface1); border-radius: 999px; }
-.segment button { background: transparent; border: 0; color: var(--subtext0); padding: 7px 11px; border-radius: 999px; cursor: pointer; }
-.select-wrap { display: inline-flex; align-items: center; gap: 8px; color: var(--subtext0); font-size: 13px; }
-.select { appearance: none; padding-right: 30px; color: var(--text); }
-.layout { display: grid; grid-template-columns: minmax(230px, 300px) 1fr; min-height: 0; overflow: hidden; }
-.sidebar { border-right: 1px solid var(--border); overflow: auto; padding: 10px 8px 22px; resize: horizontal; min-width: 220px; max-width: 420px; }
-.sidebar-top { padding: 10px; color: var(--subtext0); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; font-weight: 800; }
-.tree-item { display: flex; align-items: center; gap: 7px; padding: 8px 10px; cursor: pointer; border-radius: 10px; font-size: 13px; min-width: 0; color: var(--subtext0); }
-.tree-item:hover { background: var(--surface0); color: var(--text); }
-.tree-toggle, .tree-spacer { width: 16px; flex: 0 0 16px; text-align: center; font-size: 10px; color: var(--overlay1); }
-.tree-icon { width: 20px; flex: 0 0 20px; text-align: center; }
-.tree-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.tree-label.active { color: var(--mauve); font-weight: 800; }
-.content { min-width: 0; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
-.breadcrumb { padding: 12px 18px; color: var(--subtext0); border-bottom: 1px solid var(--border); font-size: 13px; overflow-x: auto; white-space: nowrap; }
-.breadcrumb .bc-root, .breadcrumb .bc-part { cursor: pointer; color: var(--blue); }
-.breadcrumb .bc-root:hover, .breadcrumb .bc-part:hover { color: var(--sapphire); }
-.breadcrumb .bc-sep { margin: 0 8px; color: var(--overlay0); }
-.breadcrumb .bc-current { color: var(--text); font-weight: 750; }
-.main { flex: 1; min-height: 0; overflow: auto; padding: 18px; }
-.path-note {
-  display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px;
-  padding: 13px 14px; border: 1px solid var(--border); border-radius: var(--radius); background: var(--mantle); color: var(--subtext0);
-}
-.path-note strong { color: var(--text); }
-.file-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 12px; }
-.file-list { display: flex; flex-direction: column; gap: 8px; }
-.card, .file-row { border: 1px solid var(--border); background: var(--mantle); box-shadow: none; }
-.card { position: relative; overflow: hidden; border-radius: var(--radius); padding: 14px; cursor: pointer; display: flex; flex-direction: column; gap: 10px; }
-.card:hover, .file-row:hover { border-color: var(--mauve); background: var(--surface0); }
-.card .icon { font-size: 28px; line-height: 1; }
-.card .name { font-weight: 800; line-height: 1.25; word-break: break-word; color: var(--text); }
-.card .path { color: var(--overlay1); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.card .meta { display: flex; justify-content: space-between; gap: 8px; color: var(--subtext0); font-size: 12px; }
-.card .actions, .file-row .actions { display: flex; gap: 7px; flex-wrap: wrap; }
-.card .actions { margin-top: auto; }
-.file-row { display: grid; grid-template-columns: 32px minmax(0,1fr) auto auto; gap: 12px; align-items: center; padding: 12px 13px; border-radius: 12px; cursor: pointer; }
-.file-row .icon { font-size: 20px; text-align: center; }
-.file-row .name { font-weight: 750; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.file-row .subpath { color: var(--overlay1); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: 2px; }
-.file-row .size { color: var(--subtext0); font-size: 12px; min-width: 70px; text-align: right; }
-.empty { min-height: 230px; display: grid; place-items: center; text-align: center; color: var(--subtext0); border: 1px dashed var(--surface1); border-radius: var(--radius); background: var(--mantle); padding: 30px; }
-.preview-overlay { position: fixed; inset: 0; display: none; place-items: center; background: rgba(17,17,27,.84); z-index: 100; padding: 18px; }
-.preview-overlay.active { display: grid; }
-.preview-box { width: min(1100px,94vw); max-height: 90vh; display: flex; flex-direction: column; overflow: hidden; border-radius: 18px; border: 1px solid var(--surface1); background: var(--base); box-shadow: var(--shadow); }
-.preview-header, .preview-actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 13px 14px; border-bottom: 1px solid var(--border); }
-.preview-actions { border-bottom: 0; border-top: 1px solid var(--border); justify-content: flex-start; flex-wrap: wrap; }
-.preview-header .title { font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.preview-header .close { background: transparent; border: 0; color: var(--subtext0); font-size: 24px; cursor: pointer; }
-.preview-header .close:hover { color: var(--text); }
-.preview-body { flex: 1; overflow: auto; padding: 14px; min-height: 180px; display: flex; align-items: center; justify-content: center; }
-.preview-body img, .preview-body video { display: block; max-width: 100%; max-height: 70vh; border-radius: 12px; background: var(--crust); }
-.preview-body video { width: min(100%, 1000px); height: auto; }
-.audio-preview { width: min(100%, 760px); display: grid; gap: 12px; padding: 18px; border: 1px solid var(--surface1); border-radius: 14px; background: var(--mantle); }
-.audio-preview .audio-name { font-weight: 800; color: var(--text); word-break: break-word; }
-.audio-preview audio { width: 100%; }
-.preview-body pre { width: 100%; min-height: 100%; background: var(--crust); border: 1px solid var(--border); border-radius: 12px; padding: 14px; color: var(--text); font-size: 13px; line-height: 1.55; overflow: auto; white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
-.loading { color: var(--subtext0); padding: 30px; }
-.toast { position: fixed; right: 16px; bottom: 16px; z-index: 200; padding: 12px 14px; border-radius: 12px; border: 1px solid var(--surface1); background: var(--mantle); color: var(--text); box-shadow: var(--shadow); opacity: 0; transform: translateY(8px); pointer-events: none; transition: opacity .16s ease, transform .16s ease; }
-.toast.show { opacity: 1; transform: translateY(0); }
-@media (max-width: 900px) {
-  body { overflow: auto; }
-  .app-shell { height: auto; min-height: 100vh; display: flex; flex-direction: column; }
-  .header { align-items: flex-start; padding: 12px; }
-  .header-actions { display: none; }
-  .toolbar { grid-template-columns: 1fr; padding: 12px; }
-  .toolbar-actions { justify-content: flex-start; overflow-x: auto; padding-bottom: 2px; }
-  .layout { grid-template-columns: 1fr; overflow: visible; }
-  .sidebar { display: none; }
-  .main { overflow: visible; padding: 12px; }
-  .file-grid { grid-template-columns: 1fr; }
-  .file-row { grid-template-columns: 28px minmax(0,1fr); }
-  .file-row .size, .file-row .actions { grid-column: 2; text-align: left; }
-  .path-note { align-items: flex-start; flex-direction: column; }
-  .preview-overlay { padding: 8px; place-items: stretch; }
-  .preview-box { width: 100%; max-height: calc(100dvh - 16px); border-radius: 14px; }
-  .preview-body { padding: 8px; align-items: center; }
-  .preview-body img, .preview-body video { max-height: 62dvh; width: 100%; }
-  .audio-preview { width: 100%; padding: 12px; }
-}
-</style>
-</head>
-<body>
-<div class="app-shell">
-  <header class="header">
-    <div class="logo" aria-hidden="true">
-      <img src="./Others/Synchrose/globe.ico" alt="Synchrose">
-    </div>
-    <div class="title-wrap">
-      <div class="title-row">
-        <h1><span id="siteHostLabel">Site files</span></h1>
-        <span class="badge" id="fileCountBadge">0 files</span>
-        <span class="badge" id="currentModeBadge">HTML opens: Site</span>
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width,initial-scale=1,viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#1e1e2e" />
+    <meta name="description" content="Browse site files and preview assets." />
+    <link rel="icon" href="./Others/Synchrose/globe.ico" type="image/x-icon" />
+    <title>Site files</title>
+    <link rel="stylesheet" href="assets/css/browser.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+      <header class="header">
+        <div class="logo" aria-hidden="true">
+          <img src="./Others/Synchrose/globe.ico" alt="Synchrose" />
+        </div>
+        <div class="title-wrap">
+          <div class="title-row">
+            <h1><span id="siteHostLabel">Site files</span></h1>
+            <span class="badge" id="fileCountBadge">0 files</span>
+            <span class="badge" id="currentModeBadge">HTML opens: Site</span>
+          </div>
+          <p class="subtitle">Browse files, preview assets, open pages.</p>
+        </div>
+        <div class="header-actions">
+          <a
+            class="btn ghost"
+            href="https://github.com/mxsynry/mxsynry.github.io"
+            target="_blank"
+            rel="noopener"
+            >GitHub</a
+          >
+          <a class="btn primary" href="/" target="_blank" rel="noopener"
+            >Live Site</a
+          >
+        </div>
+      </header>
+
+      <div class="toolbar">
+        <div class="search-wrap">
+          <svg
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            aria-hidden="true"
+          >
+            <circle cx="11" cy="11" r="7"></circle>
+            <path d="M20 20l-3.5-3.5"></path>
+          </svg>
+          <input
+            type="text"
+            id="search"
+            placeholder="Search files or paths..."
+            autocomplete="off"
+            spellcheck="false"
+          />
+        </div>
+        <div class="toolbar-actions">
+          <div class="segment" aria-label="View mode">
+            <button id="btnGrid" class="active" type="button">Grid</button>
+            <button id="btnList" type="button">List</button>
+          </div>
+          <label class="select-wrap"
+            >Open HTML
+            <select
+              class="select"
+              id="htmlOpenMode"
+              title="What happens when you click an HTML file"
+            >
+              <option value="pages">Current site path</option>
+              <option value="preview">Preview code here</option>
+              <option value="github">GitHub file page</option>
+              <option value="raw">Raw file</option>
+            </select>
+          </label>
+          <button class="btn ghost" id="btnExpandAll" type="button">
+            Expand
+          </button>
+          <button class="btn ghost" id="btnCollapseAll" type="button">
+            Collapse
+          </button>
+          <button class="btn primary" id="btnRefresh" type="button">
+            Refresh
+          </button>
+        </div>
       </div>
-      <p class="subtitle">Browse files, preview assets, open pages.</p>
-    </div>
-    <div class="header-actions">
-      <a class="btn ghost" href="https://github.com/mxsynry/mxsynry.github.io" target="_blank" rel="noopener">GitHub</a>
-      <a class="btn primary" href="/" target="_blank" rel="noopener">Live Site</a>
-    </div>
-  </header>
 
-  <div class="toolbar">
-    <div class="search-wrap">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-3.5-3.5"></path></svg>
-      <input type="text" id="search" placeholder="Search files or paths..." autocomplete="off" spellcheck="false">
-    </div>
-    <div class="toolbar-actions">
-      <div class="segment" aria-label="View mode">
-        <button id="btnGrid" class="active" type="button">Grid</button>
-        <button id="btnList" type="button">List</button>
+      <div class="layout">
+        <aside class="sidebar" id="sidebar">
+          <div class="sidebar-top">Files</div>
+          <div id="tree"></div>
+        </aside>
+        <main class="content">
+          <div class="breadcrumb" id="breadcrumb">Home</div>
+          <div class="main" id="main"></div>
+        </main>
       </div>
-      <label class="select-wrap">Open HTML
-        <select class="select" id="htmlOpenMode" title="What happens when you click an HTML file">
-          <option value="pages">Current site path</option>
-          <option value="preview">Preview code here</option>
-          <option value="github">GitHub file page</option>
-          <option value="raw">Raw file</option>
-        </select>
-      </label>
-      <button class="btn ghost" id="btnExpandAll" type="button">Expand</button>
-      <button class="btn ghost" id="btnCollapseAll" type="button">Collapse</button>
-      <button class="btn primary" id="btnRefresh" type="button">Refresh</button>
     </div>
-  </div>
 
-  <div class="layout">
-    <aside class="sidebar" id="sidebar">
-      <div class="sidebar-top">Files</div>
-      <div id="tree"></div>
-    </aside>
-    <main class="content">
-      <div class="breadcrumb" id="breadcrumb">Home</div>
-      <div class="main" id="main"></div>
-    </main>
-  </div>
-</div>
-
-<div class="preview-overlay" id="previewOverlay" role="dialog" aria-modal="true" aria-hidden="true">
-  <div class="preview-box">
-    <div class="preview-header">
-      <span class="title" id="previewTitle">Preview</span>
-      <button class="close" id="previewClose" type="button" aria-label="Close preview">&times;</button>
+    <div
+      class="preview-overlay"
+      id="previewOverlay"
+      role="dialog"
+      aria-modal="true"
+      aria-hidden="true"
+    >
+      <div class="preview-box">
+        <div class="preview-header">
+          <span class="title" id="previewTitle">Preview</span>
+          <button
+            class="close"
+            id="previewClose"
+            type="button"
+            aria-label="Close preview"
+          >
+            &times;
+          </button>
+        </div>
+        <div class="preview-body" id="previewBody"></div>
+        <div class="preview-actions" id="previewActions"></div>
+      </div>
     </div>
-    <div class="preview-body" id="previewBody"></div>
-    <div class="preview-actions" id="previewActions"></div>
-  </div>
-</div>
-<div class="toast" id="toast"></div>
+    <div class="toast" id="toast"></div>
 
-<script>
-const SITE_LABEL = window.location.hostname || 'Site files';
-document.title = `${SITE_LABEL} // files`;
-document.getElementById('siteHostLabel').textContent = SITE_LABEL;
-
-const CONFIG = {
-  owner: 'mxsynry',
-  repo: 'mxsynry.github.io',
-  branch: 'main',
-  pagesOrigin: window.location.origin
-};
-
-let SNAPSHOT = null;
-let viewMode = localStorage.getItem('mxsynry:viewMode') || localStorage.getItem('repoBrowser:viewMode') || 'grid';
-let currentPath = '';
-let searchQuery = '';
-let expandedDirs = new Set();
-let htmlOpenMode = localStorage.getItem('mxsynry:htmlOpenMode') || localStorage.getItem('repoBrowser:htmlOpenMode') || 'pages';
-
-function formatSize(bytes) {
-  if (bytes == null) return '';
-  const units = ['B','KB','MB','GB'];
-  let i = 0;
-  while (bytes >= 1024 && i < units.length - 1) { bytes /= 1024; i++; }
-  return bytes.toFixed(i === 0 ? 0 : 1) + ' ' + units[i];
-}
-
-function extOf(name = '') { return (String(name).split('.').pop() || '').toLowerCase(); }
-function isHtmlFile(node) { return node && node.type !== 'dir' && ['html','htm'].includes(extOf(node.name)); }
-function encodePath(path = '') { return path.split('/').filter(Boolean).map(encodeURIComponent).join('/'); }
-function getPagesUrl(path = '') { return CONFIG.pagesOrigin.replace(/\/$/, '') + '/' + encodePath(path); }
-function getGitHubUrl(path = '', type = 'file') {
-  const kind = type === 'dir' ? 'tree' : 'blob';
-  return `https://github.com/${CONFIG.owner}/${CONFIG.repo}/${kind}/${CONFIG.branch}/${encodePath(path)}`;
-}
-function getRawUrl(path = '') {
-  return `https://raw.githubusercontent.com/${CONFIG.owner}/${CONFIG.repo}/${CONFIG.branch}/${encodePath(path)}`;
-}
-
-function getIcon(node) {
-  if (node.type === 'dir') return { char: '📁', color: 'var(--dir)' };
-  const ext = extOf(node.name);
-  const map = {
-    html: { char: '🌐', color: 'var(--pink)' }, htm: { char: '🌐', color: 'var(--pink)' },
-    css: { char: '🎨', color: 'var(--blue)' }, scss: { char: '🎨', color: 'var(--blue)' },
-    js: { char: '📜', color: 'var(--code)' }, ts: { char: '📜', color: 'var(--code)' },
-    lua: { char: '📜', color: 'var(--code)' }, luau: { char: '📜', color: 'var(--code)' }, rb: { char: '📜', color: 'var(--code)' },
-    md: { char: '📄', color: 'var(--text)' }, txt: { char: '📄', color: 'var(--text)' },
-    yml: { char: '⚙️', color: 'var(--text-muted)' }, yaml: { char: '⚙️', color: 'var(--text-muted)' }, json: { char: '📦', color: 'var(--archive)' },
-    mp4: { char: '🎬', color: 'var(--media)' }, webm: { char: '🎬', color: 'var(--media)' }, mov: { char: '🎬', color: 'var(--media)' },
-    mp3: { char: '🎧', color: 'var(--green)' }, wav: { char: '🎧', color: 'var(--green)' }, ogg: { char: '🎧', color: 'var(--green)' }, m4a: { char: '🎧', color: 'var(--green)' }, flac: { char: '🎧', color: 'var(--green)' },
-    png: { char: '🖼️', color: 'var(--media)' }, jpg: { char: '🖼️', color: 'var(--media)' }, jpeg: { char: '🖼️', color: 'var(--media)' }, gif: { char: '🖼️', color: 'var(--media)' }, webp: { char: '🖼️', color: 'var(--media)' }, svg: { char: '🖼️', color: 'var(--media)' }, ico: { char: '🖼️', color: 'var(--media)' },
-    rar: { char: '🗜️', color: 'var(--archive)' }, zip: { char: '🗜️', color: 'var(--archive)' }, tar: { char: '🗜️', color: 'var(--archive)' }, gz: { char: '🗜️', color: 'var(--archive)' }
-  };
-  if (String(node.name).toLowerCase() === 'gemfile') return { char: '💎', color: 'var(--archive)' };
-  return map[ext] || { char: '📄', color: 'var(--file)' };
-}
-
-function escapeHtml(str) {
-  if (str == null) return '';
-  return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-}
-
-function showToast(message) {
-  const toast = document.getElementById('toast');
-  toast.textContent = message;
-  toast.classList.add('show');
-  clearTimeout(showToast.timer);
-  showToast.timer = setTimeout(() => toast.classList.remove('show'), 2600);
-}
-
-function normalizeNode(node, parentPath = '') {
-  if (!node) return null;
-  const name = node.name || CONFIG.repo;
-  const type = node.type === 'tree' ? 'dir' : node.type === 'blob' ? 'file' : (node.type || 'dir');
-  const path = parentPath ? parentPath + '/' + name : (node.path || '');
-  const normalized = {
-    ...node,
-    name,
-    type,
-    path: node.path || path,
-    fullPath: node.fullPath || node.path || path,
-    size: node.size,
-    html_url: node.html_url,
-    download_url: node.download_url
-  };
-  if (type === 'dir') {
-    normalized.children = (node.children || []).map(child => normalizeNode(child, normalized.fullPath)).filter(Boolean);
-  }
-  return normalized;
-}
-
-function findNode(path) {
-  if (!path) return SNAPSHOT;
-  const parts = path.split('/').filter(Boolean);
-  let node = SNAPSHOT;
-  for (const part of parts) {
-    if (!node || !node.children) return null;
-    node = node.children.find(c => c.name === part);
-  }
-  return node || null;
-}
-
-function getAllFiles(node, prefix = '') {
-  const files = [];
-  if (!node || !node.children) return files;
-  for (const child of node.children) {
-    const p = prefix ? prefix + '/' + child.name : child.name;
-    if (child.type === 'dir') files.push(...getAllFiles(child, p));
-    else files.push({ ...child, fullPath: p });
-  }
-  return files;
-}
-
-function countFiles(node) {
-  if (!node) return 0;
-  if (node.type === 'file') return 1;
-  return (node.children || []).reduce((sum, child) => sum + countFiles(child), 0);
-}
-
-function buildTreeHTML(node, path = '', level = 0) {
-  if (!node || !node.children) return '';
-  const sorted = [...node.children].sort(sortDirsFirst);
-  return sorted.map(child => {
-    const childPath = path ? path + '/' + child.name : child.name;
-    const isDir = child.type === 'dir';
-    const icon = getIcon(child);
-    const isExpanded = expandedDirs.has(childPath);
-    const isActive = currentPath === childPath || (currentPath && currentPath.startsWith(childPath + '/'));
-    const indent = level * 16;
-    let html = `<div class="tree-item" data-path="${escapeHtml(childPath)}" data-type="${child.type}" style="padding-left:${indent + 8}px" title="${escapeHtml(child.name)}">`;
-    html += isDir ? `<span class="tree-toggle" data-path="${escapeHtml(childPath)}">${isExpanded ? '▼' : '▶'}</span>` : '<span class="tree-spacer"></span>';
-    html += `<span class="tree-icon" style="color:${icon.color}">${icon.char}</span>`;
-    html += `<span class="tree-label${isActive ? ' active' : ''}">${escapeHtml(child.name)}</span></div>`;
-    if (isDir && isExpanded) html += buildTreeHTML(child, childPath, level + 1);
-    return html;
-  }).join('');
-}
-
-function sortDirsFirst(a, b) {
-  if (a.type === b.type) return a.name.localeCompare(b.name);
-  return a.type === 'dir' ? -1 : 1;
-}
-
-function actionButtons(item, path, isDir) {
-  if (isDir) {
-    return `<a class="mini-btn primary btn-open" href="#" data-action="open-folder">Open</a><a class="mini-btn" href="${escapeHtml(item.html_url || getGitHubUrl(path, 'dir'))}" target="_blank" rel="noopener" data-action="external">GitHub</a>`;
-  }
-  const raw = item.download_url || getRawUrl(path);
-  const gh = item.html_url || getGitHubUrl(path, 'file');
-  const site = getPagesUrl(path);
-  const htmlSite = isHtmlFile(item) ? `<a class="mini-btn primary" href="${escapeHtml(site)}" target="_blank" rel="noopener" data-action="external">Site</a>` : '';
-  return `${htmlSite}<a class="mini-btn" href="#" data-action="preview">Preview</a><a class="mini-btn" href="${escapeHtml(gh)}" target="_blank" rel="noopener" data-action="external">GitHub</a><a class="mini-btn" href="${escapeHtml(raw)}" target="_blank" rel="noopener" download data-action="external">Raw</a>`;
-}
-
-function render() {
-  if (!SNAPSHOT) return;
-  const main = document.getElementById('main');
-  const breadcrumb = document.getElementById('breadcrumb');
-  const badge = document.getElementById('fileCountBadge');
-  const treeEl = document.getElementById('tree');
-  const modeBadge = document.getElementById('currentModeBadge');
-
-  treeEl.innerHTML = buildTreeHTML(SNAPSHOT, '', 0);
-  treeEl.querySelectorAll('.tree-item').forEach(el => {
-    el.addEventListener('click', e => {
-      const path = el.dataset.path;
-      const type = el.dataset.type;
-      if (type === 'dir') {
-        if (e.target.classList.contains('tree-toggle')) {
-          e.stopPropagation();
-          expandedDirs.has(path) ? expandedDirs.delete(path) : expandedDirs.add(path);
-          render();
-        } else navigateTo(path);
-      } else {
-        const node = findNode(path);
-        if (node) handleFileOpen(node, path);
-      }
-    });
-  });
-
-  const parts = currentPath ? currentPath.split('/').filter(Boolean) : [];
-  let bcHtml = `<span class="bc-root" data-path="">${escapeHtml(SITE_LABEL)}</span>`;
-  let acc = '';
-  parts.forEach((part, i) => {
-    acc = acc ? acc + '/' + part : part;
-    bcHtml += '<span class="bc-sep">/</span>';
-    bcHtml += i === parts.length - 1 ? `<span class="bc-current">${escapeHtml(part)}</span>` : `<span class="bc-part" data-path="${escapeHtml(acc)}">${escapeHtml(part)}</span>`;
-  });
-  breadcrumb.innerHTML = bcHtml;
-  breadcrumb.querySelectorAll('.bc-root, .bc-part').forEach(el => el.addEventListener('click', () => navigateTo(el.dataset.path || '')));
-
-  let items;
-  let noteText;
-  if (searchQuery) {
-    const q = searchQuery.toLowerCase();
-    items = getAllFiles(SNAPSHOT).filter(f => f.name.toLowerCase().includes(q) || f.fullPath.toLowerCase().includes(q)).sort((a, b) => a.fullPath.localeCompare(b.fullPath));
-    noteText = `<strong>Search:</strong> ${escapeHtml(searchQuery)} · ${items.length} result${items.length === 1 ? '' : 's'}`;
-  } else {
-    const node = findNode(currentPath) || SNAPSHOT;
-    items = [...(node.children || [])].sort(sortDirsFirst);
-    noteText = `<strong>${escapeHtml(currentPath || 'Root')}</strong> · ${items.length} item${items.length === 1 ? '' : 's'}`;
-  }
-
-  badge.textContent = countFiles(SNAPSHOT) + ' files';
-  modeBadge.textContent = 'HTML opens: ' + ({pages:'Site path', preview:'Preview', github:'GitHub', raw:'Raw'}[htmlOpenMode] || 'Site path');
-
-  if (!items.length) {
-    main.innerHTML = '<div class="empty"><div><strong>No files found.</strong><br>Try a different search term or folder.</div></div>';
-    return;
-  }
-
-  const note = `<div class="path-note"><span>${noteText}</span><span>HTML opens on site path by default.</span></div>`;
-  if (viewMode === 'grid') renderGrid(main, items, note);
-  else renderList(main, items, note);
-}
-
-function renderGrid(main, items, note) {
-  main.innerHTML = note + '<div class="file-grid" id="fileGrid"></div>';
-  const grid = document.getElementById('fileGrid');
-  for (const item of items) {
-    const isDir = item.type === 'dir';
-    const path = searchQuery ? item.fullPath : (currentPath ? currentPath + '/' + item.name : item.name);
-    const icon = getIcon(item);
-    const card = document.createElement('div');
-    card.className = 'card';
-    card.dataset.path = path;
-    card.dataset.type = item.type;
-    card.innerHTML = `
-      <div class="icon" style="color:${icon.color}">${icon.char}</div>
-      <div class="name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</div>
-      <div class="path" title="${escapeHtml(path)}">${escapeHtml(path)}</div>
-      <div class="meta"><span>${isDir ? ((item.children || []).length + ' items') : formatSize(item.size)}</span><span>${isDir ? 'folder' : extOf(item.name) || 'file'}</span></div>
-      <div class="actions">${actionButtons(item, path, isDir)}</div>`;
-    card.addEventListener('click', e => {
-      if (e.target.closest('a')) return;
-      isDir ? navigateTo(path) : handleFileOpen(item, path);
-    });
-    card.querySelector('[data-action="preview"]')?.addEventListener('click', e => { e.preventDefault(); previewFile(item, path); });
-    card.querySelector('[data-action="open-folder"]')?.addEventListener('click', e => { e.preventDefault(); navigateTo(path); });
-    grid.appendChild(card);
-  }
-}
-
-function renderList(main, items, note) {
-  main.innerHTML = note + '<div class="file-list" id="fileList"></div>';
-  const list = document.getElementById('fileList');
-  for (const item of items) {
-    const isDir = item.type === 'dir';
-    const path = searchQuery ? item.fullPath : (currentPath ? currentPath + '/' + item.name : item.name);
-    const icon = getIcon(item);
-    const row = document.createElement('div');
-    row.className = 'file-row';
-    row.dataset.path = path;
-    row.dataset.type = item.type;
-    row.innerHTML = `
-      <span class="icon" style="color:${icon.color}">${icon.char}</span>
-      <span><span class="name" title="${escapeHtml(item.name)}">${escapeHtml(item.name)}</span><div class="subpath" title="${escapeHtml(path)}">${escapeHtml(path)}</div></span>
-      <span class="size">${isDir ? ((item.children || []).length + ' items') : formatSize(item.size)}</span>
-      <div class="actions">${actionButtons(item, path, isDir)}</div>`;
-    row.addEventListener('click', e => {
-      if (e.target.closest('a')) return;
-      isDir ? navigateTo(path) : handleFileOpen(item, path);
-    });
-    row.querySelector('[data-action="preview"]')?.addEventListener('click', e => { e.preventDefault(); previewFile(item, path); });
-    row.querySelector('[data-action="open-folder"]')?.addEventListener('click', e => { e.preventDefault(); navigateTo(path); });
-    list.appendChild(row);
-  }
-}
-
-function navigateTo(path) {
-  currentPath = path || '';
-  searchQuery = '';
-  const search = document.getElementById('search');
-  if (search) search.value = '';
-  if (path) {
-    const parts = path.split('/').filter(Boolean);
-    let acc = '';
-    for (const part of parts) {
-      acc = acc ? acc + '/' + part : part;
-      expandedDirs.add(acc);
-    }
-  }
-  render();
-}
-
-function handleFileOpen(item, path) {
-  if (!isHtmlFile(item)) return previewFile(item, path);
-  if (htmlOpenMode === 'pages') window.open(getPagesUrl(path), '_blank', 'noopener');
-  else if (htmlOpenMode === 'github') window.open(item.html_url || getGitHubUrl(path, 'file'), '_blank', 'noopener');
-  else if (htmlOpenMode === 'raw') window.open(item.download_url || getRawUrl(path), '_blank', 'noopener');
-  else previewFile(item, path);
-}
-
-function openPreview() {
-  const overlay = document.getElementById('previewOverlay');
-  overlay.classList.add('active');
-  overlay.setAttribute('aria-hidden', 'false');
-}
-function closePreview() {
-  const overlay = document.getElementById('previewOverlay');
-  overlay.classList.remove('active');
-  overlay.setAttribute('aria-hidden', 'true');
-}
-
-function previewFile(item, path) {
-  const title = document.getElementById('previewTitle');
-  const body = document.getElementById('previewBody');
-  const actions = document.getElementById('previewActions');
-  const raw = item.download_url || getRawUrl(path);
-  const gh = item.html_url || getGitHubUrl(path, 'file');
-  const site = getPagesUrl(path);
-  title.textContent = item.name;
-  body.innerHTML = '<div class="loading">Loading preview...</div>';
-  actions.innerHTML = `${isHtmlFile(item) ? `<a class="mini-btn primary" href="${escapeHtml(site)}" target="_blank" rel="noopener">Open on site</a>` : ''}<a class="mini-btn" href="${escapeHtml(raw)}" target="_blank" rel="noopener" download>Raw / Download</a><a class="mini-btn" href="${escapeHtml(gh)}" target="_blank" rel="noopener">GitHub</a><button class="mini-btn" id="previewCloseBtn" type="button">Close</button>`;
-  openPreview();
-  document.getElementById('previewCloseBtn').onclick = closePreview;
-
-  const ext = extOf(item.name);
-  const isImage = ['png','jpg','jpeg','gif','ico','webp','svg'].includes(ext);
-  const isVideo = ['mp4','webm','mov'].includes(ext);
-  const isAudio = ['mp3','wav','ogg','m4a','flac'].includes(ext);
-  const isText = ['html','htm','css','js','ts','lua','luau','md','json','yml','yaml','txt','rb'].includes(ext) || String(item.name).toLowerCase() === 'gemfile' || (item.size && item.size < 500000);
-
-  if (isImage) body.innerHTML = `<img src="${escapeHtml(raw)}" alt="${escapeHtml(item.name)}">`;
-  else if (isVideo) {
-    const type = ext === 'mp4' ? 'video/mp4' : ext === 'webm' ? 'video/webm' : ext === 'mov' ? 'video/quicktime' : '';
-    body.innerHTML = `<video controls playsinline preload="metadata"><source src="${escapeHtml(raw)}"${type ? ` type="${type}"` : ''}>Your browser cannot preview this video. Use Raw / Download below.</video>`;
-  }
-  else if (isAudio) {
-    const type = ext === 'mp3' ? 'audio/mpeg' : ext === 'wav' ? 'audio/wav' : ext === 'ogg' ? 'audio/ogg' : ext === 'm4a' ? 'audio/mp4' : ext === 'flac' ? 'audio/flac' : '';
-    body.innerHTML = `<div class="audio-preview"><div class="audio-name">${escapeHtml(item.name)}</div><audio controls preload="metadata"><source src="${escapeHtml(raw)}"${type ? ` type="${type}"` : ''}>Your browser cannot preview this audio. Use Raw / Download below.</audio></div>`;
-  }
-  else if (isText) {
-    fetch(raw)
-      .then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.text(); })
-      .then(text => { body.innerHTML = `<pre>${escapeHtml(text)}</pre>`; })
-      .catch(() => { body.innerHTML = '<div class="empty">Could not load preview.</div>'; });
-  } else {
-    body.innerHTML = `<div class="empty"><div><strong>Preview not available.</strong><br><br><a class="mini-btn primary" href="${escapeHtml(raw)}" target="_blank" rel="noopener" download>Download file</a></div></div>`;
-  }
-}
-
-function collectDirs(node, prefix = '') {
-  if (!node || !node.children) return;
-  for (const child of node.children) {
-    if (child.type === 'dir') {
-      const p = prefix ? prefix + '/' + child.name : child.name;
-      expandedDirs.add(p);
-      collectDirs(child, p);
-    }
-  }
-}
-
-function bindUi() {
-  const search = document.getElementById('search');
-  const modeSelect = document.getElementById('htmlOpenMode');
-  document.getElementById('btnGrid').classList.toggle('active', viewMode === 'grid');
-  document.getElementById('btnList').classList.toggle('active', viewMode === 'list');
-  modeSelect.value = htmlOpenMode;
-
-  search.addEventListener('input', e => { searchQuery = e.target.value.trim(); render(); });
-  search.addEventListener('keydown', e => { if (e.key === 'Escape') { search.value = ''; searchQuery = ''; render(); } });
-  document.getElementById('btnGrid').addEventListener('click', () => { viewMode = 'grid'; localStorage.setItem('mxsynry:viewMode', viewMode); document.getElementById('btnGrid').classList.add('active'); document.getElementById('btnList').classList.remove('active'); render(); });
-  document.getElementById('btnList').addEventListener('click', () => { viewMode = 'list'; localStorage.setItem('mxsynry:viewMode', viewMode); document.getElementById('btnList').classList.add('active'); document.getElementById('btnGrid').classList.remove('active'); render(); });
-  modeSelect.addEventListener('change', e => { htmlOpenMode = e.target.value; localStorage.setItem('mxsynry:htmlOpenMode', htmlOpenMode); render(); showToast('HTML open mode: ' + modeSelect.options[modeSelect.selectedIndex].text); });
-  document.getElementById('btnExpandAll').addEventListener('click', () => { collectDirs(SNAPSHOT); render(); });
-  document.getElementById('btnCollapseAll').addEventListener('click', () => { expandedDirs.clear(); render(); });
-  document.getElementById('btnRefresh').addEventListener('click', () => location.reload());
-  document.getElementById('previewClose').addEventListener('click', closePreview);
-  document.getElementById('previewOverlay').addEventListener('click', e => { if (e.target.id === 'previewOverlay') closePreview(); });
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closePreview(); });
-}
-
-function buildSnapshotFromGitTree(tree) {
-  const root = { name: CONFIG.repo, type: 'dir', path: '', fullPath: '', children: [] };
-  const dirs = new Map([['', root]]);
-  const items = [...tree].sort((a, b) => a.path.localeCompare(b.path));
-  for (const item of items) {
-    const parts = item.path.split('/').filter(Boolean);
-    const name = parts.pop();
-    const parentPath = parts.join('/');
-    let parent = dirs.get(parentPath);
-    if (!parent) {
-      let acc = '';
-      parent = root;
-      for (const part of parts) {
-        const nextPath = acc ? acc + '/' + part : part;
-        let dir = dirs.get(nextPath);
-        if (!dir) {
-          dir = { name: part, type: 'dir', path: nextPath, fullPath: nextPath, children: [], html_url: getGitHubUrl(nextPath, 'dir') };
-          parent.children.push(dir);
-          dirs.set(nextPath, dir);
-        }
-        parent = dir;
-        acc = nextPath;
-      }
-    }
-    const fullPath = item.path;
-    if (item.type === 'tree') {
-      const dir = { name, type: 'dir', path: fullPath, fullPath, children: [], html_url: getGitHubUrl(fullPath, 'dir') };
-      parent.children.push(dir);
-      dirs.set(fullPath, dir);
-    } else if (item.type === 'blob') {
-      parent.children.push({ name, type: 'file', path: fullPath, fullPath, size: item.size, html_url: getGitHubUrl(fullPath, 'file'), download_url: getRawUrl(fullPath) });
-    }
-  }
-  return root;
-}
-
-async function fetchSnapshot() {
-  try {
-    const local = await fetch('./tree.json', { cache: 'no-store' });
-    if (local.ok) return normalizeNode(await local.json());
-  } catch (_) {}
-
-  const branches = [CONFIG.branch, 'master'];
-  for (const branch of branches) {
-    try {
-      const url = `https://api.github.com/repos/${CONFIG.owner}/${CONFIG.repo}/git/trees/${branch}?recursive=1`;
-      const res = await fetch(url, { headers: { 'Accept': 'application/vnd.github+json' } });
-      if (!res.ok) continue;
-      const data = await res.json();
-      CONFIG.branch = branch;
-      return buildSnapshotFromGitTree(data.tree || []);
-    } catch (_) {}
-  }
-  throw new Error('Failed to load tree.json and GitHub API fallback.');
-}
-
-async function init() {
-  bindUi();
-  document.getElementById('main').innerHTML = '<div class="empty"><div><strong>Loading repository index...</strong><br>Reading tree.json, then falling back to GitHub API if needed.</div></div>';
-  try {
-    SNAPSHOT = await fetchSnapshot();
-    render();
-  } catch (error) {
-    console.error(error);
-    document.getElementById('main').innerHTML = `<div class="empty" style="color:var(--danger)"><div><strong>Failed to load index.</strong><br>${escapeHtml(error.message)}<br><br>Make sure <code>tree.json</code> exists beside this HTML file, or allow GitHub API access.</div></div>`;
-  }
-}
-
-init();
-</script>
-</body>
+    <script type="module" src="assets/js/browser/app.js"></script>
+  </body>
 </html>

@@ -1,63 +1,51 @@
 {
-  "schemaVersion": 1,
-  "reviewedAt": "2026-07-21T00:00:00Z",
+  "schemaVersion": 2,
+  "reviewedAt": "2026-11-22T00:00:00Z",
   "project": "Synchrose",
+  "notes": "Current catalog interfaces; the July interface audit is preserved under docs/research/.",
   "sources": [
     {
       "name": "WEAO",
       "homepage": "https://weao.xyz/",
       "documentation": "https://docs.weao.xyz/",
-      "interface": "documented-public-api",
+      "interface": "public-json-api",
       "integrated": true,
-      "requirements": ["User-Agent: WEAO-3PService", "respect-rate-limits", "no-endpoint-hunting"],
-      "documentedEndpoints": [
-        "https://weao.xyz/api/versions/current",
-        "https://weao.xyz/api/versions/future",
-        "https://weao.xyz/api/versions/past",
-        "https://weao.xyz/api/status/exploits",
-        "https://weao.xyz/api/status/exploits/{exploit}",
-        "https://weao.xyz/api/sunc"
-      ]
+      "upstream": "https://weao.xyz/api/status/exploits",
+      "transport": "browser-with-fallback"
     },
     {
       "name": "Voxlis",
-      "homepage": "https://voxlis.net/",
-      "repository": "https://github.com/localscripts/voxlis.NET",
-      "interface": "public-static-repository-data",
+      "homepage": "https://voxlis.net/wiki/roblox",
+      "interface": "public-directory-api",
       "integrated": true,
-      "requirements": ["record-source-revision", "attribute-editorial-content", "sanitize-markdown"]
+      "upstream": "https://voxlis.net/api/directory/roblox",
+      "bridge": "/api/voxlis/catalog",
+      "requirements": [
+        "retain-platform-variants",
+        "attribute-review-notes",
+        "retain-benchmark-category-and-test-date",
+        "sanitize-markdown"
+      ]
     },
     {
       "name": "Pulsery",
       "homepage": "https://pulsery.gg/",
-      "interface": "public-dynamic-website",
-      "integrated": false,
-      "publicRddHost": "https://pulsery.gg/rdd",
-      "reason": "Branded RDD deployment UI observed, but no separate official public API documentation found during review."
+      "interface": "public-status-and-reviews",
+      "integrated": true,
+      "bridge": "/api/pulsery/status",
+      "reviewsBridge": "/api/pulsery/reviews?executor=NAME"
     },
     {
-      "name": "Inject.today",
-      "homepage": "https://inject.today/",
-      "interface": "public-landing-page",
-      "integrated": false,
-      "publicRddHost": "https://inject.today/rdd",
-      "reason": "Public RDD route observed, but no separate official public API documentation found during review."
-    },
-    {
-      "name": "WEAO RDD",
-      "homepage": "https://rdd.weao.gg/",
-      "interface": "public-rdd-fork",
-      "integrated": false,
-      "trustedDomainsClaimedByHost": ["rdd.whatexpsare.online", "rdd.weao.gg", "rdd.weao.xyz"],
-      "reason": "Reference only; host identifies itself as an independently maintained unofficial RDD fork."
-    },
-    {
-      "name": "RDD upstream",
-      "homepage": "https://rdd.latte.to/",
-      "repository": "https://github.com/latte-soft/rdd",
-      "interface": "mit-licensed-static-web-app",
-      "integrated": false,
-      "reason": "Upstream reference and attribution; compare fork behavior explicitly."
+      "name": "bypass.tools",
+      "homepage": "https://bypass.tools/executors",
+      "interface": "public-executor-api",
+      "integrated": true,
+      "upstream": "https://bypass.tools/api/executors",
+      "bridge": "/api/bypass/catalog",
+      "requirements": [
+        "retain-weao-synced-attribution",
+        "do-not-infer-unc-from-sunc"
+      ]
     }
   ]
 }

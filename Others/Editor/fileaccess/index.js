@@ -1,131 +1,17 @@
-const express = require('express');
-const fs = require('fs');
-const path = require('path');
-const bodyParser = require('body-parser');
+const path = require("node:path");
+const { createApp } = require("./app.js");
 
-const app = express();
-const port = 9911;
-const filesDirectory = path.resolve(__dirname, 'SolaraTab');
-const fileNamePattern = /^[A-Za-z0-9][A-Za-z0-9._-]{0,119}$/;
+const port = Number(process.env.PORT || 9911);
+const directory =
+  process.env.EDITOR_FILES_DIR || path.join(__dirname, "SolaraTab");
 
-function resolveFilePath(rawName) {
-    const name = String(rawName || '');
-    if (!fileNamePattern.test(name) || name.includes('..')) return null;
-    const filePath = path.resolve(filesDirectory, name);
-    return filePath.startsWith(`${filesDirectory}${path.sep}`) ? filePath : null;
-}
-
-function resolveTabPath(rawName) {
-    const name = String(rawName || '');
-    const normalized = /\.(lua|luau)$/i.test(name) ? name : `${name}.lua`;
-    return resolveFilePath(normalized);
-}
-
-app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', '*');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-    res.header('Access-Control-Allow-Headers', 'Content-Type');
-    next();
-});
-
-app.get('/files', async (req, res) => {
-    try {
-        // อ่านรายการของไฟล์และไดเร็กทอรี
-        const fileNames = await fs.promises.readdir(filesDirectory);
-        // สร้างอาร์เรย์ของ Promises เพื่ออ่านแต่ละไฟล์
-        const filePromises = fileNames.map(async (fileName) => {
-            if (fileName !== "undefined") {
-                const filePath = resolveFilePath(fileName);
-                if (!filePath) return null;
-                const stats = await fs.promises.stat(filePath);
-                
-                return { name: fileName, createdAt: stats.birthtime };
-            } else {
-                const filePath = resolveFilePath("main.lua");
-                const stats = await fs.promises.stat(filePath);
-                
-                return { name: fileName, createdAt: stats.birthtime };
-            }
-        });
-        // รอให้ทุก Promise เสร็จสิ้นและรวมผลลัพธ์
-        const files = (await Promise.all(filePromises)).filter(Boolean);
-        // เรียงลำดับไฟล์ตามวันที่และเวลาที่สร้างขึ้นมาก่อน
-        const sortedFiles = files.sort((a, b) => a.createdAt - b.createdAt);
-        // ส่งไฟล์ที่ถูกเรียงลำดับกลับไป
-        res.json(sortedFiles);
-    } catch (err) {
-        console.error('Error reading directory:', err);
-        res.status(500).send('Error reading directory');
-    }
-});
-
-
-  
-  app.delete('/delete/:filename', async (req, res) => {
-    const filename = req.params.filename;
-        const filePath = resolveFilePath(filename);
-        if (!filePath) return res.status(400).send('Invalid file name');
-  
-    try {
-      await fs.promises.unlink(filePath);
-      res.send(`${filename} has been deleted.`);
-    } catch (err) {
-      console.error('Error deleting file:', err);
-      res.status(500).send('Error deleting file');
-    }
+createApp(directory)
+  .then((app) => {
+    app.listen(port, "127.0.0.1", () => {
+      console.log(`Editor file service: http://127.0.0.1:${port}`);
+    });
+  })
+  .catch((error) => {
+    console.error("Unable to start editor file service:", error);
+    process.exitCode = 1;
   });
-  
-
-app.post('/addtab/:filename', async (req, res) => {
-    const filename = req.params.filename;
-    const filePath = resolveTabPath(filename);
-    if (!filePath) return res.status(400).send('Invalid tab name');
-
-    try {
-        // สร้างไฟล์ใหม่
-        await fs.promises.writeFile(filePath, '', { flag: 'wx' });
-        res.status(201).send(`${filename}.lua has been created.`);
-    } catch (err) {
-        console.error('Error creating file:', err);
-        if (err.code === 'EEXIST') {
-            return res.status(409).send(`${filename}.lua already exists.`);
-        }
-        res.status(500).send('Error creating file');
-    }
-});
-
-app.get('/opentab/:filename', async (req, res) => {
-    const { filename } = req.params;
-    const filePath = resolveFilePath(filename);
-    if (!filePath) return res.status(400).send('Invalid file name');
-    
-    try {
-        const data = await fs.promises.readFile(filePath, 'utf8'); // ใช้ fs.promises.readFile() และระบุ 'utf8'
-        res.send(data);
-    } catch (error) {
-        console.error('Error reading file:', error);
-        res.status(500).send('Error reading file');
-    }
-});
-
-app.use(bodyParser.text());
-
-app.post('/savetab/:filename', async (req, res) => {
-    const { filename } = req.params;
-    const filePath = resolveFilePath(filename);
-    if (!filePath) return res.status(400).send('Invalid file name');
-    const fileContent = req.body;
-
-    try {
-        await fs.promises.writeFile(filePath, fileContent); // ใช้ fs.promises.writeFile() แทน fs.writeFile()
-        res.send('File saved successfully');
-    } catch (error) {
-        console.error('Error saving file:', error);
-        res.status(500).send('Error saving file');
-    }
-});
-
-
-app.listen(port, () => {
-  console.log(`Server is listening on port ${port}`);
-});

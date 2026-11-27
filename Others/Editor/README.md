@@ -1,29 +1,31 @@
 # Luau Editor
 
-A browser-based Monaco editor with optional local file persistence.
+A Monaco editor with saved tabs and Luau completion suggestions. It works from browser storage when the optional local file service is unavailable.
 
-## Run the file API
+Serve this folder over HTTP and open `index.html`. The bundled Monaco files are in `vs/`; page code lives in `src/` and styles in `styles.css`. Keep vendored Monaco files out of manual formatting and cleanup passes.
 
-The editor can work from browser storage, or connect to the local API in `fileaccess/`:
+## Local files
 
 ```sh
 cd Others/Editor/fileaccess
-npm install
-node index.js
+npm ci
+npm start
 ```
 
-The API listens on `http://localhost:9911` and stores files only in `fileaccess/SolaraTab/`.
+The service listens on `http://127.0.0.1:9911` and creates `fileaccess/SolaraTab/` if needed. Tab files are local data and are excluded from Git and the published site. Set `PORT` or `EDITOR_FILES_DIR` to change the server settings; the frontend API URL is configured in `src/tabs.js`.
 
-## Routes
+| Route                      | Action                   |
+| -------------------------- | ------------------------ |
+| `GET /files`               | List saved files         |
+| `GET /opentab/:filename`   | Read a file              |
+| `POST /savetab/:filename`  | Save a `text/plain` body |
+| `POST /addtab/:filename`   | Create a Lua tab         |
+| `DELETE /delete/:filename` | Delete a file            |
 
-- `GET /files` lists saved files.
-- `GET /opentab/:filename` reads a file.
-- `POST /savetab/:filename` writes text content.
-- `POST /addtab/:filename` creates a Lua tab.
-- `DELETE /delete/:filename` removes a file.
+Names must start with a letter or number and contain only letters, numbers, dots, underscores or hyphens. Parent-directory references are rejected. The service binds to loopback; it is intended to run on the editor user's computer.
 
-Filenames are restricted to simple Lua-style names and every route rejects path traversal. Do not expose this development server to the public internet without adding authentication and a restricted CORS policy.
+## Embedded hosts
 
-## Frontend
+`src/main.js` keeps the existing `GetText`, `SetText`, minimap, completion and refresh functions on `window` for WebView integrations. Tab helpers remain available through `window.LuauTabs` and their existing aliases.
 
-Open `index.html` from a static server. The editor falls back to local browser storage when the API is unavailable. Monaco assets are bundled under `vs/` and should not be edited manually.
+Run the repository's `npm test` command for file-service checks.

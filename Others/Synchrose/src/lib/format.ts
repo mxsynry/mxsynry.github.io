@@ -1,18 +1,23 @@
-import type { Detection, DetectionConsensus, Platform, WorkingConsensus } from "./domain";
+import type {
+  Detection,
+  DetectionConsensus,
+  Platform,
+  WorkingConsensus,
+} from "./catalog/model";
 
 export const PLATFORM_LABELS: Record<Platform, string> = {
   windows: "Windows",
   mac: "macOS",
   android: "Android",
   ios: "iOS",
-  unknown: "Unknown"
+  unknown: "Unknown",
 };
 
 export const STATUS_LABELS: Record<WorkingConsensus, string> = {
   working: "Working",
   broken: "Outdated",
   mixed: "Mixed reports",
-  unknown: "Unknown"
+  unknown: "Unknown",
 };
 
 export const DETECTION_LABELS: Record<DetectionConsensus, string> = {
@@ -20,11 +25,13 @@ export const DETECTION_LABELS: Record<DetectionConsensus, string> = {
   "client-mod-only": "Client-mod bypass",
   detected: "Detected",
   mixed: "Mixed reports",
-  unknown: "Unknown"
+  unknown: "Unknown",
 };
 
 export function normalizePlatform(value: unknown): Platform {
-  const text = String(value ?? "").trim().toLowerCase();
+  const text = String(value ?? "")
+    .trim()
+    .toLowerCase();
   if (/windows|win64|uwp/.test(text)) return "windows";
   if (/mac|osx|darwin/.test(text)) return "mac";
   if (/android/.test(text)) return "android";
@@ -34,26 +41,38 @@ export function normalizePlatform(value: unknown): Platform {
 
 export function normalizeDetection(value: unknown): Detection {
   if (typeof value === "boolean") return value ? "detected" : "undetected";
-  const text = String(value ?? "").trim().toLowerCase();
+  const text = String(value ?? "")
+    .trim()
+    .toLowerCase();
   if (/client[\s_-]*mod/.test(text)) return "client-mod-only";
-  if (/\bundetected\b|not detected|^safe$/.test(text)) return "undetected";
-  if (/detected|banwave|unsafe/.test(text)) return "detected";
+  if (/\bundetected\b|not detected/.test(text)) return "undetected";
+  if (/\bdetected\b|banwave/.test(text)) return "detected";
   return "unknown";
 }
 
 export function cleanText(value: unknown): string | null {
-  const text = String(value ?? "").replace(/\u0000/g, "").replace(/\s+/g, " ").trim();
+  const text = String(value ?? "")
+    .replace(/\u0000/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
   return text && !/^(n\/?a|unknown|null|undefined)$/i.test(text) ? text : null;
 }
 
 export function markdownText(value: unknown): string | null {
-  return typeof value === "string" ? value.replace(/\u0000/g, "").trim() || null : null;
+  return typeof value === "string"
+    ? value.replace(/\u0000/g, "").trim() || null
+    : null;
 }
 
 export function numberOrNull(value: unknown): number | null {
   if (value === null || value === undefined || value === "") return null;
   const parsed = Number(String(value).replace("%", ""));
   return Number.isFinite(parsed) ? parsed : null;
+}
+
+export function percentageOrNull(value: unknown): number | null {
+  const parsed = numberOrNull(value);
+  return parsed !== null && parsed >= 0 && parsed <= 100 ? parsed : null;
 }
 
 export function booleanOrNull(value: unknown): boolean | null {
@@ -68,7 +87,9 @@ export function safeUrl(value: unknown): string | undefined {
   if (!text) return undefined;
   try {
     const url = new URL(text);
-    return url.protocol === "https:" || url.protocol === "http:" ? url.toString() : undefined;
+    return url.protocol === "https:" || url.protocol === "http:"
+      ? url.toString()
+      : undefined;
   } catch {
     return undefined;
   }
@@ -82,7 +103,7 @@ export function formatTime(value: string | null): string {
     month: "short",
     day: "numeric",
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
   }).format(date);
 }
 
@@ -93,5 +114,7 @@ export function formatSunc(range: { min: number; max: number } | null): string {
 }
 
 export function trimNumber(value: number): string {
-  return Number.isInteger(value) ? String(value) : value.toFixed(1).replace(/\.0$/, "");
+  return Number.isInteger(value)
+    ? String(value)
+    : value.toFixed(1).replace(/\.0$/, "");
 }

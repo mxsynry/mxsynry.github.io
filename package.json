@@ -1,0 +1,17 @@
+{
+  "name": "mxsynry-site",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node pages-build.mjs",
+    "index": "node scripts/generate-indexes.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "check:text": "node scripts/check-text.mjs"
+  },
+  "devDependencies": {
+    "prettier": "3.10.1",
+    "prettier-plugin-svelte": "4.2.0"
+  }
+}

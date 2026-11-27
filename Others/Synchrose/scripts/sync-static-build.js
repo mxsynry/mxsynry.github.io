@@ -14,7 +14,12 @@ for (const filename of await readdir(rootAssets)) {
   }
 }
 
-await cp(join(distRoot, "assets"), rootAssets, { recursive: true, force: true });
+await cp(join(distRoot, "assets"), rootAssets, {
+  recursive: true,
+  force: true,
+});
 await copyFile(join(distRoot, "index.html"), join(projectRoot, "index.html"));
 
-console.log("Synced the production build to index.html and assets/ for static hosting.");
+console.log(
+  "Synced the production build to index.html and assets/ for static hosting.",
+);

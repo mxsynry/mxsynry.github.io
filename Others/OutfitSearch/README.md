@@ -1,78 +1,34 @@
 # OutfitSearch
 
-A static frontend for public Roblox avatar data, plus a small Cloudflare Worker that makes the Roblox API requests.
+Look up public Roblox avatars, saved outfits, packs and emotes. Roblox supplies avatar and sale data; Rolimons adds market values for supported limiteds.
 
-## Put it in the repository
+The frontend is static. Serve this folder over HTTP, including `src/`. The Cloudflare Worker is deployed separately.
 
-Copy this entire folder to:
+## Files
 
-```text
-site-root/
-└── Others/
-    └── OutfitSearch/
-        ├── index.html
-        ├── styles.css
-        ├── app.js
-        ├── worker.js
-        ├── wrangler.json
-        └── README.md
-```
+- `src/app.js` handles the page and searches.
+- `src/cards.js` renders item and outfit cards.
+- `src/commerce.js` decides which price and market labels to show.
+- `src/outfits.js` groups bundle components and saved outfits.
+- `worker.js` defines the public routes.
+- `server/roblox.js` and `server/rolimons.js` fetch and normalize provider data.
+- `server/http.js` handles responses, caching and request metadata.
 
-Your static host serves `index.html`, `styles.css`, and `app.js`. `worker.js` must be deployed separately to Cloudflare Workers.
+`app.js` is the frontend entry point. Keep `server/` alongside `worker.js` when deploying; copying only the entry file into the Cloudflare dashboard is no longer enough.
 
-## Deploy the Worker
+## Deploy and connect
 
-### Cloudflare dashboard
+From this folder, run `npx wrangler deploy`. Wrangler bundles the Worker and its imports using `wrangler.json`.
 
-1. Open **Workers & Pages** and create a Worker.
-2. Open **Edit code**.
-3. Replace the starter code with `worker.js`.
-4. Deploy and copy the public `https://…workers.dev` URL.
+Set the deployed URL in the `outfit-api-base` meta tag in `index.html`, or use the page's API button to save a URL in your browser. A `?api=https://your-worker.workers.dev` override takes priority; `?api=clear` removes the saved override. No Roblox login or cookie is required.
 
-### Wrangler
+## Searches
 
-From this folder:
+- `Roblox` looks up an exact username.
+- `id:1` looks up an exact user ID.
+- `search:builder` searches for possible accounts.
+- `Roblox, id:1` accepts several inputs, up to 20.
 
-```bash
-npx wrangler deploy
-```
+Share links accept `?username=Roblox`, `?id=1`, `?search=builder` and `?q=Roblox,id:1`.
 
-No Roblox cookie, Cloudflare token in the browser, or other secret is required by the app.
-
-## Connect the frontend
-
-Use either method:
-
-1. Open OutfitSearch, choose **Connect API**, and paste the Worker URL. The browser saves it locally.
-2. For a site-wide default, edit this line in `index.html`:
-
-```html
-<meta name="outfit-api-base" content="https://your-worker.workers.dev" />
-```
-
-A `?api=https://your-worker.workers.dev` URL still works and takes priority.
-Use `?api=clear` to remove the saved Worker URL from the current browser.
-
-## Search syntax
-
-- `Roblox` — exact username
-- `id:1` — exact user ID
-- `search:builder` — broad Roblox user search
-- `Roblox, id:1` — several inputs at once, up to 20
-
-Direct links still work: `?username=Roblox`, `?id=1`, `?search=builder`, and `?q=Roblox,id:1`.
-
-The page uses relative asset and navigation URLs, so it can be hosted at `/Others/OutfitSearch/` or another nested static path.
-
-## What changed in this rebuild
-
-- Cancellable searches with three account reports loaded in parallel.
-- Per-account tabs for wearing items, saved outfits, packs, and emotes.
-- Outfit contents open in a focused dialog instead of extending the page.
-- API setup is tucked away until it is needed.
-- The debug console stays available but never opens by itself.
-- Worker requests time out safely, avoid retrying Roblox `429` responses, and expose request IDs.
-- Saved outfits use Roblox’s current v2 endpoint, with the old v1 endpoint kept only as a fallback.
-- API overrides are accepted only for HTTP(S) URLs; malformed values are ignored.
-
-Worker version: `2026-07-23.1-outfitsearch-rebuild`
+Requests have timeouts. Roblox rate limits are returned without immediate retries. Outfit details are cached and shared by simultaneous requests. Run the repository's `npm test` command for data and route checks.

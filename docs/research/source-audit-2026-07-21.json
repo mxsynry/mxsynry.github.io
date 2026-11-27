@@ -1,0 +1,63 @@
+{
+  "schemaVersion": 1,
+  "reviewedAt": "2026-07-21T00:00:00Z",
+  "project": "Synchrose",
+  "sources": [
+    {
+      "name": "WEAO",
+      "homepage": "https://weao.xyz/",
+      "documentation": "https://docs.weao.xyz/",
+      "interface": "documented-public-api",
+      "integrated": true,
+      "requirements": ["User-Agent: WEAO-3PService", "respect-rate-limits", "no-endpoint-hunting"],
+      "documentedEndpoints": [
+        "https://weao.xyz/api/versions/current",
+        "https://weao.xyz/api/versions/future",
+        "https://weao.xyz/api/versions/past",
+        "https://weao.xyz/api/status/exploits",
+        "https://weao.xyz/api/status/exploits/{exploit}",
+        "https://weao.xyz/api/sunc"
+      ]
+    },
+    {
+      "name": "Voxlis",
+      "homepage": "https://voxlis.net/",
+      "repository": "https://github.com/localscripts/voxlis.NET",
+      "interface": "public-static-repository-data",
+      "integrated": true,
+      "requirements": ["record-source-revision", "attribute-editorial-content", "sanitize-markdown"]
+    },
+    {
+      "name": "Pulsery",
+      "homepage": "https://pulsery.gg/",
+      "interface": "public-dynamic-website",
+      "integrated": false,
+      "publicRddHost": "https://pulsery.gg/rdd",
+      "reason": "Branded RDD deployment UI observed, but no separate official public API documentation found during review."
+    },
+    {
+      "name": "Inject.today",
+      "homepage": "https://inject.today/",
+      "interface": "public-landing-page",
+      "integrated": false,
+      "publicRddHost": "https://inject.today/rdd",
+      "reason": "Public RDD route observed, but no separate official public API documentation found during review."
+    },
+    {
+      "name": "WEAO RDD",
+      "homepage": "https://rdd.weao.gg/",
+      "interface": "public-rdd-fork",
+      "integrated": false,
+      "trustedDomainsClaimedByHost": ["rdd.whatexpsare.online", "rdd.weao.gg", "rdd.weao.xyz"],
+      "reason": "Reference only; host identifies itself as an independently maintained unofficial RDD fork."
+    },
+    {
+      "name": "RDD upstream",
+      "homepage": "https://rdd.latte.to/",
+      "repository": "https://github.com/latte-soft/rdd",
+      "interface": "mit-licensed-static-web-app",
+      "integrated": false,
+      "reason": "Upstream reference and attribution; compare fork behavior explicitly."
+    }
+  ]
+}
