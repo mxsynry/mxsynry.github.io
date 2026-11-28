@@ -9,7 +9,7 @@ import {
   percentageOrNull,
   safeUrl,
 } from "../../format";
-import { fetchJson } from "../../http";
+import { requestCatalog } from "./catalog-request";
 import {
   asArray,
   asObject,
@@ -26,9 +26,15 @@ const cardSchema = z
   .passthrough();
 
 export async function fetchVoxlis(apiBase: string): Promise<SourceResult> {
-  const payload = catalogSchema.parse(
-    await fetchJson(endpoints(apiBase).voxlisCatalog),
+  return requestCatalog(
+    "voxlis",
+    endpoints(apiBase).voxlisCatalog,
+    normalizeCatalog,
   );
+}
+
+function normalizeCatalog(input: unknown): SourceResult {
+  const payload = catalogSchema.parse(input);
   const fetchedAt =
     validTimestamp(payload.bridgeFetchedAt) ?? new Date().toISOString();
   const records = payload.cards.flatMap((candidate) => {
@@ -79,7 +85,7 @@ function normalizeVariant(
     inviteOnly: card.inviteOnly === true,
     working: status === "updated" ? true : status === "outdated" ? false : null,
     detection: "unknown",
-    // The directory's version field is the targeted Roblox build, not an executor release.
+    // Upstream version refers to Roblox.
     version: null,
     robloxVersion: cleanText(variant.version),
     price:

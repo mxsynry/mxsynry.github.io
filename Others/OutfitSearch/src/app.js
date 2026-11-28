@@ -366,8 +366,7 @@ async function saveApiConnection() {
   }
 
   if (parsed.origin === window.location.origin) {
-    apiStatus.textContent =
-      "That is this website's URL. Paste the Cloudflare Worker URL instead.";
+    apiStatus.textContent = "Enter your Worker URL.";
     return;
   }
 
@@ -383,7 +382,7 @@ async function saveApiConnection() {
     setStatus(
       workerCapabilities.rolimons
         ? "Worker connected. Rolimons enrichment is enabled."
-        : "Worker connected, but this Worker does not advertise Rolimons support.",
+        : "Connected. No Rolimons support reported.",
     );
     setTimeout(() => apiDialog.close(), 350);
     return health;
@@ -420,7 +419,7 @@ async function verifyApiConnection() {
   });
 
   if (workerCapabilities.rolimons) {
-    // Do not block connection on this. It warms/verifies the Worker's server-side Rolimons path.
+    // Check market data in the background.
     verifyRolimonsBridge();
   }
 
@@ -623,7 +622,7 @@ async function api(path, options = {}) {
     } catch {
       const preview = text.slice(0, 600).replace(/\s+/g, " ").trim();
       const message = looksLikeStaticHost404(text, response)
-        ? "The saved API URL is returning a website 404 page, not your Cloudflare Worker."
+        ? "API URL returned a website 404."
         : `The API returned non-JSON text. Status ${response.status}.`;
       const err = new Error(message);
       err.status = response.status;
@@ -777,7 +776,7 @@ function renderUser(report, mount = null, index = 0) {
     sectionsRoot.append(
       createExtraOutfitSection(
         "Character presets",
-        "Marketplace character and package entries Roblox returned beside saved looks.",
+        "Marketplace character packages.",
         characterPackages,
         "Package entry",
         "packs",
@@ -789,7 +788,7 @@ function renderUser(report, mount = null, index = 0) {
     sectionsRoot.append(
       createExtraOutfitSection(
         "Animation packs",
-        "Open a pack to inspect its run, walk, jump, and other component animations.",
+        "Run, walk and other animations.",
         animationPacks,
         "Animation pack",
         "packs",
@@ -859,8 +858,8 @@ async function openOutfit(outfit) {
       const note = document.createElement("div");
       note.className = "empty";
       note.textContent = prepared.packComponentMode
-        ? `Showing ${prepared.packComponentsShown} animation-pack component(s). Purchase/use the pack itself, not the internal component IDs.`
-        : `Grouped ${prepared.groupedBundleComponents} bundle component(s) and hid ${prepared.hiddenStandaloneAnimations} standalone non-emote animation asset(s).`;
+        ? `${prepared.packComponentsShown} pack components.`
+        : `${prepared.groupedBundleComponents} bundle components grouped; ${prepared.hiddenStandaloneAnimations} standalone animations hidden.`;
       grid.append(note);
     }
 
@@ -1019,7 +1018,7 @@ function createExtraOutfitSection(title, note, items, label, kind = "outfits") {
 function createCostumeSection(items) {
   return createExtraOutfitSection(
     "Dynamic Heads",
-    "Avatar costume entries returned by Roblox.",
+    "Avatar costumes.",
     items,
     "Costume entry",
     "outfits",
@@ -1226,8 +1225,8 @@ function setStatus(message, isError = false, options = {}) {
 function cleanError(err) {
   if (Number(err?.status) === 429) {
     return getProviderMode() === "rolimons-first"
-      ? "Roblox rate-limited a core account/avatar endpoint. Rolimons-first is already skipping most catalog/economy fallbacks, but Rolimons cannot replace Roblox username, avatar-state, or saved-outfit endpoints."
-      : "Roblox rate-limited this Worker. Enable Prefer Rolimons to reduce catalog/economy requests, or wait for Roblox's limit to reset.";
+      ? "Roblox rate limit reached. Try again later."
+      : "Roblox rate limit reached. Try later or enable Prefer Rolimons.";
   }
 
   let message = err?.message || String(err);

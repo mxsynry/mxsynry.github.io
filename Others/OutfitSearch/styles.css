@@ -1477,12 +1477,6 @@ footer p {
 .modal-body {
   padding: 15px;
 }
-.modal-intro {
-  margin: 0 0 14px;
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.5;
-}
 .api-row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -1536,12 +1530,6 @@ footer p {
 .steps span {
   color: var(--muted);
   font-size: 10px;
-  line-height: 1.45;
-}
-.privacy-note {
-  margin: 12px 0 0;
-  color: var(--dim);
-  font-size: 9px;
   line-height: 1.45;
 }
 .console-tools {

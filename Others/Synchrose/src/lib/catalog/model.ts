@@ -69,6 +69,7 @@ export interface SourceResult {
   fetchedAt: string;
   error?: string;
   stale?: boolean;
+  message?: string;
 }
 
 export interface SourceHealth {

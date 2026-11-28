@@ -596,8 +596,7 @@ async function getCatalogDetails(assetIds, logs = []) {
       );
     }
 
-    // The batch endpoint often omits sale fields. The per-item catalog endpoint often has
-    // priceStatus, collectibleItemId, itemRestrictions, purchaseCount/favoriteCount, etc.
+    // Batch responses can omit sale fields.
     const needsSingleCatalog = chunk.filter((id) => {
       const item = out[id];
       return (
@@ -695,8 +694,7 @@ async function getCatalogDetails(assetIds, logs = []) {
       });
     }
 
-    // Limited / collectible items use collectibleItemId. Resellers endpoint gives current
-    // resale listings; lowest listing is a better display than "Price unavailable".
+    // Use resale listings for collectible prices.
     const collectible = chunk
       .map((id) => out[id])
       .filter(
@@ -894,8 +892,7 @@ function normalizeAsset(item = {}) {
     item.collectibleItemId,
   );
 
-  // Do not use isPublicDomain/IsPublicDomain as a price signal. Roblox can mark
-  // some public assets this way even when they are not actually free catalog items.
+  // isPublicDomain is not a sale flag.
   const isFree =
     price === 0 ||
     String(priceStatus || "")

@@ -300,16 +300,9 @@ main,
   padding-bottom: 20px;
   font-size: 0.8rem;
 }
-.section-nav a,
-.catalog-context a {
+.section-nav a {
   color: var(--violet-soft);
   text-underline-offset: 4px;
-}
-.catalog-context {
-  margin: 0 0 24px;
-  color: var(--muted);
-  font-size: 0.8rem;
-  line-height: 1.7;
 }
 #catalog {
   scroll-margin-top: 88px;

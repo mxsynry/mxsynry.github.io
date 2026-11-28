@@ -37,9 +37,7 @@ export async function cacheOrRun(request, ctx, producer) {
   try {
     const hit = await cache.match(key);
     if (hit) return withCors(hit);
-  } catch (_) {
-    // Cache is helpful, not required.
-  }
+  } catch (_) {}
 
   const data = await producer();
   if (data?.ok === false || data?.rateLimited) {
@@ -53,9 +51,7 @@ export async function cacheOrRun(request, ctx, producer) {
 
   try {
     ctx.waitUntil(cache.put(key, res.clone()));
-  } catch (_) {
-    // Never break the API response because cache failed.
-  }
+  } catch (_) {}
 
   return res;
 }

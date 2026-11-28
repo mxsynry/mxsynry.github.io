@@ -127,7 +127,7 @@ function formatRolimonsMarket(roli) {
   if (!roli) return "";
   const parts = [];
 
-  // Value is the preferred Rolimons market number when assigned; RAP remains visible separately.
+  // Prefer assigned value over RAP.
   if (Number.isFinite(roli.value) && roli.value > 0)
     parts.push(`Value ${formatInteger(roli.value)}`);
   if (Number.isFinite(roli.rap) && roli.rap >= 0)

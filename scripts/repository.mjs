@@ -29,8 +29,7 @@ export function isPublicFile(relativePath) {
   );
 }
 
-// Read Git's index so local dependencies, ignored files and untracked secrets
-// cannot enter the published site. Sparse checkouts can read missing blobs.
+// Use tracked files, including blobs missing from a sparse checkout.
 export async function repositoryFiles(root = repositoryRoot) {
   const [{ stdout: staged }, { stdout: flags }] = await Promise.all([
     exec("git", ["ls-files", "--stage", "-z"], {

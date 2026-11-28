@@ -1,5 +1,3 @@
-<script lang="ts"></script>
-
 <section
   class="terms-guide"
   id="terms"
@@ -16,9 +14,7 @@
     <a href="#catalog">Back to catalog ↑</a>
   </header>
   <p class="guide-intro">
-    An executor is third-party software that provides a script execution
-    environment and extra APIs for Roblox. Compatibility, thread permissions,
-    detection reports and software safety describe different things.
+    An executor runs scripts and exposes extra Roblox APIs.
   </p>
 
   <div class="term-list">
@@ -28,15 +24,8 @@
       </summary>
       <div class="term-copy">
         <p>
-          A community specification for shared executor function names and
-          behavior, intended to help scripts work across implementations. The
-          original environment checker includes behavioral assertions as well as
-          checks for available functions; its coverage is limited.
-        </p>
-        <p>
-          The original repository was archived in May 2024. A UNC percentage
-          describes the checks in a particular run, rather than every API or
-          every script.
+          Shared executor API names and behavior. Its checker tests availability
+          and behavior; the original project was archived in May 2024.
         </p>
         <a
           href="https://github.com/unified-naming-convention/NamingStandard"
@@ -53,16 +42,9 @@
       </summary>
       <div class="term-copy">
         <p>
-          A separate test suite that checks executor functions against its
-          expected behavior. Its coverage differs from the original UNC, so the
-          two percentages are not interchangeable.
-        </p>
-        <p>
-          The sUNC v2 documentation requires its official testing experience and
-          describes signed result reports. Check the linked report’s
-          verification status, suite version, executor build and date. A signed
-          test result establishes provenance of the report; it does not certify
-          a download’s safety.
+          A separate behavioral test suite. UNC and sUNC scores are not
+          interchangeable. v2 uses an official testing experience and signed
+          reports with suite version, build and date.
         </p>
         <a href="https://docs.sunc.io/" target="_blank" rel="noreferrer">
           Official documentation ↗
@@ -82,14 +64,8 @@
       </summary>
       <div class="term-copy">
         <p>
-          An open-source executor function test suite with its own checks,
-          documented custom functions, and passed, failed, skipped and missing
-          outcomes. The project’s spelling is debUNC.
-        </p>
-        <p>
-          Keep its suite version and detailed results with a score. A debUNC
-          result cannot be substituted for a UNC or sUNC result. Synchrose’s
-          current feeds do not supply structured debUNC results.
+          An executor function checker with passed, failed, skipped and missing
+          results. Current feeds do not provide structured debUNC reports.
         </p>
         <a
           href="https://github.com/alyssagithub/debUNC"
@@ -106,16 +82,8 @@
       </summary>
       <div class="term-copy">
         <p>
-          An open-source suite for executor standards, functionality and
-          mitigation checks. <strong>Standards</strong> results describe API
-          behavior; <strong>Vulnerabilities</strong> results describe the protections
-          exercised by those checks.
-        </p>
-        <p>
-          A bare “Myriad score” is incomplete without its category. Compare the
-          same category and suite version, and review failures, exclusions and
-          ambiguous results. Passing the included checks does not establish that
-          software is malware-free.
+          Checks executor API behavior (Standards) and protections
+          (Vulnerabilities). Compare matching categories and suite versions.
         </p>
         <a
           href="https://github.com/Standard-2/Myriad"
@@ -141,9 +109,8 @@
       </summary>
       <div class="term-copy">
         <p>
-          <code>identifyexecutor</code> reports the executor’s name and version. This
-          is an informational value supplied by the environment, rather than a secure
-          way to authenticate the program or its publisher.
+          <code>identifyexecutor</code> reports the environment's name and version.
+          The value is self-reported.
         </p>
         <a
           href="https://docs.sunc.io/Miscellaneous/identifyexecutor/"
@@ -169,15 +136,8 @@
       </summary>
       <div class="term-copy">
         <p>
-          <code>getthreadidentity</code> reports the running Luau thread’s numeric
-          security context, which relates to permissions and capabilities. This differs
-          from the executor’s name and version.
-        </p>
-        <p>
-          A claimed level is not a compatibility score, a performance measure or
-          evidence of trust. Treat the number as context for permission
-          behavior, rather than ranking products by the highest advertised
-          identity.
+          <code>getthreadidentity</code> reports the Luau thread's numeric permission
+          context, often called its executor level.
         </p>
         <a
           href="https://docs.sunc.io/Reflection/getthreadidentity/"
@@ -197,9 +157,7 @@
     </details>
   </div>
   <p class="guide-footnote">
-    For any test result, keep the suite and version, result category, executor
-    build, platform, run date and original report together. Synchrose displays
-    catalog claims; it does not run these test suites or verify their reports.
+    Keep the suite version, platform, build, date and report with a score.
   </p>
 </section>
 

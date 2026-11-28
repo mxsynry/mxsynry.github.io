@@ -1,18 +1,14 @@
-<script lang="ts"></script>
-
 <section
   class="source-guide"
   id="source-guide"
   aria-labelledby="source-guide-title"
 >
   <header>
-    <p class="eyebrow">Read the evidence</p>
-    <h2 id="source-guide-title">Check a claim before trusting it</h2>
+    <p class="eyebrow">Sources</p>
+    <h2 id="source-guide-title">Source notes</h2>
   </header>
   <p class="guide-intro">
-    Use catalogs to find a report, original documentation to understand a test,
-    and dated evidence to assess a claim. A listing, community badge or clean
-    scan cannot guarantee that an executor or script is safe.
+    Catalogs report status; linked test reports provide the details.
   </p>
   <dl>
     <div>
@@ -25,11 +21,7 @@
           Voxlis ↗
         </a>
       </dt>
-      <dd>
-        Executor and external listings with reported status, pricing and
-        benchmarks. Synchrose retains Voxlis claims under its name; check the
-        original entry for context and changes.
-      </dd>
+      <dd>Status, pricing, platform variants and test reports.</dd>
     </div>
     <div>
       <dt>
@@ -42,10 +34,7 @@
         </a>
       </dt>
       <dd>
-        A live catalog source in Synchrose, with reported status, platform,
-        pricing and feature-based scores. Rows marked WEAO-synced reuse upstream
-        data; agreement with WEAO is catalog coverage rather than an independent
-        test.
+        Status, pricing and features. WEAO-synced entries reuse WEAO data.
       </dd>
     </div>
     <div>
@@ -55,9 +44,8 @@
         </a>
       </dt>
       <dd>
-        Script listings and project discovery. Follow a test listing back to its
-        author’s repository and documentation. A listed or approved upload is
-        not an independent security audit.
+        Script listings. Check the author's repository for source and
+        documentation.
       </dd>
     </div>
     <div>
@@ -67,16 +55,13 @@
         </a>
       </dt>
       <dd>
-        The service describes sandbox analysis of script behavior, including
-        attempted network calls and recovered code. It says results are not
-        guaranteed. A clean script report does not authenticate an executor
-        installer. Review its <a
+        Script sandbox reports. Check the <a
           href="https://scriptdumper.com/privacy"
           target="_blank"
           rel="noreferrer"
         >
-          submission privacy policy
-        </a> before uploading code.
+          submission policy
+        </a> before uploading private code.
       </dd>
     </div>
     <div>
@@ -89,33 +74,21 @@
           r/robloxhackers ↗
         </a>
       </dt>
-      <dd>
-        Community discussion and incident reports. Check the post date, original
-        evidence, build and domain involved. Treat recommendations and
-        allegations as leads to investigate; older guides may refer to retired
-        products.
-      </dd>
+      <dd>Community reports. Check the date, build and domain discussed.</dd>
     </div>
   </dl>
   <aside aria-label="Interpreting status and safety">
-    <h3>Working, undetected and safe mean different things</h3>
+    <h3>Status and safety</h3>
     <p>
-      <strong>Working</strong> is a source’s functionality or
-      build-compatibility report. <strong>Undetected</strong> is a detection claim
-      at a point in time. Neither establishes malware safety or prevents future account
-      enforcement. A source’s “Verified” badge reflects that source’s criteria.
-    </p>
-    <p>
-      Check the publisher and exact domain, inspect the original report, and
-      keep device protections enabled. Avoid lookalike downloads and requests
-      for account cookies or credentials. Roblox warns that exploiting violates
-      its rules and that exploit downloads can contain malware. <a
+      Working describes compatibility. Undetected is a dated detection claim.
+      Neither verifies malware safety. Avoid lookalike domains and requests for
+      account cookies. <a
         href="https://en.help.roblox.com/hc/en-us/articles/203312450-Cheating-and-Exploiting"
         target="_blank"
         rel="noreferrer"
       >
-        Read Roblox’s guidance ↗
-      </a>
+        Roblox guidance
+      </a>.
     </p>
   </aside>
 </section>

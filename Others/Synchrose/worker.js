@@ -1,7 +1,4 @@
-// Dedicated read-only data bridge for Synchrose.
-// It exposes fixed public catalog routes; it is not an open proxy.
-
-const WORKER_VERSION = "2026-11-22.1-directory-migration";
+const WORKER_VERSION = "2026-11-28.1-site-bridge";
 const VOXLIS_CATALOG_URL = "https://voxlis.net/api/directory/roblox";
 const BYPASS_CATALOG_URL = "https://bypass.tools/api/executors";
 const PULSERY_STATUS_URL = "https://pulsery.gg/api/status";
@@ -100,9 +97,7 @@ async function cacheOrRun(request, ctx, producer) {
   try {
     const cached = await cache.match(cacheKey);
     if (cached) return withCors(cached);
-  } catch {
-    // Cache failure must not block public data.
-  }
+  } catch {}
 
   const payload = await producer();
   const response = json(payload, 200, {
@@ -111,14 +106,12 @@ async function cacheOrRun(request, ctx, producer) {
 
   try {
     ctx?.waitUntil(cache.put(cacheKey, response.clone()));
-  } catch {
-    // Cache is optional.
-  }
+  } catch {}
 
   return response;
 }
 
-async function fetchVoxlisCatalog() {
+export async function fetchVoxlisCatalog() {
   const payload = await fetchPublicJson(VOXLIS_CATALOG_URL, "Voxlis");
   if (!payload || !Array.isArray(payload.cards)) {
     throw new ResponseError(
@@ -126,11 +119,11 @@ async function fetchVoxlisCatalog() {
       502,
     );
   }
-  // Preserve the source's checkedAt/fetchedAt; this is the bridge retrieval time.
+  // Keep source timestamps separate from bridge retrieval.
   return { ...payload, bridgeFetchedAt: new Date().toISOString() };
 }
 
-async function fetchBypassCatalog() {
+export async function fetchBypassCatalog() {
   const payload = await fetchPublicJson(BYPASS_CATALOG_URL, "bypass.tools");
   if (!Array.isArray(payload)) {
     throw new ResponseError(

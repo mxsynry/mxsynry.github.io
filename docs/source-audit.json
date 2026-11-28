@@ -1,8 +1,8 @@
 {
   "schemaVersion": 2,
-  "reviewedAt": "2026-11-22T00:00:00Z",
+  "reviewedAt": "2026-11-28T00:00:00+07:00",
   "project": "Synchrose",
-  "notes": "Current catalog interfaces; the July interface audit is preserved under docs/research/.",
+  "notes": "Public catalog interfaces.",
   "sources": [
     {
       "name": "WEAO",
@@ -25,7 +25,9 @@
         "attribute-review-notes",
         "retain-benchmark-category-and-test-date",
         "sanitize-markdown"
-      ]
+      ],
+      "staticSnapshot": "Others/Synchrose/catalog/voxlis.json",
+      "transport": "bridge"
     },
     {
       "name": "Pulsery",
@@ -45,7 +47,9 @@
       "requirements": [
         "retain-weao-synced-attribution",
         "do-not-infer-unc-from-sunc"
-      ]
+      ],
+      "staticSnapshot": "Others/Synchrose/catalog/bypass.json",
+      "transport": "bridge"
     }
   ]
 }

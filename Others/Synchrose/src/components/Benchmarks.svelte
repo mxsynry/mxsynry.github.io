@@ -22,11 +22,7 @@
     <p class="eyebrow">Catalog claims</p>
     <h3 id="benchmark-title">Reported benchmark results</h3>
   </header>
-  <p class="section-copy">
-    These are catalog reports, rather than tests run by Synchrose. Dates and
-    report links appear where supplied. Each value stays with its source and
-    platform. UNC and sUNC values outside 0–100% are excluded.
-  </p>
+  <p class="section-copy">Scores reported by each source.</p>
   {#each reports as observation}
     <article class="benchmark-report">
       <h4>
@@ -91,14 +87,7 @@
           </a>{/if}
       {/if}
     </article>
-  {:else}<p class="section-copy">
-      No benchmark scores were supplied for this entry.
-    </p>{/each}
-  <p class="section-copy">
-    debUNC results are not supplied by the current feeds. Myriad Standards and
-    Vulnerabilities results measure different things. Values with no reported
-    category remain unclassified.
-  </p>
+  {:else}<p class="section-copy">No scores reported.</p>{/each}
   <a
     class="benchmark-guide"
     href="#terms"
@@ -111,7 +100,7 @@
       guide?.scrollIntoView({ block: "start" });
     }}
   >
-    Read the test definitions ↓
+    Test definitions
   </a>
 </section>
 

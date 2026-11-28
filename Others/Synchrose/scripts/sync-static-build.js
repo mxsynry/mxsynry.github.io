@@ -23,3 +23,8 @@ await copyFile(join(distRoot, "index.html"), join(projectRoot, "index.html"));
 console.log(
   "Synced the production build to index.html and assets/ for static hosting.",
 );
+
+await cp(join(distRoot, "catalog"), join(projectRoot, "catalog"), {
+  recursive: true,
+  force: true,
+});

@@ -31,6 +31,9 @@ export function isMaintainedText(file) {
     !file.startsWith("Others/Editor/vs/") &&
     !file.startsWith("Others/Editor/min/") &&
     !file.startsWith("Others/Synchrose/assets/") &&
+    !file.startsWith("Others/Synchrose/src/public/catalog/") &&
+    !file.startsWith("Others/Synchrose/catalog/") &&
+    !file.endsWith("/sources/__fixtures__/har-catalogs.json") &&
     file !== "tree.json"
   );
 }
@@ -38,8 +41,7 @@ export function isMaintainedText(file) {
 export function findTextIssues(text) {
   const issues = [];
   for (const [index, rawLine] of text.split("\n").entries()) {
-    // Inspect escaped characters too; keep ASCII escapes intact so line numbers
-    // still refer to the source file rather than a decoded string literal.
+    // Decode Unicode escapes without changing source line numbers.
     const line = rawLine.replace(
       /\\u(?:\{([\da-f]{1,6})\}|([\da-f]{4}))/gi,
       (escape, braced, fixed) => {

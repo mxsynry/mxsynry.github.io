@@ -1,11 +1,14 @@
 {
   "name": "mxsynry-site",
+  "main": "site-worker.js",
   "compatibility_date": "2026-07-30",
   "observability": {
     "enabled": true,
   },
   "assets": {
     "directory": "./pages-dist",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"],
   },
   "compatibility_flags": ["nodejs_compat"],
 }

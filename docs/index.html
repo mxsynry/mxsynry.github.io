@@ -3,10 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta
-      name="description"
-      content="Synchrose architecture, data-source, API and maintenance documentation."
-    />
+    <meta name="description" content="Synchrose setup and API reference." />
     <meta name="color-scheme" content="dark" />
     <title>Synchrose Documentation</title>
     <link rel="stylesheet" href="./styles.css" />
@@ -45,7 +42,7 @@
           id="docSearch"
           class="search"
           type="search"
-          placeholder="Search topics and fields…"
+          placeholder="Search docs"
           autocomplete="off"
         />
         <nav aria-label="Documentation">
@@ -58,237 +55,75 @@
           <a href="#model">Normalized model</a>
           <a href="#merge">Merge rules</a>
           <a href="#operations">Operations</a>
-          <a href="#security">Safety &amp; legal</a>
-          <a href="#contributing">Contributing</a>
+          <a href="#security">Validation</a>
+          <a href="#contributing">Changes</a>
         </nav>
-        <div class="source-note">
-          <span class="status reviewed"></span>
-          Source audit: 21 July 2026
-        </div>
       </aside>
 
       <main id="content">
-        <section
-          id="overview"
-          data-search="overview purpose scope dashboard documentation"
-        >
-          <p class="eyebrow">Project guide</p>
-          <h1>Synchrose documentation</h1>
+        <section id="overview">
+          <h1>Synchrose docs</h1>
           <p class="lead">
-            Synchrose is a Svelte dashboard that fetches public status and
-            catalog data through source adapters, then keeps each observation
-            attributable. It helps readers compare metadata; it does not host,
-            verify or guarantee third-party binaries.
+            A Svelte catalog combining WEAO, Voxlis, Pulsery and bypass.tools.
           </p>
-          <div class="callout warning">
-            <strong>Accuracy boundary.</strong> “Updated”, “detected”, scores,
-            prices and links are third-party claims. Always display the source
-            and retrieval time, and never describe an item as safe solely
-            because a source does.
-          </div>
-          <div class="card-grid metrics">
-            <article><strong>4</strong><span>source adapters</span></article>
-            <article>
-              <strong>Svelte</strong><span>Vite client application</span>
-            </article>
-            <article>
-              <strong>Read-only</strong><span>external data use</span>
-            </article>
-            <article>
-              <strong>24h</strong><span>browser snapshot lifetime</span>
-            </article>
-          </div>
         </section>
 
-        <section
-          id="architecture"
-          data-search="architecture cloudflare pages workflow cache fetch normalize merge render"
-        >
-          <p class="eyebrow">System design</p>
+        <section id="architecture">
           <h2>Architecture</h2>
           <p>
-            The application separates source adapters, normalization, catalog
-            state and presentation. The browser refreshes the four adapters
-            concurrently, preserves successful results when another source
-            fails, and keeps a last-known-good snapshot in local storage.
+            Adapters fetch and normalize each source, then merge matching
+            records for the UI. Source failures keep the last successful data.
           </p>
-          <div
-            class="flow"
-            role="img"
-            aria-label="External sources flow through a worker bridge and source adapters into normalized catalog state and the Synchrose dashboard"
-          >
-            <div>
-              <b>Public sources</b
-              ><span>WEAO · Voxlis · Pulsery · bypass.tools</span>
-            </div>
-            <i>→</i>
-            <div>
-              <b>Worker bridge</b><span>CORS and upstream-only routes</span>
-            </div>
-            <i>→</i>
-            <div>
-              <b>Adapters</b><span>Zod validation · normalization</span>
-            </div>
-            <i>→</i>
-            <div>
-              <b>Svelte dashboard</b
-              ><span>Consensus · filters · provenance</span>
-            </div>
-          </div>
-          <h3>Runtime boundaries</h3>
-          <ul>
-            <li>
-              The Worker exposes fixed routes for upstreams that require a
-              server-side bridge; it is not an arbitrary proxy.
-            </li>
-            <li>
-              Each adapter validates and normalizes its own upstream response
-              before it enters the shared catalog.
-            </li>
-            <li>
-              Source failures remain visible as health states while cached
-              records continue to be usable.
-            </li>
-          </ul>
+          <p>
+            Cloudflare builds include the API bridge. Static hosts fall back to
+            dated catalogs, marked cached. Browser snapshots expire after 24
+            hours.
+          </p>
         </section>
 
-        <section
-          id="sources"
-          data-search="source matrix weao voxlis pulsery bypass tools authority provenance official api"
-        >
-          <p class="eyebrow">Provenance</p>
-          <h2>Data-source matrix</h2>
+        <section id="sources">
+          <h2>Sources</h2>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Source</th>
-                  <th>Observed interface</th>
-                  <th>Use in Synchrose</th>
-                  <th>Policy</th>
+                  <th>Data</th>
+                  <th>Transport</th>
                 </tr>
               </thead>
               <tbody>
                 <tr>
-                  <td><a href="https://weao.xyz" rel="noopener">WEAO</a></td>
-                  <td>Documented public JSON API</td>
-                  <td>
-                    <span class="pill good">Integrated</span> versions and
-                    status metadata
-                  </td>
-                  <td>Required user-agent, polite polling, 429 backoff</td>
+                  <td>WEAO</td>
+                  <td>Status, versions, detection</td>
+                  <td>Direct API with fallback domain</td>
                 </tr>
                 <tr>
-                  <td>
-                    <a href="https://voxlis.net" rel="noopener">Voxlis</a>
-                  </td>
-                  <td>Public directory API through the Worker</td>
-                  <td>
-                    <span class="pill good">Integrated</span> descriptions,
-                    tags, reviews and prices
-                  </td>
-                  <td>
-                    Retain platform variants, source timestamps and benchmark
-                    metadata
-                  </td>
+                  <td>Voxlis</td>
+                  <td>Platform variants, prices, tests, reviews</td>
+                  <td>Bridge; saved catalog fallback</td>
                 </tr>
                 <tr>
-                  <td>
-                    <a href="https://pulsery.gg" rel="noopener">Pulsery</a>
-                  </td>
-                  <td>
-                    Public status response exposed through the Synchrose Worker
-                  </td>
-                  <td>
-                    <span class="pill good">Integrated</span> status, pricing
-                    and review metadata
-                  </td>
-                  <td>Keep the fixed route and preserve source attribution</td>
+                  <td>Pulsery</td>
+                  <td>Status and approved reviews</td>
+                  <td>Configured Worker</td>
                 </tr>
                 <tr>
-                  <td>
-                    <a href="https://bypass.tools/executors" rel="noopener"
-                      >bypass.tools</a
-                    >
-                  </td>
-                  <td>Public executor API through the Worker</td>
-                  <td>
-                    <span class="pill good">Integrated</span> status and catalog
-                    metadata
-                  </td>
-                  <td>
-                    Keep WEAO attribution on synced rows; do not infer missing
-                    UNC scores
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <a href="https://rdd.weao.gg" rel="noopener">WEAO RDD</a>
-                  </td>
-                  <td>
-                    Public RDD fork with deployment controls, exploit selector
-                    and direct URL parameters
-                  </td>
-                  <td><span class="pill neutral">RDD host reference</span></td>
-                  <td>
-                    Fork identifies its trusted WEAO domains; retain upstream
-                    attribution
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <a href="https://rdd.latte.to" rel="noopener"
-                      >RDD upstream</a
-                    >
-                  </td>
-                  <td>MIT-licensed static browser tool by Latte Softworks</td>
-                  <td><span class="pill neutral">Upstream reference</span></td>
-                  <td>Verify differences among forks and hosts</td>
+                  <td>bypass.tools</td>
+                  <td>Status, prices and features</td>
+                  <td>Bridge; saved catalog fallback</td>
                 </tr>
               </tbody>
             </table>
           </div>
-          <div class="callout info">
-            <strong>Rule:</strong> a visible website is not automatically a
-            public API. Only consume interfaces the owner documents or
-            explicitly permits.
-          </div>
+          <p>
+            <a href="source-audit.json">Source metadata</a> ·
+            <a href="research/synchrose.md">Research notes</a>
+          </p>
         </section>
 
-        <section
-          id="weao"
-          data-search="weao api endpoints versions current future past exploits status sunc user agent rate limit schema"
-        >
-          <p class="eyebrow">Documented integration</p>
-          <h2>WEAO API</h2>
-          <p>
-            Base domains documented by WEAO include <code>weao.xyz</code>,
-            <code>whatexpsare.online</code>, <code>weao.gg</code> and
-            <code>whatexploitsaretra.sh</code>. Use one primary and one
-            fallback; do not fan out requests to every domain.
-          </p>
-          <div class="endpoint">
-            <div>
-              <span>GET</span><code>https://weao.xyz/api/versions/current</code>
-            </div>
-            <button data-copy="https://weao.xyz/api/versions/current">
-              Copy
-            </button>
-          </div>
-          <div class="endpoint">
-            <div>
-              <span>GET</span><code>https://weao.xyz/api/versions/future</code>
-            </div>
-            <button data-copy="https://weao.xyz/api/versions/future">
-              Copy
-            </button>
-          </div>
-          <div class="endpoint">
-            <div>
-              <span>GET</span><code>https://weao.xyz/api/versions/past</code>
-            </div>
-            <button data-copy="https://weao.xyz/api/versions/past">Copy</button>
-          </div>
+        <section id="weao">
+          <h2>WEAO</h2>
           <div class="endpoint">
             <div>
               <span>GET</span><code>https://weao.xyz/api/status/exploits</code>
@@ -297,461 +132,110 @@
               Copy
             </button>
           </div>
-          <div class="endpoint">
-            <div>
-              <span>GET</span
-              ><code>https://weao.xyz/api/status/exploits/{exploit}</code>
-            </div>
-            <button data-copy="https://weao.xyz/api/status/exploits/{exploit}">
-              Copy
-            </button>
-          </div>
-          <div class="endpoint">
-            <div><span>GET</span><code>https://weao.xyz/api/sunc</code></div>
-            <button data-copy="https://weao.xyz/api/sunc">Copy</button>
-          </div>
-          <h3>Required request behavior</h3>
-          <ul>
-            <li>
-              The browser adapter requests the primary WEAO domain, then tries
-              its configured fallback if the request fails.
-            </li>
-            <li>
-              A failed request keeps the last successful browser snapshot and
-              appears in the source health state.
-            </li>
-            <li>
-              Each observation stores its source, retrieval time and any update
-              time supplied by that source.
-            </li>
-            <li>
-              Treat undocumented response properties as optional; never make
-              rendering depend on them.
-            </li>
-          </ul>
-          <details>
-            <summary>Main exploit fields used by Synchrose</summary>
-            <div class="table-wrap compact">
-              <table>
-                <thead>
-                  <tr>
-                    <th>Field</th>
-                    <th>Type</th>
-                    <th>Meaning in UI</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr>
-                    <td><code>title</code></td>
-                    <td>string</td>
-                    <td>Display name and merge key input</td>
-                  </tr>
-                  <tr>
-                    <td><code>version</code>, <code>rbxversion</code></td>
-                    <td>string</td>
-                    <td>Product and supported Roblox versions</td>
-                  </tr>
-                  <tr>
-                    <td><code>updateStatus</code>, <code>detected</code></td>
-                    <td>boolean</td>
-                    <td>Source-attributed status, never a safety guarantee</td>
-                  </tr>
-                  <tr>
-                    <td><code>platform</code>, <code>extype</code></td>
-                    <td>string</td>
-                    <td>Platform and product type filters</td>
-                  </tr>
-                  <tr>
-                    <td><code>free</code>, <code>cost</code></td>
-                    <td>boolean, string</td>
-                    <td>Pricing display; preserve source text</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <code>suncPercentage</code>, <code>uncPercentage</code>
-                    </td>
-                    <td>number</td>
-                    <td>Compatibility scores, with source label</td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <code>websitelink</code>, <code>discordlink</code>,
-                      <code>purchaselink</code>
-                    </td>
-                    <td>string</td>
-                    <td>Untrusted external links; validate protocol</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </details>
+          <p>
+            Versions: <code>/api/versions/{current,future,past}</code>.
+            Fallback: <code>whatexpsare.online</code>.
+          </p>
+          <p><a href="https://docs.weao.xyz">API docs</a></p>
         </section>
 
-        <section
-          id="voxlis"
-          data-search="voxlis directory roblox variants sunc myriad benchmarks reviews bypass"
-        >
-          <p class="eyebrow">Directory integration</p>
+        <section id="voxlis" data-search="voxlis bypass tools catalog">
           <h2>Voxlis and bypass.tools</h2>
-          <p>
-            These feeds use the Synchrose Worker because their upstream APIs do
-            not allow direct browser requests.
-          </p>
           <div class="endpoint">
             <div><span>GET</span><code>/api/voxlis/catalog</code></div>
             <button data-copy="/api/voxlis/catalog">Copy</button>
           </div>
-          <p>
-            The Voxlis route reads
-            <code>https://voxlis.net/api/directory/roblox</code>. Each product
-            platform remains a separate observation. Review notes arrive inline
-            with the directory; the retired GitHub data files are no longer
-            fetched.
-          </p>
-          <ul>
-            <li>
-              Keep executor releases, Roblox target versions and historical
-              benchmark builds separate.
-            </li>
-            <li>
-              Show a Myriad result's category, test date, counts and report link
-              when supplied.
-            </li>
-            <li>
-              A cached upstream response stays marked as cached. Bridge
-              retrieval time does not replace the source's update time.
-            </li>
-            <li>
-              Render editorial Markdown through the sanitizer and keep its
-              attribution.
-            </li>
-          </ul>
           <div class="endpoint">
             <div><span>GET</span><code>/api/bypass/catalog</code></div>
             <button data-copy="/api/bypass/catalog">Copy</button>
           </div>
           <p>
-            The bypass.tools route reads
-            <code>https://bypass.tools/api/executors</code>. It replaces Inject
-            as the fourth catalog source. WEAO-synced rows keep that
-            attribution. A bare UNC feature tag is not a measured score, and an
-            sUNC value is not copied into UNC.
+            Upstreams: <code>voxlis.net/api/directory/roblox</code> and
+            <code>bypass.tools/api/executors</code>.
           </p>
           <p>
-            See the
-            <a href="research/synchrose.md">source research notes</a> for
-            definitions and the November 2026 migration.
+            Voxlis variants stay separate. Its version field identifies the
+            Roblox build. Myriad results retain their category and report
+            metadata. bypass.tools keeps WEAO attribution on synced rows.
           </p>
         </section>
 
-        <section
-          id="rdd"
-          data-search="rdd roblox deployment downloader binary type channel version hash windows player studio mac query parameters official host mit"
-        >
-          <p class="eyebrow">External tool reference</p>
-          <h2>RDD — Roblox Deployment Downloader</h2>
+        <section id="rdd">
+          <h2>RDD</h2>
           <p>
-            RDD is an MIT-licensed static browser application by Latte
-            Softworks. Its public documentation says it assembles Roblox
-            deployment resources in the browser from Roblox-hosted content. The
-            July 2026 audit recorded separate WEAO and Pulsery deployments.
-            Their interfaces may differ from the upstream project; these links
-            are references rather than catalog data sources.
+            External Roblox deployment downloader. Links accept
+            <code>channel</code>, <code>binaryType</code>, <code>arch</code> and
+            <code>version</code>.
           </p>
-          <div class="table-wrap compact">
-            <table>
-              <thead>
-                <tr>
-                  <th>Deployment</th>
-                  <th>Observed public behavior</th>
-                  <th>Documentation status</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td>
-                    <a href="https://rdd.weao.gg/" rel="noopener"
-                      >rdd.weao.gg</a
-                    >
-                  </td>
-                  <td>
-                    Windows/Mac Player and Studio, channel/hash selection,
-                    compression, launcher controls, exploit selector and
-                    shareable parameters
-                  </td>
-                  <td>
-                    Usage and parameters visible on page; self-described
-                    unofficial RDD fork
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <a href="https://pulsery.gg/rdd" rel="noopener"
-                      >pulsery.gg/rdd</a
-                    >
-                  </td>
-                  <td>
-                    Branded deployment UI with platform/type, compression,
-                    source manifest, executor match, channel and version
-                    controls
-                  </td>
-                  <td>
-                    Public UI observed; no separate public API reference found
-                  </td>
-                </tr>
-                <tr>
-                  <td>
-                    <a href="https://rdd.latte.to/" rel="noopener"
-                      >rdd.latte.to</a
-                    >
-                  </td>
-                  <td>Upstream static browser application</td>
-                  <td>Public source and MIT license</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <div class="callout warning">
-            <strong>Trust boundary.</strong> Host branding and compatible query
-            parameters do not prove that deployments are byte-for-byte
-            identical. Document each host separately and retain upstream
-            attribution.
-          </div>
-          <h3>Documented URL parameters</h3>
-          <div class="table-wrap compact">
-            <table>
-              <thead>
-                <tr>
-                  <th>Parameter</th>
-                  <th>Values</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td><code>channel</code></td>
-                  <td>Channel name</td>
-                  <td>Defaults to <code>LIVE</code></td>
-                </tr>
-                <tr>
-                  <td><code>binaryType</code></td>
-                  <td>
-                    <code>WindowsPlayer</code>, <code>WindowsStudio64</code>,
-                    <code>MacPlayer</code>, <code>MacStudio</code>
-                  </td>
-                  <td>Deployment family</td>
-                </tr>
-                <tr>
-                  <td><code>arch</code></td>
-                  <td>Architecture when supported</td>
-                  <td>Defined by the selected deployment</td>
-                </tr>
-                <tr>
-                  <td><code>version</code></td>
-                  <td>Version hash</td>
-                  <td>Omit for current; validate before use</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
           <p>
-            Recommended Synchrose behavior: provide a neutral host selector with
-            clear ownership labels and a link to the upstream project. Do not
-            auto-select older builds based on executor metadata, and do not
-            claim a deployment is safe or undetected.
+            <a href="https://rdd.latte.to/">Upstream</a> ·
+            <a href="https://rdd.weao.gg/">WEAO</a> ·
+            <a href="https://pulsery.gg/rdd">Pulsery</a>
           </p>
         </section>
 
-        <section
-          id="model"
-          data-search="normalized model schema typescript status price platforms provenance fetched at source raw"
-        >
-          <p class="eyebrow">Internal contract</p>
-          <h2>Normalized data model</h2>
-          <pre><code>type CatalogItem = {
-  id: string;
-  name: string;
-  aliases: string[];
-  platforms: Platform[];
-  sources: SourceId[];
-  observations: SourceRecord[];
-  working: 'working' | 'broken' | 'mixed' | 'unknown';
-  detection: Detection | 'mixed';
-  version: string | null;
-  price: string | null;
-  free: boolean | null;
-  sunc: { min: number; max: number } | null;
-  features: string[];
-  conflicts: EvidenceConflict[];
-};
-
-type SourceRecord = {
-  source: SourceId;
-  fetchedAt: string;
-};</code></pre>
+        <section id="model">
+          <h2>Model</h2>
+          <p>Types: <code>Others/Synchrose/src/lib/catalog/model.ts</code>.</p>
           <p>
-            The implementation types live in
-            <code>Others/Synchrose/src/lib/catalog/model.ts</code>. Use
-            <code>null</code> for unknown values and retain every source
-            observation instead of flattening disagreement.
+            Each record holds normalized fields, source observations and
+            conflicts. Unknown values use <code>null</code>. Retrieval times and
+            source update times are separate.
           </p>
         </section>
 
-        <section
-          id="merge"
-          data-search="merge rules aliases conflicts precedence provenance disagreement names price status"
-        >
-          <p class="eyebrow">Deterministic behavior</p>
-          <h2>Merge rules</h2>
-          <ol>
-            <li>
-              Normalize names for matching only; preserve the source display
-              name.
-            </li>
-            <li>
-              Apply an explicit, reviewed alias table. Do not use fuzzy matching
-              for automatic merges.
-            </li>
-            <li>
-              Retain all four source observations; no source silently owns a
-              field across the entire catalog.
-            </li>
-            <li>
-              When sources provide different factual values, show the conflict
-              with both values—do not silently choose one.
-            </li>
-            <li>
-              Every rendered status, score, price and review must retain
-              provenance and retrieval time.
-            </li>
-          </ol>
-        </section>
-
-        <section
-          id="operations"
-          data-search="operations runbook github actions refresh cache stale failure monitoring testing performance"
-        >
-          <p class="eyebrow">Maintenance</p>
-          <h2>Operations runbook</h2>
-          <div class="card-grid">
-            <article>
-              <h3>Refresh</h3>
-              <p>
-                Use the dashboard refresh action or load the page with a
-                configured Worker URL. Four adapters run concurrently and report
-                health independently.
-              </p>
-            </article>
-            <article>
-              <h3>Failure</h3>
-              <p>
-                Keep the last-known-good browser snapshot, mark that source as
-                cached, and show the upstream error without exposing sensitive
-                headers.
-              </p>
-            </article>
-            <article>
-              <h3>Validation</h3>
-              <p>
-                Reject malformed URLs, impossible percentages and entries
-                without names. Adapter schema failures should affect one source,
-                not the whole page.
-              </p>
-            </article>
-            <article>
-              <h3>Testing</h3>
-              <p>
-                Run <code>npm test</code>, <code>npm run check</code> and
-                <code>npm run build</code> from
-                <code>Others/Synchrose</code> before deployment.
-              </p>
-            </article>
-          </div>
-          <h3>Release checklist</h3>
-          <ul class="checklist">
-            <li>Keyboard navigation and mobile layout tested</li>
-            <li>Source fetch and stale-data paths tested</li>
-            <li>External URLs validated before rendering</li>
-            <li>No upstream HTML inserted unsanitized</li>
-            <li>Attributions, licenses and source timestamps visible</li>
-            <li>
-              Production Pages deployment checked from a clean browser session
-            </li>
-          </ul>
-        </section>
-
-        <section
-          id="security"
-          data-search="security safety legal privacy terms links malware claims third party roblox"
-        >
-          <p class="eyebrow">Guardrails</p>
-          <h2>Safety, privacy and legal</h2>
+        <section id="merge">
+          <h2>Merging</h2>
           <ul>
-            <li>
-              Synchrose is an informational aggregator, not a malware scanner,
-              endorsement or guarantee.
-            </li>
-            <li>
-              External downloads and purchase links are untrusted. Use clear
-              domain labels and <code>rel="noopener noreferrer"</code>.
-            </li>
-            <li>
-              Do not reproduce paid content, private APIs or third-party
-              binaries.
-            </li>
-            <li>
-              Review music, images and video committed to the repository for
-              redistribution rights; large bundled media also inflates clones
-              and Pages deployment.
-            </li>
-            <li>
-              Document source terms and remove integrations promptly when a
-              provider withdraws permission.
-            </li>
+            <li>Match normalized names using the alias table.</li>
+            <li>Keep each source observation and platform variant.</li>
+            <li>Show conflicting values with their source.</li>
           </ul>
         </section>
 
-        <section
-          id="contributing"
-          data-search="contributing pull request style tests source adapter documentation"
-        >
-          <p class="eyebrow">Project workflow</p>
-          <h2>Contributing</h2>
-          <ol>
-            <li>
-              Open an issue describing the source or UI change and its
-              documented permission.
-            </li>
-            <li>
-              Add or update one source adapter; keep rendering independent of
-              upstream response shape.
-            </li>
-            <li>
-              Add fixtures for success, partial data, disagreement, 429 and
-              offline behavior.
-            </li>
-            <li>
-              Update this documentation and <code>source-audit.json</code> in
-              the same pull request.
-            </li>
-            <li>
-              Include the checks you ran and any behavior that still needs a
-              live deployment to verify.
-            </li>
-          </ol>
-          <div class="footer-links">
+        <section id="operations">
+          <h2>Commands</h2>
+          <pre><code>cd Others/Synchrose
+npm ci
+npm run dev
+npm test
+npm run check
+npm run build</code></pre>
+          <p>
+            Root build: <code>npm run build</code> writes
+            <code>pages-dist/</code>. Manual snapshot refresh:
+            <code>npm run catalog:refresh</code>.
+          </p>
+          <p>
+            Set a Worker override with
+            <code>?api=https://your-worker.workers.dev</code>; clear it with
+            <code>?api=clear</code>. Standalone deployment:
+            <code>npm run worker:deploy</code>.
+          </p>
+        </section>
+
+        <section id="security">
+          <h2>Validation</h2>
+          <p>
+            Adapters validate payloads, URLs and score ranges. Markdown uses
+            DOMPurify. The bridge has fixed GET routes; review credentials stay
+            in the Worker environment.
+          </p>
+        </section>
+
+        <section id="contributing">
+          <h2>Changes</h2>
+          <p>
+            Update the adapter and its fixture together. Run the checks before
+            deployment.
+          </p>
+          <p>
             <a href="https://github.com/mxsynry/mxsynry.github.io"
               >Repository</a
             >
-            <a href="https://docs.weao.xyz">WEAO API docs</a>
-            <a href="https://voxlis.net/wiki/roblox">Voxlis directory</a>
-            <a href="https://github.com/latte-soft/rdd">RDD source</a>
-          </div>
+          </p>
         </section>
-
-        <p id="noResults" class="no-results" hidden>
-          No documentation sections match your search.
-        </p>
+        <p id="noResults" class="no-results" hidden>No matches.</p>
       </main>
     </div>
 

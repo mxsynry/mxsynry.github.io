@@ -72,9 +72,11 @@ export async function refreshCatalog(
           state: result.stale ? "cached" : "live",
           count: result.records.length,
           fetchedAt: result.fetchedAt,
-          message: result.stale
-            ? "The upstream catalog reports cached data."
-            : undefined,
+          message:
+            result.message ??
+            (result.stale
+              ? "The upstream catalog reports cached data."
+              : undefined),
         };
       } catch (error) {
         const cached = results[source];

@@ -6,12 +6,13 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "svelte-check --tsconfig ./tsconfig.json && vite build && node scripts/sync-static-build.js",
+    "build": "npm run catalog:refresh && svelte-check --tsconfig ./tsconfig.json && vite build && node scripts/sync-static-build.js",
     "check": "svelte-check --tsconfig ./tsconfig.json",
     "test": "vitest run",
     "test:watch": "vitest",
     "worker:dev": "wrangler dev",
-    "worker:deploy": "wrangler deploy"
+    "worker:deploy": "wrangler deploy",
+    "catalog:refresh": "node --use-env-proxy scripts/refresh-catalogs.mjs"
   },
   "dependencies": {
     "dompurify": "^3.4.15",

@@ -65,7 +65,7 @@ host.require(["vs/editor/editor.main"], () => {
     });
   }
 
-  // Preserve the API used by applications that embed this page in a WebView.
+  // WebView API.
   Object.assign(host, {
     editor,
     editorInstance: editor,

@@ -261,7 +261,7 @@ export function initEditorTabs(userOptions) {
       }
     });
 
-  // These names are also used by embedded WebView hosts.
+  // Legacy WebView aliases.
   window.addtab = () => addTab();
   window.opentab = openTab;
   window.deltab = deleteTab;

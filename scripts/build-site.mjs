@@ -8,6 +8,7 @@ import {
   readRepositoryFile,
 } from "./repository.mjs";
 import { generateIndexes } from "./generate-indexes.mjs";
+import { build } from "esbuild";
 
 const exec = promisify(execFile);
 const appRoot = path.join(repositoryRoot, "Others/Synchrose");
@@ -37,6 +38,27 @@ await cp(
   path.join(appRoot, "dist"),
   path.join(outputRoot, "Others/Synchrose"),
   { recursive: true },
+);
+await build({
+  entryPoints: [path.join(repositoryRoot, "site-worker.js")],
+  outfile: path.join(outputRoot, "_worker.js"),
+  bundle: true,
+  format: "esm",
+  platform: "browser",
+  target: "es2022",
+});
+await writeFile(
+  path.join(outputRoot, "_routes.json"),
+  JSON.stringify({
+    version: 1,
+    include: ["/api/*"],
+    exclude: [],
+  }),
+);
+// Keep the Pages bundle out of Workers assets.
+await writeFile(
+  path.join(outputRoot, ".assetsignore"),
+  "_worker.js\n_routes.json\n.assetsignore\n",
 );
 await writeFile(path.join(outputRoot, ".nojekyll"), "");
 console.log(`Site built in ${outputRoot}`);

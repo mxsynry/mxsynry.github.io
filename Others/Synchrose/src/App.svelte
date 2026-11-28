@@ -129,26 +129,19 @@
 <main>
   <section class="index-intro">
     <div>
-      <p class="eyebrow">Public catalog reports / 04 feeds</p>
+      <p class="eyebrow">4 sources</p>
       <h1>Roblox executor reports</h1>
     </div>
-    <p>
-      Compare reported status, compatibility and prices. See who reported each
-      value, when it was retrieved, and where reports differ.
-    </p>
+    <p>Compare status, scores and prices across four catalogs.</p>
   </section>
 
   <nav class="section-nav" aria-label="On this page">
     <a href="#catalog">Catalog</a><a href="#terms">Terms &amp; tests</a><a
       href="#source-guide"
     >
-      Check a source
+      Sources
     </a>
   </nav>
-  <p class="catalog-context">
-    A compatibility score or “undetected” report does not establish software
-    safety. <a href="#terms">Understand the tests ↓</a>
-  </p>
 
   <SourceStrip health={catalog.health} />
   <Versions onmobile={showMobile} />
@@ -174,7 +167,7 @@
           <p class="eyebrow">Current catalog</p>
           <h2 id="catalog-title">Status reports</h2>
         </div>
-        <p>Last evidence pull <time>{formatTime(latestFetch)}</time></p>
+        <p>Last fetch <time>{formatTime(latestFetch)}</time></p>
       </header>
       <div class="view-controls" aria-label="Catalog view">
         <button
@@ -218,13 +211,10 @@
 </main>
 
 <footer class="site-footer">
-  <p>
-    <strong>Synchrose</strong> indexes third-party public claims. Source coverage
-    and test scores are not safety endorsements.
-  </p>
+  <p><strong>Synchrose</strong></p>
   <p>
     <a href="#terms">Definitions</a> ·
-    <a href="#source-guide">Sources &amp; limits</a>
+    <a href="#source-guide">Sources</a>
   </p>
 </footer>
 

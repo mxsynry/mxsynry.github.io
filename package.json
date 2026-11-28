@@ -11,6 +11,7 @@
     "check:text": "node scripts/check-text.mjs"
   },
   "devDependencies": {
+    "esbuild": "0.28.2",
     "prettier": "3.10.1",
     "prettier-plugin-svelte": "4.2.0"
   }

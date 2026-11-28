@@ -8,14 +8,21 @@ import {
   percentageOrNull,
   safeUrl,
 } from "../../format";
-import { fetchJson } from "../../http";
+import { requestCatalog } from "./catalog-request";
 import { asObject, platforms, strings, unique, validTimestamp } from "./common";
 
 const itemSchema = z.object({ name: z.string().min(1) }).passthrough();
 const listSchema = z.array(z.unknown());
 
 export async function fetchBypass(apiBase: string): Promise<SourceResult> {
-  const payload = await fetchJson(endpoints(apiBase).bypassCatalog);
+  return requestCatalog(
+    "bypass",
+    endpoints(apiBase).bypassCatalog,
+    normalizeCatalog,
+  );
+}
+
+function normalizeCatalog(payload: unknown): SourceResult {
   const root = asObject(payload);
   const fetchedAt = validTimestamp(root.fetchedAt) ?? new Date().toISOString();
   const candidates = listSchema.parse(

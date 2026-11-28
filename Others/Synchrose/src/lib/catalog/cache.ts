@@ -1,6 +1,5 @@
 import type { CatalogSnapshot, SourceId, SourceResult } from "./model";
 
-// Invalidate reports normalized with the retired source adapters.
 const CACHE_KEY = "synchrose:source-snapshot:v3";
 const CACHE_MAX_AGE = 24 * 60 * 60 * 1000;
 export function readSnapshot(): CatalogSnapshot | null {

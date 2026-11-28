@@ -62,8 +62,7 @@
             ><span class="intro-line accent-line">Read the market.</span>
           </h1>
           <p class="intro-lede">
-            Look up what a Roblox account is wearing, browse saved outfits and
-            emotes, and check market values for supported limiteds.
+            Public avatars, saved outfits and limited-item prices.
           </p>
           <div class="intro-facts">
             <span><b>Roblox</b> avatar state</span
@@ -76,7 +75,7 @@
           <div class="search-card-head">
             <div>
               <p class="eyebrow">ACCOUNT LOOKUP</p>
-              <h2>Who are you inspecting?</h2>
+              <h2>Search accounts</h2>
             </div>
             <span class="hint">username · id:1 · search:</span>
           </div>
@@ -117,10 +116,7 @@
             <div class="provider-copy">
               <p class="eyebrow">ITEM DETAILS</p>
               <strong>Prefer Rolimons</strong
-              ><span
-                >Use Rolimons for supported item details and values. Avatar data
-                still comes from Roblox.</span
-              >
+              ><span>Use Rolimons for supported item details.</span>
             </div>
             <label class="provider-toggle">
               <span>Full Roblox</span>
@@ -218,10 +214,6 @@
         </button>
       </div>
       <div class="modal-body">
-        <p class="modal-intro">
-          Your browser talks to one Worker. The Worker requests public Roblox
-          data and, when enabled, Rolimons market metadata.
-        </p>
         <label class="field-label" for="apiBaseInput">Worker URL</label>
         <div class="api-row">
           <input
@@ -260,12 +252,7 @@
       </div>
       <div class="modal-body">
         <ol class="steps">
-          <li>
-            <b>01</b
-            ><span
-              >Download the full OutfitSearch folder from the repository.</span
-            >
-          </li>
+          <li><b>01</b><span>Download the OutfitSearch folder.</span></li>
           <li>
             <b>02</b
             ><span
@@ -273,16 +260,9 @@
               <code>server/</code> alongside <code>worker.js</code>.</span
             >
           </li>
-          <li>
-            <b>03</b
-            ><span>Copy the deployed <code>.workers.dev</code> URL.</span>
-          </li>
+          <li><b>03</b><span>Copy the Worker URL.</span></li>
           <li><b>04</b><span>Connect that URL with the API button.</span></li>
         </ol>
-        <p class="privacy-note">
-          Rolimons cannot replace Roblox username, avatar-state, thumbnail, or
-          saved-outfit endpoints.
-        </p>
       </div>
     </dialog>
 

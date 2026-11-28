@@ -67,9 +67,7 @@ export function pageIndex(files, { owner, repo }) {
     });
   return [
     "<!-- pages-index:start -->",
-    "## Site Pages",
-    "",
-    "Generated from the published HTML pages.",
+    "## Pages",
     "",
     "| Page | File |",
     "|---|---|",
