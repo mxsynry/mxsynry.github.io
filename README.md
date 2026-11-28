@@ -28,15 +28,16 @@ snapshots when the bridge is unavailable. OutfitSearch's Worker deploys separate
 `npm run index` updates the file tree and page list.
 
 <!-- pages-index:start -->
+## Site Pages
 
-## Pages
+This section is automatically generated from the HTML files in this repository.
 
-| Page                                                                  | File                             |
-| --------------------------------------------------------------------- | -------------------------------- |
-| [docs](https://mxsynry.github.io/docs/)                               | `docs/index.html`                |
-| [Home](https://mxsynry.github.io/)                                    | `index.html`                     |
-| [Others/Editor](https://mxsynry.github.io/Others/Editor/)             | `Others/Editor/index.html`       |
+| Page | File |
+|---|---|
+| [docs](https://mxsynry.github.io/docs/) | `docs/index.html` |
+| [Home](https://mxsynry.github.io/) | `index.html` |
+| [Others/Editor](https://mxsynry.github.io/Others/Editor/) | `Others/Editor/index.html` |
 | [Others/OutfitSearch](https://mxsynry.github.io/Others/OutfitSearch/) | `Others/OutfitSearch/index.html` |
-| [Others/Synchrose](https://mxsynry.github.io/Others/Synchrose/)       | `Others/Synchrose/index.html`    |
-
+| [Others/Synchrose](https://mxsynry.github.io/Others/Synchrose/) | `Others/Synchrose/index.html` |
+| [Others/Synchrose/src](https://mxsynry.github.io/Others/Synchrose/src/) | `Others/Synchrose/src/index.html` |
 <!-- pages-index:end -->
